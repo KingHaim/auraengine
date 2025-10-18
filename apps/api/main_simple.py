@@ -62,6 +62,18 @@ app.add_middleware(
 # Mount static files
 app.mount("/static", StaticFiles(directory="uploads"), name="static")
 
+# Direct endpoint to serve static images
+@app.get("/static/{filename}")
+async def serve_static_file(filename: str):
+    """Serve static files directly"""
+    import os
+    file_path = os.path.join("uploads", filename)
+    if os.path.exists(file_path):
+        from fastapi.responses import FileResponse
+        return FileResponse(file_path)
+    else:
+        raise HTTPException(status_code=404, detail="File not found")
+
 # Database dependency
 def get_db():
     db = SessionLocal()
@@ -1092,7 +1104,8 @@ def upload_png(img: Image.Image) -> str:
     filename = f"product_{hash(str(img.tobytes()))}.png"
     filepath = f"uploads/{filename}"
     img.save(filepath)
-    return f"http://localhost:8000/static/{filename}"
+    base_url = os.getenv("API_BASE_URL", "https://courteous-radiance-production.up.railway.app")
+    return f"{base_url}/static/{filename}"
 
 def compress_image_for_processing(filepath: str, max_size: int = 512) -> str:
     """Compress and resize image for efficient processing with Replicate"""
@@ -1196,7 +1209,8 @@ def download_and_save_image(url: str, prefix: str = "packshot") -> str:
         os.makedirs("uploads", exist_ok=True)
         img.save(filepath)
         
-        local_url = f"http://localhost:8000/static/{filename}"
+        base_url = os.getenv("API_BASE_URL", "https://courteous-radiance-production.up.railway.app")
+        local_url = f"{base_url}/static/{filename}"
         print(f"✅ Saved to: {local_url}")
         return local_url
         
@@ -1625,7 +1639,9 @@ async def upload_product(
             content = await product_image.read()
             f.write(content)
         
-        image_url = f"http://localhost:8000/static/{image_filename}"
+        # Get the base URL from environment or use Railway URL
+        base_url = os.getenv("API_BASE_URL", "https://courteous-radiance-production.up.railway.app")
+        image_url = f"{base_url}/static/{image_filename}"
         
         # Initialize packshot URLs
         packshot_front_url = None
@@ -2075,7 +2091,8 @@ def download_and_save_video(url: str) -> str:
             f.write(response.content)
         
         # Return local URL
-        local_url = f"http://localhost:8000/static/{filename}"
+        base_url = os.getenv("API_BASE_URL", "https://courteous-radiance-production.up.railway.app")
+        local_url = f"{base_url}/static/{filename}"
         print(f"✅ Video saved locally: {local_url}")
         return local_url
         
