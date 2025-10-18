@@ -1,0 +1,2708 @@
+#!/usr/bin/env python3
+"""
+Simple working version for debugging
+"""
+from fastapi import FastAPI, HTTPException, Depends, Request, Form, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
+from database import SessionLocal, create_tables
+from models import User, Product, Model, Scene, Campaign, Generation
+from schemas import UserCreate, UserResponse, Token, ProductResponse, ModelResponse, SceneResponse, CampaignResponse
+from auth import get_current_user, create_access_token, verify_password, get_password_hash
+from datetime import datetime, timedelta
+import os
+import json
+import uuid
+import stripe
+import replicate
+import base64
+import mimetypes
+import requests
+from typing import List, Optional
+from io import BytesIO
+from PIL import Image, ImageFilter, ImageOps
+from pydantic import BaseModel
+
+# Environment variables
+REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./aura_engine.db")
+
+# Configure Stripe
+stripe.api_key = STRIPE_SECRET_KEY
+
+# Pydantic models
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class PaymentConfirmRequest(BaseModel):
+    payment_intent_id: str
+
+# Initialize FastAPI app
+app = FastAPI(title="Aura Engine API", version="1.0.0")
+
+# Create database tables on startup
+@app.on_event("startup")
+async def startup_event():
+    create_tables()
+
+# CORS middleware - Allow all origins for deployment
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for deployment (can be restricted later)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="uploads"), name="static")
+
+# Database dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# ---------- API Endpoints ----------
+@app.get("/")
+async def root():
+    return {"message": "Aura Engine API"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "message": "Aura Engine API is running"}
+
+# ---------- Authentication Endpoints ----------
+@app.post("/auth/register", response_model=Token)
+async def register(user_data: UserCreate, db: Session = Depends(get_db)):
+    """Register a new user"""
+    try:
+        # Check if user already exists
+        existing_user = db.query(User).filter(User.email == user_data.email).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Create new user
+        hashed_password = get_password_hash(user_data.password)
+        user = User(
+            email=user_data.email,
+            full_name=user_data.full_name,
+            hashed_password=hashed_password,
+            credits=100  # Give new users 100 credits
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        
+        # Create access token
+        access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": UserResponse.from_orm(user)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/auth/login", response_model=Token)
+async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
+    """Login user"""
+    try:
+        email = login_data.email
+        password = login_data.password
+        
+        user = db.query(User).filter(User.email == email).first()
+        if not user or not verify_password(password, user.hashed_password):
+            raise HTTPException(status_code=401, detail="Incorrect email or password")
+        
+        # Create access token
+        access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": UserResponse.from_orm(user)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/auth/me")
+async def get_current_user_info(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get current user info for token verification"""
+    try:
+        user = db.query(User).filter(User.id == current_user["user_id"]).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return UserResponse.from_orm(user)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ---------- Basic CRUD Endpoints ----------
+@app.get("/products", response_model=list[ProductResponse])
+async def get_products(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all products for the current user"""
+    try:
+        products = db.query(Product).filter(Product.user_id == current_user["user_id"]).all()
+        return products
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/models", response_model=list[ModelResponse])
+async def get_models(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all models for the current user"""
+    try:
+        models = db.query(Model).filter(Model.user_id == current_user["user_id"]).all()
+        return models
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/scenes", response_model=list[SceneResponse])
+async def get_scenes(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all scenes for the current user"""
+    try:
+        scenes = db.query(Scene).filter(Scene.user_id == current_user["user_id"]).all()
+        return scenes
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/campaigns", response_model=list[CampaignResponse])
+async def get_campaigns(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all campaigns for the current user"""
+    try:
+        campaigns = db.query(Campaign).filter(Campaign.user_id == current_user["user_id"]).all()
+        return campaigns
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/campaigns/create")
+async def create_campaign(
+    name: str = Form(...),
+    description: str = Form(""),
+    product_ids: str = Form(...),  # JSON string
+    model_ids: str = Form(...),    # JSON string
+    scene_ids: str = Form(...),    # JSON string
+    selected_poses: str = Form("{}"),  # JSON string
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create a new campaign"""
+    try:
+        import json
+        
+        # Parse JSON strings
+        product_id_list = json.loads(product_ids)
+        model_id_list = json.loads(model_ids)
+        scene_id_list = json.loads(scene_ids)
+        selected_poses_dict = json.loads(selected_poses)
+        
+        if not product_id_list or not model_id_list or not scene_id_list:
+            raise HTTPException(status_code=400, detail="Please select at least one product, model, and scene")
+        
+        # Create campaign
+        campaign = Campaign(
+            user_id=current_user["user_id"],
+            name=name,
+            description=description,
+            status="processing",
+            settings={
+                "product_ids": product_id_list,
+                "model_ids": model_id_list,
+                "scene_ids": scene_id_list,
+                "selected_poses": selected_poses_dict,
+                "generated_images": []
+            }
+        )
+        db.add(campaign)
+        db.commit()
+        db.refresh(campaign)
+        
+        # Generate images automatically
+        print(f"🎯 Auto-generating images for campaign: {name}")
+        
+        products = db.query(Product).filter(Product.id.in_(product_id_list)).all()
+        models = db.query(Model).filter(Model.id.in_(model_id_list)).all()
+        scenes = db.query(Scene).filter(Scene.id.in_(scene_id_list)).all()
+        
+        generated_images = []
+        
+        # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
+        for product in products:
+            for model in models:
+                for scene in scenes:
+                    # Use product packshot (front view preferred)
+                    product_image = product.packshot_front_url or product.image_url
+                    
+                    # Use model's selected pose if available
+                    model_image = model.image_url
+                    if selected_poses_dict.get(str(model.id)) and len(selected_poses_dict[str(model.id)]) > 0:
+                        import random
+                        model_image = random.choice(selected_poses_dict[str(model.id)])
+                        print(f"🎭 Using selected pose for {model.name}")
+                    elif model.poses and len(model.poses) > 0:
+                        import random
+                        model_image = random.choice(model.poses)
+                        print(f"🎭 Using random pose for {model.name}")
+                    
+                    print(f"🎬 Processing campaign flow: {product.name} + {model.name} + {scene.name}")
+                    print(f"📸 Generating {len(CAMPAIGN_SHOT_TYPES)} different shots for complete campaign...")
+                    
+                    # Generate all shot types for this combination
+                    for shot_idx, shot_type in enumerate(CAMPAIGN_SHOT_TYPES, 1):
+                        try:
+                            print(f"\n🎥 [{shot_idx}/{len(CAMPAIGN_SHOT_TYPES)}] {shot_type['title']}")
+                            
+                            # REAL WORKFLOW: Qwen + Vella with shot-specific prompt
+                            quality_mode = "standard"
+                            
+                            # Step 1: Qwen scene composition with shot type
+                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
+                            qwen_result_url = run_qwen_scene_composition(
+                                model_image, 
+                                scene.image_url, 
+                                quality_mode,
+                                shot_type_prompt=shot_type['prompt']
+                            )
+                            print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
+                            
+                            # Step 2: Apply Vella try-on with clothing type detection
+                            print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
+                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
+                            vella_result_url = run_vella_try_on(qwen_result_url, product_image, quality_mode, clothing_type)
+                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
+                            
+                            # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
+                            is_closeup = shot_type['name'] in ['upper_closeup', 'lower_closeup']
+                            if is_closeup:
+                                print(f"🍌 Step 3: Enhancing close-up with Nano Banana (img2img)...")
+                                try:
+                                    # Convert Vella result URL to base64 for Nano Banana
+                                    if vella_result_url.startswith("http://localhost:8000/static/"):
+                                        filename = vella_result_url.replace("http://localhost:8000/static/", "")
+                                        filepath = f"uploads/{filename}"
+                                        vella_base64 = upload_to_replicate(filepath)
+                                    elif vella_result_url.startswith("https://replicate.delivery/"):
+                                        vella_base64 = upload_to_replicate(vella_result_url)
+                                    else:
+                                        vella_base64 = vella_result_url
+                                    
+                                    # Apply Nano Banana img2img using 'instructions' parameter for image editing
+                                    nano_result = replicate.run(
+                                        "google/nano-banana",
+                                        input={
+                                            "instructions": f"Enhance the clothing details and fabric texture. Make the {product.name} look more realistic with sharp focus on fabric folds, stitching, and material quality. Preserve the model's appearance and overall composition. Professional fashion photography style.",
+                                            "image": vella_base64,
+                                            "num_inference_steps": 28,
+                                            "guidance_scale": 5.5,
+                                            "strength": 0.35  # Moderate strength to preserve Vella's work but enhance details
+                                        }
+                                    )
+                                    
+                                    # Handle Nano Banana output
+                                    if hasattr(nano_result, 'url'):
+                                        nano_url = nano_result.url()
+                                    elif isinstance(nano_result, str):
+                                        nano_url = nano_result
+                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                    else:
+                                        nano_url = str(nano_result)
+                                    
+                                    print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+                                    final_result_url = nano_url
+                                except Exception as e:
+                                    print(f"⚠️ Nano Banana failed, using Vella result: {e}")
+                                    final_result_url = vella_result_url
+                            else:
+                                # For non-closeup shots, use Vella result directly
+                                final_result_url = vella_result_url
+                            
+                            # Download final result
+                            print(f"💾 Downloading final result...")
+                            final_url = download_and_save_image(final_result_url, f"campaign_{shot_type['name']}")
+                            print(f"✅ Final result saved locally: {final_url[:50]}...")
+                            
+                            generated_images.append({
+                                "product_name": product.name,
+                                "product_id": str(product.id),
+                                "model_name": model.name,
+                                "scene_name": scene.name,
+                                "shot_type": shot_type['title'],
+                                "shot_name": shot_type['name'],
+                                "image_url": final_url,
+                                "model_image_url": model_image,
+                                "product_image_url": product_image,
+                                "clothing_type": clothing_type
+                            })
+                            
+                            print(f"✅ Shot completed: {shot_type['title']}")
+                            
+                        except Exception as e:
+                            print(f"❌ Failed shot {shot_type['title']}: {e}")
+                            import traceback
+                            traceback.print_exc()
+                            continue
+                    
+                    print(f"\n🎉 Campaign flow complete: {product.name} + {model.name} + {scene.name}")
+        
+        # Update campaign with generated images
+        campaign.status = "completed" if len(generated_images) > 0 else "failed"
+        
+        # Create new settings dict to force SQLAlchemy to detect change
+        new_settings = dict(campaign.settings) if campaign.settings else {}
+        new_settings["generated_images"] = generated_images
+        campaign.settings = new_settings
+        
+        # Force SQLAlchemy to detect the change
+        flag_modified(campaign, "settings")
+        
+        db.commit()
+        db.refresh(campaign)
+        
+        print(f"🎉 Campaign created with {len(generated_images)} images")
+        
+        return {
+            "campaign": CampaignResponse.model_validate(campaign),
+            "message": f"Campaign '{name}' created with {len(generated_images)} images across {len(CAMPAIGN_SHOT_TYPES)} shot types!",
+            "generated_images": generated_images
+        }
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON format")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/campaigns/{campaign_id}/generate")
+async def generate_campaign_images(
+    campaign_id: str,
+    product_ids: str = Form("[]"),
+    model_ids: str = Form("[]"),
+    scene_ids: str = Form("[]"),
+    selected_poses: str = Form("{}"),
+    number_of_images: int = Form(1),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate images for a campaign"""
+    try:
+        import json
+        
+        # Get campaign
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        # Parse parameters or use campaign defaults
+        product_id_list = json.loads(product_ids) if product_ids != "[]" else campaign.settings.get("product_ids", [])
+        model_id_list = json.loads(model_ids) if model_ids != "[]" else campaign.settings.get("model_ids", [])
+        scene_id_list = json.loads(scene_ids) if scene_ids != "[]" else campaign.settings.get("scene_ids", [])
+        
+        # Get entities
+        products = db.query(Product).filter(Product.id.in_(product_id_list)).all()
+        models = db.query(Model).filter(Model.id.in_(model_id_list)).all()
+        scenes = db.query(Scene).filter(Scene.id.in_(scene_id_list)).all()
+        
+        if not products or not models or not scenes:
+            raise HTTPException(status_code=400, detail="Missing products, models, or scenes")
+        
+        campaign.status = "processing"
+        db.commit()
+        
+        print(f"🎯 Generating MORE images for campaign: {campaign.name}")
+        print(f"📊 {len(products)} products × {len(models)} models × {len(scenes)} scenes")
+        
+        # Get existing images to APPEND to them
+        existing_images = campaign.settings.get("generated_images", []) if campaign.settings else []
+        print(f"📌 Existing images: {len(existing_images)}")
+        
+        new_images = []
+        
+        # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
+        for product in products:
+            for model in models:
+                for scene in scenes:
+                    # Use product packshot (front view preferred)
+                    product_image = product.packshot_front_url or product.image_url
+                    
+                    # Use model's pose if available, or select random
+                    if model.poses and len(model.poses) > 0:
+                        import random
+                        model_image = random.choice(model.poses)
+                        print(f"🎭 Using random pose for {model.name}")
+                    else:
+                        model_image = model.image_url
+                    
+                    print(f"🎬 Processing campaign flow: {product.name} + {model.name} + {scene.name}")
+                    print(f"📸 Generating {number_of_images} images for this campaign...")
+                    
+                    # Generate only the requested number of images
+                    shot_types_to_generate = CAMPAIGN_SHOT_TYPES[:number_of_images]
+                    for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
+                        try:
+                            print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
+                            
+                            # REAL WORKFLOW: Qwen + Vella with shot-specific prompt
+                            quality_mode = "standard"
+                            
+                            # Step 1: Qwen scene composition with shot type
+                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
+                            qwen_result_url = run_qwen_scene_composition(
+                                model_image, 
+                                scene.image_url, 
+                                quality_mode,
+                                shot_type_prompt=shot_type['prompt']
+                            )
+                            print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
+                            
+                            # Step 2: Apply Vella try-on with clothing type detection
+                            print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
+                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
+                            vella_result_url = run_vella_try_on(qwen_result_url, product_image, quality_mode, clothing_type)
+                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
+                            
+                            # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
+                            is_closeup = shot_type['name'] in ['upper_closeup', 'lower_closeup']
+                            if is_closeup:
+                                print(f"🍌 Step 3: Enhancing close-up with Nano Banana (img2img)...")
+                                try:
+                                    # Convert Vella result URL to base64 for Nano Banana
+                                    if vella_result_url.startswith("http://localhost:8000/static/"):
+                                        filename = vella_result_url.replace("http://localhost:8000/static/", "")
+                                        filepath = f"uploads/{filename}"
+                                        vella_base64 = upload_to_replicate(filepath)
+                                    elif vella_result_url.startswith("https://replicate.delivery/"):
+                                        vella_base64 = upload_to_replicate(vella_result_url)
+                                    else:
+                                        vella_base64 = vella_result_url
+                                    
+                                    # Apply Nano Banana img2img using 'instructions' parameter for image editing
+                                    nano_result = replicate.run(
+                                        "google/nano-banana",
+                                        input={
+                                            "instructions": f"Enhance the clothing details and fabric texture. Make the {product.name} look more realistic with sharp focus on fabric folds, stitching, and material quality. Preserve the model's appearance and overall composition. Professional fashion photography style.",
+                                            "image": vella_base64,
+                                            "num_inference_steps": 28,
+                                            "guidance_scale": 5.5,
+                                            "strength": 0.35  # Moderate strength to preserve Vella's work but enhance details
+                                        }
+                                    )
+                                    
+                                    # Handle Nano Banana output
+                                    if hasattr(nano_result, 'url'):
+                                        nano_url = nano_result.url()
+                                    elif isinstance(nano_result, str):
+                                        nano_url = nano_result
+                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                    else:
+                                        nano_url = str(nano_result)
+                                    
+                                    print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+                                    final_result_url = nano_url
+                                except Exception as e:
+                                    print(f"⚠️ Nano Banana failed, using Vella result: {e}")
+                                    final_result_url = vella_result_url
+                            else:
+                                # For non-closeup shots, use Vella result directly
+                                final_result_url = vella_result_url
+                            
+                            # Download final result
+                            print(f"💾 Downloading final result...")
+                            final_url = download_and_save_image(final_result_url, f"campaign_{shot_type['name']}")
+                            print(f"✅ Final result saved locally: {final_url[:50]}...")
+                            
+                            new_images.append({
+                                "product_name": product.name,
+                                "product_id": str(product.id),
+                                "model_name": model.name,
+                                "scene_name": scene.name,
+                                "shot_type": shot_type['title'],
+                                "shot_name": shot_type['name'],
+                                "image_url": final_url,
+                                "model_image_url": model_image,
+                                "product_image_url": product_image,
+                                "clothing_type": clothing_type
+                            })
+                            
+                            print(f"✅ Shot completed: {shot_type['title']}")
+                            
+                        except Exception as e:
+                            print(f"❌ Failed shot {shot_type['title']}: {e}")
+                            import traceback
+                            traceback.print_exc()
+                            continue
+                    
+                    print(f"\n🎉 Campaign flow complete: {product.name} + {model.name} + {scene.name}")
+        
+        # Update campaign
+        campaign.status = "completed" if len(new_images) > 0 else "failed"
+        
+        # APPEND new images to existing ones (don't replace!)
+        all_images = existing_images + new_images
+        print(f"📊 Total images: {len(existing_images)} existing + {len(new_images)} new = {len(all_images)} total")
+        
+        # Create new settings dict to force SQLAlchemy to detect change
+        new_settings = dict(campaign.settings) if campaign.settings else {}
+        new_settings["generated_images"] = all_images
+        campaign.settings = new_settings
+        
+        # Force SQLAlchemy to detect the change
+        flag_modified(campaign, "settings")
+        
+        db.commit()
+        db.refresh(campaign)
+        
+        print(f"🎉 Campaign update complete: {len(new_images)} new images generated, {len(all_images)} total")
+        
+        return {
+            "message": f"Generated {len(new_images)} new images ({len(all_images)} total)",
+            "campaign": CampaignResponse.model_validate(campaign),
+            "generated_images": new_images,  # Return only new images
+            "total_images": len(all_images)
+        }
+        
+    except Exception as e:
+        print(f"❌ Campaign generation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/campaigns/{campaign_id}")
+async def delete_campaign(
+    campaign_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a campaign"""
+    try:
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        db.delete(campaign)
+        db.commit()
+        
+        return {"message": "Campaign deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error deleting campaign: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ---------- Delete Endpoints ----------
+@app.delete("/products/{product_id}")
+async def delete_product(
+    product_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a product"""
+    try:
+        product = db.query(Product).filter(
+            Product.id == product_id,
+            Product.user_id == current_user["user_id"]
+        ).first()
+        
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        db.delete(product)
+        db.commit()
+        
+        return {"message": "Product deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error deleting product: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+def run_nano_banana_model_generation(
+    prompt: str, 
+    variants: int = 1, 
+    gender: str = "male",
+    age: int = 25,
+    height: str = "average",
+    build: str = "athletic",
+    hair_color: str = "brown",
+    eye_color: str = "brown",
+    skin_tone: str = "medium"
+) -> List[str]:
+    """Generate model images using Nano Banana with base model images"""
+    try:
+        print(f"🎭 Running Nano Banana model generation: {prompt}")
+        
+        # Use the base model image as starting point based on gender
+        if gender == "female":
+            base_model_local_url = "http://localhost:8000/static/model_female.png"
+        else:
+            base_model_local_url = "http://localhost:8000/static/model.png"
+        
+        # Convert local URL to base64 for Replicate
+        if base_model_local_url.startswith("http://localhost:8000/static/"):
+            filename = base_model_local_url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            if os.path.exists(filepath):
+                base_model_url = upload_to_replicate(filepath)
+                print(f"Converted base model to base64")
+            else:
+                print(f"❌ Base model file not found: {filepath}")
+                raise Exception(f"Base model file not found: {filepath}")
+        else:
+            base_model_url = base_model_local_url
+        
+        generated_urls = []
+        
+        for i in range(variants):
+            try:
+                # Enhance prompt with physical attributes
+                physical_description = f"{age} year old {gender}, {height} height, {build} build, {hair_color} hair, {eye_color} eyes, {skin_tone} skin tone"
+                
+                # Handle empty prompt - use just physical attributes
+                # Modify realistic photo while preserving pose and clothes
+                if prompt.strip():
+                    enhanced_prompt = f"Modify the person's physical features to be: {physical_description}. {prompt}. Keep the exact same pose, black t-shirt, black shorts, sandals, and white background. Only change facial features, skin tone, hair, and body proportions. Professional fashion photography style."
+                else:
+                    enhanced_prompt = f"Modify the person's physical features to be: {physical_description}. Keep the exact same pose, black t-shirt, black shorts, sandals, and white background. Only change facial features, skin tone, hair, and body proportions. Professional fashion photography style."
+                
+                print(f"🎭 Processing variant {i+1} with base model image...")
+                print(f"📝 Prompt: {enhanced_prompt[:150]}...")
+                
+                # Run Nano Banana model generation with moderate strength for realistic photo modification
+                out = replicate.run("google/nano-banana", input={
+                    "prompt": enhanced_prompt,  # Use 'prompt' parameter
+                    "image": base_model_url,
+                    "num_inference_steps": 25,  # Moderate for realistic photo
+                    "guidance_scale": 6.0,  # Moderate guidance
+                    "strength": 0.4,  # Moderate strength for realistic photo modification
+                    "seed": None
+                })
+                
+                # Handle different return types
+                if hasattr(out, 'url'):
+                    generated_urls.append(out.url())
+                elif isinstance(out, str):
+                    generated_urls.append(out)
+                elif isinstance(out, list) and len(out) > 0:
+                    item = out[0]
+                    if hasattr(item, 'url'):
+                        generated_urls.append(item.url())
+                    else:
+                        generated_urls.append(str(item))
+                else:
+                    generated_urls.append(str(out))
+                
+                print(f"✅ Nano Banana variant {i+1} completed")
+                
+            except Exception as e:
+                print(f"❌ Nano Banana variant {i+1} failed: {e}")
+                raise
+        
+        print(f"✅ Nano Banana model generation completed: {len(generated_urls)} images")
+        return generated_urls
+        
+    except Exception as e:
+        print(f"❌ Nano Banana model generation error: {e}")
+        raise
+
+@app.post("/models/ai-generate")
+async def generate_model(
+    prompt: str = Form(""),
+    variants: int = Form(1),
+    gender: str = Form("male"),
+    age: int = Form(25),
+    height: str = Form("average"),
+    build: str = Form("athletic"),
+    hair_color: str = Form("brown"),
+    eye_color: str = Form("brown"),
+    skin_tone: str = Form("medium"),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate a new model using AI"""
+    print("=== MODEL GENERATION ENDPOINT CALLED ===")
+    print(f"Prompt: {prompt}")
+    print(f"Variants: {variants}")
+    print(f"Gender: {gender}")
+    
+    try:
+        # Check user credits (1 credit per variant)
+        user = db.query(User).filter(User.id == current_user["user_id"]).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        credits_needed = variants
+        if user.credits < credits_needed:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Insufficient credits. You have {user.credits} credits, but need {credits_needed}"
+            )
+        
+        # Generate model images using Nano Banana
+        print(f"Calling run_nano_banana_model_generation...")
+        model_urls = run_nano_banana_model_generation(
+            prompt, variants, gender, age, height, build, hair_color, eye_color, skin_tone
+        )
+        print(f"Got model URLs: {model_urls}")
+        
+        # Download and store model images locally
+        local_model_urls = []
+        for i, model_url in enumerate(model_urls):
+            try:
+                local_url = download_and_save_image(model_url, f"generated_model_{i+1}")
+                local_model_urls.append(local_url)
+            except Exception as e:
+                print(f"⚠️ Failed to download model {i+1}, using original URL: {e}")
+                local_model_urls.append(model_url)
+        
+        print(f"Stored local model URLs: {local_model_urls}")
+        
+        # Deduct credits
+        user.credits -= credits_needed
+        db.commit()
+        
+        # Create model records in database
+        created_models = []
+        for i, local_url in enumerate(local_model_urls):
+            model = Model(
+                id=str(uuid.uuid4()),
+                name=f"Generated Model {i+1}",
+                image_url=local_url,
+                user_id=current_user["user_id"],
+                gender=gender,
+                poses=[]
+            )
+            db.add(model)
+            created_models.append(model)
+        
+        db.commit()
+        
+        print(f"✅ Created {len(created_models)} models in database")
+        
+        return {
+            "message": f"Successfully generated {len(created_models)} models",
+            "models": [
+                {
+                    "id": model.id,
+                    "name": model.name,
+                    "image_url": model.image_url,
+                    "poses": model.poses
+                }
+                for model in created_models
+            ],
+            "credits_used": credits_needed,
+            "remaining_credits": user.credits
+        }
+        
+    except Exception as e:
+        print(f"❌ Model generation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/models/{model_id}")
+async def delete_model(
+    model_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a model"""
+    try:
+        model = db.query(Model).filter(
+            Model.id == model_id,
+            Model.user_id == current_user["user_id"]
+        ).first()
+        
+        if not model:
+            raise HTTPException(status_code=404, detail="Model not found")
+        
+        db.delete(model)
+        db.commit()
+        
+        return {"message": "Model deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error deleting model: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/scenes/{scene_id}")
+async def delete_scene(
+    scene_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a scene"""
+    try:
+        scene = db.query(Scene).filter(
+            Scene.id == scene_id,
+            Scene.user_id == current_user["user_id"]
+        ).first()
+        
+        if not scene:
+            raise HTTPException(status_code=404, detail="Scene not found")
+        
+        db.delete(scene)
+        db.commit()
+        
+        return {"message": "Scene deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error deleting scene: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ---------- Dashboard Endpoint ----------
+@app.get("/dashboard/stats")
+async def get_dashboard_stats(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get dashboard statistics"""
+    try:
+        user_id = current_user["user_id"]
+        
+        # Count entities
+        products_count = db.query(Product).filter(Product.user_id == user_id).count()
+        models_count = db.query(Model).filter(Model.user_id == user_id).count()
+        scenes_count = db.query(Scene).filter(Scene.user_id == user_id).count()
+        campaigns_count = db.query(Campaign).filter(Campaign.user_id == user_id).count()
+        
+        # Get user credits
+        user = db.query(User).filter(User.id == user_id).first()
+        credits = user.credits if user else 0
+        
+        return {
+            "products": products_count,
+            "models": models_count,
+            "scenes": scenes_count,
+            "campaigns": campaigns_count,
+            "credits": credits
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ---------- Payment Configuration ----------
+@app.get("/payments/config")
+async def get_payment_config():
+    """Get payment configuration"""
+    return {
+        "publishable_key": STRIPE_PUBLISHABLE_KEY
+    }
+
+@app.post("/payments/create-intent")
+async def create_payment_intent(
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create a Stripe payment intent for credit purchase"""
+    try:
+        # Extract amount from query params or request body
+        amount = None
+        
+        # Try query parameter first
+        if "amount" in request.query_params:
+            amount = int(request.query_params["amount"])
+        else:
+            # Try request body
+            try:
+                body = await request.json()
+                amount = int(body.get("amount", 0))
+            except:
+                pass
+        
+        if not amount:
+            raise HTTPException(
+                status_code=400,
+                detail="Amount parameter is required"
+            )
+        
+        # Validate amount (minimum $1, maximum $1000)
+        if amount < 100 or amount > 100000:
+            raise HTTPException(
+                status_code=400,
+                detail="Amount must be between $1.00 and $1000.00"
+            )
+        
+        # Calculate credits (1 credit = $0.10, so $1 = 10 credits)
+        # amount is in cents, so we need to convert to dollars first
+        # $4.99 = 499 cents → 499 / 10 = 49.9 → 49 credits (but should be 20)
+        # The correct formula: credits = amount_in_cents / 10
+        # But our packages are priced differently, so we need to use the actual price
+        credits_to_add = int(amount / 10)  # This is correct for the current pricing
+        
+        # Create payment intent
+        intent = stripe.PaymentIntent.create(
+            amount=amount,
+            currency="usd",
+            metadata={
+                "user_id": current_user["user_id"],
+                "credits": str(credits_to_add)
+            }
+        )
+        
+        return {
+            "client_secret": intent.client_secret,
+            "credits": credits_to_add,
+            "amount": amount
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/payments/confirm")
+async def confirm_payment(
+    request: PaymentConfirmRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Confirm payment and add credits to user account"""
+    try:
+        # Retrieve payment intent from Stripe
+        intent = stripe.PaymentIntent.retrieve(request.payment_intent_id)
+        
+        if intent.status != "succeeded":
+            raise HTTPException(
+                status_code=400,
+                detail="Payment not completed"
+            )
+        
+        # Get credits from metadata
+        credits_to_add = int(intent.metadata.get("credits", 0))
+        
+        if credits_to_add <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid credits amount"
+            )
+        
+        # Add credits to user account
+        user = db.query(User).filter(User.id == current_user["user_id"]).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user.credits += credits_to_add
+        db.commit()
+        
+        return {
+            "message": f"Successfully added {credits_to_add} credits",
+            "credits_remaining": user.credits
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ---------- Helper Functions for Packshot Generation ----------
+def has_alpha(url: str) -> bool:
+    """Check if image has alpha channel by examining the file"""
+    try:
+        if url.startswith("http://localhost:8000/static/"):
+            # Local file - check directly
+            filename = url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            if os.path.exists(filepath):
+                with Image.open(filepath) as im:
+                    return im.mode in ("LA", "RGBA")
+        return url.lower().endswith(".png")
+    except Exception:
+        return url.lower().endswith(".png")
+
+def rembg_cutout(photo_url: str) -> Image.Image:
+    """Use Replicate's rembg to remove background"""
+    try:
+        print(f"Removing background for: {photo_url}")
+        
+        # If it's a localhost URL, convert to file path
+        if photo_url.startswith("http://localhost:8000/static/"):
+            filename = photo_url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            if os.path.exists(filepath):
+                # For now, skip background removal and return original
+                print("Skipping background removal for local file, using original")
+                return Image.open(filepath).convert("RGBA")
+        
+        # For external URLs, try to download and process
+        import requests
+        from io import BytesIO
+        response = requests.get(photo_url)
+        img = Image.open(BytesIO(response.content)).convert("RGBA")
+        return img
+        
+    except Exception as e:
+        print(f"Background removal failed: {e}")
+        # Return a blank RGBA image as fallback
+        return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
+
+def postprocess_cutout(img_rgba: Image.Image) -> Image.Image:
+    """Clean up the cutout image"""
+    try:
+        # Trim transparent margins
+        bbox = img_rgba.getbbox()
+        if bbox:
+            img_rgba = img_rgba.crop(bbox)
+        
+        # Mild denoise & clarity
+        den = img_rgba.filter(ImageFilter.MedianFilter(size=3))
+        sharp = den.filter(ImageFilter.UnsharpMask(radius=1.2, percent=120, threshold=4))
+        
+        # Add some padding
+        pad = int(max(sharp.size) * 0.06)
+        return ImageOps.expand(sharp, border=pad, fill=(0,0,0,0))
+    except Exception as e:
+        print(f"Postprocessing failed: {e}")
+        return img_rgba
+
+def upload_png(img: Image.Image) -> str:
+    """Save image locally and return URL"""
+    os.makedirs("uploads", exist_ok=True)
+    filename = f"product_{hash(str(img.tobytes()))}.png"
+    filepath = f"uploads/{filename}"
+    img.save(filepath)
+    return f"http://localhost:8000/static/{filename}"
+
+def compress_image_for_processing(filepath: str, max_size: int = 512) -> str:
+    """Compress and resize image for efficient processing with Replicate"""
+    try:
+        import base64
+        import io
+        from PIL import Image
+        
+        print(f"🗜️ Compressing {filepath} for processing...")
+        
+        # Open image
+        img = Image.open(filepath)
+        original_size = img.size
+        
+        # Resize to max_size (keeping aspect ratio)
+        img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+        
+        # Convert to RGB if needed (for JPEG)
+        if img.mode in ('RGBA', 'LA', 'P'):
+            background = Image.new('RGB', img.size, (255, 255, 255))
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            if img.mode in ('RGBA', 'LA'):
+                background.paste(img, mask=img.split()[-1])
+                img = background
+            else:
+                img = img.convert('RGB')
+        
+        # Compress to JPEG with 75% quality for Vella compatibility
+        output = io.BytesIO()
+        img.save(output, format='JPEG', quality=75, optimize=True)
+        compressed_size = len(output.getvalue())
+        
+        # Convert to base64
+        base64_data = base64.b64encode(output.getvalue()).decode()
+        data_url = f"data:image/jpeg;base64,{base64_data}"
+        
+        print(f"✅ Compressed: {original_size} → {img.size}, {compressed_size//1024}KB, base64: {len(data_url)//1024}KB")
+        return data_url
+        
+    except Exception as e:
+        print(f"❌ Failed to compress image: {e}")
+        return filepath
+
+def upload_to_replicate(filepath: str) -> str:
+    """Compress and convert local file to base64 data URL for Replicate"""
+    # Use 384px for Vella (smaller base64, better compatibility)
+    return compress_image_for_processing(filepath, max_size=384)
+
+def enhance_with_nano_banana(image_url: str, prompt: str = "") -> str:
+    """Enhance person's realism with Nano Banana (img2img focused on subject)"""
+    try:
+        print(f"🍌 Enhancing person with Nano Banana (img2img mode)...")
+        
+        # Img2img prompt focused ONLY on enhancing the person, not background
+        if not prompt:
+            prompt = "enhance the person's realism only, ultra detailed skin texture, natural facial features, realistic fabric and clothing texture, professional portrait lighting on subject, sharp focus on person, photorealistic human details, preserve background as is"
+        
+        # Run Nano Banana in img2img mode with focus on person
+        out = replicate.run("google/nano-banana", input={
+            "image": image_url,
+            "prompt": prompt,
+            "num_inference_steps": 22,  # Lower steps to avoid changing background
+            "guidance_scale": 5.0,  # Lower guidance to focus on subtle refinement
+            "strength": 0.20  # Very low strength = preserve background, only refine person
+        })
+        
+        # Handle output
+        if hasattr(out, 'url'):
+            result_url = out.url()
+        elif isinstance(out, str):
+            result_url = out
+        elif isinstance(out, list) and len(out) > 0:
+            result_url = str(out[0])
+        else:
+            result_url = str(out)
+        
+        print(f"✅ Nano Banana enhancement completed: {result_url[:50]}...")
+        return result_url
+        
+    except Exception as e:
+        print(f"❌ Nano Banana enhancement failed: {e}")
+        print(f"Continuing with original image")
+        return image_url
+
+def download_and_save_image(url: str, prefix: str = "packshot") -> str:
+    """Download image from URL and save it locally"""
+    try:
+        import requests
+        from io import BytesIO
+        
+        print(f"💾 Downloading image from: {url[:100]}...")
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        
+        # Open image and save
+        img = Image.open(BytesIO(response.content))
+        filename = f"{prefix}_{hash(url)}.{img.format.lower() if img.format else 'jpg'}"
+        filepath = f"uploads/{filename}"
+        
+        os.makedirs("uploads", exist_ok=True)
+        img.save(filepath)
+        
+        local_url = f"http://localhost:8000/static/{filename}"
+        print(f"✅ Saved to: {local_url}")
+        return local_url
+        
+    except Exception as e:
+        print(f"❌ Failed to download and save image: {e}")
+        return url
+
+def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode: str = "standard", clothing_type: str = "top") -> str:
+    """
+    Apply virtual try-on using Vella 1.5 API.
+    
+    This function applies clothing to a model using Vella 1.5:
+    1. Takes a model image (can be from Qwen scene composition)
+    2. Applies the product garment using AI-powered virtual try-on
+    3. Returns a Replicate URL (not downloaded) for further processing
+    4. Supports both high quality (random seed) and standard (fixed seed) modes
+    5. Detects clothing type and uses correct Vella 1.5 parameter
+    """
+    try:
+        print(f"🎭 Running Vella try-on: model={model_image_url[:50]}..., product={product_image_url[:50]}...")
+        print(f"👕 Clothing type: {clothing_type}")
+        
+        # Convert localhost URLs to base64 only if needed
+        # model_image_url might already be a Replicate URL from Qwen - use it directly!
+        if model_image_url.startswith("http://localhost:8000/static/"):
+            filename = model_image_url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            model_image_url = upload_to_replicate(filepath)
+            print(f"🗜️ Converted model to base64")
+        else:
+            print(f"📁 Using Replicate URL for model: {model_image_url[:50]}...")
+        
+        # Product image is from localhost - convert to base64
+        if product_image_url.startswith("http://localhost:8000/static/"):
+            filename = product_image_url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            product_image_url = upload_to_replicate(filepath)
+            print(f"🗜️ Converted product to base64")
+
+        # Run Vella 1.5 try-on
+        try:
+            # Configure Vella 1.5 parameters
+            # Vella 1.5 has simplified parameters compared to the old version
+            if quality_mode == "high":
+                num_outputs = 1  # Generate 1 high-quality output
+                seed = None  # Random seed for variation
+                print("🎨 Using HIGH QUALITY Vella 1.5 mode")
+            else:  # standard
+                num_outputs = 1  # Generate 1 standard output
+                seed = 42  # Fixed seed for consistency
+                print("⚡ Using STANDARD Vella 1.5 mode")
+            
+            print(f"🎭 Calling Vella 1.5 API with model: {model_image_url[:50]}... and product: {product_image_url[:50]}...")
+            print(f"🎭 Vella 1.5 parameters: num_outputs={num_outputs}, seed={seed}")
+            
+            # Base input
+            vella_input = {
+                "model_image": model_image_url,
+                "num_outputs": num_outputs,
+            }
+            
+            # Add clothing-specific parameter based on type
+            clothing_type_lower = clothing_type.lower() if clothing_type else "top"
+            if clothing_type_lower in ["tshirt", "shirt", "blouse", "sweater", "jacket", "hoodie", "top", "cardigan"]:
+                vella_input["top_image"] = product_image_url
+                print(f"👕 Using 'top_image' parameter for {clothing_type}")
+            elif clothing_type_lower in ["pants", "jeans", "skirt", "shorts", "trousers", "bottom"]:
+                vella_input["bottom_image"] = product_image_url
+                print(f"👖 Using 'bottom_image' parameter for {clothing_type}")
+            elif clothing_type_lower in ["dress", "jumpsuit", "overall"]:
+                vella_input["dress_image"] = product_image_url
+                print(f"👗 Using 'dress_image' parameter for {clothing_type}")
+            else:
+                # Default to top_image if unknown
+                vella_input["top_image"] = product_image_url
+                print(f"⚠️ Unknown clothing type '{clothing_type}', defaulting to 'top_image'")
+            
+            if seed is not None:
+                vella_input["seed"] = seed
+            
+            print(f"🎭 Vella 1.5 input parameters: {vella_input}")
+            out = replicate.run("omnious/vella-1.5", input=vella_input)
+            
+            print(f"🎭 Vella API response type: {type(out)}")
+            if hasattr(out, '__dict__'):
+                print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
+            
+            # Handle different return types
+            if hasattr(out, 'url'):
+                try_on_url = out.url()
+            elif isinstance(out, str):
+                try_on_url = out
+            elif isinstance(out, list) and len(out) > 0:
+                try_on_url = out[0] if isinstance(out[0], str) else out[0].url()
+            else:
+                try_on_url = str(out)
+            
+            # Return Replicate URL directly (don't download yet)
+            print(f"✅ Vella try-on completed: {try_on_url[:50]}...")
+            return try_on_url
+            
+        except Exception as e:
+            print(f"❌ Vella try-on failed: {e}")
+            # Fallback to a placeholder
+            fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url + product_image_url) % 10000}"
+            print(f"Using Vella fallback URL: {fallback_url}")
+            return fallback_url
+        
+    except Exception as e:
+        print(f"❌ Vella try-on generation failed: {e}")
+        # Fallback to a placeholder
+        fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url + product_image_url) % 10000}"
+        print(f"Using Vella fallback URL: {fallback_url}")
+        return fallback_url
+
+def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard") -> str:
+    """ONE-STEP: Model + Product + Scene all in one Qwen call"""
+    try:
+        print(f"🎬 Running Qwen triple composition...")
+        
+        # Convert all localhost URLs to base64
+        if model_image_url.startswith("http://localhost:8000/static/"):
+            filename = model_image_url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            model_image_url = upload_to_replicate(filepath)
+            
+        if product_image_url.startswith("http://localhost:8000/static/"):
+            filename = product_image_url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            product_image_url = upload_to_replicate(filepath)
+        
+        if scene_image_url.startswith("http://localhost:8000/static/"):
+            filename = scene_image_url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            scene_image_url = upload_to_replicate(filepath)
+
+        # Strong integration prompt - like campaign hjk
+        scene_prompt = f"Create a cohesive fashion photograph: Take the person from the first image, dress them with the {product_name} from the second image, then integrate them into a setting inspired by the mood and atmosphere of the third image. The person should adapt to match the lighting, color grading, and visual style of the scene environment. Create a natural, believable composition where everything flows together. Preserve the person's face and pose but adjust their appearance to fit harmoniously. Professional dark luxury fashion aesthetic."
+        
+        # Strong integration parameters (like hjk)
+        num_steps = 38
+        guidance = 4.2  # Moderate guidance for balance
+        strength = 0.52  # Strong integration while preserving identity
+        print("⚡ Using Qwen for strong scene integration (like campaign hjk)")
+        
+        # Use Qwen with 3 images
+        try:
+            print("🔄 Calling Qwen with 3 images...")
+            out = replicate.run("qwen/qwen-image-edit-plus", input={
+                "prompt": scene_prompt,
+                "image": [model_image_url, product_image_url, scene_image_url],
+                "num_inference_steps": num_steps,
+                "guidance_scale": guidance,
+                "strength": strength
+            })
+            
+            # Handle output
+            if hasattr(out, 'url'):
+                result_url = out.url()
+            elif isinstance(out, str):
+                result_url = out
+            elif isinstance(out, list) and len(out) > 0:
+                result_url = out[0] if isinstance(out[0], str) else out[0].url()
+            else:
+                result_url = str(out)
+            
+            print(f"✅ Qwen triple composition completed: {result_url[:50]}...")
+            return result_url
+            
+        except Exception as e:
+            print(f"❌ Qwen failed: {e}")
+            fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url) % 10000}"
+            return fallback_url
+            
+    except Exception as e:
+        print(f"❌ Triple composition failed: {e}")
+        fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url) % 10000}"
+        return fallback_url
+
+# Campaign shot types for varied content generation
+CAMPAIGN_SHOT_TYPES = [
+    {
+        "name": "sitting_intro",
+        "title": "Sitting Shot (Intro)",
+        "prompt": "Full-body shot sitting casually, relaxed posture, model wearing the product naturally, modern studio setting, soft diffused lighting, neutral tones, cinematic fashion lookbook style, sharp focus"
+    },
+    {
+        "name": "standing_full",
+        "title": "Standing Look (Fit Reveal)",
+        "prompt": "Model standing confidently, straight posture, outfit fully visible from head to toe, product clearly shown, minimalist background with subtle shadows, professional fashion lighting, editorial photoshoot aesthetic"
+    },
+    {
+        "name": "upper_closeup",
+        "title": "Upper Body Close-Up",
+        "prompt": "Close-up of upper torso focusing on product details, fabric texture, stitching visible, natural lighting highlighting materials, modern fashion ad style, crisp macro photography, shallow depth of field"
+    },
+    {
+        "name": "lower_closeup",
+        "title": "Lower Body Close-Up",
+        "prompt": "Close-up of lower torso showing product fit, fabric movement, detail work, subtle wrinkles from natural motion, soft directional lighting, clean background, high-detail fashion macro look"
+    },
+    {
+        "name": "action_dynamic",
+        "title": "Action Shot (Movement)",
+        "prompt": "Full-body dynamic shot of model in natural walking pose, confident stride, strong directional light, energetic and stylish movement, professional fashion photography, clean urban setting"
+    },
+    {
+        "name": "interaction_pose",
+        "title": "Model Interaction",
+        "prompt": "Medium shot of model in natural pose, hands positioned naturally, focused expression, lifestyle tone, balanced shadows, soft background, professional fashion photography"
+    },
+    {
+        "name": "hero_finale",
+        "title": "Hero Pose (Campaign Finale)",
+        "prompt": "Full-body confident hero pose facing camera, product fully shown and emphasized, gradient backdrop, professional lighting, editorial fashion campaign aesthetic, striking and memorable composition"
+    }
+]
+
+def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:
+    """Compose model pose into scene using Qwen (the workflow that worked for jenny swag)"""
+    try:
+        print(f"🎬 Running Qwen composition: model={model_image_url[:50]}..., scene={scene_image_url[:50]}...")
+        
+        # Convert local URLs to base64 for Qwen
+        if model_image_url.startswith("http://localhost:8000/static/"):
+            filename = model_image_url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            model_image_url = upload_to_replicate(filepath)
+        
+        if scene_image_url.startswith("http://localhost:8000/static/"):
+            filename = scene_image_url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            scene_image_url = upload_to_replicate(filepath)
+
+        # Build prompt - use shot_type_prompt if provided, otherwise use default
+        if shot_type_prompt:
+            scene_prompt = (
+                f"Place the person from the first image into the BACKGROUND from the second image. "
+                f"{shot_type_prompt} "
+                f"Use the second image as the actual background - location, environment, architecture, and setting. "
+                f"Match the lighting, colors, and atmosphere from the scene. "
+                f"Keep the person's face and pose exactly the same. "
+                f"Dark luxury fashion aesthetic with dramatic moody lighting. "
+                f"Professional editorial photography, cinematic quality."
+            )
+        else:
+            scene_prompt = (
+                "Place the person from the first image into the BACKGROUND from the second image. "
+                "Use the second image as the actual background - location, environment, architecture, and setting. "
+                "Match the lighting, colors, and atmosphere from the scene. "
+                "Keep the person's face and pose exactly the same. "
+                "Dark luxury fashion aesthetic with dramatic moody lighting. "
+                "Professional editorial photography, cinematic quality."
+            )
+        
+        # Stronger parameters to force scene usage
+        if quality_mode == "high":
+            num_steps = 50        # Maximum quality
+            guidance = 8.0        # Very strong guidance to follow prompt
+            strength = 0.75       # Very high strength to use scene heavily
+            print("🎨 Using HIGH QUALITY mode (scene-based dark luxury)")
+        else:  # standard
+            num_steps = 45        # High quality
+            guidance = 7.5        # Strong guidance to follow prompt
+            strength = 0.70       # High strength to use scene heavily
+            print("⚡ Using STANDARD mode (scene-based dark luxury)")
+        
+        # Use Qwen with improved parameters for better scene composition
+        try:
+            print("🔄 Using Qwen for scene composition with improved parameters...")
+            out = replicate.run("qwen/qwen-image-edit-plus", input={
+                "prompt": scene_prompt,
+                "image": [model_image_url, scene_image_url],
+                "num_inference_steps": num_steps,
+                "guidance_scale": guidance,
+                "strength": strength
+            })
+            
+            # Handle different return types
+            if hasattr(out, 'url'):
+                scene_composite_url = out.url()
+            elif isinstance(out, str):
+                scene_composite_url = out
+            elif isinstance(out, list) and len(out) > 0:
+                scene_composite_url = out[0] if isinstance(out[0], str) else out[0].url()
+            else:
+                scene_composite_url = str(out)
+            
+            # Return Replicate URL directly (don't download yet)
+            print(f"✅ Qwen scene composition completed: {scene_composite_url[:50]}...")
+            return scene_composite_url
+            
+        except Exception as e:
+            print(f"❌ Qwen scene composition failed: {e}")
+            # Fallback to a placeholder
+            fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url + scene_image_url) % 10000}"
+            print(f"Using scene composition fallback URL: {fallback_url}")
+            return fallback_url
+        
+    except Exception as e:
+        print(f"❌ Scene composition generation failed: {e}")
+        # Fallback to a placeholder
+        fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url + scene_image_url) % 10000}"
+        print(f"Using scene composition fallback URL: {fallback_url}")
+        return fallback_url
+
+def run_qwen_packshot_front_back(
+    product_image_url: str,
+    user_mods: str
+) -> List[str]:
+    """Generate front and back packshots using Qwen"""
+    try:
+        print("Processing product image for front and back packshots...")
+        
+        # Step 1: Process product image
+        if not has_alpha(product_image_url):
+            print("Removing background from product image...")
+            cut = rembg_cutout(product_image_url)
+            cut = postprocess_cutout(cut)
+            product_png_url = upload_png(cut)
+            print(f"Background removed, saved as: {product_png_url}")
+        else:
+            product_png_url = product_image_url
+            print("Product image already has alpha channel")
+        
+        # Convert to public URL for Replicate
+        if product_png_url.startswith("http://localhost:8000/static/"):
+            filename = product_png_url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            product_png_url = upload_to_public_url(filepath)
+            print(f"Converted to public URL: {product_png_url[:100]}...")
+
+        # Step 2: Generate front packshot
+        print("Generating front packshot...")
+        front_prompt = f"Ultra-clean studio packshot of the uploaded product, front view. Even softbox lighting on a white seamless background. Soft contact shadow. No props, no text, no watermark. Crisp edges, accurate colors. {user_mods}, product photography, professional lighting, studio setup, high quality, detailed"
+        
+        try:
+            front_out = replicate.run("qwen/qwen-image-edit-plus", input={
+                "prompt": front_prompt,
+                "image": [product_png_url],
+                "num_inference_steps": 20,
+                "guidance_scale": 7.5
+            })
+            
+            # Handle different return types
+            if hasattr(front_out, 'url'):
+                front_url = front_out.url()
+            elif isinstance(front_out, str):
+                front_url = front_out
+            elif isinstance(front_out, list) and len(front_out) > 0:
+                front_url = front_out[0] if isinstance(front_out[0], str) else front_out[0].url()
+            else:
+                front_url = str(front_out)
+            
+            print(f"Generated front packshot URL: {front_url}")
+            
+            # Download and save locally
+            front_url = download_and_save_image(front_url, "packshot_front")
+            
+        except Exception as e:
+            print(f"Error generating front packshot: {e}")
+            front_url = product_image_url  # Fallback to original
+
+        # Step 3: Generate back packshot
+        print("Generating back packshot...")
+        back_prompt = f"Ultra-clean studio packshot of the uploaded product, back view. Even softbox lighting on a white seamless background. Soft contact shadow. No props, no text, no watermark. Crisp edges, accurate colors. {user_mods}, product photography, professional lighting, studio setup, high quality, detailed"
+        
+        try:
+            back_out = replicate.run("qwen/qwen-image-edit-plus", input={
+                "prompt": back_prompt,
+                "image": [product_png_url],
+                "num_inference_steps": 20,
+                "guidance_scale": 7.5
+            })
+            
+            # Handle different return types
+            if hasattr(back_out, 'url'):
+                back_url = back_out.url()
+            elif isinstance(back_out, str):
+                back_url = back_out
+            elif isinstance(back_out, list) and len(back_out) > 0:
+                back_url = back_out[0] if isinstance(back_out[0], str) else back_out[0].url()
+            else:
+                back_url = str(back_out)
+            
+            print(f"Generated back packshot URL: {back_url}")
+            
+            # Download and save locally
+            back_url = download_and_save_image(back_url, "packshot_back")
+            
+        except Exception as e:
+            print(f"Error generating back packshot: {e}")
+            back_url = product_image_url  # Fallback to original
+
+        packshot_urls = [front_url, back_url]
+        print(f"Generated {len(packshot_urls)} packshot URLs: {packshot_urls}")
+        return packshot_urls
+        
+    except Exception as e:
+        print(f"Qwen front/back packshot generation failed: {e}")
+        # Fallback to original image
+        return [product_image_url, product_image_url]
+
+# ---------- Product Upload Endpoint ----------
+@app.post("/products/upload")
+async def upload_product(
+    name: str = Form(...),
+    description: str = Form(""),
+    category: str = Form(""),
+    tags: str = Form(""),
+    product_image: UploadFile = File(...),
+    packshot_front: UploadFile = File(None),
+    packshot_front_type: str = Form(""),
+    packshot_back: UploadFile = File(None),
+    packshot_back_type: str = Form(""),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Upload a product with automatic packshot generation"""
+    try:
+        # Save product image
+        image_filename = f"product_{hash(name + str(datetime.now()))}.{product_image.filename.split('.')[-1]}"
+        image_path = os.path.join("uploads", image_filename)
+        
+        with open(image_path, "wb") as f:
+            content = await product_image.read()
+            f.write(content)
+        
+        image_url = f"http://localhost:8000/static/{image_filename}"
+        
+        # Initialize packshot URLs
+        packshot_front_url = None
+        packshot_back_url = None
+        packshots = []
+        
+        # Check if user has enough credits for packshot generation (5 credits per packshot)
+        user = db.query(User).filter(User.id == current_user["user_id"]).first()
+        credits_needed = 0
+        
+        # If no packshots provided, we'll generate them
+        if not packshot_front and not packshot_back:
+            credits_needed = 10  # 5 for front + 5 for back
+        elif not packshot_front or not packshot_back:
+            credits_needed = 5  # Only one needs generation
+        
+        if credits_needed > 0 and (not user or user.credits < credits_needed):
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Insufficient credits. Need {credits_needed} credits for packshot generation."
+            )
+        
+        # Handle uploaded packshots
+        if packshot_front:
+            front_filename = f"packshot_front_{hash(name + str(datetime.now()))}.{packshot_front.filename.split('.')[-1]}"
+            front_path = os.path.join("uploads", front_filename)
+            with open(front_path, "wb") as f:
+                content = await packshot_front.read()
+                f.write(content)
+            packshot_front_url = f"http://localhost:8000/static/{front_filename}"
+            packshots.append(packshot_front_url)
+        
+        if packshot_back:
+            back_filename = f"packshot_back_{hash(name + str(datetime.now()))}.{packshot_back.filename.split('.')[-1]}"
+            back_path = os.path.join("uploads", back_filename)
+            with open(back_path, "wb") as f:
+                content = await packshot_back.read()
+                f.write(content)
+            packshot_back_url = f"http://localhost:8000/static/{back_filename}"
+            packshots.append(packshot_back_url)
+        
+        # Generate missing packshots using Replicate
+        if not packshot_front_url or not packshot_back_url:
+            print(f"Generating packshots for product: {name}")
+            generated_packshots = run_qwen_packshot_front_back(
+                product_image_url=image_url,
+                user_mods="professional product photography, clean background, studio lighting"
+            )
+            
+            if not packshot_front_url and len(generated_packshots) > 0:
+                packshot_front_url = generated_packshots[0]
+                packshots.append(packshot_front_url)
+                user.credits -= 5
+                print(f"Generated front packshot: {packshot_front_url}")
+            
+            if not packshot_back_url and len(generated_packshots) > 1:
+                packshot_back_url = generated_packshots[1]
+                packshots.append(packshot_back_url)
+                user.credits -= 5
+                print(f"Generated back packshot: {packshot_back_url}")
+        
+        # Create product in database
+        product = Product(
+            id=str(uuid.uuid4()),
+            user_id=current_user["user_id"],
+            name=name,
+            description=description,
+            category=category,
+            tags=tags.split(",") if tags else [],
+            image_url=image_url,
+            packshot_front_url=packshot_front_url,
+            packshot_back_url=packshot_back_url,
+            packshots=packshots,
+            created_at=datetime.utcnow()
+        )
+        
+        db.add(product)
+        db.commit()
+        db.refresh(product)
+        
+        return {
+            "id": product.id,
+            "name": product.name,
+            "description": product.description,
+            "category": product.category,
+            "tags": product.tags,
+            "image_url": product.image_url,
+            "packshot_front_url": product.packshot_front_url,
+            "packshot_back_url": product.packshot_back_url,
+            "packshots": product.packshots,
+            "credits_remaining": user.credits,
+            "message": "Product uploaded successfully with packshots"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error uploading product: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ---------- Product Categories Endpoint ----------
+@app.get("/categories")
+async def get_categories():
+    """Get list of product categories"""
+    return {
+        "categories": [
+            "tshirt",
+            "sweater",
+            "pants",
+            "jacket",
+            "dress",
+            "skirt",
+            "shoes",
+            "accessories",
+            "other"
+        ]
+    }
+
+# ---------- Reroll Packshots Endpoint ----------
+@app.post("/products/{product_id}/reroll-packshots")
+async def reroll_packshots(
+    product_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Re-generate packshots for a product"""
+    try:
+        # Find product
+        product = db.query(Product).filter(
+            Product.id == product_id,
+            Product.user_id == current_user["user_id"]
+        ).first()
+        
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        # Check if user has enough credits (10 credits for front + back packshot regeneration)
+        user = db.query(User).filter(User.id == current_user["user_id"]).first()
+        if not user or user.credits < 10:
+            raise HTTPException(status_code=400, detail="Insufficient credits. Need 10 credits for packshot regeneration.")
+        
+        # Generate new packshots
+        print(f"Re-generating packshots for product: {product.name}")
+        new_packshots = run_qwen_packshot_front_back(
+            product_image_url=product.image_url,
+            user_mods="professional product photography, clean background, studio lighting"
+        )
+        
+        # Update product with new packshots
+        if len(new_packshots) >= 2:
+            product.packshot_front_url = new_packshots[0]
+            product.packshot_back_url = new_packshots[1]
+            product.packshots = new_packshots
+            print(f"Updated product with new packshots: {new_packshots}")
+        
+        # Deduct credits (10 credits for both front and back)
+        user.credits -= 10
+        
+        db.commit()
+        
+        return {
+            "message": "Packshots re-rolled successfully",
+            "packshots": new_packshots,
+            "credits_remaining": user.credits
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error re-rolling packshots: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+def run_wan_video_generation(image_url: str, video_quality: str = "480p", custom_prompt: Optional[str] = None) -> str:
+    """Generate video from image using Wan 2.2 I2V Fast API"""
+    try:
+        print(f"🎬 Running Wan video generation: {image_url[:50]}...")
+        
+        # Convert local URLs to base64 for Replicate
+        if image_url.startswith("http://localhost:8000/static/"):
+            filename = image_url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            image_url = upload_to_replicate(filepath)
+            print(f"Converted image to base64: {image_url[:100]}...")
+        
+        # Configure parameters based on video quality
+        if video_quality == "720p":
+            num_frames = 120
+            fps = 8
+            print("🎨 Using 720p video quality mode")
+        else:  # 480p or default
+            num_frames = 81
+            fps = 4
+            print("⚡ Using 480p video quality mode")
+        
+        # Run Wan 2.2 I2V Fast
+        print(f"🔄 Calling Wan 2.2 I2V Fast API...")
+        out = replicate.run(
+            "wan-video/wan-2.2-i2v-fast",
+            input={
+                "image": image_url,
+                "prompt": custom_prompt or "slow subtle poses, minimal movement, elegant and refined, professional cinematic quality",
+                "num_frames": num_frames,
+                "fps": fps
+            }
+        )
+        
+        # Handle output
+        if hasattr(out, 'url'):
+            video_url = out.url()
+        elif isinstance(out, str):
+            video_url = out
+        elif isinstance(out, list) and len(out) > 0:
+            video_url = out[0] if isinstance(out[0], str) else out[0].url()
+        else:
+            video_url = str(out)
+        
+        print(f"✅ Wan video generated: {video_url[:50]}...")
+        
+        # Download and save video locally
+        downloaded_url = download_and_save_video(video_url)
+        return downloaded_url
+        
+    except Exception as e:
+        print(f"❌ Wan video generation failed: {e}")
+        return None
+
+def run_seedance_video_generation(image_url: str, video_quality: str = "480p", duration: str = "5s", custom_prompt: Optional[str] = None) -> str:
+    """Generate video from image using Seedance 1 Pro API"""
+    try:
+        print(f"\n{'='*80}")
+        print(f"🎬 SEEDANCE 1 PRO VIDEO GENERATION")
+        print(f"{'='*80}")
+        print(f"📸 Input image: {image_url[:80]}...")
+        print(f"🎨 Quality: {video_quality}")
+        print(f"⏱️  Duration: {duration}")
+        print(f"💬 Custom prompt: {custom_prompt if custom_prompt else '(using default)'}")
+        
+        # Convert local URLs to base64 for Replicate
+        if image_url.startswith("http://localhost:8000/static/"):
+            filename = image_url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            print(f"📂 Converting local file: {filepath}")
+            image_url = upload_to_replicate(filepath)
+            print(f"✅ Converted to base64 ({len(image_url)} chars)")
+        
+        # Configure parameters based on video quality and duration
+        resolution = "1080p" if video_quality == "1080p" else "480p"
+        
+        # Seedance expects duration as INTEGER (seconds), not string
+        duration_seconds = 10 if duration == "10s" else 5
+        
+        print(f"🎨 Using {resolution} video quality mode")
+        print(f"⏱️ Using {duration_seconds} seconds duration")
+        print(f"🔄 Calling Seedance 1 Pro API...")
+        
+        # Run Seedance 1 Pro
+        out = replicate.run(
+            "bytedance/seedance-1-pro",
+            input={
+                "image": image_url,
+                "prompt": custom_prompt or "slow subtle poses, minimal movement, elegant and refined, professional cinematic quality",
+                "resolution": resolution,
+                "duration": duration_seconds  # INTEGER, not string!
+            }
+        )
+        
+        print(f"✅ Seedance API call completed, processing output...")
+        
+        # Handle output
+        if hasattr(out, 'url'):
+            video_url = out.url()
+        elif isinstance(out, str):
+            video_url = out
+        elif isinstance(out, list) and len(out) > 0:
+            video_url = out[0] if isinstance(out[0], str) else out[0].url()
+        else:
+            video_url = str(out)
+        
+        print(f"✅ Seedance video generated: {video_url[:50]}...")
+        
+        # Download and save video locally
+        downloaded_url = download_and_save_video(video_url)
+        return downloaded_url
+        
+    except Exception as e:
+        print(f"❌ Seedance video generation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+def run_veo_video_generation(image_url: str, video_quality: str = "480p", duration: str = "5s", custom_prompt: Optional[str] = None) -> str:
+    """Generate video from image using Google Veo 3.1 API"""
+    try:
+        print(f"🎬 Running Google Veo 3.1 video generation: {image_url[:50]}...")
+        
+        # Convert local URLs to base64 for Replicate
+        if image_url.startswith("http://localhost:8000/static/"):
+            filename = image_url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            image_url = upload_to_replicate(filepath)
+            print(f"Converted image to base64: {image_url[:100]}...")
+        
+        # Veo 3.1 supports multiple resolutions and durations
+        # Map our quality to Veo's aspect_ratio (Veo handles resolution internally)
+        if video_quality == "1080p":
+            aspect_ratio = "16:9"  # Best for 1080p
+        elif video_quality == "720p":
+            aspect_ratio = "16:9"  # Standard HD
+        else:  # 480p
+            aspect_ratio = "9:16"  # Portrait for social media
+        
+        # Duration in seconds (5s or 10s)
+        duration_seconds = 10 if duration == "10s" else 5
+        
+        print(f"🎨 Using {aspect_ratio} aspect ratio")
+        print(f"⏱️ Using {duration_seconds}s duration")
+        
+        # Run Veo 3.1
+        print(f"🔄 Calling Google Veo 3.1 API...")
+        out = replicate.run(
+            "google/veo-3.1",
+            input={
+                "prompt": custom_prompt or "slow subtle poses, minimal movement, elegant and refined, professional cinematic quality",
+                "reference_image": image_url,
+                "aspect_ratio": aspect_ratio,
+                "duration": duration_seconds,
+                "quality": "high"  # Veo 3.1 always high quality
+            }
+        )
+        
+        # Handle output
+        if hasattr(out, 'url'):
+            video_url = out.url()
+        elif isinstance(out, str):
+            video_url = out
+        elif isinstance(out, list) and len(out) > 0:
+            video_url = out[0] if isinstance(out[0], str) else out[0].url()
+        else:
+            video_url = str(out)
+        
+        print(f"✅ Veo 3.1 video generated: {video_url[:50]}...")
+        
+        # Download and save video locally
+        downloaded_url = download_and_save_video(video_url)
+        return downloaded_url
+        
+    except Exception as e:
+        print(f"❌ Veo 3.1 video generation failed: {e}")
+        return None
+
+def run_veo_direct_generation(model_image: str, product_image: str, scene_image: str, video_quality: str = "480p", duration: str = "5s", custom_prompt: Optional[str] = None) -> str:
+    """Generate video directly from model + product + scene using Google Veo 3.1"""
+    try:
+        print(f"🎬 Running Veo Direct: model + product + scene → video")
+        
+        # Convert local URLs to base64 for Replicate
+        if model_image.startswith("http://localhost:8000/static/"):
+            filename = model_image.replace("http://localhost:8000/static/", "")
+            model_image = upload_to_replicate(f"uploads/{filename}")
+        
+        if product_image.startswith("http://localhost:8000/static/"):
+            filename = product_image.replace("http://localhost:8000/static/", "")
+            product_image = upload_to_replicate(f"uploads/{filename}")
+        
+        if scene_image.startswith("http://localhost:8000/static/"):
+            filename = scene_image.replace("http://localhost:8000/static/", "")
+            scene_image = upload_to_replicate(f"uploads/{filename}")
+        
+        # Map quality to aspect ratio
+        if video_quality == "1080p":
+            aspect_ratio = "16:9"
+        elif video_quality == "720p":
+            aspect_ratio = "16:9"
+        else:  # 480p
+            aspect_ratio = "9:16"
+        
+        # Duration in seconds
+        duration_seconds = 10 if duration == "10s" else 5
+        
+        # Build comprehensive prompt for Veo
+        if custom_prompt:
+            full_prompt = custom_prompt
+        else:
+            full_prompt = (
+                "Professional fashion video: model wearing the product in the scene setting. "
+                "Slow subtle poses, minimal movement, elegant and refined. "
+                "Cinematic lighting, dark luxury aesthetic, high-end editorial style, dramatic atmosphere."
+            )
+        
+        print(f"🎨 Veo Direct prompt: {full_prompt}")
+        print(f"🎨 Using {aspect_ratio} aspect ratio, {duration_seconds}s duration")
+        
+        # Run Veo 3.1 with text-to-video (it will interpret the inputs creatively)
+        print(f"🔄 Calling Google Veo 3.1 API (Direct Mode)...")
+        out = replicate.run(
+            "google/veo-3.1",
+            input={
+                "prompt": full_prompt,
+                # Veo 3.1 doesn't officially support multi-image input for video
+                # So we'll use reference_image with the scene as primary reference
+                "reference_image": scene_image,
+                "aspect_ratio": aspect_ratio,
+                "duration": duration_seconds,
+                "quality": "high"
+            }
+        )
+        
+        # Handle output
+        if hasattr(out, 'url'):
+            video_url = out.url()
+        elif isinstance(out, str):
+            video_url = out
+        elif isinstance(out, list) and len(out) > 0:
+            video_url = out[0] if isinstance(out[0], str) else out[0].url()
+        else:
+            video_url = str(out)
+        
+        print(f"✅ Veo Direct video generated: {video_url[:50]}...")
+        
+        # Download and save video locally
+        downloaded_url = download_and_save_video(video_url)
+        return downloaded_url
+        
+    except Exception as e:
+        print(f"❌ Veo Direct generation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+def download_and_save_video(url: str) -> str:
+    """Download video from URL and save it locally"""
+    try:
+        import requests
+        import uuid
+        
+        print(f"📥 Downloading video from: {url[:100]}...")
+        response = requests.get(url, timeout=60)
+        response.raise_for_status()
+        
+        # Generate unique filename
+        video_id = str(uuid.uuid4())
+        filename = f"video_{video_id}.mp4"
+        filepath = f"uploads/{filename}"
+        
+        # Save video
+        with open(filepath, "wb") as f:
+            f.write(response.content)
+        
+        # Return local URL
+        local_url = f"http://localhost:8000/static/{filename}"
+        print(f"✅ Video saved locally: {local_url}")
+        return local_url
+        
+    except Exception as e:
+        print(f"❌ Failed to download video: {e}")
+        return url  # Return original URL as fallback
+
+class TweakImageRequest(BaseModel):
+    image_url: str
+    prompt: str
+
+@app.post("/tweak-image")
+async def tweak_image(
+    request: TweakImageRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Tweak an existing image based on a text prompt using Qwen Image Edit Plus.
+    Uses img2img to modify the image while preserving the overall composition.
+    """
+    try:
+        print(f"🔧 Tweaking image with prompt: {request.prompt}")
+        print(f"📸 Image URL: {request.image_url[:100]}...")
+        
+        # Convert local URLs to base64 for Qwen
+        if request.image_url.startswith("http://localhost:8000/static/"):
+            filename = request.image_url.replace("http://localhost:8000/static/", "")
+            filepath = f"uploads/{filename}"
+            image_base64 = upload_to_replicate(filepath)
+            print(f"✅ Converted to base64")
+        else:
+            # If it's an external URL, download and convert
+            response = requests.get(request.image_url, timeout=30)
+            response.raise_for_status()
+            img = Image.open(BytesIO(response.content))
+            
+            # Resize for processing
+            max_size = 384
+            ratio = min(max_size/img.width, max_size/img.height)
+            new_size = (int(img.width*ratio), int(img.height*ratio))
+            img = img.resize(new_size, Image.LANCZOS)
+            
+            # Convert to base64
+            buffered = BytesIO()
+            img.save(buffered, format="JPEG", quality=95)
+            img_base64 = base64.b64encode(buffered.getvalue()).decode()
+            image_base64 = f"data:image/jpeg;base64,{img_base64}"
+            print(f"✅ Downloaded and converted external URL")
+        
+        # Use Qwen for image tweaking (img2img editing)
+        print(f"🎨 Running Qwen for image tweaking...")
+        out = replicate.run("qwen/qwen-image-edit-plus", input={
+            "prompt": f"{request.prompt}. Dark luxury fashion aesthetic, professional quality.",
+            "image": [image_base64],  # Only one image for editing
+            "num_inference_steps": 35,
+            "guidance_scale": 7.0,
+            "strength": 0.45  # Moderate strength - preserves composition but allows changes
+        })
+        
+        # Handle output
+        if hasattr(out, 'url'):
+            tweaked_url = out.url()
+        elif isinstance(out, str):
+            tweaked_url = out
+        elif isinstance(out, list) and len(out) > 0:
+            tweaked_url = out[0] if isinstance(out[0], str) else out[0].url()
+        else:
+            tweaked_url = str(out)
+        
+        print(f"✅ Qwen tweaking completed: {tweaked_url[:50]}...")
+        
+        # Download and save tweaked image
+        print(f"💾 Downloading tweaked image...")
+        final_url = download_and_save_image(tweaked_url, "tweaked")
+        print(f"✅ Tweaked image saved: {final_url[:50]}...")
+        
+        return {
+            "message": "Image tweaked successfully",
+            "original_url": request.image_url,
+            "tweaked_url": final_url,
+            "prompt": request.prompt
+        }
+        
+    except Exception as e:
+        print(f"❌ Image tweaking failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Image tweaking failed: {str(e)}")
+
+class ReapplyClothesRequest(BaseModel):
+    image_url: str
+    product_id: str
+    clothing_type: Optional[str] = "top"
+    campaign_id: Optional[str] = None
+
+@app.post("/reapply-clothes")
+async def reapply_clothes(
+    request: ReapplyClothesRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Reapply clothing to an existing image using Vella 1.5.
+    Takes the current image and re-runs the virtual try-on with the product.
+    """
+    try:
+        print(f"👔 Reapplying clothes to image")
+        print(f"📸 Image URL: {request.image_url[:100]}...")
+        print(f"🛍️ Product ID: {request.product_id}")
+        print(f"👕 Clothing type: {request.clothing_type}")
+        
+        # Get the product
+        product = db.query(Product).filter(Product.id == request.product_id).first()
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        # Use product packshot (front view preferred)
+        product_image = product.packshot_front_url or product.image_url
+        
+        # Get clothing type from product or use provided
+        clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else request.clothing_type
+        
+        # Convert image URL to format Vella can use
+        if request.image_url.startswith("http://localhost:8000/static/"):
+            # Local file - can use directly
+            model_image_url = request.image_url
+        else:
+            # External URL - use directly
+            model_image_url = request.image_url
+        
+        # Apply Vella try-on
+        print(f"🎭 Running Vella 1.5 try-on...")
+        vella_result_url = run_vella_try_on(model_image_url, product_image, "standard", clothing_type)
+        print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
+        
+        # Download and save the result
+        print(f"💾 Downloading result...")
+        final_url = download_and_save_image(vella_result_url, "reapplied_clothes")
+        print(f"✅ Reapplied clothes saved: {final_url[:50]}...")
+        
+        # If campaign_id is provided, update the image in the campaign
+        if request.campaign_id:
+            try:
+                campaign = db.query(Campaign).filter(Campaign.id == request.campaign_id).first()
+                if campaign and campaign.settings and "generated_images" in campaign.settings:
+                    # Find and update the image with the old URL
+                    updated = False
+                    for img in campaign.settings["generated_images"]:
+                        if img.get("image_url") == request.image_url:
+                            img["image_url"] = final_url
+                            updated = True
+                            print(f"✅ Updated image in campaign {request.campaign_id}")
+                            break
+                    
+                    if updated:
+                        # Force SQLAlchemy to detect the change
+                        flag_modified(campaign, "settings")
+                        db.commit()
+                        db.refresh(campaign)
+                        print(f"✅ Campaign updated successfully")
+            except Exception as e:
+                print(f"⚠️ Failed to update campaign: {e}")
+                # Don't fail the whole request if campaign update fails
+        
+        return {
+            "success": True,
+            "message": f"Successfully reapplied {product.name}",
+            "original_url": request.image_url,
+            "reapplied_url": final_url,
+            "product_name": product.name,
+            "clothing_type": clothing_type
+        }
+        
+    except Exception as e:
+        print(f"❌ Reapply clothes failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Reapply clothes failed: {str(e)}")
+
+class BulkVideoRequest(BaseModel):
+    video_quality: str = "480p"
+    duration: str = "5s"
+    model: str = "wan"
+    custom_prompt: Optional[str] = None
+    veo_direct_mode: bool = False
+    selected_image_indices: List[int] = []
+
+@app.delete("/campaigns/{campaign_id}/images/{image_index}")
+async def delete_campaign_image(
+    campaign_id: str,
+    image_index: int,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a specific image from a campaign"""
+    try:
+        # Get the campaign
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        # Get generated images
+        if not campaign.settings or not campaign.settings.get("generated_images"):
+            raise HTTPException(status_code=400, detail="No images found in campaign")
+        
+        generated_images = campaign.settings["generated_images"]
+        
+        # Check if index is valid
+        if image_index < 0 or image_index >= len(generated_images):
+            raise HTTPException(status_code=400, detail="Invalid image index")
+        
+        # Remove the image
+        deleted_image = generated_images.pop(image_index)
+        print(f"🗑️ Deleted image at index {image_index} from campaign {campaign.name}")
+        
+        # Update campaign settings
+        campaign.settings["generated_images"] = generated_images
+        flag_modified(campaign, "settings")
+        
+        db.commit()
+        db.refresh(campaign)
+        
+        return {
+            "message": "Image deleted successfully",
+            "deleted_index": image_index,
+            "deleted_image": deleted_image,
+            "remaining_images": len(generated_images)
+        }
+        
+    except Exception as e:
+        print(f"❌ Failed to delete image: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/campaigns/{campaign_id}/generate-videos")
+async def generate_videos_for_campaign(
+    campaign_id: str,
+    request: BulkVideoRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate videos for all images in a campaign.
+    
+    **Credit Costs per video:**
+    - Wan 2.2 I2V Fast:
+      - 480p: 1 credit
+      - 720p: 2 credits
+    - Seedance 1 Pro:
+      - 480p (5s): 2 credits
+      - 480p (10s): 3 credits
+      - 1080p (5s): 4 credits
+      - 1080p (10s): 6 credits
+    - Google Veo 3.1 (Premium):
+      - 480p (5s): 3 credits
+      - 480p (10s): 4 credits
+      - 720p (5s): 4 credits
+      - 720p (10s): 6 credits
+      - 1080p (5s): 5 credits
+      - 1080p (10s): 8 credits
+    """
+    try:
+        # Get the campaign
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        # Determine video generation logic based on mode
+        if request.veo_direct_mode:
+            # Veo Direct Mode: Generate video directly from model + product + scene
+            print(f"🎬 Veo Direct Mode: Generating video from model + product + scene")
+            
+            # Get campaign data (model, product, scene)
+            if not campaign.settings:
+                raise HTTPException(status_code=400, detail="Campaign has no settings")
+            
+            # Calculate credits for 1 video
+            if request.video_quality == "1080p":
+                credits_per_video = 8 if request.duration == "10s" else 5
+            elif request.video_quality == "720p":
+                credits_per_video = 6 if request.duration == "10s" else 4
+            else:  # 480p
+                credits_per_video = 4 if request.duration == "10s" else 3
+            
+            total_credits_needed = credits_per_video  # Only 1 video
+            num_videos_to_generate = 1
+            
+        else:
+            # Standard Mode: Generate videos from selected images
+            if not campaign.settings or not campaign.settings.get("generated_images"):
+                raise HTTPException(status_code=400, detail="No images found in campaign")
+            
+            generated_images = campaign.settings["generated_images"]
+            
+            # Filter images based on selection
+            if request.selected_image_indices:
+                selected_images = [generated_images[i] for i in request.selected_image_indices if i < len(generated_images)]
+                if not selected_images:
+                    raise HTTPException(status_code=400, detail="No valid images selected")
+            else:
+                selected_images = generated_images
+            
+            # Calculate total credits needed
+            if request.model == "seedance":
+                if request.video_quality == "1080p":
+                    credits_per_video = 6 if request.duration == "10s" else 4
+                else:  # 480p
+                    credits_per_video = 3 if request.duration == "10s" else 2
+            elif request.model == "veo":
+                # Veo 3.1 pricing (premium quality)
+                if request.video_quality == "1080p":
+                    credits_per_video = 8 if request.duration == "10s" else 5
+                elif request.video_quality == "720p":
+                    credits_per_video = 6 if request.duration == "10s" else 4
+                else:  # 480p
+                    credits_per_video = 4 if request.duration == "10s" else 3
+            else:  # wan
+                credits_per_video = 2 if request.video_quality == "720p" else 1
+            
+            total_credits_needed = credits_per_video * len(selected_images)
+            num_videos_to_generate = len(selected_images)
+        
+        # Get user and check credits
+        user = db.query(User).filter(User.id == current_user["user_id"]).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        if user.credits < total_credits_needed:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Insufficient credits. You need {total_credits_needed} credits ({credits_per_video} per video × {num_videos_to_generate} videos), but have {user.credits} credits"
+            )
+        
+        # Generate videos
+        success_count = 0
+        failed_count = 0
+        results = []
+        
+        if request.veo_direct_mode:
+            # VEO DIRECT MODE: Generate video directly from model + product + scene
+            try:
+                print(f"🎬 Generating Veo Direct video from model + product + scene...")
+                
+                # Get model, product, scene IDs from campaign settings
+                model_ids = campaign.settings.get("model_ids", [])
+                product_ids = campaign.settings.get("product_ids", [])
+                scene_ids = campaign.settings.get("scene_ids", [])
+                
+                if not model_ids or not product_ids or not scene_ids:
+                    raise ValueError("Campaign must have model, product, and scene selected for Veo Direct mode")
+                
+                # Get first model, product, and scene (you can extend this for multiple combinations)
+                model = db.query(Model).filter(Model.id == model_ids[0]).first()
+                product = db.query(Product).filter(Product.id == product_ids[0]).first()
+                scene = db.query(Scene).filter(Scene.id == scene_ids[0]).first()
+                
+                if not model or not product or not scene:
+                    raise ValueError("Could not find model, product, or scene in database")
+                
+                # Use model's pose if available, or base image
+                model_image = model.poses[0] if model.poses and len(model.poses) > 0 else model.image_url
+                product_image = product.packshot_front_url or product.image_url
+                scene_image = scene.image_url
+                
+                print(f"📸 Model: {model.name}, Product: {product.name}, Scene: {scene.name}")
+                
+                # Generate video using Veo Direct function
+                video_url = run_veo_direct_generation(
+                    model_image,
+                    product_image,
+                    scene_image,
+                    request.video_quality,
+                    request.duration,
+                    request.custom_prompt
+                )
+                
+                if video_url:
+                    success_count += 1
+                    results.append({
+                        "index": 0,
+                        "status": "success",
+                        "video_url": video_url,
+                        "mode": "veo_direct",
+                        "model_name": model.name,
+                        "product_name": product.name,
+                        "scene_name": scene.name
+                    })
+                    print(f"✅ Veo Direct video generated successfully")
+                else:
+                    failed_count += 1
+                    results.append({
+                        "index": 0,
+                        "status": "failed",
+                        "message": "Veo Direct generation returned None",
+                        "mode": "veo_direct"
+                    })
+                    print(f"❌ Veo Direct video generation failed")
+                
+            except Exception as e:
+                print(f"❌ Failed to generate Veo Direct video: {e}")
+                import traceback
+                traceback.print_exc()
+                failed_count += 1
+                results.append({
+                    "index": 0,
+                    "status": "failed",
+                    "message": str(e),
+                    "mode": "veo_direct"
+                })
+        
+        else:
+            # STANDARD MODE: Generate videos from selected images
+            for i, img_data in enumerate(selected_images):
+                try:
+                    image_url = img_data.get("image_url")
+                    if not image_url:
+                        print(f"⚠️ Skipping image {i+1}: No image URL")
+                        failed_count += 1
+                        continue
+                    
+                    # Check if video already exists
+                    if img_data.get("video_url"):
+                        print(f"⚠️ Skipping image {i+1}: Video already exists")
+                        results.append({
+                            "index": i,
+                            "status": "skipped",
+                            "message": "Video already exists",
+                            "video_url": img_data["video_url"]
+                        })
+                        continue
+                    
+                    print(f"🎬 Generating video {i+1}/{len(selected_images)} for image: {image_url[:50]}...")
+                    
+                    # Generate video
+                    if request.model == "seedance":
+                        video_url = run_seedance_video_generation(image_url, request.video_quality, request.duration, request.custom_prompt)
+                    elif request.model == "veo":
+                        video_url = run_veo_video_generation(image_url, request.video_quality, request.duration, request.custom_prompt)
+                    else:  # wan
+                        video_url = run_wan_video_generation(image_url, request.video_quality, request.custom_prompt)
+                    
+                    if video_url:
+                        # Update the image data with video URL
+                        img_data["video_url"] = video_url
+                        success_count += 1
+                        results.append({
+                            "index": i,
+                            "status": "success",
+                            "video_url": video_url
+                        })
+                        print(f"✅ Video {i+1} generated successfully")
+                    else:
+                        failed_count += 1
+                        results.append({
+                            "index": i,
+                            "status": "failed",
+                            "message": "Video generation returned None"
+                        })
+                        print(f"❌ Video {i+1} generation failed")
+                    
+                except Exception as e:
+                    print(f"❌ Failed to generate video {i+1}: {e}")
+                    failed_count += 1
+                    results.append({
+                        "index": i,
+                        "status": "failed",
+                        "message": str(e)
+                    })
+        
+        # Update campaign settings with new video URLs (only for standard mode)
+        if not request.veo_direct_mode:
+            campaign.settings["generated_images"] = generated_images
+            flag_modified(campaign, "settings")
+        
+        # Deduct credits for successful generations
+        credits_used = success_count * credits_per_video
+        user.credits -= credits_used
+        
+        db.commit()
+        db.refresh(campaign)
+        db.refresh(user)
+        
+        print(f"✅ Bulk video generation completed: {success_count} success, {failed_count} failed")
+        
+        return {
+            "message": f"Video generation completed: {success_count} success, {failed_count} failed",
+            "total_videos": num_videos_to_generate,
+            "success_count": success_count,
+            "failed_count": failed_count,
+            "credits_used": credits_used,
+            "credits_remaining": user.credits,
+            "results": results,
+            "veo_direct_mode": request.veo_direct_mode
+        }
+        
+    except Exception as e:
+        print(f"❌ Bulk video generation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Bulk video generation failed: {str(e)}")
+
+@app.post("/generations/{generation_id}/generate-video")
+async def generate_video_for_generation(
+    generation_id: str,
+    video_quality: str = "480p",  # "480p", "720p", or "1080p"
+    duration: str = "5s",  # "5s" or "10s" (only for Seedance)
+    model: str = "wan",  # "wan" or "seedance"
+    custom_prompt: Optional[str] = None,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate video for a specific generation with credit-based costs.
+    
+    **Credit Costs:**
+    - Wan 2.2 I2V Fast:
+      - 480p: 1 credit
+      - 720p: 2 credits
+    - Seedance 1 Pro:
+      - 480p (5s): 2 credits
+      - 480p (10s): 3 credits
+      - 1080p (5s): 4 credits
+      - 1080p (10s): 6 credits
+    """
+    try:
+        # Get the generation
+        generation = db.query(Generation).filter(
+            Generation.id == generation_id,
+            Generation.user_id == current_user["user_id"]
+        ).first()
+        
+        if not generation:
+            raise HTTPException(status_code=404, detail="Generation not found")
+        
+        # Check if video already exists
+        if generation.video_urls and len(generation.video_urls) > 0:
+            return {
+                "message": "Video already exists for this generation",
+                "video_url": generation.video_urls[0]
+            }
+        
+        # Get user
+        user = db.query(User).filter(User.id == current_user["user_id"]).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Determine credits needed based on video quality, model, and duration
+        if model == "seedance":
+            if video_quality == "1080p":
+                if duration == "10s":
+                    credits_needed = 6  # 1080p 10s Seedance (most expensive)
+                else:  # 5s
+                    credits_needed = 4  # 1080p 5s Seedance
+            else:  # 480p
+                if duration == "10s":
+                    credits_needed = 3  # 480p 10s Seedance
+                else:  # 5s
+                    credits_needed = 2  # 480p 5s Seedance
+        else:  # wan model
+            if video_quality == "720p":
+                credits_needed = 2  # 720p Wan
+            else:  # 480p
+                credits_needed = 1  # 480p Wan (cheapest)
+        
+        if user.credits < credits_needed:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Insufficient credits. You have {user.credits} credits, but need {credits_needed} for {model} {video_quality} {duration if model == 'seedance' else ''} video generation"
+            )
+        
+        # Get the image URL from the generation
+        if not generation.output_urls or len(generation.output_urls) == 0:
+            raise HTTPException(status_code=400, detail="No image found for this generation")
+        
+        image_url = generation.output_urls[0]
+        
+        # Generate video
+        print(f"🎬 Generating {video_quality} video using {model} model for generation {generation_id}...")
+        if custom_prompt:
+            print(f"🎨 Using custom prompt: {custom_prompt[:100]}...")
+        
+        if model == "seedance":
+            video_url = run_seedance_video_generation(image_url, video_quality, duration, custom_prompt)
+        else:  # wan model (default)
+            video_url = run_wan_video_generation(image_url, video_quality, custom_prompt)
+        
+        if video_url:
+            # Update generation with video URL
+            generation.video_urls = [video_url]
+            generation.updated_at = datetime.utcnow()
+            
+            # Deduct credits
+            user.credits -= credits_needed
+            
+            db.commit()
+            db.refresh(generation)
+            db.refresh(user)
+            
+            print(f"✅ Video generated successfully: {video_url}")
+            return {
+                "message": "Video generated successfully",
+                "video_url": video_url,
+                "credits_used": credits_needed,
+                "credits_remaining": user.credits
+            }
+        else:
+            raise HTTPException(
+                status_code=500, 
+                detail="Video generation failed"
+            )
+            
+    except Exception as e:
+        print(f"❌ Video generation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Video generation failed: {str(e)}")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
