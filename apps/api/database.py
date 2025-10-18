@@ -34,3 +34,5 @@ def create_tables():
     from models import Base
     Base.metadata.create_all(bind=engine)
 
+
+

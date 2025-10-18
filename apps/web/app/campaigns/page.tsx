@@ -475,11 +475,9 @@ export default function CampaignsPage() {
     let clothingType = currentImageMetadata?.clothing_type || "top";
 
     // If no product_id in image, try to get from campaign settings
-    if (
-      !productId &&
-      selectedCampaignForProfile?.settings?.product_ids?.length > 0
-    ) {
-      productId = selectedCampaignForProfile.settings.product_ids[0];
+    const productIds = selectedCampaignForProfile?.settings?.product_ids;
+    if (!productId && productIds?.length && productIds.length > 0) {
+      productId = productIds[0];
       console.log("Using product_id from campaign settings:", productId);
     }
 
