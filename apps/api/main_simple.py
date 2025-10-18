@@ -59,6 +59,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Simple test endpoint
+@app.get("/test")
+async def test_endpoint():
+    return {"message": "Test endpoint working", "status": "success"}
+
 # Debug endpoint to list files in uploads directory
 @app.get("/debug/files")
 async def debug_files():
