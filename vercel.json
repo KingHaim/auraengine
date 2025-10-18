@@ -5,6 +5,6 @@
   "installCommand": "npm install",
   "devCommand": "cd apps/web && npm run dev",
   "env": {
-    "NEXT_PUBLIC_API_URL": "@next_public_api_url"
+    "NEXT_PUBLIC_API_URL": "https://courteous-radiance-production.up.railway.app"
   }
 }
