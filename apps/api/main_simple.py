@@ -62,6 +62,28 @@ app.add_middleware(
 # Mount static files
 app.mount("/static", StaticFiles(directory="uploads"), name="static")
 
+# Debug endpoint to list files in uploads directory
+@app.get("/debug/files")
+async def debug_files():
+    """Debug endpoint to see what files exist in uploads directory"""
+    import os
+    try:
+        uploads_dir = "uploads"
+        if os.path.exists(uploads_dir):
+            files = os.listdir(uploads_dir)
+            return {
+                "uploads_dir_exists": True,
+                "files": files,
+                "file_count": len(files)
+            }
+        else:
+            return {
+                "uploads_dir_exists": False,
+                "message": "uploads directory does not exist"
+            }
+    except Exception as e:
+        return {"error": str(e)}
+
 # Direct endpoint to serve static images
 @app.get("/static/{filename}")
 async def serve_static_file(filename: str):
@@ -72,7 +94,13 @@ async def serve_static_file(filename: str):
         from fastapi.responses import FileResponse
         return FileResponse(file_path)
     else:
-        raise HTTPException(status_code=404, detail="File not found")
+        # Return debug info when file not found
+        uploads_dir = "uploads"
+        files = os.listdir(uploads_dir) if os.path.exists(uploads_dir) else []
+        raise HTTPException(
+            status_code=404, 
+            detail=f"File not found: {filename}. Available files: {files}"
+        )
 
 # Database dependency
 def get_db():
