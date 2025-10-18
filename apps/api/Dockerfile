@@ -12,11 +12,17 @@ RUN apt-get update && apt-get install -y \
 COPY apps/api/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Create directories for uploads first
+RUN mkdir -p uploads temp
+
 # Copy application code
 COPY apps/api/ .
 
-# Create directories for uploads
-RUN mkdir -p uploads temp
+# Ensure uploads directory has the right permissions
+RUN chmod -R 755 uploads
+
+# Verify static files exist
+RUN ls -la uploads/
 
 # Expose port
 EXPOSE 8000
