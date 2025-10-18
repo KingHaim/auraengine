@@ -30,7 +30,7 @@ export default function ScenesPage() {
   const fetchScenes = async () => {
     try {
       setScenesLoading(true);
-      const response = await fetch("http://localhost:8000/scenes", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/scenes`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

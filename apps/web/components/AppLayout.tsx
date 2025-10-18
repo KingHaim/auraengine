@@ -46,16 +46,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
     try {
       const [campaignsRes, productsRes, modelsRes, scenesRes] =
         await Promise.all([
-          fetch("http://localhost:8000/campaigns", {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/campaigns`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:8000/products", {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:8000/models", {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/models`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:8000/scenes", {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/scenes`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);

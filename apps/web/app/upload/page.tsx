@@ -59,7 +59,7 @@ export default function UploadPage() {
       fd.append("product", product);
       if (mode === "backshot" && scene) fd.append("scene_or_model", scene);
 
-      const res = await fetch("http://localhost:8000/jobs/generate", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs/generate`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

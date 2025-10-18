@@ -57,7 +57,7 @@ export default function ProductsPage() {
 
     try {
       console.log("🔍 Fetching products from API...");
-      const response = await fetch("http://localhost:8000/products", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -78,7 +78,7 @@ export default function ProductsPage() {
   // Function to fetch categories and tags
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://localhost:8000/products/categories");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/categories`);
       if (response.ok) {
         const data = await response.json();
         setCategories(data);
@@ -122,7 +122,7 @@ export default function ProductsPage() {
         formData.append("packshot_back_type", newProduct.packshotBackType);
       }
 
-      const response = await fetch("http://localhost:8000/products/upload", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -216,7 +216,7 @@ export default function ProductsPage() {
       }
 
       const response = await fetch(
-        `http://localhost:8000/products/${editingProduct.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${editingProduct.id}`,
         {
           method: "PUT",
           headers: {
@@ -272,7 +272,7 @@ export default function ProductsPage() {
     setIsDeleting(true);
     try {
       const response = await fetch(
-        `http://localhost:8000/products/${deletingProduct.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${deletingProduct.id}`,
         {
           method: "DELETE",
           headers: {
@@ -312,7 +312,7 @@ export default function ProductsPage() {
     setIsRerolling(true);
     try {
       const response = await fetch(
-        `http://localhost:8000/products/${productId}/reroll-packshots`,
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/reroll-packshots`,
         {
           method: "POST",
           headers: {
@@ -584,7 +584,7 @@ export default function ProductsPage() {
                         e.currentTarget.src = product.image_url;
                       } else {
                         e.currentTarget.src =
-                          "http://localhost:8000/static/Julian_model.jpg";
+                          `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`;
                       }
                     }}
                   />

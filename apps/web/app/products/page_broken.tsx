@@ -48,7 +48,7 @@ export default function ProductsPage() {
 
     try {
       console.log("🔍 Fetching products from API...");
-      const response = await fetch("http://localhost:8000/products", {
+      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/products", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -71,7 +71,7 @@ export default function ProductsPage() {
     if (!token) return;
 
     try {
-      const response = await fetch("http://localhost:8000/categories", {
+      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/categories", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -117,7 +117,7 @@ export default function ProductsPage() {
         formData.append("packshot_back_type", newProduct.packshotBackType);
       }
 
-      const response = await fetch("http://localhost:8000/products", {
+      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/products", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -168,7 +168,7 @@ export default function ProductsPage() {
 
     try {
       const response = await fetch(
-        "http://localhost:8000/products/generate-mockup",
+        "${process.env.NEXT_PUBLIC_API_URL}/products/generate-mockup",
         {
           method: "POST",
           headers: {

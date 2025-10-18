@@ -110,7 +110,7 @@ export default function CreditsPage() {
 
   useEffect(() => {
     // Get Stripe publishable key
-    fetch("http://localhost:8000/payments/config")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/config`)
       .then((res) => res.json())
       .then((data) => setStripePublishableKey(data.publishable_key))
       .catch((err) => console.error("Failed to load Stripe config:", err));

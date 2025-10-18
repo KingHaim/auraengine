@@ -94,7 +94,7 @@ export default function ModelsPage() {
       formData.append("eye_color", physicalAttributes.eyeColor);
       formData.append("skin_tone", physicalAttributes.skinTone);
 
-      const response = await fetch("http://localhost:8000/models/ai-generate", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/models/ai-generate`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -152,7 +152,7 @@ export default function ModelsPage() {
       formData.append("gender", editForm.gender);
 
       const response = await fetch(
-        `http://localhost:8000/models/${editingModel.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/models/${editingModel.id}`,
         {
           method: "PUT",
           headers: {
@@ -192,7 +192,7 @@ export default function ModelsPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/models/${modelId}/poses/${poseIndex}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/models/${modelId}/poses/${poseIndex}`,
         {
           method: "DELETE",
           headers: {
@@ -242,7 +242,7 @@ export default function ModelsPage() {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/models/${model.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/models/${model.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -273,7 +273,7 @@ export default function ModelsPage() {
       console.log("🔍 Fetching models from API...");
       console.log("🔑 Using token:", token.substring(0, 20) + "...");
 
-      const response = await fetch("http://localhost:8000/models", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/models`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -300,21 +300,21 @@ export default function ModelsPage() {
             id: "1",
             name: "Alex Johnson",
             description: "Professional model, 5'9\"",
-            image_url: "http://localhost:8000/static/Julian_model.jpg",
+            image_url: `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`,
             created_at: "2024-01-15T10:00:00Z",
           },
           {
             id: "2",
             name: "Sarah Chen",
             description: "Fashion model, 5'7\"",
-            image_url: "http://localhost:8000/static/model.jpg",
+            image_url: `${process.env.NEXT_PUBLIC_API_URL}/static/model.jpg`,
             created_at: "2024-01-14T15:30:00Z",
           },
           {
             id: "3",
             name: "Marcus Williams",
             description: "Male model, 6'1\"",
-            image_url: "http://localhost:8000/static/IMG_6695.PNG",
+            image_url: `${process.env.NEXT_PUBLIC_API_URL}/static/IMG_6695.PNG`,
             created_at: "2024-01-13T09:15:00Z",
           },
         ];
@@ -329,21 +329,21 @@ export default function ModelsPage() {
           id: "1",
           name: "Alex Johnson",
           description: "Professional model, 5'9\"",
-          image_url: "http://localhost:8000/static/Julian_model.jpg",
+          image_url: `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`,
           created_at: "2024-01-15T10:00:00Z",
         },
         {
           id: "2",
           name: "Sarah Chen",
           description: "Fashion model, 5'7\"",
-          image_url: "http://localhost:8000/static/model.jpg",
+          image_url: `${process.env.NEXT_PUBLIC_API_URL}/static/model.jpg`,
           created_at: "2024-01-14T15:30:00Z",
         },
         {
           id: "3",
           name: "Marcus Williams",
           description: "Male model, 6'1\"",
-          image_url: "http://localhost:8000/static/IMG_6695.PNG",
+          image_url: `${process.env.NEXT_PUBLIC_API_URL}/static/IMG_6695.PNG`,
           created_at: "2024-01-13T09:15:00Z",
         },
       ];
@@ -357,7 +357,7 @@ export default function ModelsPage() {
     const testAPI = async () => {
       try {
         console.log("🧪 Testing API connectivity...");
-        const testResponse = await fetch("http://localhost:8000/health");
+        const testResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`);
         console.log("🏥 Health check status:", testResponse.status);
         if (testResponse.ok) {
           const healthData = await testResponse.json();
@@ -392,7 +392,7 @@ export default function ModelsPage() {
       formData.append("gender", newModel.gender);
       formData.append("model_image", newModel.image);
 
-      const response = await fetch("http://localhost:8000/models/upload", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/models/upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -443,7 +443,7 @@ export default function ModelsPage() {
       formData.append("prompt", genderSpecificPrompt);
 
       const res = await fetch(
-        `http://localhost:8000/models/${selectedModel.id}/generate-poses`,
+        `${process.env.NEXT_PUBLIC_API_URL}/models/${selectedModel.id}/generate-poses`,
         {
           method: "POST",
           headers: {
@@ -751,7 +751,7 @@ export default function ModelsPage() {
                       model.image_url
                     );
                     e.currentTarget.src =
-                      "http://localhost:8000/static/Julian_model.jpg";
+                      `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`;
                   }}
                 />
 
@@ -1310,8 +1310,8 @@ export default function ModelsPage() {
                   <img
                     src={
                       selectedGender === "male"
-                        ? "http://localhost:8000/static/model.png"
-                        : "http://localhost:8000/static/model_female.png"
+                        ? `${process.env.NEXT_PUBLIC_API_URL}/static/model.png`
+                        : `${process.env.NEXT_PUBLIC_API_URL}/static/model_female.png`
                     }
                     alt={`Base ${
                       selectedGender === "male" ? "Male" : "Female"
@@ -2765,7 +2765,7 @@ export default function ModelsPage() {
                     }}
                     onError={(e) => {
                       e.currentTarget.src =
-                        "http://localhost:8000/static/Julian_model.jpg";
+                        `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`;
                     }}
                   />
                 </div>

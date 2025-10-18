@@ -170,16 +170,16 @@ export default function CampaignsPage() {
       // Fetch all data in parallel
       const [campaignsRes, productsRes, modelsRes, scenesRes] =
         await Promise.all([
-          fetch("http://localhost:8000/campaigns", {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/campaigns`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:8000/products", {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:8000/models", {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/models`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("http://localhost:8000/scenes", {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/scenes`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -317,7 +317,7 @@ export default function CampaignsPage() {
       formData.append("scene_ids", JSON.stringify(selectedScenes));
       formData.append("selected_poses", JSON.stringify(selectedPoses));
 
-      const response = await fetch("http://localhost:8000/campaigns/create", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/campaigns/create`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -365,7 +365,7 @@ export default function CampaignsPage() {
     setGeneratingCampaign(campaignId);
     try {
       const response = await fetch(
-        `http://localhost:8000/campaigns/${campaignId}/generate`,
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/generate`,
         {
           method: "POST",
           headers: {
@@ -489,7 +489,7 @@ export default function CampaignsPage() {
     setReapplyingClothes(true);
 
     try {
-      const response = await fetch("http://localhost:8000/reapply-clothes", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reapply-clothes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -543,7 +543,7 @@ export default function CampaignsPage() {
     setTweaking(true);
 
     try {
-      const response = await fetch("http://localhost:8000/tweak-image", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tweak-image`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -596,7 +596,7 @@ export default function CampaignsPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/campaigns/${campaignId}/images/${imageIndex}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/images/${imageIndex}`,
         {
           method: "DELETE",
           headers: {
@@ -674,7 +674,7 @@ export default function CampaignsPage() {
       for (const campaignId of selectedCampaigns) {
         try {
           const response = await fetch(
-            `http://localhost:8000/campaigns/${campaignId}`,
+            `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}`,
             {
               method: "DELETE",
               headers: {
@@ -741,7 +741,7 @@ export default function CampaignsPage() {
     setIsDeleting(campaignId);
     try {
       const response = await fetch(
-        `http://localhost:8000/campaigns/${campaignId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}`,
         {
           method: "DELETE",
           headers: {
@@ -782,7 +782,7 @@ export default function CampaignsPage() {
     setIsUpdating(true);
     try {
       const response = await fetch(
-        `http://localhost:8000/campaigns/${editingCampaign.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${editingCampaign.id}`,
         {
           method: "PUT",
           headers: {
@@ -857,7 +857,7 @@ export default function CampaignsPage() {
       formData.append("number_of_images", numberOfImagesToGenerate.toString());
 
       const response = await fetch(
-        `http://localhost:8000/campaigns/${selectedCampaignForGeneration.id}/generate`,
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${selectedCampaignForGeneration.id}/generate`,
         {
           method: "POST",
           headers: {
@@ -909,7 +909,7 @@ export default function CampaignsPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/generations/${generationId}/generate-video`,
+        `${process.env.NEXT_PUBLIC_API_URL}/generations/${generationId}/generate-video`,
         {
           method: "POST",
           headers: {
@@ -5563,7 +5563,7 @@ export default function CampaignsPage() {
 
                     try {
                       const response = await fetch(
-                        `http://localhost:8000/campaigns/${selectedCampaignForBulkVideo.id}/generate-videos`,
+                        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${selectedCampaignForBulkVideo.id}/generate-videos`,
                         {
                           method: "POST",
                           headers: {

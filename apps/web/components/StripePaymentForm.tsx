@@ -44,7 +44,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
     try {
       // Create payment intent
       const response = await fetch(
-        "http://localhost:8000/payments/create-intent",
+        `${process.env.NEXT_PUBLIC_API_URL}/payments/create-intent`,
         {
           method: "POST",
           headers: {
@@ -76,7 +76,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       } else if (paymentIntent.status === "succeeded") {
         // Confirm payment on backend
         const confirmResponse = await fetch(
-          "http://localhost:8000/payments/confirm",
+          `${process.env.NEXT_PUBLIC_API_URL}/payments/confirm`,
           {
             method: "POST",
             headers: {
