@@ -47,14 +47,25 @@ app = FastAPI(title="Aura Engine API", version="1.0.0")
 # Create database tables on startup
 @app.on_event("startup")
 async def startup_event():
-    create_tables()
-    
-    # Clean up expired pose URLs
-    db = SessionLocal()
+    print("🚀 Starting Aura Engine API...")
     try:
-        migrate_expired_pose_urls(db)
-    finally:
-        db.close()
+        print("📊 Creating database tables...")
+        create_tables()
+        print("✅ Database tables created successfully!")
+        
+        # Clean up expired pose URLs
+        print("🧹 Cleaning up expired pose URLs...")
+        db = SessionLocal()
+        try:
+            migrate_expired_pose_urls(db)
+            print("✅ Cleanup completed!")
+        finally:
+            db.close()
+            
+        print("🎉 API startup completed successfully!")
+    except Exception as e:
+        print(f"❌ Error during startup: {e}")
+        raise
 
 # CORS middleware
 app.add_middleware(
