@@ -59,9 +59,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="uploads"), name="static")
-
 # Debug endpoint to list files in uploads directory
 @app.get("/debug/files")
 async def debug_files():
@@ -101,6 +98,9 @@ async def serve_static_file(filename: str):
             status_code=404, 
             detail=f"File not found: {filename}. Available files: {files}"
         )
+
+# Mount static files (this should come after the direct endpoint)
+app.mount("/static", StaticFiles(directory="uploads"), name="static")
 
 # Database dependency
 def get_db():
