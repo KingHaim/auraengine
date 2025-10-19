@@ -1518,23 +1518,30 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
     try:
         print(f"🎭 Running Vella try-on: model={model_image_url[:50]}..., product={product_image_url[:50]}...")
         print(f"👕 Clothing type: {clothing_type}")
-        
-        # Convert local URLs to base64 only if needed
-        # model_image_url might already be a Replicate URL from Qwen - use it directly!
+
+        # Model input: prefer small public URL; convert only if local /static
         if model_image_url.startswith(get_base_url() + "/static/"):
             filename = model_image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             model_image_url = upload_to_replicate(filepath)
-            print(f"🗜️ Converted model to base64")
+            print(f"🗜️ Converted local model to data URL")
         else:
-            print(f"📁 Using Replicate URL for model: {model_image_url[:50]}...")
-        
-        # Ensure product image is public/base64 for Vella
-        if product_image_url.startswith(get_base_url() + "/static/"):
-            filename = product_image_url.replace(get_base_url() + "/static/", "")
-            filepath = f"uploads/{filename}"
-            product_image_url = upload_to_replicate(filepath)
-            print(f"🗜️ Converted product to base64")
+            print(f"📁 Using model URL directly: {model_image_url[:50]}...")
+
+        # Garment: ensure alpha; prefer URL; convert to data URL only if local /static and URL attempt fails
+        try:
+            if has_alpha(product_image_url):
+                garment_url = product_image_url
+                print("🧵 Garment already has alpha")
+            else:
+                print("🪄 Removing background from garment...")
+                cut = rembg_cutout(product_image_url)
+                cut = postprocess_cutout(cut)
+                garment_url = upload_png(cut)  # -> /static/ PNG URL
+                print(f"🧵 Garment cutout saved: {garment_url}")
+        except Exception as e:
+            print(f"⚠️ Garment processing failed, using original: {e}")
+            garment_url = product_image_url
 
         # Run Vella 1.5 try-on
         try:
@@ -1549,11 +1556,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 seed = 42  # Fixed seed for consistency
                 print("⚡ Using STANDARD Vella 1.5 mode")
             
-            print(f"🎭 Calling Vella 1.5 API with model: {model_image_url[:50]}... and product: {product_image_url[:50]}...")
+            print(f"🎭 Calling Vella 1.5 API with model: {model_image_url[:50]}... and product: {garment_url[:50]}...")
             print(f"🎭 Vella 1.5 parameters: num_outputs={num_outputs}, seed={seed}")
             
             # Base input
-            vella_input = {
+            base_input = {
                 "model_image": model_image_url,
                 "num_outputs": num_outputs,
             }
@@ -1575,40 +1582,54 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 print(f"⚠️ Unknown clothing type '{clothing_type}', defaulting to 'top_image'")
             
             if seed is not None:
-                vella_input["seed"] = seed
-            
-            print(f"🎭 Vella 1.5 input parameters: {vella_input}")
+                base_input["seed"] = seed
+
             def try_vella(input_payload):
                 return replicate.run("omnious/vella-1.5", input=input_payload)
 
+            # Determine garment key candidates based on clothing type
+            clothing_type_lower = clothing_type.lower() if clothing_type else "top"
+            if clothing_type_lower in ["tshirt", "shirt", "blouse", "sweater", "jacket", "hoodie", "top", "cardigan"]:
+                key_candidates = ["top_image", "garment_image", "cloth_image", "dress_image"]
+            elif clothing_type_lower in ["pants", "jeans", "skirt", "shorts", "trousers", "bottom"]:
+                key_candidates = ["bottom_image", "garment_image", "cloth_image", "top_image"]
+            elif clothing_type_lower in ["dress", "jumpsuit", "overall"]:
+                key_candidates = ["dress_image", "garment_image", "cloth_image", "top_image"]
+            else:
+                key_candidates = ["top_image", "garment_image", "cloth_image", "dress_image", "bottom_image"]
+
             out = None
-            try:
-                out = try_vella(vella_input)
-            except Exception as ve:
-                print(f"⚠️ Vella with {list(vella_input.keys())} failed: {ve}")
-                # Try alternate parameter mapping once
-                alt_candidates = []
-                if "top_image" in vella_input:
-                    alt_candidates = ["dress_image", "bottom_image"]
-                elif "dress_image" in vella_input:
-                    alt_candidates = ["top_image"]
-                elif "bottom_image" in vella_input:
-                    alt_candidates = ["top_image"]
-                for alt in alt_candidates:
-                    vi = dict(vella_input)
-                    # Move product image into alt key
-                    product_val = vi.pop("top_image", None) or vi.pop("dress_image", None) or vi.pop("bottom_image", None)
-                    vi[alt] = product_val
+            last_err = None
+
+            # Pass 1: try with garment URL
+            for key in key_candidates:
+                payload = dict(base_input)
+                payload[key] = garment_url
+                try:
+                    print(f"🎭 Trying Vella (URL) key={key}")
+                    out = try_vella(payload)
+                    break
+                except Exception as ve:
+                    print(f"❌ Vella failed with {key} (URL): {ve}")
+                    last_err = ve
+
+            # Pass 2: if failed and garment is local /static, convert just garment to data URL and retry
+            if out is None and garment_url.startswith(get_base_url() + "/static/"):
+                filename = garment_url.replace(get_base_url() + "/static/", "")
+                garment_b64 = upload_to_replicate(f"uploads/{filename}")
+                for key in key_candidates:
+                    payload = dict(base_input)
+                    payload[key] = garment_b64
                     try:
-                        print(f"🔁 Retrying Vella with {alt}...")
-                        out = try_vella(vi)
-                        vella_input = vi
+                        print(f"🔁 Retrying Vella (data) key={key}")
+                        out = try_vella(payload)
                         break
                     except Exception as ve2:
-                        print(f"❌ Alternate Vella {alt} failed: {ve2}")
-                        out = None
+                        print(f"❌ Vella failed with {key} (data): {ve2}")
+                        last_err = ve2
+
             if out is None:
-                raise Exception("All Vella attempts failed")
+                raise Exception(f"All Vella attempts failed: {last_err}")
             
             print(f"🎭 Vella API response type: {type(out)}")
             if hasattr(out, '__dict__'):
