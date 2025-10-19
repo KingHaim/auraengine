@@ -282,6 +282,72 @@ async def get_scenes(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/scenes/upload")
+async def upload_scene(
+    name: str = Form(...),
+    description: str = Form(""),
+    category: str = Form(""),
+    tags: str = Form(""),
+    image: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Upload a new scene"""
+    try:
+        # Validate file type
+        if not image.content_type or not image.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        
+        # Save scene image
+        image_filename = f"scene_{hash(name + str(datetime.now()))}.{image.filename.split('.')[-1]}"
+        image_path = os.path.join("uploads", image_filename)
+        
+        with open(image_path, "wb") as f:
+            content = await image.read()
+            f.write(content)
+        
+        # Upload to Replicate for reliable serving
+        try:
+            image_url = upload_to_replicate(image_path)
+        except Exception:
+            image_url = get_static_url(image_filename)
+        
+        # Parse tags
+        tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()] if tags else []
+        
+        # Create scene in database
+        scene = Scene(
+            id=str(uuid.uuid4()),
+            user_id=current_user["user_id"],
+            name=name,
+            description=description,
+            category=category,
+            tags=tag_list,
+            image_url=image_url,
+            is_standard=False,
+            created_at=datetime.utcnow()
+        )
+        
+        db.add(scene)
+        db.commit()
+        db.refresh(scene)
+        
+        return {
+            "id": scene.id,
+            "name": scene.name,
+            "description": scene.description,
+            "image_url": scene.image_url,
+            "category": scene.category,
+            "tags": scene.tags,
+            "is_standard": scene.is_standard,
+            "created_at": scene.created_at,
+            "updated_at": scene.updated_at
+        }
+        
+    except Exception as e:
+        print(f"Scene upload error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/campaigns", response_model=list[CampaignResponse])
 async def get_campaigns(
     current_user: dict = Depends(get_current_user),

@@ -19,6 +19,15 @@ export default function ScenesPage() {
   const { user, token, loading } = useAuth();
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [scenesLoading, setScenesLoading] = useState(true);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [newScene, setNewScene] = useState({
+    name: "",
+    description: "",
+    category: "",
+    tags: "",
+    image: null as File | null,
+  });
 
   // Fetch scenes when user is authenticated
   useEffect(() => {
@@ -46,6 +55,57 @@ export default function ScenesPage() {
       console.error("Error fetching scenes:", error);
     } finally {
       setScenesLoading(false);
+    }
+  };
+
+  const handleUploadScene = async () => {
+    if (!newScene.name || !newScene.image) {
+      alert("Please fill in scene name and select an image");
+      return;
+    }
+
+    if (!token) {
+      alert("Please log in to upload scenes");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("name", newScene.name);
+      formData.append("description", newScene.description);
+      formData.append("category", newScene.category);
+      formData.append("tags", newScene.tags);
+      formData.append("image", newScene.image);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/scenes/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("✅ Scene uploaded:", result);
+        alert(`✅ Scene "${result.name}" uploaded successfully!`);
+        
+        // Refresh scenes list
+        await fetchScenes();
+        
+        // Reset form
+        setNewScene({ name: "", description: "", category: "", tags: "", image: null });
+        setShowUploadModal(false);
+      } else {
+        const error = await response.text();
+        throw new Error(error);
+      }
+    } catch (error) {
+      console.error("Scene upload failed:", error);
+      alert(`❌ Scene upload failed: ${error}`);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -89,13 +149,14 @@ export default function ScenesPage() {
   return (
     <AppLayout>
       <div style={{ padding: "32px" }}>
-        <div style={{ marginBottom: "32px" }}>
+        <div style={{ marginBottom: "32px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
             <h1
               style={{
                 fontSize: "24px",
-              fontWeight: "700",
-              color: "#1E293B",
-              marginBottom: "8px",
+                fontWeight: "700",
+                color: "#1E293B",
+                marginBottom: "8px",
               }}
             >
               Scene Library
@@ -103,13 +164,33 @@ export default function ScenesPage() {
             <p
               style={{
                 fontSize: "14px",
-              color: "#64748B",
+                color: "#64748B",
                 margin: "4px 0 0 0",
               }}
             >
-            Manage your background scenes for campaigns
+              Manage your background scenes for campaigns
             </p>
           </div>
+          <button
+            onClick={() => setShowUploadModal(true)}
+            style={{
+              padding: "12px 24px",
+              backgroundColor: "#8B5CF6",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: "500",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <span>+</span>
+            Add Scene
+          </button>
+        </div>
 
         {scenesLoading ? (
           <div
@@ -156,18 +237,19 @@ export default function ScenesPage() {
               Upload your first scene to get started
             </p>
                 <button
+                  onClick={() => setShowUploadModal(true)}
                   style={{
-                padding: "8px 16px",
+                    padding: "8px 16px",
                     backgroundColor: "#8B5CF6",
                     color: "#FFFFFF",
                     border: "none",
-                borderRadius: "6px",
+                    borderRadius: "6px",
                     fontSize: "14px",
                     fontWeight: "500",
                     cursor: "pointer",
                   }}
                 >
-              Add Scene
+                  Add Scene
                 </button>
             </div>
           ) : (
@@ -293,6 +375,297 @@ export default function ScenesPage() {
             </div>
           )}
       </div>
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: "16px",
+              padding: "24px",
+              width: "500px",
+              maxWidth: "90vw",
+              maxHeight: "85vh",
+              overflow: "auto",
+              border: "1px solid #E5E7EB",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "24px",
+              }}
+            >
+              <h2
+                style={{
+                  color: "#1F2937",
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  margin: 0,
+                }}
+              >
+                Upload New Scene
+              </h2>
+              <button
+                onClick={() => setShowUploadModal(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#6B7280",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ marginBottom: "16px" }}>
+              <label
+                style={{
+                  display: "block",
+                  color: "#374151",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  marginBottom: "8px",
+                }}
+              >
+                Scene Name *
+              </label>
+              <input
+                type="text"
+                value={newScene.name}
+                onChange={(e) =>
+                  setNewScene({ ...newScene, name: e.target.value })
+                }
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  border: "1px solid #D1D5DB",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  backgroundColor: "#F9FAFB",
+                  color: "#1F2937",
+                }}
+                placeholder="Enter scene name"
+              />
+            </div>
+
+            <div style={{ marginBottom: "16px" }}>
+              <label
+                style={{
+                  display: "block",
+                  color: "#374151",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  marginBottom: "8px",
+                }}
+              >
+                Description
+              </label>
+              <textarea
+                value={newScene.description}
+                onChange={(e) =>
+                  setNewScene({ ...newScene, description: e.target.value })
+                }
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  border: "1px solid #D1D5DB",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  minHeight: "60px",
+                  resize: "vertical",
+                  backgroundColor: "#F9FAFB",
+                  color: "#1F2937",
+                }}
+                placeholder="Enter scene description"
+              />
+            </div>
+
+            <div style={{ marginBottom: "16px" }}>
+              <label
+                style={{
+                  display: "block",
+                  color: "#374151",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  marginBottom: "8px",
+                }}
+              >
+                Category
+              </label>
+              <select
+                value={newScene.category}
+                onChange={(e) =>
+                  setNewScene({ ...newScene, category: e.target.value })
+                }
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  border: "1px solid #D1D5DB",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  backgroundColor: "#FFFFFF",
+                }}
+              >
+                <option value="">Select a category</option>
+                <option value="studio">Studio</option>
+                <option value="outdoor">Outdoor</option>
+                <option value="lifestyle">Lifestyle</option>
+                <option value="urban">Urban</option>
+                <option value="nature">Nature</option>
+                <option value="indoor">Indoor</option>
+              </select>
+            </div>
+
+            <div style={{ marginBottom: "16px" }}>
+              <label
+                style={{
+                  display: "block",
+                  color: "#374151",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  marginBottom: "8px",
+                }}
+              >
+                Tags
+              </label>
+              <input
+                type="text"
+                value={newScene.tags}
+                onChange={(e) =>
+                  setNewScene({ ...newScene, tags: e.target.value })
+                }
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  border: "1px solid #D1D5DB",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  backgroundColor: "#F9FAFB",
+                  color: "#1F2937",
+                }}
+                placeholder="Enter tags separated by commas (e.g., modern, bright, professional)"
+              />
+            </div>
+
+            <div style={{ marginBottom: "24px" }}>
+              <label
+                style={{
+                  display: "block",
+                  color: "#374151",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  marginBottom: "8px",
+                }}
+              >
+                Scene Image *
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  setNewScene({
+                    ...newScene,
+                    image: e.target.files?.[0] || null,
+                  })
+                }
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  border: "1px solid #D1D5DB",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  backgroundColor: "#F9FAFB",
+                }}
+              />
+              {newScene.image && (
+                <div
+                  style={{
+                    marginTop: "8px",
+                    display: "flex",
+                    gap: "12px",
+                    alignItems: "center",
+                  }}
+                >
+                  <img
+                    src={URL.createObjectURL(newScene.image)}
+                    alt="Preview"
+                    style={{
+                      width: "80px",
+                      height: "80px",
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                      border: "1px solid #E5E7EB",
+                      backgroundColor: "#FFF",
+                    }}
+                  />
+                  <div style={{ fontSize: "12px", color: "#6B7280" }}>
+                    {newScene.image.name}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "12px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                onClick={() => setShowUploadModal(false)}
+                style={{
+                  padding: "12px 24px",
+                  backgroundColor: "#F3F4F6",
+                  color: "#374151",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUploadScene}
+                disabled={uploading || !newScene.name || !newScene.image}
+                style={{
+                  padding: "12px 24px",
+                  backgroundColor: uploading || !newScene.name || !newScene.image ? "#D1D5DB" : "#8B5CF6",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: uploading || !newScene.name || !newScene.image ? "not-allowed" : "pointer",
+                }}
+              >
+                {uploading ? "Uploading..." : "Upload Scene"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }
