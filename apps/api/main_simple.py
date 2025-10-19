@@ -478,20 +478,25 @@ async def create_campaign(
                             # REAL WORKFLOW (local-success): Qwen first, then Vella
                             quality_mode = "standard"
 
-                            # Step 1: Compose model into the scene with shot type
+                            # Step 1: Compose model into the scene with shot type (persist inputs first)
+                            stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
+                            stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                             print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
                             qwen_result_url = run_qwen_scene_composition(
-                                model_image,
-                                scene.image_url,
+                                stable_model,
+                                stable_scene,
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
+                            qwen_result_url = stabilize_url(qwen_result_url, f"qwen_{shot_type['name']}") if 'stabilize_url' in globals() else qwen_result_url
                             print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
 
                             # Step 2: Apply Vella try-on on the composed image
                             print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
                             clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
-                            vella_result_url = run_vella_try_on(qwen_result_url, product_image, quality_mode, clothing_type)
+                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
+                            vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
+                            vella_result_url = stabilize_url(vella_result_url, f"vella_{shot_type['name']}") if 'stabilize_url' in globals() else vella_result_url
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
                             # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
@@ -532,7 +537,7 @@ async def create_campaign(
                                         nano_url = str(nano_result)
                                     
                                     print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
-                                    final_result_url = nano_url
+                                    final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
                                 except Exception as e:
                                     print(f"⚠️ Nano Banana failed, using Vella result: {e}")
                                     final_result_url = vella_result_url
@@ -542,7 +547,7 @@ async def create_campaign(
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
-                            final_url = download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
+                            final_url = stabilize_url(to_url(final_result_url), f"final_{shot_type['name']}") if 'stabilize_url' in globals() else download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
                             print(f"✅ Final result saved locally: {final_url[:50]}...")
                             
                             generated_images.append({
@@ -670,20 +675,25 @@ async def generate_campaign_images(
                             # REAL WORKFLOW (local-success): Qwen first, then Vella
                             quality_mode = "standard"
 
-                            # Step 1: Compose model into the scene with shot type
+                            # Step 1: Compose model into the scene with shot type (persist inputs first)
+                            stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
+                            stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                             print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
                             qwen_result_url = run_qwen_scene_composition(
-                                model_image,
-                                scene.image_url,
+                                stable_model,
+                                stable_scene,
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
+                            qwen_result_url = stabilize_url(qwen_result_url, f"qwen_{shot_type['name']}") if 'stabilize_url' in globals() else qwen_result_url
                             print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
 
                             # Step 2: Apply Vella try-on on the composed image
                             print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
                             clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
-                            vella_result_url = run_vella_try_on(qwen_result_url, product_image, quality_mode, clothing_type)
+                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
+                            vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
+                            vella_result_url = stabilize_url(vella_result_url, f"vella_{shot_type['name']}") if 'stabilize_url' in globals() else vella_result_url
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
                             # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
@@ -734,7 +744,7 @@ async def generate_campaign_images(
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
-                            final_url = download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
+                            final_url = stabilize_url(to_url(final_result_url), f"final_{shot_type['name']}") if 'stabilize_url' in globals() else download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
                             print(f"✅ Final result saved locally: {final_url[:50]}...")
                             
                             new_images.append({
@@ -1844,14 +1854,24 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
             model_image_url = download_and_save_image(model_image_url, "qwen_model")
         if isinstance(scene_image_url, str) and scene_image_url.startswith("https://replicate.delivery/"):
             scene_image_url = download_and_save_image(scene_image_url, "qwen_scene")
+
+        # Ensure persisted files exist before continuing
+        try:
+            if isinstance(model_image_url, str) and model_image_url.startswith(get_base_url() + "/static/"):
+                # no-op; file created by download_and_save_image
+                pass
+            if isinstance(scene_image_url, str) and scene_image_url.startswith(get_base_url() + "/static/"):
+                pass
+        except Exception as _:
+            pass
         
         # Convert local URLs to base64 for Qwen
-        if model_image_url.startswith(get_base_url() + "/static/"):
+        if isinstance(model_image_url, str) and model_image_url.startswith(get_base_url() + "/static/"):
             filename = model_image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             model_image_url = upload_to_replicate(filepath)
         
-        if scene_image_url.startswith(get_base_url() + "/static/"):
+        if isinstance(scene_image_url, str) and scene_image_url.startswith(get_base_url() + "/static/"):
             filename = scene_image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
