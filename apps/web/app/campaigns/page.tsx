@@ -318,13 +318,16 @@ export default function CampaignsPage() {
       formData.append("selected_poses", JSON.stringify(selectedPoses));
       formData.append("number_of_images", numberOfImagesToGenerate.toString());
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/campaigns/create`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/create`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();
@@ -490,19 +493,22 @@ export default function CampaignsPage() {
     setReapplyingClothes(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reapply-clothes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          image_url: currentImageForTweak,
-          product_id: productId,
-          clothing_type: clothingType,
-          campaign_id: selectedCampaignForProfile?.id || null,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/reapply-clothes`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            image_url: currentImageForTweak,
+            product_id: productId,
+            clothing_type: clothingType,
+            campaign_id: selectedCampaignForProfile?.id || null,
+          }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -544,17 +550,20 @@ export default function CampaignsPage() {
     setTweaking(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tweak-image`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          image_url: currentImageForTweak,
-          prompt: tweakPrompt,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/tweak-image`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            image_url: currentImageForTweak,
+            prompt: tweakPrompt,
+          }),
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();
@@ -1129,18 +1138,18 @@ export default function CampaignsPage() {
           }
         }
       `}</style>
-    <div
-      style={{
-          padding: "0",
-        fontFamily:
-          "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
-      }}
-    >
-        {/* Main Content Area */}
-        <div style={{ padding: "32px", flex: 1, backgroundColor: "#FFFFFF" }}>
       <div
         style={{
-          display: "flex",
+          padding: "0",
+          fontFamily:
+            "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
+        }}
+      >
+        {/* Main Content Area */}
+        <div style={{ padding: "32px", flex: 1, backgroundColor: "#FFFFFF" }}>
+          <div
+            style={{
+              display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
               marginBottom: "32px",
@@ -1148,9 +1157,9 @@ export default function CampaignsPage() {
           >
             <div>
               <h1
-            style={{
+                style={{
                   fontSize: "24px",
-              fontWeight: "600",
+                  fontWeight: "600",
                   color: "#1E293B",
                   margin: 0,
                 }}
@@ -1158,7 +1167,7 @@ export default function CampaignsPage() {
                 Campaigns
               </h1>
               <p
-          style={{
+                style={{
                   fontSize: "14px",
                   color: "#64748B",
                   margin: "4px 0 0 0",
@@ -1172,14 +1181,14 @@ export default function CampaignsPage() {
                 <>
                   <button
                     onClick={selectAllCampaigns}
-              style={{
+                    style={{
                       padding: "12px 24px",
                       backgroundColor: "#64748B",
                       border: "none",
                       borderRadius: "8px",
-                color: "#FFFFFF",
+                      color: "#FFFFFF",
                       fontSize: "14px",
-                fontWeight: "500",
+                      fontWeight: "500",
                       cursor: "pointer",
                     }}
                   >
@@ -1190,7 +1199,7 @@ export default function CampaignsPage() {
                   <button
                     onClick={bulkDeleteCampaigns}
                     disabled={selectedCampaigns.size === 0}
-              style={{
+                    style={{
                       padding: "12px 24px",
                       backgroundColor:
                         selectedCampaigns.size === 0 ? "#CBD5E1" : "#EF4444",
@@ -1198,7 +1207,7 @@ export default function CampaignsPage() {
                       borderRadius: "8px",
                       color: "#FFFFFF",
                       fontSize: "14px",
-                fontWeight: "500",
+                      fontWeight: "500",
                       cursor:
                         selectedCampaigns.size === 0
                           ? "not-allowed"
@@ -1212,14 +1221,14 @@ export default function CampaignsPage() {
                       setSelectMode(false);
                       setSelectedCampaigns(new Set());
                     }}
-              style={{
+                    style={{
                       padding: "12px 24px",
                       backgroundColor: "#F1F5F9",
                       border: "1px solid #CBD5E1",
                       borderRadius: "8px",
                       color: "#475569",
                       fontSize: "14px",
-                fontWeight: "500",
+                      fontWeight: "500",
                       cursor: "pointer",
                     }}
                   >
@@ -1230,13 +1239,13 @@ export default function CampaignsPage() {
               {!selectMode && (
                 <button
                   onClick={() => setSelectMode(true)}
-            style={{
+                  style={{
                     padding: "12px 24px",
                     backgroundColor: "#F1F5F9",
                     border: "1px solid #CBD5E1",
                     borderRadius: "8px",
                     color: "#475569",
-                fontSize: "14px",
+                    fontSize: "14px",
                     fontWeight: "500",
                     cursor: "pointer",
                   }}
@@ -1244,29 +1253,29 @@ export default function CampaignsPage() {
                   ☑️ Select
                 </button>
               )}
-          <button
-            onClick={() => {
-              console.log("🎯 Create Campaign button clicked!");
+              <button
+                onClick={() => {
+                  console.log("🎯 Create Campaign button clicked!");
                   console.log(
                     "Current showCreateModal state:",
                     showCreateModal
                   );
-              setShowCreateModal(true);
-              console.log("Set showCreateModal to true");
-            }}
-            style={{
-              padding: "12px 24px",
-              backgroundColor: "#8B5CF6",
-              border: "none",
-              borderRadius: "8px",
-              color: "#FFFFFF",
-              fontSize: "14px",
-              fontWeight: "500",
-              cursor: "pointer",
-            }}
-          >
+                  setShowCreateModal(true);
+                  console.log("Set showCreateModal to true");
+                }}
+                style={{
+                  padding: "12px 24px",
+                  backgroundColor: "#8B5CF6",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#FFFFFF",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                }}
+              >
                 + Create Campaign
-          </button>
+              </button>
             </div>
           </div>
           <div
@@ -1385,8 +1394,8 @@ export default function CampaignsPage() {
                 >
                   {/* Checkbox (in select mode) */}
                   {selectMode && (
-                  <div
-                    style={{
+                    <div
+                      style={{
                         position: "absolute",
                         top: "12px",
                         left: "12px",
@@ -1455,33 +1464,33 @@ export default function CampaignsPage() {
                           width: "100%",
                           height: "100%",
                           display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "48px",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "48px",
                           color: "#9CA3AF",
-                      }}
-                    >
-                      📁
-                    </div>
+                        }}
+                      >
+                        📁
+                      </div>
                     )}
-                    </div>
+                  </div>
 
                   {/* Campaign Info */}
-                        <div
-                          style={{
+                  <div
+                    style={{
                       padding: "20px",
                       flex: 1,
-                            display: "flex",
+                      display: "flex",
                       flexDirection: "column",
                       justifyContent: "space-between",
                     }}
                   >
                     <div>
-                    <h3
-                      style={{
+                      <h3
+                        style={{
                           fontSize: "18px",
-                        fontWeight: "600",
-                        color: "#1F2937",
+                          fontWeight: "600",
+                          color: "#1F2937",
                           margin: "0 0 8px 0",
                           lineHeight: 1.3,
                           overflow: "hidden",
@@ -1489,13 +1498,13 @@ export default function CampaignsPage() {
                           whiteSpace: "nowrap",
                         }}
                       >
-                      {campaign.name}
-                    </h3>
-                    {campaign.description && (
-                      <p
-                        style={{
+                        {campaign.name}
+                      </h3>
+                      {campaign.description && (
+                        <p
+                          style={{
                             fontSize: "13px",
-                          color: "#6B7280",
+                            color: "#6B7280",
                             margin: 0,
                             lineHeight: 1.4,
                             overflow: "hidden",
@@ -1503,25 +1512,25 @@ export default function CampaignsPage() {
                             display: "-webkit-box",
                             WebkitLineClamp: 2,
                             WebkitBoxOrient: "vertical",
-                        }}
-                      >
-                        {campaign.description}
-                      </p>
-                    )}
+                          }}
+                        >
+                          {campaign.description}
+                        </p>
+                      )}
                     </div>
 
                     <div
                       style={{
                         display: "flex",
                         gap: "16px",
-                          fontSize: "12px",
+                        fontSize: "12px",
                         color: "#6B7280",
                         marginTop: "12px",
                       }}
                     >
-                        <span
-                      style={{
-                        display: "flex",
+                      <span
+                        style={{
+                          display: "flex",
                           alignItems: "center",
                           gap: "4px",
                         }}
@@ -1560,19 +1569,19 @@ export default function CampaignsPage() {
                         {campaign.status}
                       </span>
                     </div>
-                    </div>
+                  </div>
 
                   {/* Hover Overlay */}
-                    <div
+                  <div
                     data-hover-overlay
-                      style={{
+                    style={{
                       position: "absolute",
                       top: 0,
                       left: 0,
                       right: 0,
                       bottom: 0,
                       backgroundColor: "rgba(0,0,0,0.5)",
-                        display: "flex",
+                      display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
                       justifyContent: "center",
@@ -1583,9 +1592,9 @@ export default function CampaignsPage() {
                     }}
                   >
                     <div
-                        style={{
+                      style={{
                         backgroundColor: "rgba(139, 92, 246, 0.9)",
-                          color: "#FFFFFF",
+                        color: "#FFFFFF",
                         padding: "10px 20px",
                         borderRadius: "24px",
                         fontSize: "14px",
@@ -1594,240 +1603,157 @@ export default function CampaignsPage() {
                       }}
                     >
                       Click to Edit/Delete
-                          </div>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
-      </div>
+        </div>
 
-      {/* Create Campaign Modal */}
-      {showCreateModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            overflow: "auto",
-          }}
-          onClick={() => setShowCreateModal(false)}
-        >
+        {/* Create Campaign Modal */}
+        {showCreateModal && (
           <div
             style={{
-              backgroundColor: "white",
-              borderRadius: "16px",
-              padding: "24px",
-              maxWidth: "90vw",
-              maxHeight: "90vh",
-              width: "1200px",
-              position: "relative",
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
               overflow: "auto",
             }}
-            onClick={(e) => {
-              e.stopPropagation();
-              closeModelDropdown();
-            }}
+            onClick={() => setShowCreateModal(false)}
           >
-            <h2
-              style={{
-                margin: "0 0 24px 0",
-                fontSize: "20px",
-                fontWeight: "600",
-              }}
-            >
-              Create New Campaign
-            </h2>
-
-            {/* Campaign Details */}
-            <div style={{ marginBottom: "24px" }}>
-              <div style={{ marginBottom: "16px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    color: "#374151",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    marginBottom: "8px",
-                  }}
-                >
-                  Campaign Name *
-                </label>
-                <input
-                  type="text"
-                  value={newCampaign.name}
-                  onChange={(e) =>
-                    setNewCampaign({ ...newCampaign, name: e.target.value })
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    border: "1px solid #D1D5DB",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                  }}
-                  placeholder="Enter campaign name"
-                />
-              </div>
-
-              <div style={{ marginBottom: "16px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    color: "#374151",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    marginBottom: "8px",
-                  }}
-                >
-                  Description
-                </label>
-                <textarea
-                  value={newCampaign.description}
-                  onChange={(e) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      description: e.target.value,
-                    })
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    border: "1px solid #D1D5DB",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    minHeight: "80px",
-                    resize: "vertical",
-                  }}
-                  placeholder="Enter campaign description"
-                />
-              </div>
-            </div>
-
-            {/* Selection Grid */}
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr",
-                gap: "24px",
-                marginBottom: "24px",
+                backgroundColor: "white",
+                borderRadius: "16px",
+                padding: "24px",
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+                width: "1200px",
+                position: "relative",
+                overflow: "auto",
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                closeModelDropdown();
               }}
             >
-              {/* Products Selection */}
-              <div>
-                <h3
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    color: "#1F2937",
-                    marginBottom: "12px",
-                  }}
-                >
-                  Products ({selectedProducts.length})
-                </h3>
-                <div
-                  style={{
-                    maxHeight: "300px",
-                    overflowY: "auto",
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "8px",
-                    padding: "8px",
-                  }}
-                >
-                  {products.map((product) => (
-                    <div
-                      key={product.id}
-                      onClick={() => toggleSelection(product.id, "products")}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        padding: "8px",
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                        backgroundColor: selectedProducts.includes(product.id)
-                          ? "#EDE9FE"
-                          : "transparent",
-                        border: selectedProducts.includes(product.id)
-                          ? "1px solid #8B5CF6"
-                          : "1px solid transparent",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedProducts.includes(product.id)}
-                        onChange={() => {}}
-                        style={{ margin: 0 }}
-                      />
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        style={{
-                          width: "40px",
-                          height: "40px",
-                          objectFit: "cover",
-                          borderRadius: "4px",
-                        }}
-                      />
-                      <div>
-                        <div style={{ fontSize: "14px", fontWeight: "500" }}>
-                          {product.name}
-                        </div>
-                        <div style={{ fontSize: "12px", color: "#6B7280" }}>
-                          {product.packshots.length} packshots
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+              <h2
+                style={{
+                  margin: "0 0 24px 0",
+                  fontSize: "20px",
+                  fontWeight: "600",
+                }}
+              >
+                Create New Campaign
+              </h2>
+
+              {/* Campaign Details */}
+              <div style={{ marginBottom: "24px" }}>
+                <div style={{ marginBottom: "16px" }}>
+                  <label
+                    style={{
+                      display: "block",
+                      color: "#374151",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Campaign Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={newCampaign.name}
+                    onChange={(e) =>
+                      setNewCampaign({ ...newCampaign, name: e.target.value })
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      border: "1px solid #D1D5DB",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                    }}
+                    placeholder="Enter campaign name"
+                  />
+                </div>
+
+                <div style={{ marginBottom: "16px" }}>
+                  <label
+                    style={{
+                      display: "block",
+                      color: "#374151",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Description
+                  </label>
+                  <textarea
+                    value={newCampaign.description}
+                    onChange={(e) =>
+                      setNewCampaign({
+                        ...newCampaign,
+                        description: e.target.value,
+                      })
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      border: "1px solid #D1D5DB",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      minHeight: "80px",
+                      resize: "vertical",
+                    }}
+                    placeholder="Enter campaign description"
+                  />
                 </div>
               </div>
 
-              {/* Models Selection */}
-              <div>
-                <h3
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    color: "#1F2937",
-                    marginBottom: "12px",
-                  }}
-                >
-                    Models ({selectedModel ? "1" : "0"})
-                  {Object.keys(selectedPoses).length > 0 && (
-                    <span
-                      style={{
-                        fontSize: "12px",
-                        fontWeight: "400",
-                        color: "#8B5CF6",
-                      }}
-                    >
-                      {" "}
-                      • {Object.values(selectedPoses).flat().length} poses
-                      selected
-                    </span>
-                  )}
-                </h3>
-                <div
-                  style={{
-                    maxHeight: "300px",
-                    overflowY: "auto",
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "8px",
-                    padding: "8px",
-                  }}
-                >
-                  {models.map((model) => (
-                    <div key={model.id}>
+              {/* Selection Grid */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gap: "24px",
+                  marginBottom: "24px",
+                }}
+              >
+                {/* Products Selection */}
+                <div>
+                  <h3
+                    style={{
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      color: "#1F2937",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    Products ({selectedProducts.length})
+                  </h3>
+                  <div
+                    style={{
+                      maxHeight: "300px",
+                      overflowY: "auto",
+                      border: "1px solid #E5E7EB",
+                      borderRadius: "8px",
+                      padding: "8px",
+                    }}
+                  >
+                    {products.map((product) => (
                       <div
-                        onClick={() => toggleSelection(model.id, "models")}
+                        key={product.id}
+                        onClick={() => toggleSelection(product.id, "products")}
                         style={{
                           display: "flex",
                           alignItems: "center",
@@ -1835,27 +1761,24 @@ export default function CampaignsPage() {
                           padding: "8px",
                           borderRadius: "6px",
                           cursor: "pointer",
-                            backgroundColor:
-                              selectedModel === model.id
+                          backgroundColor: selectedProducts.includes(product.id)
                             ? "#EDE9FE"
                             : "transparent",
-                            border:
-                              selectedModel === model.id
+                          border: selectedProducts.includes(product.id)
                             ? "1px solid #8B5CF6"
                             : "1px solid transparent",
                           marginBottom: "4px",
                         }}
                       >
                         <input
-                            type="radio"
-                            name="selectedModel"
-                            checked={selectedModel === model.id}
+                          type="checkbox"
+                          checked={selectedProducts.includes(product.id)}
                           onChange={() => {}}
                           style={{ margin: 0 }}
                         />
                         <img
-                          src={model.image_url}
-                          alt={model.name}
+                          src={product.image_url}
+                          alt={product.name}
                           style={{
                             width: "40px",
                             height: "40px",
@@ -1863,865 +1786,549 @@ export default function CampaignsPage() {
                             borderRadius: "4px",
                           }}
                         />
-                        <div style={{ flex: 1 }}>
+                        <div>
+                          <div style={{ fontSize: "14px", fontWeight: "500" }}>
+                            {product.name}
+                          </div>
+                          <div style={{ fontSize: "12px", color: "#6B7280" }}>
+                            {product.packshots.length} packshots
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Models Selection */}
+                <div>
+                  <h3
+                    style={{
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      color: "#1F2937",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    Models ({selectedModel ? "1" : "0"})
+                    {Object.keys(selectedPoses).length > 0 && (
+                      <span
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: "400",
+                          color: "#8B5CF6",
+                        }}
+                      >
+                        {" "}
+                        • {Object.values(selectedPoses).flat().length} poses
+                        selected
+                      </span>
+                    )}
+                  </h3>
+                  <div
+                    style={{
+                      maxHeight: "300px",
+                      overflowY: "auto",
+                      border: "1px solid #E5E7EB",
+                      borderRadius: "8px",
+                      padding: "8px",
+                    }}
+                  >
+                    {models.map((model) => (
+                      <div key={model.id}>
+                        <div
+                          onClick={() => toggleSelection(model.id, "models")}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            padding: "8px",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            backgroundColor:
+                              selectedModel === model.id
+                                ? "#EDE9FE"
+                                : "transparent",
+                            border:
+                              selectedModel === model.id
+                                ? "1px solid #8B5CF6"
+                                : "1px solid transparent",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          <input
+                            type="radio"
+                            name="selectedModel"
+                            checked={selectedModel === model.id}
+                            onChange={() => {}}
+                            style={{ margin: 0 }}
+                          />
+                          <img
+                            src={model.image_url}
+                            alt={model.name}
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              objectFit: "cover",
+                              borderRadius: "4px",
+                            }}
+                          />
+                          <div style={{ flex: 1 }}>
                             <div
                               style={{ fontSize: "14px", fontWeight: "500" }}
                             >
-                            {model.name}
-                          </div>
-                          <div style={{ fontSize: "12px", color: "#6B7280" }}>
-                            {model.poses?.length || 0} poses
-                            {selectedPoses[model.id]?.length > 0 && (
-                              <span
+                              {model.name}
+                            </div>
+                            <div style={{ fontSize: "12px", color: "#6B7280" }}>
+                              {model.poses?.length || 0} poses
+                              {selectedPoses[model.id]?.length > 0 && (
+                                <span
                                   style={{
                                     color: "#8B5CF6",
                                     fontWeight: "500",
                                   }}
-                              >
-                                {" "}
-                                • {selectedPoses[model.id].length} selected
-                              </span>
-                            )}
+                                >
+                                  {" "}
+                                  • {selectedPoses[model.id].length} selected
+                                </span>
+                              )}
+                            </div>
                           </div>
+                          {model.poses && model.poses.length > 0 && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleModelDropdown(model.id);
+                              }}
+                              style={{
+                                padding: "4px 8px",
+                                backgroundColor:
+                                  expandedModel === model.id
+                                    ? "#EDE9FE"
+                                    : "#F3F4F6",
+                                border:
+                                  expandedModel === model.id
+                                    ? "1px solid #8B5CF6"
+                                    : "1px solid #D1D5DB",
+                                borderRadius: "4px",
+                                fontSize: "12px",
+                                cursor: "pointer",
+                                color:
+                                  expandedModel === model.id
+                                    ? "#8B5CF6"
+                                    : "#374151",
+                                fontWeight:
+                                  expandedModel === model.id ? "500" : "400",
+                                transition: "all 0.2s",
+                              }}
+                              title={`View ${model.poses.length} generated poses`}
+                            >
+                              {expandedModel === model.id ? "▼" : "▶"} Poses
+                            </button>
+                          )}
                         </div>
-                        {model.poses && model.poses.length > 0 && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleModelDropdown(model.id);
-                            }}
-                            style={{
-                              padding: "4px 8px",
-                              backgroundColor:
-                                expandedModel === model.id
-                                  ? "#EDE9FE"
-                                  : "#F3F4F6",
-                              border:
-                                expandedModel === model.id
-                                  ? "1px solid #8B5CF6"
-                                  : "1px solid #D1D5DB",
-                              borderRadius: "4px",
-                              fontSize: "12px",
-                              cursor: "pointer",
-                              color:
-                                expandedModel === model.id
-                                  ? "#8B5CF6"
-                                  : "#374151",
-                              fontWeight:
-                                expandedModel === model.id ? "500" : "400",
-                              transition: "all 0.2s",
-                            }}
-                            title={`View ${model.poses.length} generated poses`}
-                          >
-                            {expandedModel === model.id ? "▼" : "▶"} Poses
-                          </button>
-                        )}
-                      </div>
 
-                      {/* Pose Images Dropdown */}
-                      {expandedModel === model.id &&
-                        model.poses &&
-                        model.poses.length > 0 && (
-                          <div
-                            style={{
-                              marginLeft: "48px",
-                              marginBottom: "8px",
-                              padding: "12px",
-                              backgroundColor: "#F9FAFB",
-                              borderRadius: "6px",
-                              border: "1px solid #E5E7EB",
-                            }}
-                          >
+                        {/* Pose Images Dropdown */}
+                        {expandedModel === model.id &&
+                          model.poses &&
+                          model.poses.length > 0 && (
                             <div
                               style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
+                                marginLeft: "48px",
                                 marginBottom: "8px",
+                                padding: "12px",
+                                backgroundColor: "#F9FAFB",
+                                borderRadius: "6px",
+                                border: "1px solid #E5E7EB",
                               }}
                             >
                               <div
                                 style={{
-                                  fontSize: "12px",
-                                  fontWeight: "500",
-                                  color: "#6B7280",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  marginBottom: "8px",
                                 }}
                               >
-                                Generated Poses:
-                              </div>
-                              <div style={{ display: "flex", gap: "8px" }}>
-                                <button
-                                  onClick={() =>
+                                <div
+                                  style={{
+                                    fontSize: "12px",
+                                    fontWeight: "500",
+                                    color: "#6B7280",
+                                  }}
+                                >
+                                  Generated Poses:
+                                </div>
+                                <div style={{ display: "flex", gap: "8px" }}>
+                                  <button
+                                    onClick={() =>
                                       selectAllPoses(
                                         model.id,
                                         model.poses || []
                                       )
-                                  }
-                                  style={{
-                                    padding: "2px 6px",
-                                    backgroundColor: "#F3F4F6",
-                                    border: "1px solid #D1D5DB",
-                                    borderRadius: "4px",
-                                    fontSize: "10px",
-                                    cursor: "pointer",
-                                    color: "#374151",
-                                  }}
-                                >
-                                  Select All
-                                </button>
-                                <button
-                                  onClick={() => clearPoseSelection(model.id)}
-                                  style={{
-                                    padding: "2px 6px",
-                                    backgroundColor: "#F3F4F6",
-                                    border: "1px solid #D1D5DB",
-                                    borderRadius: "4px",
-                                    fontSize: "10px",
-                                    cursor: "pointer",
-                                    color: "#374151",
-                                  }}
-                                >
-                                  Clear
-                                </button>
+                                    }
+                                    style={{
+                                      padding: "2px 6px",
+                                      backgroundColor: "#F3F4F6",
+                                      border: "1px solid #D1D5DB",
+                                      borderRadius: "4px",
+                                      fontSize: "10px",
+                                      cursor: "pointer",
+                                      color: "#374151",
+                                    }}
+                                  >
+                                    Select All
+                                  </button>
+                                  <button
+                                    onClick={() => clearPoseSelection(model.id)}
+                                    style={{
+                                      padding: "2px 6px",
+                                      backgroundColor: "#F3F4F6",
+                                      border: "1px solid #D1D5DB",
+                                      borderRadius: "4px",
+                                      fontSize: "10px",
+                                      cursor: "pointer",
+                                      color: "#374151",
+                                    }}
+                                  >
+                                    Clear
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                            <div
-                              style={{
-                                display: "grid",
-                                gridTemplateColumns:
-                                  "repeat(auto-fill, minmax(60px, 1fr))",
-                                gap: "6px",
-                              }}
-                            >
+                              <div
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns:
+                                    "repeat(auto-fill, minmax(60px, 1fr))",
+                                  gap: "6px",
+                                }}
+                              >
                                 {(model.poses || []).map(
-                                (poseUrl: string, index: number) => {
-                                  const isSelected =
-                                    selectedPoses[model.id]?.includes(
-                                      poseUrl
-                                    ) || false;
-                                  return (
-                                    <div
-                                      key={index}
-                                      style={{
-                                        width: "60px",
-                                        height: "60px",
-                                        backgroundColor: "#F3F4F6",
-                                        borderRadius: "4px",
-                                        backgroundImage: `url(${poseUrl})`,
-                                        backgroundSize: "cover",
-                                        backgroundPosition: "center",
-                                        cursor: "pointer",
-                                        border: isSelected
-                                          ? "2px solid #8B5CF6"
-                                          : "2px solid transparent",
-                                        transition: "all 0.2s",
-                                        position: "relative",
-                                        opacity: isSelected ? 1 : 0.7,
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        if (!isSelected) {
-                                          e.currentTarget.style.borderColor =
-                                            "#8B5CF6";
-                                          e.currentTarget.style.transform =
-                                            "scale(1.05)";
-                                        }
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        if (!isSelected) {
-                                          e.currentTarget.style.borderColor =
-                                            "transparent";
-                                          e.currentTarget.style.transform =
-                                            "scale(1)";
-                                        }
-                                      }}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
+                                  (poseUrl: string, index: number) => {
+                                    const isSelected =
+                                      selectedPoses[model.id]?.includes(
+                                        poseUrl
+                                      ) || false;
+                                    return (
+                                      <div
+                                        key={index}
+                                        style={{
+                                          width: "60px",
+                                          height: "60px",
+                                          backgroundColor: "#F3F4F6",
+                                          borderRadius: "4px",
+                                          backgroundImage: `url(${poseUrl})`,
+                                          backgroundSize: "cover",
+                                          backgroundPosition: "center",
+                                          cursor: "pointer",
+                                          border: isSelected
+                                            ? "2px solid #8B5CF6"
+                                            : "2px solid transparent",
+                                          transition: "all 0.2s",
+                                          position: "relative",
+                                          opacity: isSelected ? 1 : 0.7,
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          if (!isSelected) {
+                                            e.currentTarget.style.borderColor =
+                                              "#8B5CF6";
+                                            e.currentTarget.style.transform =
+                                              "scale(1.05)";
+                                          }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          if (!isSelected) {
+                                            e.currentTarget.style.borderColor =
+                                              "transparent";
+                                            e.currentTarget.style.transform =
+                                              "scale(1)";
+                                          }
+                                        }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
                                           togglePoseSelection(
                                             model.id,
                                             poseUrl
                                           );
-                                      }}
-                                    >
-                                      <div
-                                        style={{
-                                          position: "absolute",
-                                          top: "2px",
-                                          right: "2px",
-                                          backgroundColor: isSelected
-                                            ? "rgba(139,92,246,0.9)"
-                                            : "rgba(0,0,0,0.7)",
-                                          color: "white",
-                                          padding: "2px 4px",
-                                          borderRadius: "2px",
-                                          fontSize: "10px",
-                                          fontWeight: "500",
                                         }}
                                       >
-                                        {isSelected ? "✓" : `#${index + 1}`}
-                                      </div>
-                                      {isSelected && (
                                         <div
                                           style={{
                                             position: "absolute",
                                             top: "2px",
-                                            left: "2px",
-                                            backgroundColor:
-                                              "rgba(139,92,246,0.9)",
+                                            right: "2px",
+                                            backgroundColor: isSelected
+                                              ? "rgba(139,92,246,0.9)"
+                                              : "rgba(0,0,0,0.7)",
                                             color: "white",
                                             padding: "2px 4px",
                                             borderRadius: "2px",
-                                            fontSize: "8px",
+                                            fontSize: "10px",
                                             fontWeight: "500",
                                           }}
                                         >
-                                          SELECTED
+                                          {isSelected ? "✓" : `#${index + 1}`}
                                         </div>
-                                      )}
-                                    </div>
-                                  );
-                                }
-                              )}
+                                        {isSelected && (
+                                          <div
+                                            style={{
+                                              position: "absolute",
+                                              top: "2px",
+                                              left: "2px",
+                                              backgroundColor:
+                                                "rgba(139,92,246,0.9)",
+                                              color: "white",
+                                              padding: "2px 4px",
+                                              borderRadius: "2px",
+                                              fontSize: "8px",
+                                              fontWeight: "500",
+                                            }}
+                                          >
+                                            SELECTED
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  }
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Scenes Selection */}
-              <div>
-                <h3
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    color: "#1F2937",
-                    marginBottom: "12px",
-                  }}
-                >
-                  Scenes ({selectedScenes.length})
-                </h3>
-                <div
-                  style={{
-                    maxHeight: "300px",
-                    overflowY: "auto",
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "8px",
-                    padding: "8px",
-                  }}
-                >
-                  {scenes.map((scene) => (
-                    <div
-                      key={scene.id}
-                      onClick={() => toggleSelection(scene.id, "scenes")}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        padding: "8px",
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                        backgroundColor: selectedScenes.includes(scene.id)
-                          ? "#EDE9FE"
-                          : "transparent",
-                        border: selectedScenes.includes(scene.id)
-                          ? "1px solid #8B5CF6"
-                          : "1px solid transparent",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedScenes.includes(scene.id)}
-                        onChange={() => {}}
-                        style={{ margin: 0 }}
-                      />
-                      <img
-                        src={scene.image_url}
-                        alt={scene.name}
-                        style={{
-                          width: "40px",
-                          height: "40px",
-                          objectFit: "cover",
-                          borderRadius: "4px",
-                        }}
-                      />
-                      <div>
-                        <div style={{ fontSize: "14px", fontWeight: "500" }}>
-                          {scene.name}
-                        </div>
-                        <div style={{ fontSize: "12px", color: "#6B7280" }}>
-                          {scene.is_standard ? "Standard" : "Custom"}
-                        </div>
+                          )}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Campaign Summary */}
-            {selectedProducts.length > 0 &&
-                selectedModel &&
-              selectedScenes.length > 0 && (
-                <div
-                  style={{
-                    backgroundColor: "#F8FAFC",
-                    borderRadius: "8px",
-                    padding: "16px",
-                    marginBottom: "24px",
-                  }}
-                >
-                  <h4
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: "600",
-                      color: "#1F2937",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    Campaign Summary
-                  </h4>
-                  <div style={{ fontSize: "14px", color: "#374151" }}>
-                    <div>Products: {selectedProducts.length}</div>
-                      <div>Models: {selectedModel ? "1" : "0"}</div>
-                    <div>Scenes: {selectedScenes.length}</div>
-                    <div style={{ fontWeight: "600", marginTop: "8px" }}>
-                      Total Images:{" "}
-                      {selectedProducts.length *
-                          (selectedModel ? 1 : 0) *
-                        selectedScenes.length}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "12px",
-                        color: "#6B7280",
-                        marginTop: "4px",
-                      }}
-                    >
-                      Credits needed:{" "}
-                      {selectedProducts.length *
-                          (selectedModel ? 1 : 0) *
-                        selectedScenes.length *
-                        2}
-                    </div>
+                    ))}
                   </div>
                 </div>
-              )}
 
-            {/* Action Buttons */}
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-                justifyContent: "flex-end",
-              }}
-            >
-              <button
-                onClick={() => {
-                  setShowCreateModal(false);
-                  closeModelDropdown();
-                }}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: "#F3F4F6",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#374151",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateCampaign}
-                disabled={
-                  isCreating ||
-                  !newCampaign.name ||
-                  selectedProducts.length === 0 ||
-                    !selectedModel ||
-                  selectedScenes.length === 0
-                }
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: isCreating ? "#9CA3AF" : "#8B5CF6",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#FFFFFF",
-                  fontSize: "14px",
-                  cursor: isCreating ? "not-allowed" : "pointer",
-                }}
-              >
-                {isCreating ? "Creating..." : "Create Campaign"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Campaign Details Modal */}
-      {showCampaignModal && selectedCampaign && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-          onClick={() => setShowCampaignModal(false)}
-        >
-          <div
-            style={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "16px",
-              padding: "32px",
-              width: "90%",
-              maxWidth: "1000px",
-              maxHeight: "90vh",
-              overflowY: "auto",
-              boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-              color: "#1F2937",
-              position: "relative",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "24px",
-              }}
-            >
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "12px" }}
-              >
-                <div style={{ fontSize: "24px" }}>📁</div>
-                <h2
-                  style={{
-                    margin: 0,
-                    fontSize: "24px",
-                    fontWeight: "600",
-                    color: "#1F2937",
-                  }}
-                >
-                  {selectedCampaign.name}
-                </h2>
-              </div>
-              <button
-                onClick={() => generateMoreImages(selectedCampaign)}
-                disabled={generatingMore}
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: generatingMore ? "#9CA3AF" : "#8B5CF6",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#FFFFFF",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  cursor: generatingMore ? "not-allowed" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
-              >
-                {generatingMore ? "⏳ Generating..." : "✨ Generate More"}
-              </button>
-            </div>
-
-            {selectedCampaign.description && (
-              <p
-                style={{
-                  fontSize: "16px",
-                  color: "#6B7280",
-                  marginBottom: "24px",
-                }}
-              >
-                {selectedCampaign.description}
-              </p>
-            )}
-
-            {/* Campaign Status & Workflow */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "24px",
-                padding: "16px",
-                backgroundColor: "#F9FAFB",
-                borderRadius: "8px",
-                border: "1px solid #E5E7EB",
-              }}
-            >
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "16px" }}
-              >
-                <span
-                  style={{
-                    backgroundColor:
-                      selectedCampaign.status === "completed"
-                        ? "rgba(16,185,129,0.15)"
-                        : selectedCampaign.status === "processing"
-                        ? "rgba(245,158,11,0.15)"
-                        : "rgba(107,114,128,0.15)",
-                    color:
-                      selectedCampaign.status === "completed"
-                        ? "#10B981"
-                        : selectedCampaign.status === "processing"
-                        ? "#F59E0B"
-                        : "#6B7280",
-                    padding: "8px 16px",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                  }}
-                >
-                  {selectedCampaign.status.toUpperCase()}
-                </span>
-
-                {selectedCampaign.settings?.total_combinations && (
-                  <span
-                    style={{
-                      fontSize: "14px",
-                      color: "#6B7280",
-                    }}
-                  >
-                    {selectedCampaign.settings.total_combinations} images
-                    generated
-                  </span>
-                )}
-              </div>
-
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "#6B7280",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
-              >
-                <span>
-                  🛍️ Products:{" "}
-                  {selectedCampaign.settings?.product_ids?.length || 0}
-                </span>
-                <span>•</span>
-                <span>
-                    👤 Models:{" "}
-                    {selectedCampaign.settings?.model_ids?.length || 0}
-                </span>
-                <span>•</span>
-                <span>
-                    🎬 Scenes:{" "}
-                    {selectedCampaign.settings?.scene_ids?.length || 0}
-                </span>
-              </div>
-            </div>
-
-            {/* Generated Images */}
-            {selectedCampaign.settings?.generated_images &&
-            selectedCampaign.settings.generated_images.length > 0 ? (
-              <div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: "16px",
-                  }}
-                >
+                {/* Scenes Selection */}
+                <div>
                   <h3
                     style={{
-                      fontSize: "18px",
+                      fontSize: "16px",
                       fontWeight: "600",
                       color: "#1F2937",
-                      margin: 0,
+                      marginBottom: "12px",
                     }}
                   >
-                    Generated Images (
-                    {selectedCampaign.settings.generated_images.length})
+                    Scenes ({selectedScenes.length})
                   </h3>
                   <div
                     style={{
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
+                      maxHeight: "300px",
+                      overflowY: "auto",
+                      border: "1px solid #E5E7EB",
+                      borderRadius: "8px",
+                      padding: "8px",
                     }}
                   >
-                    <span>📸</span>
-                    <span>Click to view full size</span>
-                  </div>
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "repeat(auto-fill, minmax(300px, 1fr))",
-                    gap: "16px",
-                    marginBottom: "24px",
-                  }}
-                >
-                  {selectedCampaign.settings.generated_images.map(
-                    (img: any, index: number) => (
+                    {scenes.map((scene) => (
                       <div
-                        key={index}
+                        key={scene.id}
+                        onClick={() => toggleSelection(scene.id, "scenes")}
                         style={{
-                          border: "1px solid #E5E7EB",
-                          borderRadius: "12px",
-                          overflow: "hidden",
-                          backgroundColor: "#F9FAFB",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          padding: "8px",
+                          borderRadius: "6px",
                           cursor: "pointer",
-                          transition: "all 0.2s",
-                          position: "relative",
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.transform =
-                              "translateY(-2px)";
-                          e.currentTarget.style.boxShadow =
-                            "0 8px 25px rgba(0,0,0,0.1)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = "translateY(0)";
-                          e.currentTarget.style.boxShadow = "none";
-                        }}
-                        onClick={() => {
-                          if (img.video_url) {
-                            window.open(img.video_url, "_blank");
-                          } else {
-                            window.open(img.image_url, "_blank");
-                          }
+                          backgroundColor: selectedScenes.includes(scene.id)
+                            ? "#EDE9FE"
+                            : "transparent",
+                          border: selectedScenes.includes(scene.id)
+                            ? "1px solid #8B5CF6"
+                            : "1px solid transparent",
+                          marginBottom: "4px",
                         }}
                       >
-                        <div style={{ position: "relative" }}>
-                          {img.video_url ? (
-                            <video
-                              src={img.video_url}
-                              style={{
-                                width: "100%",
-                                height: "200px",
-                                objectFit: "cover",
-                              }}
-                              controls
-                                loop
-                                muted
-                                autoPlay
-                              preload="metadata"
-                              onError={(e) => {
-                                // Fallback to image if video fails
-                                const videoElement = e.currentTarget;
-                                const imgElement =
-                                  videoElement.nextElementSibling as HTMLImageElement;
-                                if (imgElement) {
-                                  videoElement.style.display = "none";
-                                  imgElement.style.display = "block";
-                                }
-                              }}
-                            />
-                          ) : null}
-                          <img
-                            src={img.image_url}
-                            alt={`${img.product_name} + ${img.model_name} + ${img.scene_name}`}
-                            style={{
-                              width: "100%",
-                              height: "200px",
-                              objectFit: "cover",
-                              display: img.video_url ? "none" : "block",
-                            }}
-                            onError={(e) => {
-                              e.currentTarget.src =
-                                "https://via.placeholder.com/300x200?text=Image+Error";
-                            }}
-                          />
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: "8px",
-                              right: "8px",
-                              backgroundColor: "rgba(0,0,0,0.7)",
-                              color: "white",
-                              padding: "4px 8px",
-                              borderRadius: "6px",
-                              fontSize: "12px",
-                              fontWeight: "500",
-                            }}
-                          >
-                            #{index + 1}
+                        <input
+                          type="checkbox"
+                          checked={selectedScenes.includes(scene.id)}
+                          onChange={() => {}}
+                          style={{ margin: 0 }}
+                        />
+                        <img
+                          src={scene.image_url}
+                          alt={scene.name}
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            objectFit: "cover",
+                            borderRadius: "4px",
+                          }}
+                        />
+                        <div>
+                          <div style={{ fontSize: "14px", fontWeight: "500" }}>
+                            {scene.name}
                           </div>
-                          {img.video_url && (
-                            <div
-                              style={{
-                                position: "absolute",
-                                top: "8px",
-                                left: "8px",
-                                backgroundColor: "rgba(139, 92, 246, 0.9)",
-                                color: "white",
-                                padding: "4px 8px",
-                                borderRadius: "6px",
-                                fontSize: "12px",
-                                fontWeight: "500",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "4px",
-                              }}
-                            >
-                              🎬 Video
-                            </div>
-                          )}
-                        </div>
-                        <div style={{ padding: "12px" }}>
-                          <div
-                            style={{
-                              fontSize: "14px",
-                              fontWeight: "600",
-                              color: "#1F2937",
-                              marginBottom: "4px",
-                            }}
-                          >
-                            {img.product_name} + {img.model_name}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "12px",
-                              color: "#6B7280",
-                              marginBottom: "8px",
-                            }}
-                          >
-                            Scene: {img.scene_name}
-                          </div>
-
-                          {/* Generate Video Button */}
-                          {!img.video_url && (
-                            <div style={{ marginBottom: "8px" }}>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const generationId = img.generation_id;
-                                  if (generationId) {
-                                      setPromptModalData({
-                                        generationId,
-                                        imageIndex: index,
-                                      });
-                                      setCustomPrompt("");
-                                      setVideoQuality("480p"); // Reset to default
-                                      setVideoModel("wan"); // Reset to default
-                                      setVideoDuration("5s"); // Reset to default
-                                      setShowPromptModal(true);
-                                  } else {
-                                    alert(
-                                      "Generation ID not found. Please refresh the page."
-                                    );
-                                  }
-                                }}
-                                  disabled={
-                                    generatingVideo === img.generation_id
-                                  }
-                                style={{
-                                  padding: "6px 12px",
-                                  backgroundColor:
-                                    generatingVideo === img.generation_id
-                                      ? "#9CA3AF"
-                                      : "#8B5CF6",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "6px",
-                                  fontSize: "12px",
-                                  fontWeight: "500",
-                                  cursor:
-                                    generatingVideo === img.generation_id
-                                      ? "not-allowed"
-                                      : "pointer",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "4px",
-                                  width: "100%",
-                                  justifyContent: "center",
-                                }}
-                              >
-                                {generatingVideo === img.generation_id ? (
-                                  <>
-                                    <div
-                                      style={{
-                                        width: "12px",
-                                        height: "12px",
-                                        border: "2px solid #ffffff",
-                                        borderTop: "2px solid transparent",
-                                        borderRadius: "50%",
-                                        animation: "spin 1s linear infinite",
-                                      }}
-                                    />
-                                    Generating...
-                                  </>
-                                ) : (
-                                  <>🎬 Generate Video</>
-                                )}
-                              </button>
-                            </div>
-                          )}
-
-                          <div
-                            style={{
-                              fontSize: "11px",
-                              color: "#9CA3AF",
-                              fontStyle: "italic",
-                            }}
-                          >
-                            Click to view full size
+                          <div style={{ fontSize: "12px", color: "#6B7280" }}>
+                            {scene.is_standard ? "Standard" : "Custom"}
                           </div>
                         </div>
                       </div>
-                    )
-                  )}
+                    ))}
+                  </div>
                 </div>
               </div>
-            ) : (
+
+              {/* Campaign Summary */}
+              {selectedProducts.length > 0 &&
+                selectedModel &&
+                selectedScenes.length > 0 && (
+                  <div
+                    style={{
+                      backgroundColor: "#F8FAFC",
+                      borderRadius: "8px",
+                      padding: "16px",
+                      marginBottom: "24px",
+                    }}
+                  >
+                    <h4
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        color: "#1F2937",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      Campaign Summary
+                    </h4>
+                    <div style={{ fontSize: "14px", color: "#374151" }}>
+                      <div>Products: {selectedProducts.length}</div>
+                      <div>Models: {selectedModel ? "1" : "0"}</div>
+                      <div>Scenes: {selectedScenes.length}</div>
+                      <div style={{ fontWeight: "600", marginTop: "8px" }}>
+                        Total Images:{" "}
+                        {selectedProducts.length *
+                          (selectedModel ? 1 : 0) *
+                          selectedScenes.length}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#6B7280",
+                          marginTop: "4px",
+                        }}
+                      >
+                        Credits needed:{" "}
+                        {selectedProducts.length *
+                          (selectedModel ? 1 : 0) *
+                          selectedScenes.length *
+                          2}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              {/* Action Buttons */}
               <div
                 style={{
-                  textAlign: "center",
-                  padding: "60px 40px",
-                  backgroundColor: "#F9FAFB",
-                  borderRadius: "12px",
-                  marginBottom: "24px",
-                  border: "2px dashed #D1D5DB",
+                  display: "flex",
+                  gap: "12px",
+                  justifyContent: "flex-end",
                 }}
               >
-                  <div style={{ fontSize: "64px", marginBottom: "20px" }}>
-                    📁
-                  </div>
-                <h3
+                <button
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    closeModelDropdown();
+                  }}
                   style={{
-                    fontSize: "20px",
-                    fontWeight: "600",
-                    color: "#1F2937",
-                    marginBottom: "12px",
+                    padding: "12px 24px",
+                    backgroundColor: "#F3F4F6",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#374151",
+                    fontSize: "14px",
+                    cursor: "pointer",
                   }}
                 >
-                  Empty Campaign Folder
-                </h3>
-                <p
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateCampaign}
+                  disabled={
+                    isCreating ||
+                    !newCampaign.name ||
+                    selectedProducts.length === 0 ||
+                    !selectedModel ||
+                    selectedScenes.length === 0
+                  }
                   style={{
-                    color: "#6B7280",
-                    marginBottom: "24px",
-                    fontSize: "16px",
+                    padding: "12px 24px",
+                    backgroundColor: isCreating ? "#9CA3AF" : "#8B5CF6",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#FFFFFF",
+                    fontSize: "14px",
+                    cursor: isCreating ? "not-allowed" : "pointer",
                   }}
                 >
-                  This campaign folder is empty. Generate some images to get
-                  started!
-                </p>
+                  {isCreating ? "Creating..." : "Create Campaign"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Campaign Details Modal */}
+        {showCampaignModal && selectedCampaign && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+            }}
+            onClick={() => setShowCampaignModal(false)}
+          >
+            <div
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderRadius: "16px",
+                padding: "32px",
+                width: "90%",
+                maxWidth: "1000px",
+                maxHeight: "90vh",
+                overflowY: "auto",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+                color: "#1F2937",
+                position: "relative",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "24px",
+                }}
+              >
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
+                >
+                  <div style={{ fontSize: "24px" }}>📁</div>
+                  <h2
+                    style={{
+                      margin: 0,
+                      fontSize: "24px",
+                      fontWeight: "600",
+                      color: "#1F2937",
+                    }}
+                  >
+                    {selectedCampaign.name}
+                  </h2>
+                </div>
                 <button
                   onClick={() => generateMoreImages(selectedCampaign)}
                   disabled={generatingMore}
                   style={{
-                    padding: "12px 24px",
+                    padding: "8px 16px",
                     backgroundColor: generatingMore ? "#9CA3AF" : "#8B5CF6",
                     border: "none",
                     borderRadius: "8px",
@@ -2732,9 +2339,411 @@ export default function CampaignsPage() {
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
-                    margin: "0 auto",
                   }}
                 >
+                  {generatingMore ? "⏳ Generating..." : "✨ Generate More"}
+                </button>
+              </div>
+
+              {selectedCampaign.description && (
+                <p
+                  style={{
+                    fontSize: "16px",
+                    color: "#6B7280",
+                    marginBottom: "24px",
+                  }}
+                >
+                  {selectedCampaign.description}
+                </p>
+              )}
+
+              {/* Campaign Status & Workflow */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "24px",
+                  padding: "16px",
+                  backgroundColor: "#F9FAFB",
+                  borderRadius: "8px",
+                  border: "1px solid #E5E7EB",
+                }}
+              >
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "16px" }}
+                >
+                  <span
+                    style={{
+                      backgroundColor:
+                        selectedCampaign.status === "completed"
+                          ? "rgba(16,185,129,0.15)"
+                          : selectedCampaign.status === "processing"
+                          ? "rgba(245,158,11,0.15)"
+                          : "rgba(107,114,128,0.15)",
+                      color:
+                        selectedCampaign.status === "completed"
+                          ? "#10B981"
+                          : selectedCampaign.status === "processing"
+                          ? "#F59E0B"
+                          : "#6B7280",
+                      padding: "8px 16px",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                    }}
+                  >
+                    {selectedCampaign.status.toUpperCase()}
+                  </span>
+
+                  {selectedCampaign.settings?.total_combinations && (
+                    <span
+                      style={{
+                        fontSize: "14px",
+                        color: "#6B7280",
+                      }}
+                    >
+                      {selectedCampaign.settings.total_combinations} images
+                      generated
+                    </span>
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: "#6B7280",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <span>
+                    🛍️ Products:{" "}
+                    {selectedCampaign.settings?.product_ids?.length || 0}
+                  </span>
+                  <span>•</span>
+                  <span>
+                    👤 Models:{" "}
+                    {selectedCampaign.settings?.model_ids?.length || 0}
+                  </span>
+                  <span>•</span>
+                  <span>
+                    🎬 Scenes:{" "}
+                    {selectedCampaign.settings?.scene_ids?.length || 0}
+                  </span>
+                </div>
+              </div>
+
+              {/* Generated Images */}
+              {selectedCampaign.settings?.generated_images &&
+              selectedCampaign.settings.generated_images.length > 0 ? (
+                <div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        fontSize: "18px",
+                        fontWeight: "600",
+                        color: "#1F2937",
+                        margin: 0,
+                      }}
+                    >
+                      Generated Images (
+                      {selectedCampaign.settings.generated_images.length})
+                    </h3>
+                    <div
+                      style={{
+                        fontSize: "14px",
+                        color: "#6B7280",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
+                      <span>📸</span>
+                      <span>Click to view full size</span>
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(300px, 1fr))",
+                      gap: "16px",
+                      marginBottom: "24px",
+                    }}
+                  >
+                    {selectedCampaign.settings.generated_images.map(
+                      (img: any, index: number) => (
+                        <div
+                          key={index}
+                          style={{
+                            border: "1px solid #E5E7EB",
+                            borderRadius: "12px",
+                            overflow: "hidden",
+                            backgroundColor: "#F9FAFB",
+                            cursor: "pointer",
+                            transition: "all 0.2s",
+                            position: "relative",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform =
+                              "translateY(-2px)";
+                            e.currentTarget.style.boxShadow =
+                              "0 8px 25px rgba(0,0,0,0.1)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.boxShadow = "none";
+                          }}
+                          onClick={() => {
+                            if (img.video_url) {
+                              window.open(img.video_url, "_blank");
+                            } else {
+                              window.open(img.image_url, "_blank");
+                            }
+                          }}
+                        >
+                          <div style={{ position: "relative" }}>
+                            {img.video_url ? (
+                              <video
+                                src={img.video_url}
+                                style={{
+                                  width: "100%",
+                                  height: "200px",
+                                  objectFit: "cover",
+                                }}
+                                controls
+                                loop
+                                muted
+                                autoPlay
+                                preload="metadata"
+                                onError={(e) => {
+                                  // Fallback to image if video fails
+                                  const videoElement = e.currentTarget;
+                                  const imgElement =
+                                    videoElement.nextElementSibling as HTMLImageElement;
+                                  if (imgElement) {
+                                    videoElement.style.display = "none";
+                                    imgElement.style.display = "block";
+                                  }
+                                }}
+                              />
+                            ) : null}
+                            <img
+                              src={img.image_url}
+                              alt={`${img.product_name} + ${img.model_name} + ${img.scene_name}`}
+                              style={{
+                                width: "100%",
+                                height: "200px",
+                                objectFit: "cover",
+                                display: img.video_url ? "none" : "block",
+                              }}
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  "https://via.placeholder.com/300x200?text=Image+Error";
+                              }}
+                            />
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "8px",
+                                right: "8px",
+                                backgroundColor: "rgba(0,0,0,0.7)",
+                                color: "white",
+                                padding: "4px 8px",
+                                borderRadius: "6px",
+                                fontSize: "12px",
+                                fontWeight: "500",
+                              }}
+                            >
+                              #{index + 1}
+                            </div>
+                            {img.video_url && (
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  top: "8px",
+                                  left: "8px",
+                                  backgroundColor: "rgba(139, 92, 246, 0.9)",
+                                  color: "white",
+                                  padding: "4px 8px",
+                                  borderRadius: "6px",
+                                  fontSize: "12px",
+                                  fontWeight: "500",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                }}
+                              >
+                                🎬 Video
+                              </div>
+                            )}
+                          </div>
+                          <div style={{ padding: "12px" }}>
+                            <div
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                color: "#1F2937",
+                                marginBottom: "4px",
+                              }}
+                            >
+                              {img.product_name} + {img.model_name}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "12px",
+                                color: "#6B7280",
+                                marginBottom: "8px",
+                              }}
+                            >
+                              Scene: {img.scene_name}
+                            </div>
+
+                            {/* Generate Video Button */}
+                            {!img.video_url && (
+                              <div style={{ marginBottom: "8px" }}>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const generationId = img.generation_id;
+                                    if (generationId) {
+                                      setPromptModalData({
+                                        generationId,
+                                        imageIndex: index,
+                                      });
+                                      setCustomPrompt("");
+                                      setVideoQuality("480p"); // Reset to default
+                                      setVideoModel("wan"); // Reset to default
+                                      setVideoDuration("5s"); // Reset to default
+                                      setShowPromptModal(true);
+                                    } else {
+                                      alert(
+                                        "Generation ID not found. Please refresh the page."
+                                      );
+                                    }
+                                  }}
+                                  disabled={
+                                    generatingVideo === img.generation_id
+                                  }
+                                  style={{
+                                    padding: "6px 12px",
+                                    backgroundColor:
+                                      generatingVideo === img.generation_id
+                                        ? "#9CA3AF"
+                                        : "#8B5CF6",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    fontSize: "12px",
+                                    fontWeight: "500",
+                                    cursor:
+                                      generatingVideo === img.generation_id
+                                        ? "not-allowed"
+                                        : "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                    width: "100%",
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  {generatingVideo === img.generation_id ? (
+                                    <>
+                                      <div
+                                        style={{
+                                          width: "12px",
+                                          height: "12px",
+                                          border: "2px solid #ffffff",
+                                          borderTop: "2px solid transparent",
+                                          borderRadius: "50%",
+                                          animation: "spin 1s linear infinite",
+                                        }}
+                                      />
+                                      Generating...
+                                    </>
+                                  ) : (
+                                    <>🎬 Generate Video</>
+                                  )}
+                                </button>
+                              </div>
+                            )}
+
+                            <div
+                              style={{
+                                fontSize: "11px",
+                                color: "#9CA3AF",
+                                fontStyle: "italic",
+                              }}
+                            >
+                              Click to view full size
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "60px 40px",
+                    backgroundColor: "#F9FAFB",
+                    borderRadius: "12px",
+                    marginBottom: "24px",
+                    border: "2px dashed #D1D5DB",
+                  }}
+                >
+                  <div style={{ fontSize: "64px", marginBottom: "20px" }}>
+                    📁
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: "20px",
+                      fontWeight: "600",
+                      color: "#1F2937",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    Empty Campaign Folder
+                  </h3>
+                  <p
+                    style={{
+                      color: "#6B7280",
+                      marginBottom: "24px",
+                      fontSize: "16px",
+                    }}
+                  >
+                    This campaign folder is empty. Generate some images to get
+                    started!
+                  </p>
+                  <button
+                    onClick={() => generateMoreImages(selectedCampaign)}
+                    disabled={generatingMore}
+                    style={{
+                      padding: "12px 24px",
+                      backgroundColor: generatingMore ? "#9CA3AF" : "#8B5CF6",
+                      border: "none",
+                      borderRadius: "8px",
+                      color: "#FFFFFF",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      cursor: generatingMore ? "not-allowed" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      margin: "0 auto",
+                    }}
+                  >
                     {generatingMore ? (
                       <>
                         <div
@@ -2752,140 +2761,140 @@ export default function CampaignsPage() {
                     ) : (
                       "✨ Generate First Images"
                     )}
+                  </button>
+                </div>
+              )}
+
+              {/* Close Button */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  marginTop: "24px",
+                }}
+              >
+                <button
+                  onClick={() => setShowCampaignModal(false)}
+                  style={{
+                    padding: "12px 24px",
+                    backgroundColor: "#F3F4F6",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#374151",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Close
                 </button>
               </div>
-            )}
-
-            {/* Close Button */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                marginTop: "24px",
-              }}
-            >
-              <button
-                onClick={() => setShowCampaignModal(false)}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: "#F3F4F6",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#374151",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                }}
-              >
-                Close
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Edit Campaign Modal */}
-      {showEditModal && editingCampaign && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-          onClick={() => setShowEditModal(false)}
-        >
+        {/* Edit Campaign Modal */}
+        {showEditModal && editingCampaign && (
           <div
             style={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "16px",
-              padding: "32px",
-              width: "90%",
-              maxWidth: "500px",
-              boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-              color: "#1F2937",
-              position: "relative",
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={() => setShowEditModal(false)}
           >
-            <h2
+            <div
               style={{
-                margin: "0 0 24px 0",
-                fontSize: "24px",
-                fontWeight: "600",
+                backgroundColor: "#FFFFFF",
+                borderRadius: "16px",
+                padding: "32px",
+                width: "90%",
+                maxWidth: "500px",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
                 color: "#1F2937",
+                position: "relative",
               }}
+              onClick={(e) => e.stopPropagation()}
             >
-              Edit Campaign
-            </h2>
-
-            <div style={{ marginBottom: "20px" }}>
-              <label
+              <h2
                 style={{
-                  display: "block",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  color: "#374151",
-                  marginBottom: "8px",
+                  margin: "0 0 24px 0",
+                  fontSize: "24px",
+                  fontWeight: "600",
+                  color: "#1F2937",
                 }}
               >
-                Campaign Name
-              </label>
-              <input
-                type="text"
-                value={editForm.name}
-                onChange={(e) =>
-                  setEditForm({ ...editForm, name: e.target.value })
-                }
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  backgroundColor: "#F9FAFB",
-                  border: "1px solid #D1D5DB",
-                  borderRadius: "8px",
-                  color: "#1F2937",
-                  fontSize: "14px",
-                }}
-                placeholder="Enter campaign name"
-              />
-            </div>
+                Edit Campaign
+              </h2>
 
-            <div style={{ marginBottom: "24px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  color: "#374151",
-                  marginBottom: "8px",
-                }}
-              >
-                Description (Optional)
-              </label>
-              <textarea
-                value={editForm.description}
-                onChange={(e) =>
-                  setEditForm({ ...editForm, description: e.target.value })
-                }
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  backgroundColor: "#F9FAFB",
-                  border: "1px solid #D1D5DB",
-                  borderRadius: "8px",
-                  color: "#1F2937",
-                  fontSize: "14px",
-                  minHeight: "80px",
-                  resize: "vertical",
-                }}
-                placeholder="Enter campaign description"
-              />
-            </div>
+              <div style={{ marginBottom: "20px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Campaign Name
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, name: e.target.value })
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    backgroundColor: "#F9FAFB",
+                    border: "1px solid #D1D5DB",
+                    borderRadius: "8px",
+                    color: "#1F2937",
+                    fontSize: "14px",
+                  }}
+                  placeholder="Enter campaign name"
+                />
+              </div>
+
+              <div style={{ marginBottom: "24px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Description (Optional)
+                </label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, description: e.target.value })
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    backgroundColor: "#F9FAFB",
+                    border: "1px solid #D1D5DB",
+                    borderRadius: "8px",
+                    color: "#1F2937",
+                    fontSize: "14px",
+                    minHeight: "80px",
+                    resize: "vertical",
+                  }}
+                  placeholder="Enter campaign description"
+                />
+              </div>
 
               {/* Number of Images Selection */}
               <div style={{ marginTop: "16px", marginBottom: "16px" }}>
@@ -2960,58 +2969,59 @@ export default function CampaignsPage() {
                     color: "#6B7280",
                   }}
                 >
-                  Each image will use a different shot type (Sitting, Standing, Close-up, etc.)
+                  Each image will use a different shot type (Sitting, Standing,
+                  Close-up, etc.)
                 </p>
               </div>
 
-            {/* Action Buttons */}
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-                justifyContent: "flex-end",
-              }}
-            >
-              <button
-                onClick={() => setShowEditModal(false)}
+              {/* Action Buttons */}
+              <div
                 style={{
-                  padding: "12px 24px",
-                  backgroundColor: "#F3F4F6",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#374151",
-                  fontSize: "14px",
-                  cursor: "pointer",
+                  display: "flex",
+                  gap: "12px",
+                  justifyContent: "flex-end",
                 }}
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleUpdateCampaign}
-                disabled={isUpdating || !editForm.name.trim()}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor:
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  style={{
+                    padding: "12px 24px",
+                    backgroundColor: "#F3F4F6",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#374151",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateCampaign}
+                  disabled={isUpdating || !editForm.name.trim()}
+                  style={{
+                    padding: "12px 24px",
+                    backgroundColor:
                       isUpdating || !editForm.name.trim()
                         ? "#9CA3AF"
                         : "#8B5CF6",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#FFFFFF",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  cursor:
-                    isUpdating || !editForm.name.trim()
-                      ? "not-allowed"
-                      : "pointer",
-                }}
-              >
-                {isUpdating ? "Updating..." : "Update Campaign"}
-              </button>
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#FFFFFF",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    cursor:
+                      isUpdating || !editForm.name.trim()
+                        ? "not-allowed"
+                        : "pointer",
+                  }}
+                >
+                  {isUpdating ? "Updating..." : "Update Campaign"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
         {/* Video Generation Prompt Modal */}
         {showPromptModal && promptModalData && (
@@ -3118,7 +3128,7 @@ export default function CampaignsPage() {
                     <div>
                       <div style={{ fontWeight: "500", fontSize: "14px" }}>
                         Wan 2.2 I2V Fast
-    </div>
+                      </div>
                       <div style={{ fontSize: "12px", color: "#6B7280" }}>
                         Fast generation, 480p/720p
                       </div>

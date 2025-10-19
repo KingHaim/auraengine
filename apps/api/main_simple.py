@@ -1693,6 +1693,23 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
         else:
             print(f"📁 Using model URL directly: {model_image_url[:50]}...")
 
+        # WEBP Conversion: If garment is WEBP, convert to PNG first so Pillow/rembg can process
+        if isinstance(product_image_url, str) and product_image_url.lower().endswith(".webp"):
+            try:
+                # Persist locally if not already
+                persisted = stabilize_url(product_image_url, "garment_webp")
+                # Read and convert to PNG
+                filename = persisted.replace(get_base_url() + "/static/", "")
+                with open(f"uploads/{filename}", "rb") as f:
+                    img = Image.open(f).convert("RGBA")
+                buf = BytesIO()
+                img.save(buf, format="PNG", optimize=True)
+                b64 = base64.b64encode(buf.getvalue()).decode()
+                product_image_url = f"data:image/png;base64,{b64}"
+                print("🧩 Converted WEBP garment to PNG (data URL)")
+            except Exception as e:
+                print(f"⚠️ WEBP→PNG convert failed: {e} — using original URL")
+
         # Garment: ensure alpha; prefer URL; convert to data URL only if local /static and URL attempt fails
         try:
             if has_alpha(product_image_url):

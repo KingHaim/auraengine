@@ -306,7 +306,7 @@ export default function CreditsPage() {
                   (Save 15%)
                 </span>
               </span>
-            </div>
+          </div>
       </div>
 
           <div
@@ -666,7 +666,7 @@ export default function CreditsPage() {
                   }}
                 >
                   {pkg.description}
-                </div>
+                    </div>
                     <button
                       onClick={() => handlePurchase(pkg.credits, pkg.price)}
                       disabled={isProcessing}
