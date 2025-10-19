@@ -475,40 +475,39 @@ async def create_campaign(
                         try:
                             print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
                             
-                            # REAL WORKFLOW (updated): Vella first, then Qwen composition
+                            # REAL WORKFLOW (local-success): Qwen first, then Vella
                             quality_mode = "standard"
 
-                            # Step 1: Apply Vella try-on on the original model image
-                            print(f"👔 Step 1: Applying {product.name} with Vella 1.5 try-on...")
-                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
-                            vella_result_url = run_vella_try_on(model_image, product_image, quality_mode, clothing_type)
-                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
-
-                            # Step 2: Compose the clothed model into the scene
-                            print(f"🎨 Step 2: Composing clothed model into scene for '{shot_type['name']}'...")
+                            # Step 1: Compose model into the scene with shot type
+                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
                             qwen_result_url = run_qwen_scene_composition(
-                                vella_result_url,
+                                model_image,
                                 scene.image_url,
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
                             print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
+
+                            # Step 2: Apply Vella try-on on the composed image
+                            print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
+                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
+                            vella_result_url = run_vella_try_on(qwen_result_url, product_image, quality_mode, clothing_type)
+                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
                             # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
                             is_closeup = shot_type['name'] in ['upper_closeup', 'lower_closeup']
                             if is_closeup:
                                 print(f"🍌 Step 3: Enhancing close-up with Nano Banana (img2img)...")
                                 try:
-                                    # Convert Qwen result URL to base64 for Nano Banana if needed
-                                    if qwen_result_url.startswith(get_base_url() + "/static/"):
-                                        filename = qwen_result_url.replace(get_base_url() + "/static/", "")
+                                    # Convert Vella result URL to base64 for Nano Banana if needed
+                                    if vella_result_url.startswith(get_base_url() + "/static/"):
+                                        filename = vella_result_url.replace(get_base_url() + "/static/", "")
                                         filepath = f"uploads/{filename}"
                                         nb_input = upload_to_replicate(filepath)
-                                    elif qwen_result_url.startswith("https://replicate.delivery/"):
-                                        # Already a public URL; pass through directly
-                                        nb_input = qwen_result_url
+                                    elif vella_result_url.startswith("https://replicate.delivery/"):
+                                        nb_input = vella_result_url
                                     else:
-                                        nb_input = qwen_result_url
+                                        nb_input = vella_result_url
                                     
                                     # Apply Nano Banana img2img using 'instructions' parameter for image editing
                                     nano_result = replicate.run(
@@ -668,40 +667,39 @@ async def generate_campaign_images(
                         try:
                             print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
                             
-                            # REAL WORKFLOW (updated): Vella first, then Qwen composition
+                            # REAL WORKFLOW (local-success): Qwen first, then Vella
                             quality_mode = "standard"
 
-                            # Step 1: Apply Vella try-on on the original model image
-                            print(f"👔 Step 1: Applying {product.name} with Vella 1.5 try-on...")
-                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
-                            vella_result_url = run_vella_try_on(model_image, product_image, quality_mode, clothing_type)
-                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
-
-                            # Step 2: Compose the clothed model into the scene
-                            print(f"🎨 Step 2: Composing clothed model into scene for '{shot_type['name']}'...")
+                            # Step 1: Compose model into the scene with shot type
+                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
                             qwen_result_url = run_qwen_scene_composition(
-                                vella_result_url,
+                                model_image,
                                 scene.image_url,
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
                             print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
+
+                            # Step 2: Apply Vella try-on on the composed image
+                            print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
+                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
+                            vella_result_url = run_vella_try_on(qwen_result_url, product_image, quality_mode, clothing_type)
+                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
                             # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
                             is_closeup = shot_type['name'] in ['upper_closeup', 'lower_closeup']
                             if is_closeup:
                                 print(f"🍌 Step 3: Enhancing close-up with Nano Banana (img2img)...")
                                 try:
-                                    # Convert Qwen result URL to base64 for Nano Banana if needed
-                                    if qwen_result_url.startswith(get_base_url() + "/static/"):
-                                        filename = qwen_result_url.replace(get_base_url() + "/static/", "")
+                                    # Convert Vella result URL to base64 for Nano Banana if needed
+                                    if vella_result_url.startswith(get_base_url() + "/static/"):
+                                        filename = vella_result_url.replace(get_base_url() + "/static/", "")
                                         filepath = f"uploads/{filename}"
                                         nb_input = upload_to_replicate(filepath)
-                                    elif qwen_result_url.startswith("https://replicate.delivery/"):
-                                        # Already a public URL; pass through directly
-                                        nb_input = qwen_result_url
+                                    elif vella_result_url.startswith("https://replicate.delivery/"):
+                                        nb_input = vella_result_url
                                     else:
-                                        nb_input = qwen_result_url
+                                        nb_input = vella_result_url
                                     
                                     # Apply Nano Banana img2img using 'instructions' parameter for image editing
                                     nano_result = replicate.run(
@@ -1400,13 +1398,31 @@ def postprocess_cutout(img_rgba: Image.Image) -> Image.Image:
         print(f"Postprocessing failed: {e}")
         return img_rgba
 
-def upload_png(img: Image.Image) -> str:
-    """Save image locally and return URL"""
-    os.makedirs("uploads", exist_ok=True)
-    filename = f"product_{hash(str(img.tobytes()))}.png"
-    filepath = f"uploads/{filename}"
-    img.save(filepath)
-    return get_static_url(filename)
+def upload_png(img: Image.Image, max_size: int = 768) -> str:
+    """Save RGBA image locally as optimized PNG (scaled) and return /static URL"""
+    try:
+        os.makedirs("uploads", exist_ok=True)
+        # Scale preserving aspect ratio
+        w, h = img.size
+        scale = min(1.0, max_size / float(max(w, h)))
+        if scale < 1.0:
+            new_size = (max(1, int(w * scale)), max(1, int(h * scale)))
+            img = img.resize(new_size, Image.Resampling.LANCZOS)
+        filename = f"product_{uuid.uuid4().hex}.png"
+        filepath = os.path.join("uploads", filename)
+        # Save optimized PNG
+        img.save(filepath, format="PNG", optimize=True)
+        return get_static_url(filename)
+    except Exception as e:
+        print(f"❌ upload_png failed: {e}")
+        # Fallback: attempt to save without options
+        try:
+            filename = f"product_{uuid.uuid4().hex}.png"
+            filepath = os.path.join("uploads", filename)
+            img.save(filepath)
+            return get_static_url(filename)
+        except Exception:
+            raise
 
 def compress_image_for_processing(filepath: str, max_size: int = 512) -> str:
     """Compress and resize image for efficient processing with Replicate"""
@@ -1628,21 +1644,7 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 "num_outputs": num_outputs,
             }
             
-            # Add clothing-specific parameter based on type
-            clothing_type_lower = clothing_type.lower() if clothing_type else "top"
-            if clothing_type_lower in ["tshirt", "shirt", "blouse", "sweater", "jacket", "hoodie", "top", "cardigan"]:
-                vella_input["top_image"] = product_image_url
-                print(f"👕 Using 'top_image' parameter for {clothing_type}")
-            elif clothing_type_lower in ["pants", "jeans", "skirt", "shorts", "trousers", "bottom"]:
-                vella_input["bottom_image"] = product_image_url
-                print(f"👖 Using 'bottom_image' parameter for {clothing_type}")
-            elif clothing_type_lower in ["dress", "jumpsuit", "overall"]:
-                vella_input["dress_image"] = product_image_url
-                print(f"👗 Using 'dress_image' parameter for {clothing_type}")
-            else:
-                # Default to top_image if unknown
-                vella_input["top_image"] = product_image_url
-                print(f"⚠️ Unknown clothing type '{clothing_type}', defaulting to 'top_image'")
+            # Note: specific garment key will be set in payload later per attempt
             
             if seed is not None:
                 base_input["seed"] = seed
@@ -1836,6 +1838,12 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
     """Compose model pose into scene using Qwen (the workflow that worked for jenny swag)"""
     try:
         print(f"🎬 Running Qwen composition: model={model_image_url[:50]}..., scene={scene_image_url[:50]}...")
+        
+        # Stabilize ephemeral replicate.delivery inputs by persisting locally first
+        if isinstance(model_image_url, str) and model_image_url.startswith("https://replicate.delivery/"):
+            model_image_url = download_and_save_image(model_image_url, "qwen_model")
+        if isinstance(scene_image_url, str) and scene_image_url.startswith("https://replicate.delivery/"):
+            scene_image_url = download_and_save_image(scene_image_url, "qwen_scene")
         
         # Convert local URLs to base64 for Qwen
         if model_image_url.startswith(get_base_url() + "/static/"):
