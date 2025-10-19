@@ -1264,29 +1264,15 @@ def enhance_with_nano_banana(image_url: str, prompt: str = "") -> str:
         return image_url
 
 def download_and_save_image(url: str, prefix: str = "packshot") -> str:
-    """Download image from URL and save it locally"""
+    """Download image from URL and return original URL (no local saving)"""
     try:
-        import requests
-        from io import BytesIO
-        
-        print(f"💾 Downloading image from: {url[:100]}...")
-        response = requests.get(url, timeout=30)
-        response.raise_for_status()
-        
-        # Open image and save
-        img = Image.open(BytesIO(response.content))
-        filename = f"{prefix}_{hash(url)}.{img.format.lower() if img.format else 'jpg'}"
-        filepath = f"uploads/{filename}"
-        
-        os.makedirs("uploads", exist_ok=True)
-        img.save(filepath)
-        
-        local_url = get_static_url(filename)
-        print(f"✅ Saved to: {local_url}")
-        return local_url
+        print(f"💾 Using original URL directly: {url[:100]}...")
+        # Return the original URL directly instead of downloading and saving locally
+        # This avoids Railway static file serving issues
+        return url
         
     except Exception as e:
-        print(f"❌ Failed to download and save image: {e}")
+        print(f"❌ Failed to process image: {e}")
         return url
 
 def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode: str = "standard", clothing_type: str = "top") -> str:
