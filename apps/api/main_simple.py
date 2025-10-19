@@ -502,6 +502,7 @@ async def create_campaign(
                             quality_mode = "standard"
 
                             # Step 1: Compose model into the scene with shot type (persist inputs first)
+                            # Stabilize model pose to /static to avoid replicate 404s
                             stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                             print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
@@ -517,6 +518,7 @@ async def create_campaign(
                             # Step 2: Apply Vella try-on on the composed image
                             print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
                             clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
+                            # Stabilize garment to /static (PNG with alpha already handled inside run_vella_try_on)
                             stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
                             vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
                             vella_result_url = stabilize_url(vella_result_url, f"vella_{shot_type['name']}") if 'stabilize_url' in globals() else vella_result_url
@@ -1877,6 +1879,14 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
             model_image_url = download_and_save_image(model_image_url, "qwen_model")
         if isinstance(scene_image_url, str) and scene_image_url.startswith("https://replicate.delivery/"):
             scene_image_url = download_and_save_image(scene_image_url, "qwen_scene")
+
+        # Final safeguard: if model is still an ephemeral replicate URL, fallback to default model
+        if isinstance(model_image_url, str) and model_image_url.startswith("https://replicate.delivery/"):
+            try:
+                print("⚠️ Model URL still ephemeral; falling back to default male model image")
+                model_image_url = get_model_url("male")
+            except Exception:
+                pass
 
         # Ensure persisted files exist before continuing
         try:
