@@ -893,6 +893,76 @@ export default function ModelsPage() {
                     </span>
                       </div>
 
+                  {/* Regenerate Poses Button */}
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (!token) return;
+                      
+                      setIsGeneratingPoses(true);
+                      try {
+                        const res = await fetch(
+                          `${process.env.NEXT_PUBLIC_API_URL}/models/${model.id}/generate-poses`,
+                          {
+                            method: "POST",
+                            headers: {
+                              Authorization: `Bearer ${token}`,
+                            },
+                          }
+                        );
+
+                        if (!res.ok) {
+                          throw new Error(`Pose generation failed: ${res.status}`);
+                        }
+
+                        const result = await res.json();
+                        console.log("✅ Poses regenerated:", result.total_poses);
+                        
+                        // Refresh models list to show new poses
+                        await fetchModels();
+                        
+                        alert(`✅ Successfully generated ${result.total_poses} new poses for ${model.name}!`);
+                      } catch (error) {
+                        console.error("❌ Pose generation error:", error);
+                        alert("Failed to generate poses. Please try again.");
+                      } finally {
+                        setIsGeneratingPoses(false);
+                      }
+                    }}
+                    disabled={isGeneratingPoses}
+                    style={{
+                      marginTop: "16px",
+                      padding: "10px 20px",
+                      backgroundColor: isGeneratingPoses 
+                        ? "rgba(107, 114, 128, 0.9)" 
+                        : "rgba(34, 211, 238, 0.9)",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      cursor: isGeneratingPoses ? "not-allowed" : "pointer",
+                      pointerEvents: "auto",
+                      transition: "all 0.2s ease",
+                      backdropFilter: "blur(4px)",
+                      opacity: isGeneratingPoses ? 0.7 : 1,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isGeneratingPoses) {
+                        e.currentTarget.style.backgroundColor = "rgba(34, 211, 238, 1)";
+                        e.currentTarget.style.transform = "scale(1.05)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isGeneratingPoses) {
+                        e.currentTarget.style.backgroundColor = "rgba(34, 211, 238, 0.9)";
+                        e.currentTarget.style.transform = "scale(1)";
+                      }
+                    }}
+                  >
+                    {isGeneratingPoses ? "⏳ Generating..." : "🔄 Regenerate Poses"}
+                  </button>
+
                   {/* Click to View Profile */}
                   <div
                         style={{
