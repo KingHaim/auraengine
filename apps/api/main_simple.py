@@ -193,22 +193,37 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
 async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     """Login user"""
     try:
+        print(f"🔐 Login attempt for email: {login_data.email}")
         email = login_data.email
         password = login_data.password
         
+        print(f"🔍 Querying database for user...")
         user = db.query(User).filter(User.email == email).first()
-        if not user or not verify_password(password, user.hashed_password):
+        print(f"👤 User found: {user is not None}")
+        
+        if not user:
+            print(f"❌ User not found for email: {email}")
             raise HTTPException(status_code=401, detail="Incorrect email or password")
         
+        print(f"🔑 Verifying password...")
+        if not verify_password(password, user.hashed_password):
+            print(f"❌ Password verification failed")
+            raise HTTPException(status_code=401, detail="Incorrect email or password")
+        
+        print(f"✅ Password verified, creating token...")
         # Create access token
         access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
         
+        print(f"🎉 Login successful for user: {user.email}")
         return {
             "access_token": access_token,
             "token_type": "bearer",
             "user": UserResponse.from_orm(user)
         }
         
+    except HTTPException as he:
+        print(f"❌ HTTP Exception: {he.detail}")
+        raise he
     except Exception as e:
         print(f"❌ Login error: {e}")
         import traceback
