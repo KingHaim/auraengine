@@ -45,6 +45,32 @@ def get_model_url(gender: str) -> str:
     else:
         return "https://i.ibb.co/M5n1qznw/model.png"
 
+def to_url(value: object) -> str:
+    """Normalize various Replicate outputs into a plain string URL.
+    Handles strings, objects with url()/url, and single-item lists.
+    """
+    try:
+        if isinstance(value, str):
+            return value
+        # Replicate result with url() method
+        if hasattr(value, "url") and callable(getattr(value, "url")):
+            try:
+                return value.url()
+            except Exception:
+                pass
+        # Replicate result with url attribute
+        if hasattr(value, "url") and not callable(getattr(value, "url")):
+            try:
+                return str(getattr(value, "url"))
+            except Exception:
+                pass
+        # Lists: use first entry
+        if isinstance(value, list) and len(value) > 0:
+            return to_url(value[0])
+        return str(value)
+    except Exception:
+        return str(value)
+
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./aura_engine.db")
 
@@ -511,9 +537,9 @@ async def create_campaign(
                                 # For non-closeup shots, use Vella result directly
                                 final_result_url = vella_result_url
                             
-                            # Download final result
-                            print(f"💾 Downloading final result...")
-                            final_url = download_and_save_image(final_result_url, f"campaign_{shot_type['name']}")
+                            # Normalize and store final URL
+                            print(f"💾 Normalizing final result URL...")
+                            final_url = download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
                             print(f"✅ Final result saved locally: {final_url[:50]}...")
                             
                             generated_images.append({
@@ -703,9 +729,9 @@ async def generate_campaign_images(
                                 # For non-closeup shots, use Vella result directly
                                 final_result_url = vella_result_url
                             
-                            # Download final result
-                            print(f"💾 Downloading final result...")
-                            final_url = download_and_save_image(final_result_url, f"campaign_{shot_type['name']}")
+                            # Normalize and store final URL
+                            print(f"💾 Normalizing final result URL...")
+                            final_url = download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
                             print(f"✅ Final result saved locally: {final_url[:50]}...")
                             
                             new_images.append({
