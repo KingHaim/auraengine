@@ -260,33 +260,10 @@ export default function Home() {
               paddingTop: "0px",
             }}
           >
-            <a
-              href="/help"
-              style={{
-                display: "block",
-                padding: "8px 12px",
-                color: "#9BA3AF",
-                textDecoration: "none",
-                fontSize: "11px",
-                letterSpacing: "0.22em",
-                marginBottom: "4px",
-              }}
-            >
-              HELP
-            </a>
-            <a
-              href="/terms"
-              style={{
-                display: "block",
-                padding: "8px 12px",
-                color: "#9BA3AF",
-                textDecoration: "none",
-                fontSize: "11px",
-                letterSpacing: "0.22em",
-              }}
-            >
-              TERMS
-            </a>
+            {/* Help and Terms pages not yet created
+            <a href="/help">HELP</a>
+            <a href="/terms">TERMS</a>
+            */}
           </div>
         </nav>
       </div>

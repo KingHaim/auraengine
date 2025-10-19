@@ -358,33 +358,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
               paddingTop: "0px",
             }}
           >
-            <Link
-              href="/help"
-              style={{
-                display: "block",
-                padding: "8px 12px",
-                color: "#9BA3AF",
-                textDecoration: "none",
-                fontSize: "11px",
-                letterSpacing: "0.22em",
-                marginBottom: "4px",
-              }}
-            >
-              HELP
-            </Link>
-            <Link
-              href="/terms"
-              style={{
-                display: "block",
-                padding: "8px 12px",
-                color: "#9BA3AF",
-                textDecoration: "none",
-                fontSize: "11px",
-                letterSpacing: "0.22em",
-              }}
-            >
-              TERMS
-            </Link>
+            {/* Help and Terms pages not yet created
+            <Link href="/help">HELP</Link>
+            <Link href="/terms">TERMS</Link>
+            */}
           </div>
         </nav>
       </div>
