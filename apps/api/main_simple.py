@@ -38,6 +38,29 @@ def get_static_url(filename: str) -> str:
     """Generate a static file URL"""
     return f"{get_base_url()}/static/{filename}"
 
+def stabilize_url(url: str, prefix: str) -> str:
+    """
+    Persist ephemeral (replicate.delivery) or data URLs into uploads/ and return a stable /static URL.
+    Leaves already-stable /static URLs unchanged; returns original for other http(s).
+    """
+    try:
+        if not isinstance(url, str):
+            return url
+        # Already stable
+        if url.startswith(get_base_url() + "/static/"):
+            return url
+        # Data URL → save to uploads
+        if url.startswith("data:image/"):
+            return download_and_save_image(url, prefix)
+        # Replicate ephemeral URL → save to uploads
+        if url.startswith("https://replicate.delivery/"):
+            return download_and_save_image(url, prefix)
+        # Other http(s) URLs: leave as-is
+        return url
+    except Exception as e:
+        print(f"stabilize_url failed for {url[:120]}...: {e}")
+        return url
+
 def get_model_url(gender: str) -> str:
     """Get the model image URL based on gender - returns external URL"""
     if gender == "female":
