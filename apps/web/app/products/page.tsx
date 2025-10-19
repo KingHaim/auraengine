@@ -778,7 +778,8 @@ export default function ProductsPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            backgroundColor: "rgba(17, 24, 39, 0.7)",
+            backdropFilter: "blur(2px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -788,12 +789,14 @@ export default function ProductsPage() {
         >
           <div
             style={{
-              backgroundColor: "white",
-              borderRadius: "16px",
+              backgroundColor: "#FFFFFF",
+              border: "1px solid #E5E7EB",
+              borderRadius: "12px",
               padding: "24px",
-              maxWidth: "500px",
-              width: "90%",
+              maxWidth: "640px",
+              width: "92%",
               position: "relative",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -802,6 +805,7 @@ export default function ProductsPage() {
                 margin: "0 0 24px 0",
                 fontSize: "20px",
                 fontWeight: "600",
+                color: "#111827",
               }}
             >
               Upload New Product
@@ -831,6 +835,7 @@ export default function ProductsPage() {
                   border: "1px solid #D1D5DB",
                   borderRadius: "8px",
                   fontSize: "14px",
+                  backgroundColor: "#F9FAFB",
                 }}
                 placeholder="Enter product name"
               />
@@ -861,6 +866,7 @@ export default function ProductsPage() {
                   fontSize: "14px",
                   minHeight: "80px",
                   resize: "vertical",
+                  backgroundColor: "#F9FAFB",
                 }}
                 placeholder="Enter product description"
               />
@@ -889,7 +895,7 @@ export default function ProductsPage() {
                   border: "1px solid #D1D5DB",
                   borderRadius: "8px",
                   fontSize: "14px",
-                  backgroundColor: "white",
+                  backgroundColor: "#FFFFFF",
                 }}
               >
                 <option value="">Select a category</option>
@@ -1069,8 +1075,35 @@ export default function ProductsPage() {
                   border: "1px solid #D1D5DB",
                   borderRadius: "8px",
                   fontSize: "14px",
+                    backgroundColor: "#F9FAFB",
                 }}
               />
+                {newProduct.image && (
+                  <div
+                    style={{
+                      marginTop: "8px",
+                      display: "flex",
+                      gap: "12px",
+                      alignItems: "center",
+                    }}
+                  >
+                    <img
+                      src={URL.createObjectURL(newProduct.image as any)}
+                      alt="Preview"
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                        border: "1px solid #E5E7EB",
+                        backgroundColor: "#FFF",
+                      }}
+                    />
+                    <div style={{ fontSize: "12px", color: "#6B7280" }}>
+                      {(newProduct.image as any).name}
+                    </div>
+                  </div>
+                )}
             </div>
 
             {/* Packshot Upload Section */}
@@ -1095,7 +1128,7 @@ export default function ProductsPage() {
                 }}
               >
                 Upload your own packshot images or leave empty to auto-generate
-                them (costs 2 credits).
+                them (costs 10 credits total).
               </p>
 
               {/* Front Packshot */}
@@ -1144,7 +1177,7 @@ export default function ProductsPage() {
                       border: "1px solid #D1D5DB",
                       borderRadius: "8px",
                       fontSize: "14px",
-                      backgroundColor: "white",
+                      backgroundColor: "#FFFFFF",
                       minWidth: "100px",
                     }}
                   >
@@ -1200,7 +1233,7 @@ export default function ProductsPage() {
                       border: "1px solid #D1D5DB",
                       borderRadius: "8px",
                       fontSize: "14px",
-                      backgroundColor: "white",
+                      backgroundColor: "#FFFFFF",
                       minWidth: "100px",
                     }}
                   >
@@ -1237,7 +1270,9 @@ export default function ProductsPage() {
                 disabled={isUploading || !newProduct.name || !newProduct.image}
                 style={{
                   padding: "12px 24px",
-                  backgroundColor: isUploading ? "#9CA3AF" : "#8B5CF6",
+                  background: isUploading
+                    ? "#9CA3AF"
+                    : "linear-gradient(90deg, #8B5CF6, #7C3AED)",
                   border: "none",
                   borderRadius: "8px",
                   color: "#FFFFFF",
