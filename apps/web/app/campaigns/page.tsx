@@ -316,6 +316,7 @@ export default function CampaignsPage() {
       formData.append("model_ids", JSON.stringify([selectedModel]));
       formData.append("scene_ids", JSON.stringify(selectedScenes));
       formData.append("selected_poses", JSON.stringify(selectedPoses));
+      formData.append("number_of_images", numberOfImagesToGenerate.toString());
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/campaigns/create`, {
         method: "POST",
@@ -2885,6 +2886,83 @@ export default function CampaignsPage() {
                 placeholder="Enter campaign description"
               />
             </div>
+
+              {/* Number of Images Selection */}
+              <div style={{ marginTop: "16px", marginBottom: "16px" }}>
+                <h3
+                  style={{
+                    margin: "0 0 12px 0",
+                    fontSize: "16px",
+                    fontWeight: "600",
+                    color: "#1F2937",
+                  }}
+                >
+                  Number of Images to Generate
+                </h3>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "8px",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {[1, 2, 3, 4, 5, 6, 7].map((num) => (
+                    <label
+                      key={num}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "8px 16px",
+                        backgroundColor:
+                          numberOfImagesToGenerate === num
+                            ? "#8B5CF6"
+                            : "#F3F4F6",
+                        color:
+                          numberOfImagesToGenerate === num
+                            ? "#FFFFFF"
+                            : "#374151",
+                        border: "none",
+                        borderRadius: "8px",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        userSelect: "none",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (numberOfImagesToGenerate !== num) {
+                          e.currentTarget.style.backgroundColor = "#E5E7EB";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (numberOfImagesToGenerate !== num) {
+                          e.currentTarget.style.backgroundColor = "#F3F4F6";
+                        }
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="numberOfImagesCreate"
+                        value={num}
+                        checked={numberOfImagesToGenerate === num}
+                        onChange={() => setNumberOfImagesToGenerate(num)}
+                        style={{ marginRight: "8px" }}
+                      />
+                      {num} {num === 1 ? "Image" : "Images"}
+                    </label>
+                  ))}
+                </div>
+                <p
+                  style={{
+                    margin: "8px 0 0 0",
+                    fontSize: "12px",
+                    color: "#6B7280",
+                  }}
+                >
+                  Each image will use a different shot type (Sitting, Standing, Close-up, etc.)
+                </p>
+              </div>
 
             {/* Action Buttons */}
             <div

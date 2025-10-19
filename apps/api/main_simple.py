@@ -368,6 +368,7 @@ async def create_campaign(
     model_ids: str = Form(...),    # JSON string
     scene_ids: str = Form(...),    # JSON string
     selected_poses: str = Form("{}"),  # JSON string
+    number_of_images: int = Form(7),
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -411,6 +412,14 @@ async def create_campaign(
         
         generated_images = []
         
+        # Clamp requested number of images to available shot types
+        try:
+            shots_to_generate_count = max(1, min(int(number_of_images), len(CAMPAIGN_SHOT_TYPES)))
+        except Exception:
+            shots_to_generate_count = 1
+
+        shot_types_to_generate = CAMPAIGN_SHOT_TYPES[:shots_to_generate_count]
+
         # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
         for product in products:
             for model in models:
@@ -430,12 +439,12 @@ async def create_campaign(
                         print(f"🎭 Using random pose for {model.name}")
                     
                     print(f"🎬 Processing campaign flow: {product.name} + {model.name} + {scene.name}")
-                    print(f"📸 Generating {len(CAMPAIGN_SHOT_TYPES)} different shots for complete campaign...")
+                    print(f"📸 Generating {len(shot_types_to_generate)} shots for this combination...")
                     
-                    # Generate all shot types for this combination
-                    for shot_idx, shot_type in enumerate(CAMPAIGN_SHOT_TYPES, 1):
+                    # Generate the requested shot types for this combination
+                    for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
                         try:
-                            print(f"\n🎥 [{shot_idx}/{len(CAMPAIGN_SHOT_TYPES)}] {shot_type['title']}")
+                            print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
                             
                             # REAL WORKFLOW: Qwen + Vella with shot-specific prompt
                             quality_mode = "standard"
@@ -548,7 +557,7 @@ async def create_campaign(
         
         return {
             "campaign": CampaignResponse.model_validate(campaign),
-            "message": f"Campaign '{name}' created with {len(generated_images)} images across {len(CAMPAIGN_SHOT_TYPES)} shot types!",
+            "message": f"Campaign '{name}' created with {len(generated_images)} images across {len(shot_types_to_generate)} shot types!",
             "generated_images": generated_images
         }
     except json.JSONDecodeError:
