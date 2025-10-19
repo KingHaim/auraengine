@@ -1923,6 +1923,26 @@ async def get_categories():
         ]
     }
 
+@app.get("/products/categories")
+async def get_products_categories():
+    """Get product categories in frontend format"""
+    return {
+        "categories": [
+            {"value": "tshirt", "label": "T-Shirt"},
+            {"value": "sweater", "label": "Sweater"},
+            {"value": "pants", "label": "Pants"},
+            {"value": "jacket", "label": "Jacket"},
+            {"value": "dress", "label": "Dress"},
+            {"value": "skirt", "label": "Skirt"},
+            {"value": "shoes", "label": "Shoes"},
+            {"value": "accessories", "label": "Accessories"},
+            {"value": "other", "label": "Other"}
+        ],
+        "common_tags": [
+            "casual", "formal", "sporty", "vintage", "modern", "classic", "trendy", "elegant", "comfortable", "stylish"
+        ]
+    }
+
 # ---------- Reroll Packshots Endpoint ----------
 @app.post("/products/{product_id}/reroll-packshots")
 async def reroll_packshots(
