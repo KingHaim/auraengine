@@ -64,24 +64,24 @@ export default function ScenesPage() {
   if (!user || !token) {
     return (
       <div style={{ padding: "32px", textAlign: "center" }}>
-        <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔐</div>
-        <h2 style={{ marginBottom: "16px" }}>Authentication Required</h2>
-        <p style={{ marginBottom: "24px", color: "#9BA3AF" }}>
-          Please log in to access your scene library
-        </p>
-        <a
-          href="/"
-          style={{
-            padding: "12px 24px",
-            backgroundColor: "#8B5CF6",
-            color: "white",
-            textDecoration: "none",
-            borderRadius: "8px",
-            fontWeight: "500",
-          }}
-        >
-          Go to Login
-        </a>
+          <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔐</div>
+          <h2 style={{ marginBottom: "16px" }}>Authentication Required</h2>
+          <p style={{ marginBottom: "24px", color: "#9BA3AF" }}>
+            Please log in to access your scene library
+          </p>
+          <a
+            href="/"
+            style={{
+              padding: "12px 24px",
+              backgroundColor: "#8B5CF6",
+              color: "white",
+              textDecoration: "none",
+              borderRadius: "8px",
+              fontWeight: "500",
+            }}
+          >
+            Go to Login
+          </a>
       </div>
     );
   }
@@ -90,26 +90,26 @@ export default function ScenesPage() {
     <AppLayout>
       <div style={{ padding: "32px" }}>
         <div style={{ marginBottom: "32px" }}>
-          <h1
-            style={{
-              fontSize: "24px",
+            <h1
+              style={{
+                fontSize: "24px",
               fontWeight: "700",
               color: "#1E293B",
               marginBottom: "8px",
-            }}
-          >
-            Scene Library
-          </h1>
-          <p
-            style={{
-              fontSize: "14px",
+              }}
+            >
+              Scene Library
+            </h1>
+            <p
+              style={{
+                fontSize: "14px",
               color: "#64748B",
-              margin: "4px 0 0 0",
-            }}
-          >
+                margin: "4px 0 0 0",
+              }}
+            >
             Manage your background scenes for campaigns
-          </p>
-        </div>
+            </p>
+          </div>
 
         {scenesLoading ? (
           <div
@@ -123,31 +123,31 @@ export default function ScenesPage() {
           >
             <div style={{ fontSize: "16px", color: "#6B7280" }}>
               Loading scenes...
-            </div>
+          </div>
           </div>
         ) : scenes.length === 0 ? (
-          <div
-            style={{
+            <div
+              style={{
               backgroundColor: "#F9FAFB",
               borderRadius: "12px",
               border: "1px solid #E5E7EB",
               padding: "40px",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: "48px", marginBottom: "16px" }}>🏞️</div>
-            <h4
-              style={{
-                fontSize: "16px",
-                fontWeight: "600",
-                color: "#1F2937",
-                marginBottom: "8px",
+                textAlign: "center",
               }}
             >
+            <div style={{ fontSize: "48px", marginBottom: "16px" }}>🏞️</div>
+            <h4
+                style={{
+                fontSize: "16px",
+                  fontWeight: "600",
+                color: "#1F2937",
+                  marginBottom: "8px",
+                }}
+              >
               No scenes yet
             </h4>
             <p
-              style={{
+                style={{
                 fontSize: "14px",
                 color: "#6B7280",
                 marginBottom: "16px",
@@ -155,74 +155,74 @@ export default function ScenesPage() {
             >
               Upload your first scene to get started
             </p>
-            <button
-              style={{
+                <button
+                  style={{
                 padding: "8px 16px",
-                backgroundColor: "#8B5CF6",
-                color: "#FFFFFF",
-                border: "none",
+                    backgroundColor: "#8B5CF6",
+                    color: "#FFFFFF",
+                    border: "none",
                 borderRadius: "6px",
-                fontSize: "14px",
-                fontWeight: "500",
-                cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                  }}
+                >
+              Add Scene
+                </button>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                gap: "24px",
               }}
             >
-              Add Scene
-            </button>
-          </div>
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              gap: "24px",
-            }}
-          >
-            {scenes.map((scene) => (
-              <div
-                key={scene.id}
-                style={{
-                  backgroundColor: "#FFFFFF",
+              {scenes.map((scene) => (
+                <div
+                  key={scene.id}
+                  style={{
+                    backgroundColor: "#FFFFFF",
                   borderRadius: "12px",
-                  border: "1px solid #E5E7EB",
-                  overflow: "hidden",
-                  transition: "all 0.2s",
+                    border: "1px solid #E5E7EB",
+                    overflow: "hidden",
+                    transition: "all 0.2s",
                   cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow =
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow =
                     "0 4px 12px rgba(0, 0, 0, 0.1)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
                 <div style={{ position: "relative", aspectRatio: "16/9" }}>
-                  <img
-                    src={scene.image_url}
-                    alt={scene.name}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                    onError={(e) => {
-                      e.currentTarget.src =
+                    <img
+                      src={scene.image_url}
+                      alt={scene.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                      onError={(e) => {
+                        e.currentTarget.src =
                         "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE1NyIgdmlld0JveD0iMCAwIDI4MCAxNTciIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyODAiIGhlaWdodD0iMTU3IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMjAgNzguNUgxNjBWMTA4LjVIMTIwVjc4LjVaIiBmaWxsPSIjOUNBM0FGIi8+CjxwYXRoIGQ9Ik0xMjAgMTE4LjVIMTYwVjEyOC41SDEyMFYxMTguNVoiIGZpbGw9IiM5Q0EzQUYiLz4KPHRleHQgeD0iMTQwIiB5PSIxNDAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzZCNzI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U2NlbmUgVW5hdmFpbGFibGU8L3RleHQ+Cjwvc3ZnPg==";
                       e.currentTarget.alt = "Scene unavailable";
-                    }}
-                  />
-                  {scene.is_standard && (
-                    <div
-                      style={{
-                        position: "absolute",
+                      }}
+                    />
+                    {scene.is_standard && (
+                      <div
+                        style={{
+                          position: "absolute",
                         top: "8px",
                         right: "8px",
                         backgroundColor: "rgba(139, 92, 246, 0.9)",
-                        color: "white",
-                        padding: "4px 8px",
+                          color: "white",
+                          padding: "4px 8px",
                         borderRadius: "4px",
                         fontSize: "10px",
                         fontWeight: "600",
@@ -230,25 +230,25 @@ export default function ScenesPage() {
                       }}
                     >
                       STANDARD
-                    </div>
-                  )}
-                </div>
-                <div style={{ padding: "16px" }}>
-                  <h3
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "600",
-                      color: "#1F2937",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    {scene.name}
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      marginBottom: "8px",
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding: "16px" }}>
+                    <h3
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        color: "#1F2937",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      {scene.name}
+                    </h3>
+                      <p
+                        style={{
+                          fontSize: "14px",
+                          color: "#6B7280",
+                          marginBottom: "8px",
                       lineHeight: "1.4",
                     }}
                   >
@@ -258,40 +258,40 @@ export default function ScenesPage() {
                     style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}
                   >
                     {scene.tags.slice(0, 3).map((tag, index) => (
-                      <span
-                        key={index}
-                        style={{
+                              <span
+                                key={index}
+                                style={{
                           backgroundColor: "#F3F4F6",
                           color: "#6B7280",
-                          padding: "2px 6px",
+                                  padding: "2px 6px",
                           borderRadius: "4px",
                           fontSize: "11px",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                    {scene.tags.length > 3 && (
-                      <span
-                        style={{
+                                  fontWeight: "500",
+                                }}
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          {scene.tags.length > 3 && (
+                            <span
+                              style={{
                           backgroundColor: "#F3F4F6",
-                          color: "#6B7280",
-                          padding: "2px 6px",
+                                color: "#6B7280",
+                                padding: "2px 6px",
                           borderRadius: "4px",
                           fontSize: "11px",
-                          fontWeight: "500",
-                        }}
-                      >
+                                fontWeight: "500",
+                              }}
+                            >
                         +{scene.tags.length - 3}
-                      </span>
-                    )}
+                            </span>
+                          )}
+                        </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
       </div>
     </AppLayout>
   );
