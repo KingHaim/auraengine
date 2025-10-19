@@ -1310,8 +1310,8 @@ export default function ModelsPage() {
                   <img
                     src={
                       selectedGender === "male"
-                        ? "https://i.ibb.co/M5n1qznw/model.png"
-                        : "https://i.ibb.co/tp4LPg7t/model-female.png"
+                        ? `${process.env.NEXT_PUBLIC_API_URL}/static/model.png`
+                        : `${process.env.NEXT_PUBLIC_API_URL}/static/model_female.png`
                     }
                     alt={`Base ${
                       selectedGender === "male" ? "Male" : "Female"
