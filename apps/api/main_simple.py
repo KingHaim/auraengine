@@ -1794,6 +1794,13 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
             guidance = 7.5        # Strong guidance to follow prompt
             strength = 0.70       # High strength to use scene heavily
             print("⚡ Using STANDARD mode (scene-based dark luxury)")
+
+        # Special handling for Sitting Shot: increase adherence to background
+        if shot_type_prompt and ("sitting" in shot_type_prompt.lower()):
+            num_steps = max(num_steps, 52)
+            guidance = max(guidance, 8.2)
+            strength = max(strength, 0.78)
+            print("🪑 Sitting Shot detected → boosting steps/guidance/strength for stronger background usage")
         
         # Use Qwen with improved parameters for better scene composition
         try:
