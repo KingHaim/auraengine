@@ -1880,13 +1880,7 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
         if isinstance(scene_image_url, str) and scene_image_url.startswith("https://replicate.delivery/"):
             scene_image_url = download_and_save_image(scene_image_url, "qwen_scene")
 
-        # Final safeguard: if model is still an ephemeral replicate URL, fallback to default model
-        if isinstance(model_image_url, str) and model_image_url.startswith("https://replicate.delivery/"):
-            try:
-                print("⚠️ Model URL still ephemeral; falling back to default male model image")
-                model_image_url = get_model_url("male")
-            except Exception:
-                pass
+        # Do NOT swap the user-selected model. Always persist or fail; never replace.
 
         # Ensure persisted files exist before continuing
         try:
