@@ -121,8 +121,8 @@ async def serve_static_file(filename: str):
             detail=f"File not found: {filename}. Available files: {files}"
         )
 
-# Mount static files (this should come after the direct endpoint)
-app.mount("/static", StaticFiles(directory="uploads"), name="static")
+# Note: We use a direct endpoint for static files instead of mounting
+# to have better control over error messages and file serving
 
 # Database dependency
 def get_db():
