@@ -37,6 +37,13 @@ def get_base_url():
 def get_static_url(filename: str) -> str:
     """Generate a static file URL"""
     return f"{get_base_url()}/static/{filename}"
+
+def get_model_url(gender: str) -> str:
+    """Get the model image URL based on gender"""
+    if gender == "female":
+        return "https://i.ibb.co/tp4LPg7t/model-female.png"
+    else:
+        return "https://i.ibb.co/M5n1qznw/model.png"
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./aura_engine.db")
 
@@ -716,22 +723,25 @@ def run_nano_banana_model_generation(
         print(f"🎭 Running Nano Banana model generation: {prompt}")
         
         # Use the base model image as starting point based on gender
-        if gender == "female":
-            base_model_local_url = get_static_url("model_female.png")
-        else:
-            base_model_local_url = get_static_url("model.png")
+        base_model_local_url = get_model_url(gender)
         
-        # Convert local URL to base64 for Replicate
-        if base_model_local_url.startswith(get_base_url() + "/static/"):
+        # Handle external URLs or local files
+        if base_model_local_url.startswith("http"):
+            # It's an external URL - use it directly
+            base_model_url = base_model_local_url
+            print(f"Using external model URL: {base_model_local_url}")
+        elif base_model_local_url.startswith(get_base_url() + "/static/"):
+            # It's a local file - convert to base64
             filename = base_model_local_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             if os.path.exists(filepath):
                 base_model_url = upload_to_replicate(filepath)
-                print(f"Converted base model to base64")
+                print(f"Converted local model to base64")
             else:
-                print(f"❌ Base model file not found: {filepath}")
-                raise Exception(f"Base model file not found: {filepath}")
+                print(f"❌ Model file not found: {filepath}")
+                raise Exception(f"Model file not found: {filepath}")
         else:
+            # It's already a Replicate URL
             base_model_url = base_model_local_url
         
         generated_urls = []
