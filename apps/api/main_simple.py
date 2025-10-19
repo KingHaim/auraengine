@@ -513,8 +513,7 @@ async def create_campaign(
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
-                            # Persist Qwen output before Vella to avoid ephemeral links
-                            qwen_result_url = download_and_save_image(qwen_result_url, f"qwen_{shot_type['name']}")
+                            # Qwen result is already persisted in run_qwen_scene_composition
                             print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
 
                             # Step 2: Apply Vella try-on on the composed image
@@ -523,7 +522,7 @@ async def create_campaign(
                             # Stabilize garment to /static (PNG with alpha already handled inside run_vella_try_on)
                             stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
                             vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
-                            vella_result_url = download_and_save_image(vella_result_url, f"vella_{shot_type['name']}")
+                            # Vella result is already persisted in run_vella_try_on
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
                             # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
@@ -712,8 +711,7 @@ async def generate_campaign_images(
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
-                            # Persist Qwen output before Vella to avoid ephemeral links
-                            qwen_result_url = download_and_save_image(qwen_result_url, f"qwen_{shot_type['name']}")
+                            # Qwen result is already persisted in run_qwen_scene_composition
                             print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
 
                             # Step 2: Apply Vella try-on on the composed image
@@ -721,7 +719,7 @@ async def generate_campaign_images(
                             clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
                             stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
                             vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
-                            vella_result_url = download_and_save_image(vella_result_url, f"vella_{shot_type['name']}")
+                            # Vella result is already persisted in run_vella_try_on
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
                             # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
@@ -1745,7 +1743,14 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             else:
                 try_on_url = str(out)
             
-            # Return Replicate URL directly (don't download yet)
+            # Immediately persist Replicate URLs to avoid 404 errors
+            if isinstance(try_on_url, str) and try_on_url.startswith("https://replicate.delivery/"):
+                try:
+                    try_on_url = download_and_save_image(try_on_url, "vella_try_on")
+                    print(f"✅ Persisted Vella result: {try_on_url[:50]}...")
+                except Exception as e:
+                    print(f"⚠️ Failed to persist Vella result: {e}")
+            
             print(f"✅ Vella try-on completed: {try_on_url[:50]}...")
             return try_on_url
             
@@ -1965,6 +1970,15 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
                 scene_composite_url = str(out)
             
             print(f"✅ Qwen scene composition completed: {scene_composite_url[:50]}...")
+            
+            # Immediately persist Replicate URLs to avoid 404 errors
+            if isinstance(scene_composite_url, str) and scene_composite_url.startswith("https://replicate.delivery/"):
+                try:
+                    scene_composite_url = download_and_save_image(scene_composite_url, "qwen_scene_composite")
+                    print(f"✅ Persisted Qwen result: {scene_composite_url[:50]}...")
+                except Exception as e:
+                    print(f"⚠️ Failed to persist Qwen result: {e}")
+            
             return scene_composite_url
             
         except Exception as e:
@@ -1986,6 +2000,15 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
                 else:
                     scene_composite_url = str(safer_out)
                 print(f"✅ Qwen retry succeeded: {scene_composite_url[:50]}...")
+                
+                # Immediately persist Replicate URLs to avoid 404 errors
+                if isinstance(scene_composite_url, str) and scene_composite_url.startswith("https://replicate.delivery/"):
+                    try:
+                        scene_composite_url = download_and_save_image(scene_composite_url, "qwen_scene_composite_retry")
+                        print(f"✅ Persisted Qwen retry result: {scene_composite_url[:50]}...")
+                    except Exception as e:
+                        print(f"⚠️ Failed to persist Qwen retry result: {e}")
+                
                 return scene_composite_url
             except Exception as e2:
                 print(f"❌ Qwen retry failed: {e2}")
