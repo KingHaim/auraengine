@@ -76,6 +76,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Database dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# ---------- API Endpoints ----------
+@app.get("/")
+async def root():
+    return {"message": "Aura Engine API"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "message": "Aura Engine API is running"}
+
 # Simple test endpoint
 @app.get("/test")
 async def test_endpoint():
@@ -120,26 +137,6 @@ async def serve_static_file(filename: str):
             status_code=404, 
             detail=f"File not found: {filename}. Available files: {files}"
         )
-
-# Note: We use a direct endpoint for static files instead of mounting
-# to have better control over error messages and file serving
-
-# Database dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-# ---------- API Endpoints ----------
-@app.get("/")
-async def root():
-    return {"message": "Aura Engine API"}
-
-@app.get("/health")
-async def health():
-    return {"status": "healthy", "message": "Aura Engine API is running"}
 
 # ---------- Authentication Endpoints ----------
 @app.post("/auth/register", response_model=Token)
