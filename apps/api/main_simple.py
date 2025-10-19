@@ -65,8 +65,23 @@ app = FastAPI(title="Aura Engine API", version="1.0.0")
 # Create database tables on startup
 @app.on_event("startup")
 async def startup_event():
-    create_tables()
-    print("🔧 MODEL GENERATION: Using external URLs - NO LOCAL FILES")
+    try:
+        print("🔧 MODEL GENERATION: Using external URLs - NO LOCAL FILES")
+        print("🗄️ Creating database tables...")
+        create_tables()
+        print("✅ Database tables created successfully")
+        
+        # Test database connection
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT 1"))
+            print("✅ Database connection test successful")
+            
+    except Exception as e:
+        print(f"❌ Database startup error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 # CORS middleware - Allow all origins for deployment
 app.add_middleware(
@@ -194,6 +209,9 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         }
         
     except Exception as e:
+        print(f"❌ Login error: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/auth/me")
