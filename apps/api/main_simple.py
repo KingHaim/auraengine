@@ -505,7 +505,8 @@ async def create_campaign(
                                         filepath = f"uploads/{filename}"
                                         nb_input = upload_to_replicate(filepath)
                                     elif qwen_result_url.startswith("https://replicate.delivery/"):
-                                        nb_input = upload_to_replicate(qwen_result_url)
+                                        # Already a public URL; pass through directly
+                                        nb_input = qwen_result_url
                                     else:
                                         nb_input = qwen_result_url
                                     
@@ -697,7 +698,8 @@ async def generate_campaign_images(
                                         filepath = f"uploads/{filename}"
                                         nb_input = upload_to_replicate(filepath)
                                     elif qwen_result_url.startswith("https://replicate.delivery/"):
-                                        nb_input = upload_to_replicate(qwen_result_url)
+                                        # Already a public URL; pass through directly
+                                        nb_input = qwen_result_url
                                     else:
                                         nb_input = qwen_result_url
                                     
