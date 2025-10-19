@@ -32,7 +32,7 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 # Helper functions for URL generation
 def get_base_url():
     """Get the base URL for the API"""
-    return os.getenv("API_BASE_URL", "https://courteous-radiance-production.up.railway.app")
+    return os.getenv("API_BASE_URL", "https://auraengine-production.up.railway.app")
 
 def get_static_url(filename: str) -> str:
     """Generate a static file URL"""
