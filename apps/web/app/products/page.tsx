@@ -60,9 +60,9 @@ export default function ProductsPage() {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/products`,
         {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -130,11 +130,11 @@ export default function ProductsPage() {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/products/upload`,
         {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
         }
       );
 
@@ -417,21 +417,21 @@ export default function ProductsPage() {
 
   return (
     <AppLayout>
-    <div
-      style={{
+      <div
+        style={{
           padding: "32px",
           flex: 1,
           backgroundColor: "#FFFFFF",
           color: "#1E293B",
-        fontFamily:
-          "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
+          fontFamily:
+            "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
             justifyContent: "space-between",
-              alignItems: "center",
+            alignItems: "center",
             marginBottom: "32px",
           }}
         >
@@ -472,119 +472,119 @@ export default function ProductsPage() {
             + Add Product
           </button>
         </div>
+        <div
+          style={{
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#9BA3AF",
+            letterSpacing: "0.18em",
+            marginBottom: "16px",
+          }}
+        >
+          YOUR PRODUCTS ({products.length})
+        </div>
+
+        {products.length === 0 ? (
           <div
             style={{
-              fontSize: "12px",
-              fontWeight: "600",
-              color: "#9BA3AF",
-              letterSpacing: "0.18em",
-              marginBottom: "16px",
+              textAlign: "center",
+              padding: "64px 32px",
+              color: "#6B7280",
             }}
           >
-            YOUR PRODUCTS ({products.length})
-          </div>
-
-          {products.length === 0 ? (
             <div
               style={{
-                textAlign: "center",
-                padding: "64px 32px",
-                color: "#6B7280",
+                fontSize: "48px",
+                marginBottom: "16px",
               }}
             >
-              <div
-                style={{
-                  fontSize: "48px",
-                  marginBottom: "16px",
-                }}
-              >
-                📦
-              </div>
-              <h3
-                style={{
-                  fontSize: "18px",
-                  fontWeight: "600",
-                  color: "#374151",
-                  marginBottom: "8px",
-                }}
-              >
-                No products yet
-              </h3>
-              <p style={{ marginBottom: "24px" }}>
-                Upload your first product to get started with automatic packshot
-                generation
-              </p>
-              <button
-                onClick={() => setShowUploadModal(true)}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: "#8B5CF6",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#FFFFFF",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                }}
-              >
-                Upload Product
-              </button>
+              📦
             </div>
-          ) : (
-            <div
+            <h3
               style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "24px",
+                fontSize: "18px",
+                fontWeight: "600",
+                color: "#374151",
+                marginBottom: "8px",
               }}
             >
-              {products.map((product) => (
+              No products yet
+            </h3>
+            <p style={{ marginBottom: "24px" }}>
+              Upload your first product to get started with automatic packshot
+              generation
+            </p>
+            <button
+              onClick={() => setShowUploadModal(true)}
+              style={{
+                padding: "12px 24px",
+                backgroundColor: "#8B5CF6",
+                border: "none",
+                borderRadius: "8px",
+                color: "#FFFFFF",
+                fontSize: "14px",
+                fontWeight: "500",
+                cursor: "pointer",
+              }}
+            >
+              Upload Product
+            </button>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: "24px",
+            }}
+          >
+            {products.map((product) => (
+              <div
+                key={product.id}
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  borderRadius: "16px",
+                  border: "1px solid #E5E7EB",
+                  overflow: "hidden",
+                  transition: "all 0.2s",
+                  cursor: "default",
+                  position: "relative",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 25px rgba(0,0,0,0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
                 <div
-                  key={product.id}
                   style={{
-                    backgroundColor: "#FFFFFF",
-                    borderRadius: "16px",
-                    border: "1px solid #E5E7EB",
-                    overflow: "hidden",
-                    transition: "all 0.2s",
-                    cursor: "default",
+                    aspectRatio: "2/3",
                     position: "relative",
+                    backgroundColor: "#F3F4F6",
+                    cursor: "pointer",
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow =
-                      "0 8px 25px rgba(0,0,0,0.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
+                  onClick={() => {
+                    if (product.packshots && product.packshots.length > 0) {
+                      setSelectedProductForPackshots(product);
+                      setShowPackshotsModal(true);
+                    }
                   }}
                 >
-                  <div
-                    style={{
-                      aspectRatio: "2/3",
-                      position: "relative",
-                      backgroundColor: "#F3F4F6",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => {
-                      if (product.packshots && product.packshots.length > 0) {
-                        setSelectedProductForPackshots(product);
-                        setShowPackshotsModal(true);
-                      }
-                    }}
-                  >
-                    <img
+                  <img
                     src={product.packshot_front_url || product.image_url}
-                      alt={product.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                      onError={(e) => {
-                        console.error(
-                          `Failed to load image for product ${product.name}:`,
+                    alt={product.name}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                    onError={(e) => {
+                      console.error(
+                        `Failed to load image for product ${product.name}:`,
                         product.packshot_front_url || product.image_url
                       );
                       // Fallback to original product image if packshot fails
@@ -593,187 +593,187 @@ export default function ProductsPage() {
                       } else {
                         e.currentTarget.src = `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`;
                       }
-                      }}
-                    />
-                    {product.packshots && product.packshots.length > 0 && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "12px",
-                          right: "12px",
-                          backgroundColor: "rgba(139, 92, 246, 0.9)",
-                          color: "white",
-                          padding: "4px 8px",
-                          borderRadius: "12px",
-                          fontSize: "12px",
-                          fontWeight: "500",
-                        }}
-                      >
-                        📸 {product.packshots.length} packshots
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ padding: "16px" }}>
-                    <h3
+                    }}
+                  />
+                  {product.packshots && product.packshots.length > 0 && (
+                    <div
                       style={{
-                        fontSize: "16px",
-                        fontWeight: "600",
-                        color: "#1F2937",
-                        marginBottom: "4px",
+                        position: "absolute",
+                        top: "12px",
+                        right: "12px",
+                        backgroundColor: "rgba(139, 92, 246, 0.9)",
+                        color: "white",
+                        padding: "4px 8px",
+                        borderRadius: "12px",
+                        fontSize: "12px",
+                        fontWeight: "500",
                       }}
                     >
-                      {product.name}
-                    </h3>
-                    {product.description && (
-                      <p
-                        style={{
-                          fontSize: "14px",
-                          color: "#6B7280",
-                          marginBottom: "8px",
-                        }}
-                      >
-                        {product.description}
-                      </p>
-                    )}
-                    {product.packshots && product.packshots.length > 0 && (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "4px",
-                          color: "#8B5CF6",
-                          fontSize: "12px",
-                          fontWeight: "500",
-                          marginBottom: "12px",
-                        }}
-                      >
-                        <span>📸</span>
-                        <span>
-                          {product.packshots.length} packshots generated
-                        </span>
-                        <span style={{ color: "#6B7280", fontSize: "10px" }}>
-                          • Click image to view
-                        </span>
-                      </div>
-                    )}
+                      📸 {product.packshots.length} packshots
+                    </div>
+                  )}
+                </div>
+                <div style={{ padding: "16px" }}>
+                  <h3
+                    style={{
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      color: "#1F2937",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    {product.name}
+                  </h3>
+                  {product.description && (
+                    <p
+                      style={{
+                        fontSize: "14px",
+                        color: "#6B7280",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      {product.description}
+                    </p>
+                  )}
+                  {product.packshots && product.packshots.length > 0 && (
                     <div
                       style={{
                         display: "flex",
-                        flexWrap: "wrap",
-                        gap: "8px",
                         alignItems: "center",
-                        marginTop: "8px",
+                        gap: "4px",
+                        color: "#8B5CF6",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        marginBottom: "12px",
                       }}
                     >
-                      {product.category && (
-                        <div
-                          style={{
-                            display: "inline-block",
-                            backgroundColor: "#F3F4F6",
-                            color: "#374151",
-                            padding: "4px 8px",
-                            borderRadius: "6px",
-                            fontSize: "12px",
-                            fontWeight: "500",
-                          }}
-                        >
-                          {product.category}
-                        </div>
-                      )}
-                      {product.tags && product.tags.length > 0 && (
-                        <div
-                          style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: "4px",
-                          }}
-                        >
-                          {product.tags
-                            .slice(0, 3)
-                            .map((tag: string, index: number) => (
-                              <span
-                                key={index}
-                                style={{
-                                  backgroundColor: "#8B5CF6",
-                                  color: "white",
-                                  padding: "2px 6px",
-                                  borderRadius: "12px",
-                                  fontSize: "10px",
-                                  fontWeight: "500",
-                                }}
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          {product.tags.length > 3 && (
+                      <span>📸</span>
+                      <span>
+                        {product.packshots.length} packshots generated
+                      </span>
+                      <span style={{ color: "#6B7280", fontSize: "10px" }}>
+                        • Click image to view
+                      </span>
+                    </div>
+                  )}
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "8px",
+                      alignItems: "center",
+                      marginTop: "8px",
+                    }}
+                  >
+                    {product.category && (
+                      <div
+                        style={{
+                          display: "inline-block",
+                          backgroundColor: "#F3F4F6",
+                          color: "#374151",
+                          padding: "4px 8px",
+                          borderRadius: "6px",
+                          fontSize: "12px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {product.category}
+                      </div>
+                    )}
+                    {product.tags && product.tags.length > 0 && (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "4px",
+                        }}
+                      >
+                        {product.tags
+                          .slice(0, 3)
+                          .map((tag: string, index: number) => (
                             <span
+                              key={index}
                               style={{
-                                backgroundColor: "#E5E7EB",
-                                color: "#6B7280",
+                                backgroundColor: "#8B5CF6",
+                                color: "white",
                                 padding: "2px 6px",
                                 borderRadius: "12px",
                                 fontSize: "10px",
                                 fontWeight: "500",
                               }}
                             >
-                              +{product.tags.length - 3} more
+                              {tag}
                             </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                          ))}
+                        {product.tags.length > 3 && (
+                          <span
+                            style={{
+                              backgroundColor: "#E5E7EB",
+                              color: "#6B7280",
+                              padding: "2px 6px",
+                              borderRadius: "12px",
+                              fontSize: "10px",
+                              fontWeight: "500",
+                            }}
+                          >
+                            +{product.tags.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
-                    {/* Action Buttons */}
-                    <div
+                  {/* Action Buttons */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "8px",
+                      marginTop: "12px",
+                      justifyContent: "flex-end",
+                    }}
+                  >
+                    <button
+                      onClick={() => handleEditProduct(product)}
                       style={{
+                        padding: "6px 12px",
+                        backgroundColor: "#8B5CF6",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        cursor: "pointer",
                         display: "flex",
-                        gap: "8px",
-                        marginTop: "12px",
-                        justifyContent: "flex-end",
+                        alignItems: "center",
+                        gap: "4px",
                       }}
                     >
-                      <button
-                        onClick={() => handleEditProduct(product)}
-                        style={{
-                          padding: "6px 12px",
-                          backgroundColor: "#8B5CF6",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "6px",
-                          fontSize: "12px",
-                          fontWeight: "500",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "4px",
-                        }}
-                      >
-                        ✏️ Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProduct(product)}
-                        style={{
-                          padding: "6px 12px",
-                          backgroundColor: "#EF4444",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "6px",
-                          fontSize: "12px",
-                          fontWeight: "500",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "4px",
-                        }}
-                      >
-                        🗑️ Delete
-                      </button>
-                    </div>
+                      ✏️ Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(product)}
+                      style={{
+                        padding: "6px 12px",
+                        backgroundColor: "#EF4444",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                      }}
+                    >
+                      🗑️ Delete
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Upload Modal */}
@@ -796,9 +796,11 @@ export default function ProductsPage() {
             style={{
               backgroundColor: "#FFFFFF",
               borderRadius: "16px",
-              padding: "32px",
+              padding: "24px",
               width: "500px",
               maxWidth: "90vw",
+              maxHeight: "85vh",
+              overflow: "auto",
               border: "1px solid #E5E7EB",
             }}
           >
@@ -809,17 +811,17 @@ export default function ProductsPage() {
                 alignItems: "center",
                 marginBottom: "24px",
               }}
-          >
-            <h2
-              style={{
-                  color: "#1F2937",
-                fontSize: "20px",
-                fontWeight: "600",
-                  margin: 0,
-              }}
             >
-              Upload New Product
-            </h2>
+              <h2
+                style={{
+                  color: "#1F2937",
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  margin: 0,
+                }}
+              >
+                Upload New Product
+              </h2>
               <button
                 onClick={() => setShowUploadModal(false)}
                 style={{
@@ -859,6 +861,7 @@ export default function ProductsPage() {
                   borderRadius: "8px",
                   fontSize: "14px",
                   backgroundColor: "#F9FAFB",
+                  color: "#1F2937",
                 }}
                 placeholder="Enter product name"
               />
@@ -887,9 +890,10 @@ export default function ProductsPage() {
                   border: "1px solid #D1D5DB",
                   borderRadius: "8px",
                   fontSize: "14px",
-                  minHeight: "80px",
+                  minHeight: "60px",
                   resize: "vertical",
                   backgroundColor: "#F9FAFB",
+                  color: "#1F2937",
                 }}
                 placeholder="Enter product description"
               />
@@ -1130,15 +1134,13 @@ export default function ProductsPage() {
             </div>
 
             {/* Packshot Upload Section */}
-            <div style={{ marginBottom: "24px" }}>
+            <div style={{ marginBottom: "16px" }}>
               <div
                 style={{
-                  fontSize: "16px",
-                  fontWeight: "600",
+                  fontSize: "14px",
+                  fontWeight: "500",
                   color: "#374151",
-                  marginBottom: "16px",
-                  paddingBottom: "8px",
-                  borderBottom: "1px solid #E5E7EB",
+                  marginBottom: "8px",
                 }}
               >
                 Packshot Images (Optional)
@@ -1147,123 +1149,76 @@ export default function ProductsPage() {
                 style={{
                   fontSize: "12px",
                   color: "#6B7280",
-                  marginBottom: "16px",
+                  marginBottom: "12px",
                 }}
               >
-                Upload your own packshot images or leave empty to auto-generate
-                them (costs 10 credits total).
+                Leave empty to auto-generate (10 credits) or upload your own
               </p>
 
               {/* Front Packshot */}
-              <div style={{ marginBottom: "16px" }}>
+              <div style={{ marginBottom: "12px" }}>
                 <label
                   style={{
                     display: "block",
                     color: "#374151",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     fontWeight: "500",
-                    marginBottom: "8px",
+                    marginBottom: "6px",
                   }}
                 >
                   Front Packshot
                 </label>
-                <div
-                  style={{ display: "flex", gap: "8px", alignItems: "center" }}
-                >
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setNewProduct({
-                        ...newProduct,
-                        packshotFront: e.target.files?.[0] || null,
-                      })
-                    }
-                    style={{
-                      flex: 1,
-                      padding: "12px",
-                      border: "1px solid #D1D5DB",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                    }}
-                  />
-                  <select
-                    value={newProduct.packshotFrontType}
-                    onChange={(e) =>
-                      setNewProduct({
-                        ...newProduct,
-                        packshotFrontType: e.target.value,
-                      })
-                    }
-                    style={{
-                      padding: "12px",
-                      border: "1px solid #D1D5DB",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      backgroundColor: "#FFFFFF",
-                      minWidth: "100px",
-                    }}
-                  >
-                    <option value="front">Front</option>
-                    <option value="back">Back</option>
-                  </select>
-                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setNewProduct({
+                      ...newProduct,
+                      packshotFront: e.target.files?.[0] || null,
+                    })
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    border: "1px solid #D1D5DB",
+                    borderRadius: "8px",
+                    fontSize: "13px",
+                    backgroundColor: "#F9FAFB",
+                  }}
+                />
               </div>
 
               {/* Back Packshot */}
-              <div style={{ marginBottom: "16px" }}>
+              <div style={{ marginBottom: "12px" }}>
                 <label
                   style={{
                     display: "block",
                     color: "#374151",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     fontWeight: "500",
-                    marginBottom: "8px",
+                    marginBottom: "6px",
                   }}
                 >
                   Back Packshot
                 </label>
-                <div
-                  style={{ display: "flex", gap: "8px", alignItems: "center" }}
-                >
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setNewProduct({
-                        ...newProduct,
-                        packshotBack: e.target.files?.[0] || null,
-                      })
-                    }
-                    style={{
-                      flex: 1,
-                      padding: "12px",
-                      border: "1px solid #D1D5DB",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                    }}
-                  />
-                  <select
-                    value={newProduct.packshotBackType}
-                    onChange={(e) =>
-                      setNewProduct({
-                        ...newProduct,
-                        packshotBackType: e.target.value,
-                      })
-                    }
-                    style={{
-                      padding: "12px",
-                      border: "1px solid #D1D5DB",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      backgroundColor: "#FFFFFF",
-                      minWidth: "100px",
-                    }}
-                  >
-                    <option value="front">Front</option>
-                    <option value="back">Back</option>
-                  </select>
-                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setNewProduct({
+                      ...newProduct,
+                      packshotBack: e.target.files?.[0] || null,
+                    })
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    border: "1px solid #D1D5DB",
+                    borderRadius: "8px",
+                    fontSize: "13px",
+                    backgroundColor: "#F9FAFB",
+                  }}
+                />
               </div>
             </div>
 
