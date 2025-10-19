@@ -94,13 +94,16 @@ export default function ModelsPage() {
       formData.append("eye_color", physicalAttributes.eyeColor);
       formData.append("skin_tone", physicalAttributes.skinTone);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/models/ai-generate`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/models/ai-generate`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -242,12 +245,15 @@ export default function ModelsPage() {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/models/${model.id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/models/${model.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         alert(`✅ Model "${model.name}" deleted successfully!`);
@@ -273,13 +279,16 @@ export default function ModelsPage() {
       console.log("🔍 Fetching models from API...");
       console.log("🔑 Using token:", token.substring(0, 20) + "...");
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/models`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/models`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       console.log("📡 API Response status:", response.status);
 
@@ -357,7 +366,9 @@ export default function ModelsPage() {
     const testAPI = async () => {
       try {
         console.log("🧪 Testing API connectivity...");
-        const testResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`);
+        const testResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/health`
+        );
         console.log("🏥 Health check status:", testResponse.status);
         if (testResponse.ok) {
           const healthData = await testResponse.json();
@@ -392,13 +403,16 @@ export default function ModelsPage() {
       formData.append("gender", newModel.gender);
       formData.append("model_image", newModel.image);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/models/upload`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/models/upload`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();
@@ -750,8 +764,7 @@ export default function ModelsPage() {
                       `Failed to load image for model ${model.name}:`,
                       model.image_url
                     );
-                    e.currentTarget.src =
-                      `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`;
+                    e.currentTarget.src = `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`;
                   }}
                 />
 
@@ -1310,8 +1323,8 @@ export default function ModelsPage() {
                   <img
                     src={
                       selectedGender === "male"
-                        ? `${process.env.NEXT_PUBLIC_API_URL}/static/model.png`
-                        : `${process.env.NEXT_PUBLIC_API_URL}/static/model_female.png`
+                        ? "https://i.ibb.co/M5n1qznw/model.png"
+                        : "https://i.ibb.co/tp4LPg7t/model-female.png"
                     }
                     alt={`Base ${
                       selectedGender === "male" ? "Male" : "Female"
@@ -2764,8 +2777,7 @@ export default function ModelsPage() {
                       objectFit: "cover",
                     }}
                     onError={(e) => {
-                      e.currentTarget.src =
-                        `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`;
+                      e.currentTarget.src = `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`;
                     }}
                   />
                 </div>
