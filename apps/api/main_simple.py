@@ -1111,21 +1111,28 @@ async def generate_poses(
                     "strength": 0.6
                 })
                 
-                # Handle different return types
+                # Handle different return types and get URL
+                pose_url = None
                 if hasattr(out, 'url'):
-                    poses.append(out.url())
+                    pose_url = out.url()
                 elif isinstance(out, str):
-                    poses.append(out)
+                    pose_url = out
                 elif isinstance(out, list) and len(out) > 0:
                     item = out[0]
                     if hasattr(item, 'url'):
-                        poses.append(item.url())
+                        pose_url = item.url()
                     else:
-                        poses.append(str(item))
+                        pose_url = str(item)
                 else:
-                    poses.append(str(out))
+                    pose_url = str(out)
                 
-                print(f"✅ Pose {i+1} generated successfully")
+                # Download and save immediately to avoid ephemeral URL expiration
+                if pose_url:
+                    stable_pose_url = download_and_save_image(pose_url, f"pose_{i+1}")
+                    poses.append(stable_pose_url)
+                    print(f"✅ Pose {i+1} generated and saved: {stable_pose_url[:50]}...")
+                else:
+                    print(f"⚠️ Pose {i+1} had no valid URL")
                 
             except Exception as e:
                 print(f"❌ Pose {i+1} generation failed: {e}")
@@ -2175,16 +2182,20 @@ async def upload_product(
             )
             
             if not packshot_front_url and len(generated_packshots) > 0:
-                packshot_front_url = generated_packshots[0]
+                # Download and save immediately to avoid ephemeral URL expiration
+                ephemeral_url = generated_packshots[0]
+                packshot_front_url = download_and_save_image(ephemeral_url, "packshot_front")
                 packshots.append(packshot_front_url)
                 user.credits -= 5
-                print(f"Generated front packshot: {packshot_front_url}")
+                print(f"Generated and saved front packshot: {packshot_front_url}")
             
             if not packshot_back_url and len(generated_packshots) > 1:
-                packshot_back_url = generated_packshots[1]
+                # Download and save immediately to avoid ephemeral URL expiration
+                ephemeral_url = generated_packshots[1]
+                packshot_back_url = download_and_save_image(ephemeral_url, "packshot_back")
                 packshots.append(packshot_back_url)
                 user.credits -= 5
-                print(f"Generated back packshot: {packshot_back_url}")
+                print(f"Generated and saved back packshot: {packshot_back_url}")
         
         # Create product in database
         product = Product(
