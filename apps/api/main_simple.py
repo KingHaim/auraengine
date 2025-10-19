@@ -28,6 +28,15 @@ from pydantic import BaseModel
 # Environment variables
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+
+# Helper functions for URL generation
+def get_base_url():
+    """Get the base URL for the API"""
+    return os.getenv("API_BASE_URL", "https://courteous-radiance-production.up.railway.app")
+
+def get_static_url(filename: str) -> str:
+    """Generate a static file URL"""
+    return f"{get_base_url()}/static/{filename}"
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./aura_engine.db")
 
@@ -347,8 +356,8 @@ async def create_campaign(
                                 print(f"🍌 Step 3: Enhancing close-up with Nano Banana (img2img)...")
                                 try:
                                     # Convert Vella result URL to base64 for Nano Banana
-                                    if vella_result_url.startswith("http://localhost:8000/static/"):
-                                        filename = vella_result_url.replace("http://localhost:8000/static/", "")
+                                    if vella_result_url.startswith(get_base_url() + "/static/"):
+                                        filename = vella_result_url.replace(get_base_url() + "/static/", "")
                                         filepath = f"uploads/{filename}"
                                         vella_base64 = upload_to_replicate(filepath)
                                     elif vella_result_url.startswith("https://replicate.delivery/"):
@@ -539,8 +548,8 @@ async def generate_campaign_images(
                                 print(f"🍌 Step 3: Enhancing close-up with Nano Banana (img2img)...")
                                 try:
                                     # Convert Vella result URL to base64 for Nano Banana
-                                    if vella_result_url.startswith("http://localhost:8000/static/"):
-                                        filename = vella_result_url.replace("http://localhost:8000/static/", "")
+                                    if vella_result_url.startswith(get_base_url() + "/static/"):
+                                        filename = vella_result_url.replace(get_base_url() + "/static/", "")
                                         filepath = f"uploads/{filename}"
                                         vella_base64 = upload_to_replicate(filepath)
                                     elif vella_result_url.startswith("https://replicate.delivery/"):
@@ -708,13 +717,13 @@ def run_nano_banana_model_generation(
         
         # Use the base model image as starting point based on gender
         if gender == "female":
-            base_model_local_url = "http://localhost:8000/static/model_female.png"
+            base_model_local_url = get_static_url("model_female.png")
         else:
-            base_model_local_url = "http://localhost:8000/static/model.png"
+            base_model_local_url = get_static_url("model.png")
         
         # Convert local URL to base64 for Replicate
-        if base_model_local_url.startswith("http://localhost:8000/static/"):
-            filename = base_model_local_url.replace("http://localhost:8000/static/", "")
+        if base_model_local_url.startswith(get_base_url() + "/static/"):
+            filename = base_model_local_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             if os.path.exists(filepath):
                 base_model_url = upload_to_replicate(filepath)
@@ -1075,9 +1084,9 @@ async def confirm_payment(
 def has_alpha(url: str) -> bool:
     """Check if image has alpha channel by examining the file"""
     try:
-        if url.startswith("http://localhost:8000/static/"):
+        if url.startswith(get_base_url() + "/static/"):
             # Local file - check directly
-            filename = url.replace("http://localhost:8000/static/", "")
+            filename = url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             if os.path.exists(filepath):
                 with Image.open(filepath) as im:
@@ -1091,9 +1100,9 @@ def rembg_cutout(photo_url: str) -> Image.Image:
     try:
         print(f"Removing background for: {photo_url}")
         
-        # If it's a localhost URL, convert to file path
-        if photo_url.startswith("http://localhost:8000/static/"):
-            filename = photo_url.replace("http://localhost:8000/static/", "")
+        # If it's a local URL, convert to file path
+        if photo_url.startswith(get_base_url() + "/static/"):
+            filename = photo_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             if os.path.exists(filepath):
                 # For now, skip background removal and return original
@@ -1137,8 +1146,7 @@ def upload_png(img: Image.Image) -> str:
     filename = f"product_{hash(str(img.tobytes()))}.png"
     filepath = f"uploads/{filename}"
     img.save(filepath)
-    base_url = os.getenv("API_BASE_URL", "https://courteous-radiance-production.up.railway.app")
-    return f"{base_url}/static/{filename}"
+    return get_static_url(filename)
 
 def compress_image_for_processing(filepath: str, max_size: int = 512) -> str:
     """Compress and resize image for efficient processing with Replicate"""
@@ -1242,8 +1250,7 @@ def download_and_save_image(url: str, prefix: str = "packshot") -> str:
         os.makedirs("uploads", exist_ok=True)
         img.save(filepath)
         
-        base_url = os.getenv("API_BASE_URL", "https://courteous-radiance-production.up.railway.app")
-        local_url = f"{base_url}/static/{filename}"
+        local_url = get_static_url(filename)
         print(f"✅ Saved to: {local_url}")
         return local_url
         
@@ -1266,19 +1273,19 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
         print(f"🎭 Running Vella try-on: model={model_image_url[:50]}..., product={product_image_url[:50]}...")
         print(f"👕 Clothing type: {clothing_type}")
         
-        # Convert localhost URLs to base64 only if needed
+        # Convert local URLs to base64 only if needed
         # model_image_url might already be a Replicate URL from Qwen - use it directly!
-        if model_image_url.startswith("http://localhost:8000/static/"):
-            filename = model_image_url.replace("http://localhost:8000/static/", "")
+        if model_image_url.startswith(get_base_url() + "/static/"):
+            filename = model_image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             model_image_url = upload_to_replicate(filepath)
             print(f"🗜️ Converted model to base64")
         else:
             print(f"📁 Using Replicate URL for model: {model_image_url[:50]}...")
         
-        # Product image is from localhost - convert to base64
-        if product_image_url.startswith("http://localhost:8000/static/"):
-            filename = product_image_url.replace("http://localhost:8000/static/", "")
+        # Product image is from local URL - convert to base64
+        if product_image_url.startswith(get_base_url() + "/static/"):
+            filename = product_image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             product_image_url = upload_to_replicate(filepath)
             print(f"🗜️ Converted product to base64")
@@ -1364,19 +1371,19 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
     try:
         print(f"🎬 Running Qwen triple composition...")
         
-        # Convert all localhost URLs to base64
-        if model_image_url.startswith("http://localhost:8000/static/"):
-            filename = model_image_url.replace("http://localhost:8000/static/", "")
+        # Convert all local URLs to base64
+        if model_image_url.startswith(get_base_url() + "/static/"):
+            filename = model_image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             model_image_url = upload_to_replicate(filepath)
             
-        if product_image_url.startswith("http://localhost:8000/static/"):
-            filename = product_image_url.replace("http://localhost:8000/static/", "")
+        if product_image_url.startswith(get_base_url() + "/static/"):
+            filename = product_image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             product_image_url = upload_to_replicate(filepath)
         
-        if scene_image_url.startswith("http://localhost:8000/static/"):
-            filename = scene_image_url.replace("http://localhost:8000/static/", "")
+        if scene_image_url.startswith(get_base_url() + "/static/"):
+            filename = scene_image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
@@ -1468,13 +1475,13 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
         print(f"🎬 Running Qwen composition: model={model_image_url[:50]}..., scene={scene_image_url[:50]}...")
         
         # Convert local URLs to base64 for Qwen
-        if model_image_url.startswith("http://localhost:8000/static/"):
-            filename = model_image_url.replace("http://localhost:8000/static/", "")
+        if model_image_url.startswith(get_base_url() + "/static/"):
+            filename = model_image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             model_image_url = upload_to_replicate(filepath)
         
-        if scene_image_url.startswith("http://localhost:8000/static/"):
-            filename = scene_image_url.replace("http://localhost:8000/static/", "")
+        if scene_image_url.startswith(get_base_url() + "/static/"):
+            filename = scene_image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
@@ -1570,8 +1577,8 @@ def run_qwen_packshot_front_back(
             print("Product image already has alpha channel")
         
         # Convert to public URL for Replicate
-        if product_png_url.startswith("http://localhost:8000/static/"):
-            filename = product_png_url.replace("http://localhost:8000/static/", "")
+        if product_png_url.startswith(get_base_url() + "/static/"):
+            filename = product_png_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             product_png_url = upload_to_public_url(filepath)
             print(f"Converted to public URL: {product_png_url[:100]}...")
@@ -1672,9 +1679,7 @@ async def upload_product(
             content = await product_image.read()
             f.write(content)
         
-        # Get the base URL from environment or use Railway URL
-        base_url = os.getenv("API_BASE_URL", "https://courteous-radiance-production.up.railway.app")
-        image_url = f"{base_url}/static/{image_filename}"
+        image_url = get_static_url(image_filename)
         
         # Initialize packshot URLs
         packshot_front_url = None
@@ -1704,7 +1709,7 @@ async def upload_product(
             with open(front_path, "wb") as f:
                 content = await packshot_front.read()
                 f.write(content)
-            packshot_front_url = f"http://localhost:8000/static/{front_filename}"
+            packshot_front_url = get_static_url(front_filename)
             packshots.append(packshot_front_url)
         
         if packshot_back:
@@ -1713,7 +1718,7 @@ async def upload_product(
             with open(back_path, "wb") as f:
                 content = await packshot_back.read()
                 f.write(content)
-            packshot_back_url = f"http://localhost:8000/static/{back_filename}"
+            packshot_back_url = get_static_url(back_filename)
             packshots.append(packshot_back_url)
         
         # Generate missing packshots using Replicate
@@ -1853,8 +1858,8 @@ def run_wan_video_generation(image_url: str, video_quality: str = "480p", custom
         print(f"🎬 Running Wan video generation: {image_url[:50]}...")
         
         # Convert local URLs to base64 for Replicate
-        if image_url.startswith("http://localhost:8000/static/"):
-            filename = image_url.replace("http://localhost:8000/static/", "")
+        if image_url.startswith(get_base_url() + "/static/"):
+            filename = image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             image_url = upload_to_replicate(filepath)
             print(f"Converted image to base64: {image_url[:100]}...")
@@ -1913,8 +1918,8 @@ def run_seedance_video_generation(image_url: str, video_quality: str = "480p", d
         print(f"💬 Custom prompt: {custom_prompt if custom_prompt else '(using default)'}")
         
         # Convert local URLs to base64 for Replicate
-        if image_url.startswith("http://localhost:8000/static/"):
-            filename = image_url.replace("http://localhost:8000/static/", "")
+        if image_url.startswith(get_base_url() + "/static/"):
+            filename = image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             print(f"📂 Converting local file: {filepath}")
             image_url = upload_to_replicate(filepath)
@@ -1971,8 +1976,8 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         print(f"🎬 Running Google Veo 3.1 video generation: {image_url[:50]}...")
         
         # Convert local URLs to base64 for Replicate
-        if image_url.startswith("http://localhost:8000/static/"):
-            filename = image_url.replace("http://localhost:8000/static/", "")
+        if image_url.startswith(get_base_url() + "/static/"):
+            filename = image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             image_url = upload_to_replicate(filepath)
             print(f"Converted image to base64: {image_url[:100]}...")
@@ -2031,16 +2036,16 @@ def run_veo_direct_generation(model_image: str, product_image: str, scene_image:
         print(f"🎬 Running Veo Direct: model + product + scene → video")
         
         # Convert local URLs to base64 for Replicate
-        if model_image.startswith("http://localhost:8000/static/"):
-            filename = model_image.replace("http://localhost:8000/static/", "")
+        if model_image.startswith(get_base_url() + "/static/"):
+            filename = model_image.replace(get_base_url() + "/static/", "")
             model_image = upload_to_replicate(f"uploads/{filename}")
         
-        if product_image.startswith("http://localhost:8000/static/"):
-            filename = product_image.replace("http://localhost:8000/static/", "")
+        if product_image.startswith(get_base_url() + "/static/"):
+            filename = product_image.replace(get_base_url() + "/static/", "")
             product_image = upload_to_replicate(f"uploads/{filename}")
         
-        if scene_image.startswith("http://localhost:8000/static/"):
-            filename = scene_image.replace("http://localhost:8000/static/", "")
+        if scene_image.startswith(get_base_url() + "/static/"):
+            filename = scene_image.replace(get_base_url() + "/static/", "")
             scene_image = upload_to_replicate(f"uploads/{filename}")
         
         # Map quality to aspect ratio
@@ -2124,8 +2129,7 @@ def download_and_save_video(url: str) -> str:
             f.write(response.content)
         
         # Return local URL
-        base_url = os.getenv("API_BASE_URL", "https://courteous-radiance-production.up.railway.app")
-        local_url = f"{base_url}/static/{filename}"
+        local_url = get_static_url(filename)
         print(f"✅ Video saved locally: {local_url}")
         return local_url
         
@@ -2152,8 +2156,8 @@ async def tweak_image(
         print(f"📸 Image URL: {request.image_url[:100]}...")
         
         # Convert local URLs to base64 for Qwen
-        if request.image_url.startswith("http://localhost:8000/static/"):
-            filename = request.image_url.replace("http://localhost:8000/static/", "")
+        if request.image_url.startswith(get_base_url() + "/static/"):
+            filename = request.image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             image_base64 = upload_to_replicate(filepath)
             print(f"✅ Converted to base64")
@@ -2250,7 +2254,7 @@ async def reapply_clothes(
         clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else request.clothing_type
         
         # Convert image URL to format Vella can use
-        if request.image_url.startswith("http://localhost:8000/static/"):
+        if request.image_url.startswith(get_base_url() + "/static/"):
             # Local file - can use directly
             model_image_url = request.image_url
         else:
