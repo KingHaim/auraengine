@@ -1527,7 +1527,7 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
         else:
             print(f"📁 Using Replicate URL for model: {model_image_url[:50]}...")
         
-        # Product image is from local URL - convert to base64
+        # Ensure product image is public/base64 for Vella
         if product_image_url.startswith(get_base_url() + "/static/"):
             filename = product_image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
@@ -1576,7 +1576,37 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 vella_input["seed"] = seed
             
             print(f"🎭 Vella 1.5 input parameters: {vella_input}")
-            out = replicate.run("omnious/vella-1.5", input=vella_input)
+            def try_vella(input_payload):
+                return replicate.run("omnious/vella-1.5", input=input_payload)
+
+            out = None
+            try:
+                out = try_vella(vella_input)
+            except Exception as ve:
+                print(f"⚠️ Vella with {list(vella_input.keys())} failed: {ve}")
+                # Try alternate parameter mapping once
+                alt_candidates = []
+                if "top_image" in vella_input:
+                    alt_candidates = ["dress_image", "bottom_image"]
+                elif "dress_image" in vella_input:
+                    alt_candidates = ["top_image"]
+                elif "bottom_image" in vella_input:
+                    alt_candidates = ["top_image"]
+                for alt in alt_candidates:
+                    vi = dict(vella_input)
+                    # Move product image into alt key
+                    product_val = vi.pop("top_image", None) or vi.pop("dress_image", None) or vi.pop("bottom_image", None)
+                    vi[alt] = product_val
+                    try:
+                        print(f"🔁 Retrying Vella with {alt}...")
+                        out = try_vella(vi)
+                        vella_input = vi
+                        break
+                    except Exception as ve2:
+                        print(f"❌ Alternate Vella {alt} failed: {ve2}")
+                        out = None
+            if out is None:
+                raise Exception("All Vella attempts failed")
             
             print(f"🎭 Vella API response type: {type(out)}")
             if hasattr(out, '__dict__'):
@@ -1598,23 +1628,14 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             
         except Exception as e:
             print(f"❌ Vella try-on failed: {e}")
-            if DISABLE_PLACEHOLDERS:
-                print("↩️ Returning previous model image instead of placeholder")
-                return model_image_url
-            # Fallback to a placeholder (disabled by flag)
-            fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url + product_image_url) % 10000}"
-            print(f"Using Vella fallback URL: {fallback_url}")
-            return fallback_url
+            # Prefer returning the Qwen composite (model_image_url may already be Qwen output)
+            print("↩️ Returning previous composed image instead of placeholder")
+            return model_image_url
         
     except Exception as e:
         print(f"❌ Vella try-on generation failed: {e}")
-        if DISABLE_PLACEHOLDERS:
-            print("↩️ Returning previous model image instead of placeholder")
-            return model_image_url
-        # Fallback to a placeholder (disabled by flag)
-        fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url + product_image_url) % 10000}"
-        print(f"Using Vella fallback URL: {fallback_url}")
-        return fallback_url
+        print("↩️ Returning previous composed image instead of placeholder")
+        return model_image_url
 
 def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard") -> str:
     """ONE-STEP: Model + Product + Scene all in one Qwen call"""
@@ -1795,19 +1816,37 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
             else:
                 scene_composite_url = str(out)
             
-            # Return Replicate URL directly (don't download yet)
             print(f"✅ Qwen scene composition completed: {scene_composite_url[:50]}...")
             return scene_composite_url
             
         except Exception as e:
-            print(f"❌ Qwen scene composition failed: {e}")
-            if DISABLE_PLACEHOLDERS:
-                print("↩️ Returning model image instead of placeholder")
-                return model_image_url
-            # Fallback to a placeholder (disabled by flag)
-            fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url + scene_image_url) % 10000}"
-            print(f"Using scene composition fallback URL: {fallback_url}")
-            return fallback_url
+            print(f"⚠️ Qwen scene composition failed, retrying with safer params: {e}")
+            try:
+                safer_out = replicate.run("qwen/qwen-image-edit-plus", input={
+                    "prompt": scene_prompt,
+                    "image": [model_image_url, scene_image_url],
+                    "num_inference_steps": max(30, num_steps - 10),
+                    "guidance_scale": max(5.0, guidance - 1.5),
+                    "strength": max(0.5, strength - 0.15)
+                })
+                if hasattr(safer_out, 'url'):
+                    scene_composite_url = safer_out.url()
+                elif isinstance(safer_out, str):
+                    scene_composite_url = safer_out
+                elif isinstance(safer_out, list) and len(safer_out) > 0:
+                    scene_composite_url = safer_out[0] if isinstance(safer_out[0], str) else safer_out[0].url()
+                else:
+                    scene_composite_url = str(safer_out)
+                print(f"✅ Qwen retry succeeded: {scene_composite_url[:50]}...")
+                return scene_composite_url
+            except Exception as e2:
+                print(f"❌ Qwen retry failed: {e2}")
+                if DISABLE_PLACEHOLDERS:
+                    print("↩️ Returning model image instead of placeholder")
+                    return model_image_url
+                fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url + scene_image_url) % 10000}"
+                print(f"Using scene composition fallback URL: {fallback_url}")
+                return fallback_url
         
     except Exception as e:
         print(f"❌ Scene composition generation failed: {e}")
