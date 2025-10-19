@@ -92,9 +92,6 @@ async def try_on(
     except Exception as e:
         print(f"❌ Try-on failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-    except Exception as e:
-        print(f"stabilize_url failed for {url[:120]}...: {e}")
-        return url
 
 def get_model_url(gender: str) -> str:
     """Get the model image URL based on gender - returns external URL"""
