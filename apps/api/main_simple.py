@@ -475,46 +475,46 @@ async def create_campaign(
                         try:
                             print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
                             
-                            # REAL WORKFLOW: Qwen + Vella with shot-specific prompt
+                            # REAL WORKFLOW (updated): Vella first, then Qwen composition
                             quality_mode = "standard"
-                            
-                            # Step 1: Qwen scene composition with shot type
-                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
+
+                            # Step 1: Apply Vella try-on on the original model image
+                            print(f"👔 Step 1: Applying {product.name} with Vella 1.5 try-on...")
+                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
+                            vella_result_url = run_vella_try_on(model_image, product_image, quality_mode, clothing_type)
+                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
+
+                            # Step 2: Compose the clothed model into the scene
+                            print(f"🎨 Step 2: Composing clothed model into scene for '{shot_type['name']}'...")
                             qwen_result_url = run_qwen_scene_composition(
-                                model_image, 
-                                scene.image_url, 
+                                vella_result_url,
+                                scene.image_url,
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
                             print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
-                            
-                            # Step 2: Apply Vella try-on with clothing type detection
-                            print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
-                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
-                            vella_result_url = run_vella_try_on(qwen_result_url, product_image, quality_mode, clothing_type)
-                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
                             # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
                             is_closeup = shot_type['name'] in ['upper_closeup', 'lower_closeup']
                             if is_closeup:
                                 print(f"🍌 Step 3: Enhancing close-up with Nano Banana (img2img)...")
                                 try:
-                                    # Convert Vella result URL to base64 for Nano Banana
-                                    if vella_result_url.startswith(get_base_url() + "/static/"):
-                                        filename = vella_result_url.replace(get_base_url() + "/static/", "")
+                                    # Convert Qwen result URL to base64 for Nano Banana if needed
+                                    if qwen_result_url.startswith(get_base_url() + "/static/"):
+                                        filename = qwen_result_url.replace(get_base_url() + "/static/", "")
                                         filepath = f"uploads/{filename}"
-                                        vella_base64 = upload_to_replicate(filepath)
-                                    elif vella_result_url.startswith("https://replicate.delivery/"):
-                                        vella_base64 = upload_to_replicate(vella_result_url)
+                                        nb_input = upload_to_replicate(filepath)
+                                    elif qwen_result_url.startswith("https://replicate.delivery/"):
+                                        nb_input = upload_to_replicate(qwen_result_url)
                                     else:
-                                        vella_base64 = vella_result_url
+                                        nb_input = qwen_result_url
                                     
                                     # Apply Nano Banana img2img using 'instructions' parameter for image editing
                                     nano_result = replicate.run(
                                         "google/nano-banana",
                                         input={
                                             "instructions": f"Enhance the clothing details and fabric texture. Make the {product.name} look more realistic with sharp focus on fabric folds, stitching, and material quality. Preserve the model's appearance and overall composition. Professional fashion photography style.",
-                                            "image": vella_base64,
+                                            "image": nb_input,
                                             "num_inference_steps": 28,
                                             "guidance_scale": 5.5,
                                             "strength": 0.35  # Moderate strength to preserve Vella's work but enhance details
@@ -667,46 +667,46 @@ async def generate_campaign_images(
                         try:
                             print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
                             
-                            # REAL WORKFLOW: Qwen + Vella with shot-specific prompt
+                            # REAL WORKFLOW (updated): Vella first, then Qwen composition
                             quality_mode = "standard"
-                            
-                            # Step 1: Qwen scene composition with shot type
-                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
+
+                            # Step 1: Apply Vella try-on on the original model image
+                            print(f"👔 Step 1: Applying {product.name} with Vella 1.5 try-on...")
+                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
+                            vella_result_url = run_vella_try_on(model_image, product_image, quality_mode, clothing_type)
+                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
+
+                            # Step 2: Compose the clothed model into the scene
+                            print(f"🎨 Step 2: Composing clothed model into scene for '{shot_type['name']}'...")
                             qwen_result_url = run_qwen_scene_composition(
-                                model_image, 
-                                scene.image_url, 
+                                vella_result_url,
+                                scene.image_url,
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
                             print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
-                            
-                            # Step 2: Apply Vella try-on with clothing type detection
-                            print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
-                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
-                            vella_result_url = run_vella_try_on(qwen_result_url, product_image, quality_mode, clothing_type)
-                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
                             # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
                             is_closeup = shot_type['name'] in ['upper_closeup', 'lower_closeup']
                             if is_closeup:
                                 print(f"🍌 Step 3: Enhancing close-up with Nano Banana (img2img)...")
                                 try:
-                                    # Convert Vella result URL to base64 for Nano Banana
-                                    if vella_result_url.startswith(get_base_url() + "/static/"):
-                                        filename = vella_result_url.replace(get_base_url() + "/static/", "")
+                                    # Convert Qwen result URL to base64 for Nano Banana if needed
+                                    if qwen_result_url.startswith(get_base_url() + "/static/"):
+                                        filename = qwen_result_url.replace(get_base_url() + "/static/", "")
                                         filepath = f"uploads/{filename}"
-                                        vella_base64 = upload_to_replicate(filepath)
-                                    elif vella_result_url.startswith("https://replicate.delivery/"):
-                                        vella_base64 = upload_to_replicate(vella_result_url)
+                                        nb_input = upload_to_replicate(filepath)
+                                    elif qwen_result_url.startswith("https://replicate.delivery/"):
+                                        nb_input = upload_to_replicate(qwen_result_url)
                                     else:
-                                        vella_base64 = vella_result_url
+                                        nb_input = qwen_result_url
                                     
                                     # Apply Nano Banana img2img using 'instructions' parameter for image editing
                                     nano_result = replicate.run(
                                         "google/nano-banana",
                                         input={
                                             "instructions": f"Enhance the clothing details and fabric texture. Make the {product.name} look more realistic with sharp focus on fabric folds, stitching, and material quality. Preserve the model's appearance and overall composition. Professional fashion photography style.",
-                                            "image": vella_base64,
+                                            "image": nb_input,
                                             "num_inference_steps": 28,
                                             "guidance_scale": 5.5,
                                             "strength": 0.35  # Moderate strength to preserve Vella's work but enhance details
