@@ -44,6 +44,7 @@ def get_model_url(gender: str) -> str:
         return "https://i.ibb.co/tp4LPg7t/model-female.png"
     else:
         return "https://i.ibb.co/M5n1qznw/model.png"
+
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./aura_engine.db")
 
