@@ -1705,7 +1705,7 @@ def run_qwen_packshot_front_back(
         if product_png_url.startswith(get_base_url() + "/static/"):
             filename = product_png_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
-            product_png_url = upload_to_public_url(filepath)
+            product_png_url = upload_to_replicate(filepath)
             print(f"Converted to public URL: {product_png_url[:100]}...")
 
         # Step 2: Generate front packshot
@@ -1804,7 +1804,11 @@ async def upload_product(
             content = await product_image.read()
             f.write(content)
         
-        image_url = get_static_url(image_filename)
+        # Prefer data URL to avoid /static dependency in this deployment
+        try:
+            image_url = upload_to_replicate(image_path)
+        except Exception:
+            image_url = get_static_url(image_filename)
         
         # Initialize packshot URLs
         packshot_front_url = None
