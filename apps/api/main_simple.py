@@ -512,7 +512,8 @@ async def create_campaign(
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
-                            qwen_result_url = stabilize_url(qwen_result_url, f"qwen_{shot_type['name']}") if 'stabilize_url' in globals() else qwen_result_url
+                            # Persist Qwen output before Vella to avoid ephemeral links
+                            qwen_result_url = download_and_save_image(qwen_result_url, f"qwen_{shot_type['name']}")
                             print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
 
                             # Step 2: Apply Vella try-on on the composed image
@@ -521,7 +522,7 @@ async def create_campaign(
                             # Stabilize garment to /static (PNG with alpha already handled inside run_vella_try_on)
                             stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
                             vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
-                            vella_result_url = stabilize_url(vella_result_url, f"vella_{shot_type['name']}") if 'stabilize_url' in globals() else vella_result_url
+                            vella_result_url = download_and_save_image(vella_result_url, f"vella_{shot_type['name']}")
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
                             # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
@@ -710,7 +711,8 @@ async def generate_campaign_images(
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
-                            qwen_result_url = stabilize_url(qwen_result_url, f"qwen_{shot_type['name']}") if 'stabilize_url' in globals() else qwen_result_url
+                            # Persist Qwen output before Vella to avoid ephemeral links
+                            qwen_result_url = download_and_save_image(qwen_result_url, f"qwen_{shot_type['name']}")
                             print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
 
                             # Step 2: Apply Vella try-on on the composed image
@@ -718,7 +720,7 @@ async def generate_campaign_images(
                             clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
                             stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
                             vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
-                            vella_result_url = stabilize_url(vella_result_url, f"vella_{shot_type['name']}") if 'stabilize_url' in globals() else vella_result_url
+                            vella_result_url = download_and_save_image(vella_result_url, f"vella_{shot_type['name']}")
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
                             # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
@@ -1632,6 +1634,20 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
     try:
         print(f"🎭 Running Vella try-on: model={model_image_url[:50]}..., product={product_image_url[:50]}...")
         print(f"👕 Clothing type: {clothing_type}")
+
+        # Force persist ephemeral replicate URLs to stable /static before calling Vella
+        if isinstance(model_image_url, str) and model_image_url.startswith("https://replicate.delivery/"):
+            try:
+                model_image_url = download_and_save_image(model_image_url, "vella_model")
+                print(f"🧩 Persisted model to /static for Vella: {model_image_url}")
+            except Exception as e:
+                print(f"⚠️ Failed to persist model for Vella: {e}")
+        if isinstance(product_image_url, str) and product_image_url.startswith("https://replicate.delivery/"):
+            try:
+                product_image_url = download_and_save_image(product_image_url, "vella_product")
+                print(f"🧩 Persisted garment to /static for Vella: {product_image_url}")
+            except Exception as e:
+                print(f"⚠️ Failed to persist garment for Vella: {e}")
 
         # Model input: prefer small public URL; convert only if local /static
         if model_image_url.startswith(get_base_url() + "/static/"):
