@@ -57,6 +57,9 @@ def stabilize_url(url: str, prefix: str) -> str:
             return download_and_save_image(url, prefix)
         # Other http(s) URLs: leave as-is
         return url
+    except Exception as e:
+        print(f"stabilize_url failed for {url[:120] if isinstance(url, str) else url}...: {e}")
+        return url
 
 @app.post("/try-on")
 async def try_on(
