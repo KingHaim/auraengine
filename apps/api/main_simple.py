@@ -914,6 +914,108 @@ async def generate_model(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/models/{model_id}/generate-poses")
+async def generate_poses(
+    model_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate poses for a model using Qwen Image Edit Plus"""
+    try:
+        print(f"🎭 Generating poses for model: {model_id}")
+        
+        # Get the model
+        model = db.query(Model).filter(
+            Model.id == model_id,
+            Model.user_id == current_user["user_id"]
+        ).first()
+        
+        if not model:
+            raise HTTPException(status_code=404, detail="Model not found")
+        
+        if not model.image_url:
+            raise HTTPException(status_code=400, detail="Model has no image")
+        
+        # Check user credits (1 credit per pose generation)
+        user = db.query(User).filter(User.id == current_user["user_id"]).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        if user.credits < 1:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Insufficient credits. You have {user.credits} credits, but need 1"
+            )
+        
+        # Generate poses using Qwen Image Edit Plus
+        poses = []
+        pose_prompts = [
+            "Professional fashion pose, confident stance, hands on hips, looking at camera",
+            "Elegant side pose, looking away from camera, one hand on hip",
+            "Dynamic walking pose, mid-step, looking forward",
+            "Relaxed standing pose, arms crossed, slight smile",
+            "Fashion forward pose, one hand in pocket, looking over shoulder"
+        ]
+        
+        for i, prompt in enumerate(pose_prompts):
+            try:
+                print(f"🎭 Generating pose {i+1}: {prompt[:50]}...")
+                
+                # Use Qwen Image Edit Plus for pose generation
+                out = replicate.run("qwen/qwen-vl-72b-instruct", input={
+                    "image": model.image_url,
+                    "prompt": f"Modify the person's pose to: {prompt}. Keep the same person, clothes, and background. Only change the pose and body position. Professional fashion photography style.",
+                    "max_tokens": 100
+                })
+                
+                # Handle different return types
+                if hasattr(out, 'url'):
+                    poses.append(out.url())
+                elif isinstance(out, str):
+                    poses.append(out)
+                elif isinstance(out, list) and len(out) > 0:
+                    item = out[0]
+                    if hasattr(item, 'url'):
+                        poses.append(item.url())
+                    else:
+                        poses.append(str(item))
+                else:
+                    poses.append(str(out))
+                
+                print(f"✅ Pose {i+1} generated successfully")
+                
+            except Exception as e:
+                print(f"❌ Pose {i+1} generation failed: {e}")
+                continue
+        
+        if not poses:
+            raise HTTPException(status_code=500, detail="Failed to generate any poses")
+        
+        # Update model with new poses
+        model.poses = poses
+        db.commit()
+        
+        # Deduct credits
+        user.credits -= 1
+        db.commit()
+        
+        print(f"✅ Generated {len(poses)} poses for model {model_id}")
+        
+        return {
+            "message": f"Successfully generated {len(poses)} poses",
+            "poses": poses,
+            "credits_used": 1,
+            "remaining_credits": user.credits
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Pose generation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.delete("/models/{model_id}")
 async def delete_model(
     model_id: str,
