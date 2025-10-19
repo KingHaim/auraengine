@@ -39,11 +39,11 @@ def get_static_url(filename: str) -> str:
     return f"{get_base_url()}/static/{filename}"
 
 def get_model_url(gender: str) -> str:
-    """Get the model image URL based on gender"""
+    """Get the model image URL based on gender - returns local file path"""
     if gender == "female":
-        return "https://i.ibb.co/tp4LPg7t/model-female.png"
+        return "model_female.png"
     else:
-        return "https://i.ibb.co/M5n1qznw/model.png"
+        return "model.png"
 
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./aura_engine.db")
@@ -721,28 +721,23 @@ def run_nano_banana_model_generation(
         print(f"🎭 Running Nano Banana model generation: {prompt}")
         
         # Use the base model image as starting point based on gender
-        base_model_local_url = get_model_url(gender)
-        print(f"🔍 Base model URL: {base_model_local_url}")
-        print(f"🔍 Starts with http: {base_model_local_url.startswith('http')}")
+        filename = get_model_url(gender)
+        filepath = f"uploads/{filename}"
         
-        # Handle external URLs or local files
-        if base_model_local_url.startswith("http"):
-            # It's an external URL - use it directly
-            base_model_url = base_model_local_url
-            print(f"Using external model URL: {base_model_local_url}")
-        elif base_model_local_url.startswith(get_base_url() + "/static/"):
-            # It's a local file - convert to base64
-            filename = base_model_local_url.replace(get_base_url() + "/static/", "")
-            filepath = f"uploads/{filename}"
-            if os.path.exists(filepath):
-                base_model_url = upload_to_replicate(filepath)
-                print(f"Converted local model to base64")
-            else:
-                print(f"❌ Model file not found: {filepath}")
-                raise Exception(f"Model file not found: {filepath}")
+        print(f"🔍 Looking for model file: {filepath}")
+        print(f"🔍 File exists: {os.path.exists(filepath)}")
+        
+        # Convert local file to base64 for Replicate
+        if os.path.exists(filepath):
+            base_model_url = upload_to_replicate(filepath)
+            print(f"✅ Converted local model to base64")
         else:
-            # It's already a Replicate URL
-            base_model_url = base_model_local_url
+            print(f"❌ Model file not found: {filepath}")
+            # List what files are in uploads directory
+            if os.path.exists("uploads"):
+                files = os.listdir("uploads")
+                print(f"📁 Files in uploads: {files[:10]}")  # Show first 10 files
+            raise Exception(f"Model file not found: {filepath}")
         
         generated_urls = []
         
