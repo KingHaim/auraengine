@@ -66,6 +66,7 @@ app = FastAPI(title="Aura Engine API", version="1.0.0")
 @app.on_event("startup")
 async def startup_event():
     create_tables()
+    print("🔧 MODEL GENERATION: Using external URLs - NO LOCAL FILES")
 
 # CORS middleware - Allow all origins for deployment
 app.add_middleware(
@@ -719,6 +720,7 @@ def run_nano_banana_model_generation(
     """Generate model images using Nano Banana with base model images"""
     try:
         print(f"🎭 Running Nano Banana model generation: {prompt}")
+        print(f"🔧 DEBUG: This is the NEW version with external URLs!")
         
         # Use the base model image as starting point based on gender
         base_model_url = get_model_url(gender)
