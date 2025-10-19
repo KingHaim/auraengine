@@ -727,7 +727,7 @@ def run_nano_banana_model_generation(
         print(f"🔍 URL starts with http: {base_model_url.startswith('http')}")
         
         # External URL - use it directly for Replicate
-        print(f"✅ Using external model URL for generation")
+        print(f"✅ Using external model URL for generation - NO LOCAL FILES")
         
         generated_urls = []
         
