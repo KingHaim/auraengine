@@ -1493,13 +1493,76 @@ def enhance_with_nano_banana(image_url: str, prompt: str = "") -> str:
         return image_url
 
 def download_and_save_image(url: str, prefix: str = "packshot") -> str:
-    """Download image from URL and return original URL (no local saving)"""
+    """
+    Persist an image into uploads/ and return a stable /static URL.
+    Supports:
+    - data:image/* base64
+    - http(s) URLs (replicate.delivery, etc.)
+    - local file paths
+    Falls back to returning the original url on failure.
+    """
     try:
-        print(f"💾 Using original URL directly: {url[:100]}...")
-        # Return the original URL directly instead of downloading and saving locally
-        # This avoids Railway static file serving issues
-        return url
-        
+        os.makedirs("uploads", exist_ok=True)
+
+        # Handle data URL
+        if isinstance(url, str) and url.startswith("data:image/"):
+            try:
+                header, b64 = url.split(",", 1)
+                ctype = header.split(";")[0].split(":")[1].lower()  # e.g., image/png
+                ext = "png" if "png" in ctype else ("webp" if "webp" in ctype else "jpg")
+                filename = f"{prefix}_{uuid.uuid4().hex}.{ext}"
+                filepath = os.path.join("uploads", filename)
+                with open(filepath, "wb") as f:
+                    f.write(base64.b64decode(b64))
+                local_url = get_static_url(filename)
+                print(f"✅ Saved data URL to {local_url}")
+                return local_url
+            except Exception as e:
+                print(f"❌ Failed to save data URL: {e}")
+                return url
+
+        # Handle http(s) URL
+        if isinstance(url, str) and (url.startswith("http://") or url.startswith("https://")):
+            try:
+                resp = requests.get(url, stream=True, timeout=30)
+                resp.raise_for_status()
+                ctype = (resp.headers.get("Content-Type") or '').lower()
+                # determine extension
+                if "png" in ctype or url.lower().endswith(".png"):
+                    ext = "png"
+                elif "webp" in ctype or url.lower().endswith(".webp"):
+                    ext = "webp"
+                elif "jpeg" in ctype or "jpg" in ctype or url.lower().endswith(".jpg") or url.lower().endswith(".jpeg"):
+                    ext = "jpg"
+                else:
+                    ext = "jpg"
+                filename = f"{prefix}_{uuid.uuid4().hex}.{ext}"
+                filepath = os.path.join("uploads", filename)
+                with open(filepath, "wb") as f:
+                    for chunk in resp.iter_content(chunk_size=8192):
+                        if chunk:
+                            f.write(chunk)
+                local_url = get_static_url(filename)
+                print(f"✅ Downloaded image to {local_url}")
+                return local_url
+            except Exception as e:
+                print(f"❌ Download failed for {url[:120]}...: {e}")
+                return url
+
+        # Treat as local file path
+        try:
+            ext = os.path.splitext(url)[1].lstrip(".") or "jpg"
+            filename = f"{prefix}_{uuid.uuid4().hex}.{ext}"
+            filepath = os.path.join("uploads", filename)
+            with open(url, "rb") as src, open(filepath, "wb") as dst:
+                dst.write(src.read())
+            local_url = get_static_url(filename)
+            print(f"✅ Copied local file to {local_url}")
+            return local_url
+        except Exception as e:
+            print(f"❌ Local copy failed: {e}")
+            return url
+
     except Exception as e:
         print(f"❌ Failed to process image: {e}")
         return url
