@@ -13,7 +13,7 @@ export default function Sidebar() {
     { href: "/scenes", label: "SCENES" },
   ];
 
-  const bottomItems = [
+  const bottomItems: { href: string; label: string }[] = [
     // { href: "/help", label: "HELP" },
     // { href: "/terms", label: "TERMS" },
   ];
