@@ -1693,77 +1693,36 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
         # Run Vella 1.5 try-on
         try:
             # Configure Vella 1.5 parameters
-            # Vella 1.5 has simplified parameters compared to the old version
             if quality_mode == "high":
-                num_outputs = 1  # Generate 1 high-quality output
-                seed = None  # Random seed for variation
+                num_outputs = 1
+                seed = None
                 print("🎨 Using HIGH QUALITY Vella 1.5 mode")
-            else:  # standard
-                num_outputs = 1  # Generate 1 standard output
-                seed = 42  # Fixed seed for consistency
+            else:
+                num_outputs = 1
+                seed = 42
                 print("⚡ Using STANDARD Vella 1.5 mode")
             
-            print(f"🎭 Calling Vella 1.5 API with model: {model_image_url[:50]}... and product: {garment_url[:50]}...")
-            print(f"🎭 Vella 1.5 parameters: num_outputs={num_outputs}, seed={seed}")
+            print(f"🎭 Calling Vella 1.5 API")
+            print(f"   Model: {model_image_url[:80]}...")
+            print(f"   Garment: {garment_url[:80]}...")
+            print(f"   Clothing type: {clothing_type}")
             
-            # Base input
-            base_input = {
+            # Build Vella 1.5 input - use garment_image as the standard parameter
+            vella_input = {
                 "model_image": model_image_url,
+                "garment_image": garment_url,
                 "num_outputs": num_outputs,
             }
             
-            # Note: specific garment key will be set in payload later per attempt
-            
             if seed is not None:
-                base_input["seed"] = seed
-
-            def try_vella(input_payload):
-                return replicate.run("omnious/vella-1.5", input=input_payload)
-
-            # Determine garment key candidates based on clothing type
-            clothing_type_lower = clothing_type.lower() if clothing_type else "top"
-            if clothing_type_lower in ["tshirt", "shirt", "blouse", "sweater", "jacket", "hoodie", "top", "cardigan"]:
-                key_candidates = ["top_image", "garment_image", "cloth_image", "dress_image"]
-            elif clothing_type_lower in ["pants", "jeans", "skirt", "shorts", "trousers", "bottom"]:
-                key_candidates = ["bottom_image", "garment_image", "cloth_image", "top_image"]
-            elif clothing_type_lower in ["dress", "jumpsuit", "overall"]:
-                key_candidates = ["dress_image", "garment_image", "cloth_image", "top_image"]
-            else:
-                key_candidates = ["top_image", "garment_image", "cloth_image", "dress_image", "bottom_image"]
-
-            out = None
-            last_err = None
-
-            # Pass 1: try with garment URL
-            for key in key_candidates:
-                payload = dict(base_input)
-                payload[key] = garment_url
-                try:
-                    print(f"🎭 Trying Vella (URL) key={key}")
-                    out = try_vella(payload)
-                    break
-                except Exception as ve:
-                    print(f"❌ Vella failed with {key} (URL): {ve}")
-                    last_err = ve
-
-            # Pass 2: if failed and garment is local /static, convert just garment to data URL and retry
-            if out is None and garment_url.startswith(get_base_url() + "/static/"):
-                filename = garment_url.replace(get_base_url() + "/static/", "")
-                garment_b64 = upload_to_replicate(f"uploads/{filename}")
-                for key in key_candidates:
-                    payload = dict(base_input)
-                    payload[key] = garment_b64
-                    try:
-                        print(f"🔁 Retrying Vella (data) key={key}")
-                        out = try_vella(payload)
-                        break
-                    except Exception as ve2:
-                        print(f"❌ Vella failed with {key} (data): {ve2}")
-                        last_err = ve2
-
-            if out is None:
-                raise Exception(f"All Vella attempts failed: {last_err}")
+                vella_input["seed"] = seed
             
+            print(f"🎭 Vella input keys: {list(vella_input.keys())}")
+            
+            # Call Vella 1.5
+            print("🔄 Calling Replicate Vella 1.5...")
+            out = replicate.run("omnious/vella-1.5", input=vella_input)
+            print(f"✅ Vella API call succeeded!")
             print(f"🎭 Vella API response type: {type(out)}")
             if hasattr(out, '__dict__'):
                 print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
