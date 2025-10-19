@@ -962,10 +962,12 @@ async def generate_poses(
                 print(f"🎭 Generating pose {i+1}: {prompt[:50]}...")
                 
                 # Use Qwen Image Edit Plus for pose generation
-                out = replicate.run("qwen/qwen-vl-72b-instruct", input={
-                    "image": model.image_url,
+                out = replicate.run("qwen/qwen-image-edit-plus", input={
                     "prompt": f"Modify the person's pose to: {prompt}. Keep the same person, clothes, and background. Only change the pose and body position. Professional fashion photography style.",
-                    "max_tokens": 100
+                    "image": [model.image_url],
+                    "num_inference_steps": 30,
+                    "guidance_scale": 7.0,
+                    "strength": 0.6
                 })
                 
                 # Handle different return types
