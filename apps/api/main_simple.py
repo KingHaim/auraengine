@@ -1223,6 +1223,13 @@ async def confirm_payment(
 def has_alpha(url: str) -> bool:
     """Check if image has alpha channel by examining the file"""
     try:
+        # Handle data URLs directly
+        if url.startswith("data:image"):
+            # Fast-path: if it's a PNG data URL, assume alpha may be present
+            if url.startswith("data:image/png"):
+                return True
+            # Otherwise conservatively assume no alpha (JPEG, etc.)
+            return False
         if url.startswith(get_base_url() + "/static/"):
             # Local file - check directly
             filename = url.replace(get_base_url() + "/static/", "")
@@ -1239,6 +1246,14 @@ def rembg_cutout(photo_url: str) -> Image.Image:
     try:
         print(f"Removing background for: {photo_url}")
         
+        # If this is a data URL, decode and return as RGBA for further processing
+        if photo_url.startswith("data:image"):
+            import base64
+            from io import BytesIO
+            header, b64data = photo_url.split(",", 1)
+            img_bytes = base64.b64decode(b64data)
+            return Image.open(BytesIO(img_bytes)).convert("RGBA")
+
         # If it's a local URL, convert to file path
         if photo_url.startswith(get_base_url() + "/static/"):
             filename = photo_url.replace(get_base_url() + "/static/", "")
