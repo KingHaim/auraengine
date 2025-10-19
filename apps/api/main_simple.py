@@ -722,6 +722,8 @@ def run_nano_banana_model_generation(
         
         # Use the base model image as starting point based on gender
         base_model_local_url = get_model_url(gender)
+        print(f"🔍 Base model URL: {base_model_local_url}")
+        print(f"🔍 Starts with http: {base_model_local_url.startswith('http')}")
         
         # Handle external URLs or local files
         if base_model_local_url.startswith("http"):
