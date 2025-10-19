@@ -1005,7 +1005,11 @@ async def generate_poses(
         
         return {
             "message": f"Successfully generated {len(poses)} poses",
+            "urls": poses,
             "poses": poses,
+            "model_id": model_id,
+            "model_name": model.name,
+            "total_poses": len(poses),
             "credits_used": 1,
             "remaining_credits": user.credits
         }
