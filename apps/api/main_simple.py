@@ -119,6 +119,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Config
+DISABLE_PLACEHOLDERS = True
+
 # Database dependency
 def get_db():
     db = SessionLocal()
@@ -1595,14 +1598,20 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             
         except Exception as e:
             print(f"❌ Vella try-on failed: {e}")
-            # Fallback to a placeholder
+            if DISABLE_PLACEHOLDERS:
+                print("↩️ Returning previous model image instead of placeholder")
+                return model_image_url
+            # Fallback to a placeholder (disabled by flag)
             fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url + product_image_url) % 10000}"
             print(f"Using Vella fallback URL: {fallback_url}")
             return fallback_url
         
     except Exception as e:
         print(f"❌ Vella try-on generation failed: {e}")
-        # Fallback to a placeholder
+        if DISABLE_PLACEHOLDERS:
+            print("↩️ Returning previous model image instead of placeholder")
+            return model_image_url
+        # Fallback to a placeholder (disabled by flag)
         fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url + product_image_url) % 10000}"
         print(f"Using Vella fallback URL: {fallback_url}")
         return fallback_url
@@ -1663,11 +1672,17 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             
         except Exception as e:
             print(f"❌ Qwen failed: {e}")
+            if DISABLE_PLACEHOLDERS:
+                print("↩️ Returning model image instead of placeholder")
+                return model_image_url
             fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url) % 10000}"
             return fallback_url
             
     except Exception as e:
         print(f"❌ Triple composition failed: {e}")
+        if DISABLE_PLACEHOLDERS:
+            print("↩️ Returning model image instead of placeholder")
+            return model_image_url
         fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url) % 10000}"
         return fallback_url
 
@@ -1786,14 +1801,20 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
             
         except Exception as e:
             print(f"❌ Qwen scene composition failed: {e}")
-            # Fallback to a placeholder
+            if DISABLE_PLACEHOLDERS:
+                print("↩️ Returning model image instead of placeholder")
+                return model_image_url
+            # Fallback to a placeholder (disabled by flag)
             fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url + scene_image_url) % 10000}"
             print(f"Using scene composition fallback URL: {fallback_url}")
             return fallback_url
         
     except Exception as e:
         print(f"❌ Scene composition generation failed: {e}")
-        # Fallback to a placeholder
+        if DISABLE_PLACEHOLDERS:
+            print("↩️ Returning model image instead of placeholder")
+            return model_image_url
+        # Fallback to a placeholder (disabled by flag)
         fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url + scene_image_url) % 10000}"
         print(f"Using scene composition fallback URL: {fallback_url}")
         return fallback_url
