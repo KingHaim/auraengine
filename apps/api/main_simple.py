@@ -1713,10 +1713,10 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             print(f"   Garment: {garment_url[:80]}...")
             print(f"   Clothing type: {clothing_type}")
             
-            # Build Vella 1.5 input - use garment_image as the standard parameter
+            # Build Vella 1.5 input - use top_image as the correct parameter for Vella 1.5
             vella_input = {
                 "model_image": model_image_url,
-                "garment_image": garment_url,
+                "top_image": garment_url,
                 "num_outputs": num_outputs,
             }
             
