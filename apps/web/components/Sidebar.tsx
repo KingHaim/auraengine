@@ -14,8 +14,8 @@ export default function Sidebar() {
   ];
 
   const bottomItems = [
-    { href: "/help", label: "HELP" },
-    { href: "/terms", label: "TERMS" },
+    // { href: "/help", label: "HELP" },
+    // { href: "/terms", label: "TERMS" },
   ];
 
   return (
