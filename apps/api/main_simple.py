@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Simple working version for debugging
+Updated: Fixed Vella 1.5 API parameter (garment_image)
 """
 from fastapi import FastAPI, HTTPException, Depends, Request, Form, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
