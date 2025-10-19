@@ -61,41 +61,6 @@ def stabilize_url(url: str, prefix: str) -> str:
         print(f"stabilize_url failed for {url[:120] if isinstance(url, str) else url}...: {e}")
         return url
 
-@app.post("/try-on")
-async def try_on(
-    request: TryOnRequest,
-    current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Dress a model image with a garment using Vella 1.5 and return a stable /static URL."""
-    try:
-        # Resolve garment
-        if request.product_id:
-            product = db.query(Product).filter(Product.id == request.product_id, Product.user_id == current_user["user_id"]).first()
-            if not product:
-                raise HTTPException(status_code=404, detail="Product not found")
-            garment_url = product.packshot_front_url or product.image_url
-            clothing_type = product.clothing_type or (request.clothing_type or "top")
-        else:
-            if not request.garment_url:
-                raise HTTPException(status_code=400, detail="Provide product_id or garment_url")
-            garment_url = request.garment_url
-            clothing_type = request.clothing_type or "top"
-
-        # Stabilize inputs
-        stable_model = stabilize_url(request.model_image_url, "tryon_model")
-        stable_garment = stabilize_url(garment_url, "tryon_garment")
-
-        # Run Vella
-        vella_url = run_vella_try_on(stable_model, stable_garment, request.quality or "standard", clothing_type)
-        vella_url = download_and_save_image(vella_url, "tryon_final")
-        return {"image_url": vella_url}
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"❌ Try-on failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
 def get_model_url(gender: str) -> str:
     """Get the model image URL based on gender - returns external URL"""
     if gender == "female":
@@ -3304,6 +3269,41 @@ async def generate_video_for_generation(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Video generation failed: {str(e)}")
+
+@app.post("/try-on")
+async def try_on(
+    request: TryOnRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Dress a model image with a garment using Vella 1.5 and return a stable /static URL."""
+    try:
+        # Resolve garment
+        if request.product_id:
+            product = db.query(Product).filter(Product.id == request.product_id, Product.user_id == current_user["user_id"]).first()
+            if not product:
+                raise HTTPException(status_code=404, detail="Product not found")
+            garment_url = product.packshot_front_url or product.image_url
+            clothing_type = product.clothing_type or (request.clothing_type or "top")
+        else:
+            if not request.garment_url:
+                raise HTTPException(status_code=400, detail="Provide product_id or garment_url")
+            garment_url = request.garment_url
+            clothing_type = request.clothing_type or "top"
+
+        # Stabilize inputs
+        stable_model = stabilize_url(request.model_image_url, "tryon_model")
+        stable_garment = stabilize_url(garment_url, "tryon_garment")
+
+        # Run Vella
+        vella_url = run_vella_try_on(stable_model, stable_garment, request.quality or "standard", clothing_type)
+        vella_url = download_and_save_image(vella_url, "tryon_final")
+        return {"image_url": vella_url}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Try-on failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
