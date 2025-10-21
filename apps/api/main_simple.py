@@ -39,6 +39,10 @@ CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
 CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
 
 # Configure Cloudinary
+print(f"🔍 DEBUG: CLOUDINARY_CLOUD_NAME = {CLOUDINARY_CLOUD_NAME}")
+print(f"🔍 DEBUG: CLOUDINARY_API_KEY = {CLOUDINARY_API_KEY}")
+print(f"🔍 DEBUG: CLOUDINARY_API_SECRET = {'*' * len(CLOUDINARY_API_SECRET) if CLOUDINARY_API_SECRET else None}")
+
 if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     cloudinary.config(
         cloud_name=CLOUDINARY_CLOUD_NAME,
@@ -48,6 +52,7 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     print("✅ Cloudinary configured successfully")
 else:
     print("⚠️ Cloudinary not configured - using local storage fallback")
+    print(f"   Missing: CLOUD_NAME={bool(CLOUDINARY_CLOUD_NAME)}, API_KEY={bool(CLOUDINARY_API_KEY)}, API_SECRET={bool(CLOUDINARY_API_SECRET)}")
 
 # Helper functions for URL generation
 def get_base_url():
