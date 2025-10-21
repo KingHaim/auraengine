@@ -1868,13 +1868,30 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             
             print(f"🎭 Vella input keys: {list(vella_input.keys())}")
             
-            # Call Vella 1.5
+            # Call Vella 1.5 with timeout and retry logic
             print("🔄 Calling Replicate Vella 1.5...")
-            out = replicate.run("omnious/vella-1.5", input=vella_input)
-            print(f"✅ Vella API call succeeded!")
-            print(f"🎭 Vella API response type: {type(out)}")
-            if hasattr(out, '__dict__'):
-                print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
+            max_retries = 3
+            timeout_seconds = 120  # Increased from default 10 to 120 seconds
+            
+            for attempt in range(max_retries):
+                try:
+                    print(f"🎭 Vella attempt {attempt + 1}/{max_retries} (timeout: {timeout_seconds}s)...")
+                    out = replicate.run("omnious/vella-1.5", input=vella_input, timeout=timeout_seconds)
+                    print(f"✅ Vella API call succeeded on attempt {attempt + 1}!")
+                    print(f"🎭 Vella API response type: {type(out)}")
+                    if hasattr(out, '__dict__'):
+                        print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
+                    break  # Success, exit retry loop
+                except Exception as e:
+                    print(f"⚠️ Vella attempt {attempt + 1} failed: {e}")
+                    if attempt < max_retries - 1:
+                        wait_time = (attempt + 1) * 10  # Exponential backoff: 10s, 20s, 30s
+                        print(f"⏳ Waiting {wait_time}s before retry...")
+                        import time
+                        time.sleep(wait_time)
+                    else:
+                        print(f"❌ All {max_retries} Vella attempts failed, raising exception")
+                        raise e
             
             # Handle different return types
             if hasattr(out, 'url'):
@@ -2100,7 +2117,7 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
                 "num_inference_steps": num_steps,
                 "guidance_scale": guidance,
                 "strength": strength
-            })
+            }, timeout=120)
             
             # Handle different return types
             if hasattr(out, 'url'):
@@ -2133,7 +2150,7 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
                     "num_inference_steps": max(30, num_steps - 10),
                     "guidance_scale": max(5.0, guidance - 1.5),
                     "strength": max(0.5, strength - 0.15)
-                })
+                }, timeout=120)
                 if hasattr(safer_out, 'url'):
                     scene_composite_url = safer_out.url()
                 elif isinstance(safer_out, str):
