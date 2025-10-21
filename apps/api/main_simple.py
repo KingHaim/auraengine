@@ -1195,6 +1195,70 @@ async def generate_model(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/models/upload")
+async def upload_model(
+    name: str = Form(...),
+    description: str = Form(""),
+    image: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Upload a new model image"""
+    try:
+        # Validate image file
+        if not image.content_type or not image.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        
+        # Read image data
+        image_data = await image.read()
+        
+        # Upload to Cloudinary
+        print(f"📤 Uploading model image to Cloudinary...")
+        cloudinary_url = upload_to_cloudinary(
+            f"data:image/{image.content_type.split('/')[-1]};base64,{base64.b64encode(image_data).decode()}",
+            "models"
+        )
+        
+        if not cloudinary_url:
+            raise HTTPException(status_code=500, detail="Failed to upload image to Cloudinary")
+        
+        print(f"✅ Model image uploaded: {cloudinary_url}")
+        
+        # Create model in database
+        model = Model(
+            user_id=current_user["user_id"],
+            name=name,
+            description=description,
+            image_url=cloudinary_url,
+            poses=[]  # Empty poses array, can be populated later
+        )
+        
+        db.add(model)
+        db.commit()
+        db.refresh(model)
+        
+        print(f"✅ Model created with ID: {model.id}")
+        
+        return {
+            "model": {
+                "id": model.id,
+                "name": model.name,
+                "description": model.description,
+                "image_url": model.image_url,
+                "poses": model.poses,
+                "created_at": model.created_at
+            },
+            "message": f"Model '{name}' uploaded successfully!"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Model upload failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/models/{model_id}/generate-poses")
 async def generate_poses(
     model_id: str,
