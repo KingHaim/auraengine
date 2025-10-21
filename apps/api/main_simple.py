@@ -1199,23 +1199,24 @@ async def generate_model(
 async def upload_model(
     name: str = Form(...),
     description: str = Form(""),
-    image: UploadFile = File(...),
+    gender: str = Form(""),
+    model_image: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Upload a new model image"""
     try:
         # Validate image file
-        if not image.content_type or not image.content_type.startswith('image/'):
+        if not model_image.content_type or not model_image.content_type.startswith('image/'):
             raise HTTPException(status_code=400, detail="File must be an image")
         
         # Read image data
-        image_data = await image.read()
+        image_data = await model_image.read()
         
         # Upload to Cloudinary
         print(f"📤 Uploading model image to Cloudinary...")
         cloudinary_url = upload_to_cloudinary(
-            f"data:image/{image.content_type.split('/')[-1]};base64,{base64.b64encode(image_data).decode()}",
+            f"data:image/{model_image.content_type.split('/')[-1]};base64,{base64.b64encode(image_data).decode()}",
             "models"
         )
         
