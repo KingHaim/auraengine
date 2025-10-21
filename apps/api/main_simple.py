@@ -2570,7 +2570,7 @@ def run_wan_video_generation(image_url: str, video_quality: str = "480p", custom
             "wan-video/wan-2.2-i2v-fast",
             input={
                 "image": image_url,
-                "prompt": custom_prompt or "slow subtle poses, minimal movement, elegant and refined, professional cinematic quality",
+                "prompt": custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness",
                 "num_frames": num_frames,
                 "fps": fps
             }
@@ -2630,7 +2630,7 @@ def run_seedance_video_generation(image_url: str, video_quality: str = "480p", d
             "bytedance/seedance-1-pro",
             input={
                 "image": image_url,
-                "prompt": custom_prompt or "slow subtle poses, minimal movement, elegant and refined, professional cinematic quality",
+                "prompt": custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness",
                 "resolution": resolution,
                 "duration": duration_seconds  # INTEGER, not string!
             }
@@ -2692,7 +2692,7 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         out = replicate.run(
             "google/veo-3.1",
             input={
-                "prompt": custom_prompt or "slow subtle poses, minimal movement, elegant and refined, professional cinematic quality",
+                "prompt": custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness",
                 "reference_image": image_url,
                 "aspect_ratio": aspect_ratio,
                 "duration": duration_seconds,
