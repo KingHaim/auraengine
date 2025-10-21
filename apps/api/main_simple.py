@@ -522,51 +522,8 @@ async def generate_campaign_images_background(
                             # Vella result is already persisted in run_vella_try_on
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
-                            # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
-                            is_closeup = shot_type['name'] in ['upper_closeup', 'lower_closeup']
-                            if is_closeup:
-                                print(f"🍌 Step 3: Enhancing close-up with Nano Banana (img2img)...")
-                                try:
-                                    # Convert Vella result URL to base64 for Nano Banana if needed
-                                    if vella_result_url.startswith(get_base_url() + "/static/"):
-                                        filename = vella_result_url.replace(get_base_url() + "/static/", "")
-                                        filepath = f"uploads/{filename}"
-                                        nb_input = upload_to_replicate(filepath)
-                                    elif vella_result_url.startswith("https://replicate.delivery/"):
-                                        nb_input = vella_result_url
-                                    else:
-                                        nb_input = vella_result_url
-                                    
-                                    # Apply Nano Banana img2img using 'instructions' parameter for image editing
-                                    nano_result = replicate.run(
-                                        "google/nano-banana",
-                                        input={
-                                            "instructions": f"Enhance the clothing details and fabric texture. Make the {product.name} look more realistic with sharp focus on fabric folds, stitching, and material quality. Preserve the model's appearance and overall composition. Professional fashion photography style.",
-                                            "image": nb_input,
-                                            "num_inference_steps": 28,
-                                            "guidance_scale": 5.5,
-                                            "strength": 0.35  # Moderate strength to preserve Vella's work but enhance details
-                                        }
-                                    )
-                                    
-                                    # Handle Nano Banana output
-                                    if hasattr(nano_result, 'url'):
-                                        nano_url = nano_result.url()
-                                    elif isinstance(nano_result, str):
-                                        nano_url = nano_result
-                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
-                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                                    else:
-                                        nano_url = str(nano_result)
-                                    
-                                    print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
-                                    final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
-                                except Exception as e:
-                                    print(f"⚠️ Nano Banana failed, using Vella result: {e}")
-                                    final_result_url = vella_result_url
-                            else:
-                                # For non-closeup shots, use Vella result directly
-                                final_result_url = vella_result_url
+                            # Step 3: Use Vella result directly (Nano Banana will be applied after Qwen final)
+                            final_result_url = vella_result_url
                             
                             # Step 4: Final Qwen scene integration to restore/enhance scene background
                             print(f"🎨 Step 4: Final scene integration with Qwen...")
@@ -590,6 +547,47 @@ async def generate_campaign_images_background(
                             except Exception as e:
                                 print(f"⚠️ Final scene integration failed, using previous result: {e}")
                                 # Keep the previous result if scene integration fails
+                            
+                            # Step 5: Apply Nano Banana to enhance realism and quality
+                            print(f"🍌 Step 5: Enhancing realism with Nano Banana...")
+                            try:
+                                # Convert final result URL to base64 for Nano Banana if needed
+                                if final_result_url.startswith(get_base_url() + "/static/"):
+                                    filename = final_result_url.replace(get_base_url() + "/static/", "")
+                                    filepath = f"uploads/{filename}"
+                                    nb_input = upload_to_replicate(filepath)
+                                elif final_result_url.startswith("https://replicate.delivery/"):
+                                    nb_input = final_result_url
+                                else:
+                                    nb_input = final_result_url
+                                
+                                # Apply Nano Banana img2img for enhanced realism
+                                nano_result = replicate.run(
+                                    "google/nano-banana",
+                                    input={
+                                        "instructions": f"Enhance the overall realism and quality of this fashion image. Improve skin texture, fabric details, lighting, and overall photographic quality. Make it look like a professional fashion photography shot. Preserve the model's appearance, clothing, and scene composition while enhancing realism.",
+                                        "image": nb_input,
+                                        "num_inference_steps": 28,
+                                        "guidance_scale": 5.5,
+                                        "strength": 0.25  # Lower strength to preserve composition while enhancing realism
+                                    }
+                                )
+                                
+                                # Handle Nano Banana output
+                                if hasattr(nano_result, 'url'):
+                                    nano_url = nano_result.url()
+                                elif isinstance(nano_result, str):
+                                    nano_url = nano_result
+                                elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                    nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                else:
+                                    nano_url = str(nano_result)
+                                
+                                print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+                                final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
+                            except Exception as e:
+                                print(f"⚠️ Nano Banana failed, using previous result: {e}")
+                                # Keep the previous result if Nano Banana fails
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
@@ -844,51 +842,8 @@ async def generate_campaign_images(
                             # Vella result is already persisted in run_vella_try_on
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
-                            # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
-                            is_closeup = shot_type['name'] in ['upper_closeup', 'lower_closeup']
-                            if is_closeup:
-                                print(f"🍌 Step 3: Enhancing close-up with Nano Banana (img2img)...")
-                                try:
-                                    # Convert Vella result URL to base64 for Nano Banana if needed
-                                    if vella_result_url.startswith(get_base_url() + "/static/"):
-                                        filename = vella_result_url.replace(get_base_url() + "/static/", "")
-                                        filepath = f"uploads/{filename}"
-                                        nb_input = upload_to_replicate(filepath)
-                                    elif vella_result_url.startswith("https://replicate.delivery/"):
-                                        nb_input = vella_result_url
-                                    else:
-                                        nb_input = vella_result_url
-                                    
-                                    # Apply Nano Banana img2img using 'instructions' parameter for image editing
-                                    nano_result = replicate.run(
-                                        "google/nano-banana",
-                                        input={
-                                            "instructions": f"Enhance the clothing details and fabric texture. Make the {product.name} look more realistic with sharp focus on fabric folds, stitching, and material quality. Preserve the model's appearance and overall composition. Professional fashion photography style.",
-                                            "image": nb_input,
-                                            "num_inference_steps": 28,
-                                            "guidance_scale": 5.5,
-                                            "strength": 0.35  # Moderate strength to preserve Vella's work but enhance details
-                                        }
-                                    )
-                                    
-                                    # Handle Nano Banana output
-                                    if hasattr(nano_result, 'url'):
-                                        nano_url = nano_result.url()
-                                    elif isinstance(nano_result, str):
-                                        nano_url = nano_result
-                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
-                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                                    else:
-                                        nano_url = str(nano_result)
-                                    
-                                    print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
-                                    final_result_url = nano_url
-                                except Exception as e:
-                                    print(f"⚠️ Nano Banana failed, using Vella result: {e}")
-                                    final_result_url = vella_result_url
-                            else:
-                                # For non-closeup shots, use Vella result directly
-                                final_result_url = vella_result_url
+                            # Step 3: Use Vella result directly (Nano Banana will be applied after Qwen final)
+                            final_result_url = vella_result_url
                             
                             # Step 4: Final Qwen scene integration to restore/enhance scene background
                             print(f"🎨 Step 4: Final scene integration with Qwen...")
@@ -912,6 +867,47 @@ async def generate_campaign_images(
                             except Exception as e:
                                 print(f"⚠️ Final scene integration failed, using previous result: {e}")
                                 # Keep the previous result if scene integration fails
+                            
+                            # Step 5: Apply Nano Banana to enhance realism and quality
+                            print(f"🍌 Step 5: Enhancing realism with Nano Banana...")
+                            try:
+                                # Convert final result URL to base64 for Nano Banana if needed
+                                if final_result_url.startswith(get_base_url() + "/static/"):
+                                    filename = final_result_url.replace(get_base_url() + "/static/", "")
+                                    filepath = f"uploads/{filename}"
+                                    nb_input = upload_to_replicate(filepath)
+                                elif final_result_url.startswith("https://replicate.delivery/"):
+                                    nb_input = final_result_url
+                                else:
+                                    nb_input = final_result_url
+                                
+                                # Apply Nano Banana img2img for enhanced realism
+                                nano_result = replicate.run(
+                                    "google/nano-banana",
+                                    input={
+                                        "instructions": f"Enhance the overall realism and quality of this fashion image. Improve skin texture, fabric details, lighting, and overall photographic quality. Make it look like a professional fashion photography shot. Preserve the model's appearance, clothing, and scene composition while enhancing realism.",
+                                        "image": nb_input,
+                                        "num_inference_steps": 28,
+                                        "guidance_scale": 5.5,
+                                        "strength": 0.25  # Lower strength to preserve composition while enhancing realism
+                                    }
+                                )
+                                
+                                # Handle Nano Banana output
+                                if hasattr(nano_result, 'url'):
+                                    nano_url = nano_result.url()
+                                elif isinstance(nano_result, str):
+                                    nano_url = nano_result
+                                elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                    nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                else:
+                                    nano_url = str(nano_result)
+                                
+                                print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+                                final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
+                            except Exception as e:
+                                print(f"⚠️ Nano Banana failed, using previous result: {e}")
+                                # Keep the previous result if Nano Banana fails
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
