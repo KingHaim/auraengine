@@ -312,6 +312,9 @@ export default function CampaignsPage() {
     // Close modal immediately when generation starts
     setShowCreateModal(false);
     
+    // Refresh campaigns list immediately to show the campaign with "generating" status
+    await fetchData();
+    
     try {
       const formData = new FormData();
       formData.append("name", newCampaign.name);
