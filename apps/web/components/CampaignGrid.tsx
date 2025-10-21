@@ -9,7 +9,11 @@ type ApiCampaign = {
   settings?: any;
 };
 
-export default function CampaignGrid() {
+type CampaignGridProps = {
+  refreshTrigger?: number;
+};
+
+export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
   const [campaigns, setCampaigns] = useState<ApiCampaign[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,12 +42,9 @@ export default function CampaignGrid() {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/campaigns`,
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/campaigns`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (res.ok) {
         const data = await res.json();
         setCampaigns(data);
@@ -58,6 +59,13 @@ export default function CampaignGrid() {
   useEffect(() => {
     fetchCampaigns();
   }, []);
+
+  // Refresh campaigns when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0) {
+      fetchCampaigns();
+    }
+  }, [refreshTrigger]);
 
   // Polling for generating campaigns
   useEffect(() => {
@@ -96,14 +104,18 @@ export default function CampaignGrid() {
               <div
                 key={campaign.id}
                 className={`bg-gray-800 rounded-2xl p-4 border border-gray-700 ${
-                  campaign.generation_status === "generating" ? "opacity-75" : ""
+                  campaign.generation_status === "generating"
+                    ? "opacity-75"
+                    : ""
                 }`}
               >
                 <div className="aspect-video bg-gray-700 rounded-lg mb-4 flex items-center justify-center relative">
                   {campaign.generation_status === "generating" ? (
                     <div className="flex flex-col items-center justify-center text-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mb-2"></div>
-                      <div className="text-white text-sm font-medium">Generando...</div>
+                      <div className="text-white text-sm font-medium">
+                        Generando...
+                      </div>
                     </div>
                   ) : thumb ? (
                     <img

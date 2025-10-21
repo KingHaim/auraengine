@@ -3,6 +3,14 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import AppLayout from "../../components/AppLayout";
 
+// Add CSS for spinner animation
+const spinnerCSS = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
 interface Product {
   id: string;
   name: string;
@@ -56,6 +64,7 @@ interface Campaign {
   name: string;
   description?: string;
   status: string;
+  generation_status: string;
   settings: any;
   generations?: Generation[];
   created_at: string;
@@ -64,6 +73,16 @@ interface Campaign {
 
 export default function CampaignsPage() {
   const { user, token, loading } = useAuth();
+
+  // Inject spinner CSS
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = spinnerCSS;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -308,10 +327,10 @@ export default function CampaignsPage() {
     });
 
     setIsCreating(true);
-    
+
     // Close modal immediately when generation starts
     setShowCreateModal(false);
-    
+
     try {
       const formData = new FormData();
       formData.append("name", newCampaign.name);
@@ -336,10 +355,10 @@ export default function CampaignsPage() {
       if (response.ok) {
         const result = await response.json();
         console.log("✅ Campaign created:", result);
-        
+
         // Refresh campaigns list immediately to show the campaign with "generating" status
         await fetchData();
-        
+
         alert(
           `✅ Campaign "${result.campaign.name}" created successfully! ${result.total_combinations} images will be generated. Credits remaining: ${result.credits_remaining}`
         );
@@ -1358,6 +1377,7 @@ export default function CampaignsPage() {
                     cursor: "pointer",
                     position: "relative",
                     background: "#FFFFFF",
+                    opacity: campaign.generation_status === "generating" ? 0.75 : 1,
                     boxShadow: selectedCampaigns.has(campaign.id)
                       ? "0 0 0 3px #8B5CF6"
                       : "0 2px 8px rgba(0,0,0,0.08)",
@@ -1447,7 +1467,40 @@ export default function CampaignsPage() {
                       backgroundColor: "#F3F4F6",
                     }}
                   >
-                    {campaign.settings?.generated_images?.[0]?.image_url ? (
+                    {campaign.generation_status === "generating" ? (
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: "#374151",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "32px",
+                            height: "32px",
+                            border: "2px solid #ffffff",
+                            borderTop: "2px solid transparent",
+                            borderRadius: "50%",
+                            animation: "spin 1s linear infinite",
+                            marginBottom: "8px",
+                          }}
+                        />
+                        <div
+                          style={{
+                            color: "#ffffff",
+                            fontSize: "14px",
+                            fontWeight: "500",
+                          }}
+                        >
+                          Generando...
+                        </div>
+                      </div>
+                    ) : campaign.settings?.generated_images?.[0]?.image_url ? (
                       <img
                         src={campaign.settings.generated_images[0].image_url}
                         alt={campaign.name}
@@ -1553,6 +1606,32 @@ export default function CampaignsPage() {
                           (img: any) => img.video_url
                         )?.length || 0}
                       </span>
+                      {campaign.generation_status === "generating" && (
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            color: "#3B82F6",
+                            fontWeight: "500",
+                          }}
+                        >
+                          ⏳ Generando...
+                        </span>
+                      )}
+                      {campaign.generation_status === "failed" && (
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            color: "#EF4444",
+                            fontWeight: "500",
+                          }}
+                        >
+                          ❌ Error
+                        </span>
+                      )}
                       <span
                         style={{
                           marginLeft: "auto",
