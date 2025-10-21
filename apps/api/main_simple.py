@@ -1868,15 +1868,14 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             
             print(f"🎭 Vella input keys: {list(vella_input.keys())}")
             
-            # Call Vella 1.5 with timeout and retry logic
+            # Call Vella 1.5 with retry logic
             print("🔄 Calling Replicate Vella 1.5...")
             max_retries = 3
-            timeout_seconds = 120  # Increased from default 10 to 120 seconds
             
             for attempt in range(max_retries):
                 try:
-                    print(f"🎭 Vella attempt {attempt + 1}/{max_retries} (timeout: {timeout_seconds}s)...")
-                    out = replicate.run("omnious/vella-1.5", input=vella_input, timeout=timeout_seconds)
+                    print(f"🎭 Vella attempt {attempt + 1}/{max_retries}...")
+                    out = replicate.run("omnious/vella-1.5", input=vella_input)
                     print(f"✅ Vella API call succeeded on attempt {attempt + 1}!")
                     print(f"🎭 Vella API response type: {type(out)}")
                     if hasattr(out, '__dict__'):
@@ -2117,7 +2116,7 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
                 "num_inference_steps": num_steps,
                 "guidance_scale": guidance,
                 "strength": strength
-            }, timeout=120)
+            })
             
             # Handle different return types
             if hasattr(out, 'url'):
@@ -2150,7 +2149,7 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
                     "num_inference_steps": max(30, num_steps - 10),
                     "guidance_scale": max(5.0, guidance - 1.5),
                     "strength": max(0.5, strength - 0.15)
-                }, timeout=120)
+                })
                 if hasattr(safer_out, 'url'):
                     scene_composite_url = safer_out.url()
                 elif isinstance(safer_out, str):
