@@ -437,52 +437,24 @@ async def get_campaigns(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/campaigns/create")
-async def create_campaign(
-    name: str = Form(...),
-    description: str = Form(""),
-    product_ids: str = Form(...),  # JSON string
-    model_ids: str = Form(...),    # JSON string
-    scene_ids: str = Form(...),    # JSON string
-    selected_poses: str = Form("{}"),  # JSON string
-    number_of_images: int = Form(7),
-    current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db)
+async def generate_campaign_images_background(
+    campaign_id: str,
+    product_id_list: list,
+    model_id_list: list,
+    scene_id_list: list,
+    selected_poses_dict: dict,
+    number_of_images: int,
+    db: Session
 ):
-    """Create a new campaign"""
+    """Generate campaign images in background"""
     try:
-        import json
+        # Get campaign from database
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+        if not campaign:
+            print(f"❌ Campaign {campaign_id} not found")
+            return
         
-        # Parse JSON strings
-        product_id_list = json.loads(product_ids)
-        model_id_list = json.loads(model_ids)
-        scene_id_list = json.loads(scene_ids)
-        selected_poses_dict = json.loads(selected_poses)
-        
-        if not product_id_list or not model_id_list or not scene_id_list:
-            raise HTTPException(status_code=400, detail="Please select at least one product, model, and scene")
-        
-        # Create campaign
-        campaign = Campaign(
-            user_id=current_user["user_id"],
-            name=name,
-            description=description,
-            status="draft",
-            generation_status="generating",
-            settings={
-                "product_ids": product_id_list,
-                "model_ids": model_id_list,
-                "scene_ids": scene_id_list,
-                "selected_poses": selected_poses_dict,
-                "generated_images": []
-            }
-        )
-        db.add(campaign)
-        db.commit()
-        db.refresh(campaign)
-        
-        # Generate images automatically
-        print(f"🎯 Auto-generating images for campaign: {name}")
+        print(f"🎯 Starting background generation for campaign: {campaign.name}")
         
         products = db.query(Product).filter(Product.id.in_(product_id_list)).all()
         models = db.query(Model).filter(Model.id.in_(model_id_list)).all()
@@ -661,13 +633,89 @@ async def create_campaign(
         db.commit()
         db.refresh(campaign)
         
-        print(f"🎉 Campaign created with {len(generated_images)} images")
+        print(f"🎉 Campaign generation completed with {len(generated_images)} images")
         
-        return {
+    except Exception as e:
+        print(f"❌ Background generation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Update campaign status to failed
+        try:
+            campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+            if campaign:
+                campaign.generation_status = "failed"
+                db.commit()
+        except Exception as update_error:
+            print(f"❌ Failed to update campaign status: {update_error}")
+
+@app.post("/campaigns/create")
+async def create_campaign(
+    name: str = Form(...),
+    description: str = Form(""),
+    product_ids: str = Form(...),  # JSON string
+    model_ids: str = Form(...),    # JSON string
+    scene_ids: str = Form(...),    # JSON string
+    selected_poses: str = Form("{}"),  # JSON string
+    number_of_images: int = Form(7),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create a new campaign"""
+    try:
+        import json
+        
+        # Parse JSON strings
+        product_id_list = json.loads(product_ids)
+        model_id_list = json.loads(model_ids)
+        scene_id_list = json.loads(scene_ids)
+        selected_poses_dict = json.loads(selected_poses)
+        
+        if not product_id_list or not model_id_list or not scene_id_list:
+            raise HTTPException(status_code=400, detail="Please select at least one product, model, and scene")
+        
+        # Create campaign
+        campaign = Campaign(
+            user_id=current_user["user_id"],
+            name=name,
+            description=description,
+            status="draft",
+            generation_status="generating",
+            settings={
+                "product_ids": product_id_list,
+                "model_ids": model_id_list,
+                "scene_ids": scene_id_list,
+                "selected_poses": selected_poses_dict,
+                "generated_images": []
+            }
+        )
+        db.add(campaign)
+        db.commit()
+        db.refresh(campaign)
+        
+        # Return the campaign immediately so frontend can show it with "generating" status
+        print(f"🎯 Campaign created with ID: {campaign.id}, starting generation...")
+        
+        # Return immediately so frontend can show the campaign with "generating" status
+        response_data = {
             "campaign": CampaignResponse.model_validate(campaign),
-            "message": f"Campaign '{name}' created with {len(generated_images)} images across {len(shot_types_to_generate)} shot types!",
-            "generated_images": generated_images
+            "message": f"Campaign '{name}' created and generation started!",
+            "generated_images": []
         }
+        
+        # Start generation in background (this will run after the response is sent)
+        import asyncio
+        asyncio.create_task(generate_campaign_images_background(
+            campaign.id, 
+            product_id_list, 
+            model_id_list, 
+            scene_id_list, 
+            selected_poses_dict, 
+            number_of_images,
+            db
+        ))
+        
+        return response_data
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON format")
     except Exception as e:
