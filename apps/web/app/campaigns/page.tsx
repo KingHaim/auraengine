@@ -312,9 +312,6 @@ export default function CampaignsPage() {
     // Close modal immediately when generation starts
     setShowCreateModal(false);
     
-    // Refresh campaigns list immediately to show the campaign with "generating" status
-    await fetchData();
-    
     try {
       const formData = new FormData();
       formData.append("name", newCampaign.name);
@@ -339,12 +336,13 @@ export default function CampaignsPage() {
       if (response.ok) {
         const result = await response.json();
         console.log("✅ Campaign created:", result);
+        
+        // Refresh campaigns list immediately to show the campaign with "generating" status
+        await fetchData();
+        
         alert(
           `✅ Campaign "${result.campaign.name}" created successfully! ${result.total_combinations} images will be generated. Credits remaining: ${result.credits_remaining}`
         );
-
-        // Refresh campaigns list
-        await fetchData();
 
         // Reset form
         setNewCampaign({ name: "", description: "" });
