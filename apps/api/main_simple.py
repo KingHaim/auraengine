@@ -433,7 +433,7 @@ async def get_campaigns(
     """Get all campaigns for the current user"""
     try:
         campaigns = db.query(Campaign).filter(Campaign.user_id == current_user["user_id"]).all()
-        return campaigns
+        return [CampaignResponse.model_validate(campaign) for campaign in campaigns]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
