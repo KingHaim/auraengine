@@ -3257,16 +3257,9 @@ async def generate_videos_for_campaign(
                         failed_count += 1
                         continue
                     
-                    # Check if video already exists
-                    if img_data.get("video_url"):
-                        print(f"⚠️ Skipping image {i+1}: Video already exists")
-                        results.append({
-                            "index": i,
-                            "status": "skipped",
-                            "message": "Video already exists",
-                            "video_url": img_data["video_url"]
-                        })
-                        continue
+                    # Allow multiple video generations for the same image
+                    # Removed restriction: if img_data.get("video_url"):
+                    # Users can now generate multiple videos for the same image
                     
                     print(f"🎬 Generating video {i+1}/{len(selected_images)} for image: {image_url[:50]}...")
                     
@@ -3371,12 +3364,9 @@ async def generate_video_for_generation(
         if not generation:
             raise HTTPException(status_code=404, detail="Generation not found")
         
-        # Check if video already exists
-        if generation.video_urls and len(generation.video_urls) > 0:
-            return {
-                "message": "Video already exists for this generation",
-                "video_url": generation.video_urls[0]
-            }
+        # Allow multiple video generations for the same image
+        # Removed restriction: if generation.video_urls and len(generation.video_urls) > 0:
+        # Users can now generate multiple videos for the same image
         
         # Get user
         user = db.query(User).filter(User.id == current_user["user_id"]).first()
