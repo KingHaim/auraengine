@@ -502,91 +502,97 @@ async def create_campaign(
                             # REAL WORKFLOW (local-success): Qwen first, then Vella
                             quality_mode = "standard"
 
-                            # NEW APPROACH: Single-step Qwen triple composition (model + product + scene)
-                            # Stabilize inputs to avoid replicate 404s
+                            # Step 1: Compose model into the scene with shot type (persist inputs first)
+                            # Stabilize model pose to /static to avoid replicate 404s
                             stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
-                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            
-                            print(f"🎨 Single-step triple composition: model + {product.name} + {scene.name}...")
-                            final_result_url = run_qwen_triple_composition(
+                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
+                            qwen_result_url = run_qwen_scene_composition(
                                 stable_model,
-                                stable_product,
                                 stable_scene,
-                                product.name,
-                                quality_mode
+                                quality_mode,
+                                shot_type_prompt=shot_type['prompt']
                             )
-                            print(f"✅ Triple composition completed: {final_result_url[:50]}...")
-                            
-                            # OLD 3-STEP WORKFLOW (COMMENTED OUT FOR REVERSION):
-                            # # Step 1: Compose model into the scene with shot type (persist inputs first)
-                            # # Stabilize model pose to /static to avoid replicate 404s
-                            # stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
-                            # stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            # print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
-                            # qwen_result_url = run_qwen_scene_composition(
-                            #     stable_model,
-                            #     stable_scene,
-                            #     quality_mode,
-                            #     shot_type_prompt=shot_type['prompt']
-                            # )
-                            # # Qwen result is already persisted in run_qwen_scene_composition
-                            # print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
+                            # Qwen result is already persisted in run_qwen_scene_composition
+                            print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
 
-                            # # Step 2: Apply Vella try-on on the composed image
-                            # print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
-                            # clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
-                            # # Stabilize garment to /static (PNG with alpha already handled inside run_vella_try_on)
-                            # stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
-                            # vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
-                            # # Vella result is already persisted in run_vella_try_on
-                            # print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
+                            # Step 2: Apply Vella try-on on the composed image
+                            print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
+                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
+                            # Stabilize garment to /static (PNG with alpha already handled inside run_vella_try_on)
+                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
+                            vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
+                            # Vella result is already persisted in run_vella_try_on
+                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
-                            # # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
-                            # is_closeup = shot_type['name'] in ['upper_closeup', 'lower_closeup']
-                            # if is_closeup:
-                            #     print(f"🍌 Step 3: Enhancing close-up with Nano Banana (img2img)...")
-                            #     try:
-                            #         # Convert Vella result URL to base64 for Nano Banana if needed
-                            #         if vella_result_url.startswith(get_base_url() + "/static/"):
-                            #             filename = vella_result_url.replace(get_base_url() + "/static/", "")
-                            #             filepath = f"uploads/{filename}"
-                            #             nb_input = upload_to_replicate(filepath)
-                            #         elif vella_result_url.startswith("https://replicate.delivery/"):
-                            #             nb_input = vella_result_url
-                            #         else:
-                            #             nb_input = vella_result_url
+                            # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
+                            is_closeup = shot_type['name'] in ['upper_closeup', 'lower_closeup']
+                            if is_closeup:
+                                print(f"🍌 Step 3: Enhancing close-up with Nano Banana (img2img)...")
+                                try:
+                                    # Convert Vella result URL to base64 for Nano Banana if needed
+                                    if vella_result_url.startswith(get_base_url() + "/static/"):
+                                        filename = vella_result_url.replace(get_base_url() + "/static/", "")
+                                        filepath = f"uploads/{filename}"
+                                        nb_input = upload_to_replicate(filepath)
+                                    elif vella_result_url.startswith("https://replicate.delivery/"):
+                                        nb_input = vella_result_url
+                                    else:
+                                        nb_input = vella_result_url
                                     
-                            #         # Apply Nano Banana img2img using 'instructions' parameter for image editing
-                            #         nano_result = replicate.run(
-                            #             "google/nano-banana",
-                            #             input={
-                            #                 "instructions": f"Enhance the clothing details and fabric texture. Make the {product.name} look more realistic with sharp focus on fabric folds, stitching, and material quality. Preserve the model's appearance and overall composition. Professional fashion photography style.",
-                            #                 "image": nb_input,
-                            #                 "num_inference_steps": 28,
-                            #                 "guidance_scale": 5.5,
-                            #                 "strength": 0.35  # Moderate strength to preserve Vella's work but enhance details
-                            #             }
-                            #         )
+                                    # Apply Nano Banana img2img using 'instructions' parameter for image editing
+                                    nano_result = replicate.run(
+                                        "google/nano-banana",
+                                        input={
+                                            "instructions": f"Enhance the clothing details and fabric texture. Make the {product.name} look more realistic with sharp focus on fabric folds, stitching, and material quality. Preserve the model's appearance and overall composition. Professional fashion photography style.",
+                                            "image": nb_input,
+                                            "num_inference_steps": 28,
+                                            "guidance_scale": 5.5,
+                                            "strength": 0.35  # Moderate strength to preserve Vella's work but enhance details
+                                        }
+                                    )
                                     
-                            #         # Handle Nano Banana output
-                            #         if hasattr(nano_result, 'url'):
-                            #             nano_url = nano_result.url()
-                            #         elif isinstance(nano_result, str):
-                            #             nano_url = nano_result
-                            #         elif isinstance(nano_result, list) and len(nano_result) > 0:
-                            #             nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                            #         else:
-                            #             nano_url = str(nano_result)
+                                    # Handle Nano Banana output
+                                    if hasattr(nano_result, 'url'):
+                                        nano_url = nano_result.url()
+                                    elif isinstance(nano_result, str):
+                                        nano_url = nano_result
+                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                    else:
+                                        nano_url = str(nano_result)
                                     
-                            #         print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
-                            #         final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
-                            #     except Exception as e:
-                            #         print(f"⚠️ Nano Banana failed, using Vella result: {e}")
-                            #         final_result_url = vella_result_url
-                            # else:
-                            #     # For non-closeup shots, use Vella result directly
-                            #     final_result_url = vella_result_url
+                                    print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+                                    final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
+                                except Exception as e:
+                                    print(f"⚠️ Nano Banana failed, using Vella result: {e}")
+                                    final_result_url = vella_result_url
+                            else:
+                                # For non-closeup shots, use Vella result directly
+                                final_result_url = vella_result_url
+                            
+                            # Step 4: Final Qwen scene integration to restore/enhance scene background
+                            print(f"🎨 Step 4: Final scene integration with Qwen...")
+                            try:
+                                # Use the dressed model and original scene for final integration
+                                scene_integration_prompt = (
+                                    f"Take the person wearing {product.name} from the first image and integrate them into the scene from the second image. "
+                                    f"Preserve the clothing and model's appearance but ensure they fit naturally into the scene environment. "
+                                    f"Match the lighting, shadows, and atmosphere of the scene. "
+                                    f"Create a cohesive composition where the person looks naturally placed in the environment. "
+                                    f"Professional fashion photography with dramatic scene lighting."
+                                )
+                                
+                                final_result_url = run_qwen_scene_composition(
+                                    final_result_url,  # Dressed model from Vella/Nano Banana
+                                    stable_scene,      # Original scene
+                                    quality_mode,
+                                    shot_type_prompt=scene_integration_prompt
+                                )
+                                print(f"✅ Final scene integration completed: {final_result_url[:50]}...")
+                            except Exception as e:
+                                print(f"⚠️ Final scene integration failed, using previous result: {e}")
+                                # Keep the previous result if scene integration fails
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
@@ -718,89 +724,95 @@ async def generate_campaign_images(
                             # REAL WORKFLOW (local-success): Qwen first, then Vella
                             quality_mode = "standard"
 
-                            # NEW APPROACH: Single-step Qwen triple composition (model + product + scene)
-                            # Stabilize inputs to avoid replicate 404s
+                            # Step 1: Compose model into the scene with shot type (persist inputs first)
                             stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
-                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            
-                            print(f"🎨 Single-step triple composition: model + {product.name} + {scene.name}...")
-                            final_result_url = run_qwen_triple_composition(
+                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
+                            qwen_result_url = run_qwen_scene_composition(
                                 stable_model,
-                                stable_product,
                                 stable_scene,
-                                product.name,
-                                quality_mode
+                                quality_mode,
+                                shot_type_prompt=shot_type['prompt']
                             )
-                            print(f"✅ Triple composition completed: {final_result_url[:50]}...")
-                            
-                            # OLD 3-STEP WORKFLOW (COMMENTED OUT FOR REVERSION):
-                            # # Step 1: Compose model into the scene with shot type (persist inputs first)
-                            # stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
-                            # stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            # print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
-                            # qwen_result_url = run_qwen_scene_composition(
-                            #     stable_model,
-                            #     stable_scene,
-                            #     quality_mode,
-                            #     shot_type_prompt=shot_type['prompt']
-                            # )
-                            # # Qwen result is already persisted in run_qwen_scene_composition
-                            # print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
+                            # Qwen result is already persisted in run_qwen_scene_composition
+                            print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
 
-                            # # Step 2: Apply Vella try-on on the composed image
-                            # print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
-                            # clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
-                            # stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
-                            # vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
-                            # # Vella result is already persisted in run_vella_try_on
-                            # print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
+                            # Step 2: Apply Vella try-on on the composed image
+                            print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
+                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
+                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
+                            vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
+                            # Vella result is already persisted in run_vella_try_on
+                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
-                            # # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
-                            # is_closeup = shot_type['name'] in ['upper_closeup', 'lower_closeup']
-                            # if is_closeup:
-                            #     print(f"🍌 Step 3: Enhancing close-up with Nano Banana (img2img)...")
-                            #     try:
-                            #         # Convert Vella result URL to base64 for Nano Banana if needed
-                            #         if vella_result_url.startswith(get_base_url() + "/static/"):
-                            #             filename = vella_result_url.replace(get_base_url() + "/static/", "")
-                            #             filepath = f"uploads/{filename}"
-                            #             nb_input = upload_to_replicate(filepath)
-                            #         elif vella_result_url.startswith("https://replicate.delivery/"):
-                            #             nb_input = vella_result_url
-                            #         else:
-                            #             nb_input = vella_result_url
+                            # Step 3: Apply Nano Banana ONLY for close-up shots to enhance clothing details
+                            is_closeup = shot_type['name'] in ['upper_closeup', 'lower_closeup']
+                            if is_closeup:
+                                print(f"🍌 Step 3: Enhancing close-up with Nano Banana (img2img)...")
+                                try:
+                                    # Convert Vella result URL to base64 for Nano Banana if needed
+                                    if vella_result_url.startswith(get_base_url() + "/static/"):
+                                        filename = vella_result_url.replace(get_base_url() + "/static/", "")
+                                        filepath = f"uploads/{filename}"
+                                        nb_input = upload_to_replicate(filepath)
+                                    elif vella_result_url.startswith("https://replicate.delivery/"):
+                                        nb_input = vella_result_url
+                                    else:
+                                        nb_input = vella_result_url
                                     
-                            #         # Apply Nano Banana img2img using 'instructions' parameter for image editing
-                            #         nano_result = replicate.run(
-                            #             "google/nano-banana",
-                            #             input={
-                            #                 "instructions": f"Enhance the clothing details and fabric texture. Make the {product.name} look more realistic with sharp focus on fabric folds, stitching, and material quality. Preserve the model's appearance and overall composition. Professional fashion photography style.",
-                            #                 "image": nb_input,
-                            #                 "num_inference_steps": 28,
-                            #                 "guidance_scale": 5.5,
-                            #                 "strength": 0.35  # Moderate strength to preserve Vella's work but enhance details
-                            #             }
-                            #         )
+                                    # Apply Nano Banana img2img using 'instructions' parameter for image editing
+                                    nano_result = replicate.run(
+                                        "google/nano-banana",
+                                        input={
+                                            "instructions": f"Enhance the clothing details and fabric texture. Make the {product.name} look more realistic with sharp focus on fabric folds, stitching, and material quality. Preserve the model's appearance and overall composition. Professional fashion photography style.",
+                                            "image": nb_input,
+                                            "num_inference_steps": 28,
+                                            "guidance_scale": 5.5,
+                                            "strength": 0.35  # Moderate strength to preserve Vella's work but enhance details
+                                        }
+                                    )
                                     
-                            #         # Handle Nano Banana output
-                            #         if hasattr(nano_result, 'url'):
-                            #             nano_url = nano_result.url()
-                            #         elif isinstance(nano_result, str):
-                            #             nano_url = nano_result
-                            #         elif isinstance(nano_result, list) and len(nano_result) > 0:
-                            #             nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                            #         else:
-                            #             nano_url = str(nano_result)
+                                    # Handle Nano Banana output
+                                    if hasattr(nano_result, 'url'):
+                                        nano_url = nano_result.url()
+                                    elif isinstance(nano_result, str):
+                                        nano_url = nano_result
+                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                    else:
+                                        nano_url = str(nano_result)
                                     
-                            #         print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
-                            #         final_result_url = nano_url
-                            #     except Exception as e:
-                            #         print(f"⚠️ Nano Banana failed, using Vella result: {e}")
-                            #         final_result_url = vella_result_url
-                            # else:
-                            #     # For non-closeup shots, use Vella result directly
-                            #     final_result_url = vella_result_url
+                                    print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+                                    final_result_url = nano_url
+                                except Exception as e:
+                                    print(f"⚠️ Nano Banana failed, using Vella result: {e}")
+                                    final_result_url = vella_result_url
+                            else:
+                                # For non-closeup shots, use Vella result directly
+                                final_result_url = vella_result_url
+                            
+                            # Step 4: Final Qwen scene integration to restore/enhance scene background
+                            print(f"🎨 Step 4: Final scene integration with Qwen...")
+                            try:
+                                # Use the dressed model and original scene for final integration
+                                scene_integration_prompt = (
+                                    f"Take the person wearing {product.name} from the first image and integrate them into the scene from the second image. "
+                                    f"Preserve the clothing and model's appearance but ensure they fit naturally into the scene environment. "
+                                    f"Match the lighting, shadows, and atmosphere of the scene. "
+                                    f"Create a cohesive composition where the person looks naturally placed in the environment. "
+                                    f"Professional fashion photography with dramatic scene lighting."
+                                )
+                                
+                                final_result_url = run_qwen_scene_composition(
+                                    final_result_url,  # Dressed model from Vella/Nano Banana
+                                    stable_scene,      # Original scene
+                                    quality_mode,
+                                    shot_type_prompt=scene_integration_prompt
+                                )
+                                print(f"✅ Final scene integration completed: {final_result_url[:50]}...")
+                            except Exception as e:
+                                print(f"⚠️ Final scene integration failed, using previous result: {e}")
+                                # Keep the previous result if scene integration fails
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
