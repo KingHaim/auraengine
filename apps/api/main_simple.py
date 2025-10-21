@@ -1621,6 +1621,37 @@ def enhance_with_nano_banana(image_url: str, prompt: str = "") -> str:
         print(f"Continuing with original image")
         return image_url
 
+def upload_pil_to_cloudinary(img: Image.Image, folder: str = "auraengine") -> str:
+    """
+    Upload a PIL Image to Cloudinary and return the public URL.
+    """
+    try:
+        # Check if Cloudinary is configured
+        if not (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
+            print("⚠️ Cloudinary not configured, falling back to local storage")
+            return upload_png(img)
+        
+        # Convert PIL Image to bytes
+        from io import BytesIO
+        img_buffer = BytesIO()
+        img.save(img_buffer, format='PNG')
+        img_buffer.seek(0)
+        
+        # Upload to Cloudinary
+        result = cloudinary.uploader.upload(
+            img_buffer,
+            folder=folder,
+            public_id=f"{folder}_{uuid.uuid4().hex}",
+            format="png",
+            resource_type="image"
+        )
+        cloudinary_url = result['secure_url']
+        print(f"✅ Uploaded PIL image to Cloudinary: {cloudinary_url[:50]}...")
+        return cloudinary_url
+    except Exception as e:
+        print(f"❌ Failed to upload PIL image to Cloudinary: {e}")
+        return upload_png(img)
+
 def upload_to_cloudinary(url: str, folder: str = "auraengine") -> str:
     """
     Upload an image to Cloudinary and return the public URL.
@@ -1833,7 +1864,7 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 print("🪄 Removing background from garment...")
                 cut = rembg_cutout(product_image_url)
                 cut = postprocess_cutout(cut)
-                garment_url = upload_png(cut)  # -> /static/ PNG URL
+                garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
                 print(f"🧵 Garment cutout saved: {garment_url}")
         except Exception as e:
             print(f"⚠️ Garment processing failed, using original: {e}")
