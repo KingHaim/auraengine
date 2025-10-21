@@ -565,11 +565,11 @@ async def generate_campaign_images_background(
                                 nano_result = replicate.run(
                                     "google/nano-banana",
                                     input={
-                                        "instructions": f"Enhance the overall realism and quality of this fashion image. Improve skin texture, fabric details, lighting, and overall photographic quality. Make it look like a professional fashion photography shot. Preserve the model's appearance, clothing, and scene composition while enhancing realism.",
+                                        "instructions": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
                                         "image": nb_input,
                                         "num_inference_steps": 28,
                                         "guidance_scale": 5.5,
-                                        "strength": 0.25  # Lower strength to preserve composition while enhancing realism
+                                        "strength": 0.4  # Higher strength for more dramatic realism enhancement
                                     }
                                 )
                                 
@@ -885,11 +885,11 @@ async def generate_campaign_images(
                                 nano_result = replicate.run(
                                     "google/nano-banana",
                                     input={
-                                        "instructions": f"Enhance the overall realism and quality of this fashion image. Improve skin texture, fabric details, lighting, and overall photographic quality. Make it look like a professional fashion photography shot. Preserve the model's appearance, clothing, and scene composition while enhancing realism.",
+                                        "instructions": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
                                         "image": nb_input,
                                         "num_inference_steps": 28,
                                         "guidance_scale": 5.5,
-                                        "strength": 0.25  # Lower strength to preserve composition while enhancing realism
+                                        "strength": 0.4  # Higher strength for more dramatic realism enhancement
                                     }
                                 )
                                 
