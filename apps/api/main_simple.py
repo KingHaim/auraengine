@@ -25,10 +25,29 @@ from typing import List, Optional
 from io import BytesIO
 from PIL import Image, ImageFilter, ImageOps
 from pydantic import BaseModel
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 # Environment variables
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+
+# Cloudinary configuration
+CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
+CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
+CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
+
+# Configure Cloudinary
+if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+    cloudinary.config(
+        cloud_name=CLOUDINARY_CLOUD_NAME,
+        api_key=CLOUDINARY_API_KEY,
+        api_secret=CLOUDINARY_API_SECRET
+    )
+    print("✅ Cloudinary configured successfully")
+else:
+    print("⚠️ Cloudinary not configured - using local storage fallback")
 
 # Helper functions for URL generation
 def get_base_url():
@@ -41,21 +60,21 @@ def get_static_url(filename: str) -> str:
 
 def stabilize_url(url: str, prefix: str) -> str:
     """
-    Persist ephemeral (replicate.delivery) or data URLs into uploads/ and return a stable /static URL.
-    Leaves already-stable /static URLs unchanged; returns original for other http(s).
+    Persist ephemeral (replicate.delivery) or data URLs to Cloudinary and return a stable URL.
+    Leaves already-stable URLs unchanged; returns original for other http(s).
     """
     try:
         if not isinstance(url, str):
             return url
-        # Already stable
-        if url.startswith(get_base_url() + "/static/"):
+        # Already stable (Cloudinary or static)
+        if url.startswith("https://res.cloudinary.com/") or url.startswith(get_base_url() + "/static/"):
             return url
-        # Data URL → save to uploads
+        # Data URL → upload to Cloudinary
         if url.startswith("data:image/"):
-            return download_and_save_image(url, prefix)
-        # Replicate ephemeral URL → save to uploads
+            return upload_to_cloudinary(url, prefix)
+        # Replicate ephemeral URL → upload to Cloudinary
         if url.startswith("https://replicate.delivery/"):
-            return download_and_save_image(url, prefix)
+            return upload_to_cloudinary(url, prefix)
         # Other http(s) URLs: leave as-is
         return url
     except Exception as e:
@@ -1049,7 +1068,7 @@ async def generate_model(
         local_model_urls = []
         for i, model_url in enumerate(model_urls):
             try:
-                local_url = download_and_save_image(model_url, f"generated_model_{i+1}")
+                local_url = upload_to_cloudinary(model_url, f"generated_model_{i+1}")
                 local_model_urls.append(local_url)
             except Exception as e:
                 print(f"⚠️ Failed to download model {i+1}, using original URL: {e}")
@@ -1173,7 +1192,7 @@ async def generate_poses(
                 
                 # Download and save immediately to avoid ephemeral URL expiration
                 if pose_url:
-                    stable_pose_url = download_and_save_image(pose_url, f"pose_{i+1}")
+                    stable_pose_url = upload_to_cloudinary(pose_url, f"pose_{i+1}")
                     poses.append(stable_pose_url)
                     print(f"✅ Pose {i+1} generated and saved: {stable_pose_url[:50]}...")
                 else:
@@ -1597,6 +1616,79 @@ def enhance_with_nano_banana(image_url: str, prompt: str = "") -> str:
         print(f"Continuing with original image")
         return image_url
 
+def upload_to_cloudinary(url: str, folder: str = "auraengine") -> str:
+    """
+    Upload an image to Cloudinary and return the public URL.
+    Supports:
+    - data:image/* base64
+    - http(s) URLs (replicate.delivery, etc.)
+    - local file paths
+    Falls back to returning the original url on failure.
+    """
+    try:
+        # Check if Cloudinary is configured
+        if not (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
+            print("⚠️ Cloudinary not configured, falling back to local storage")
+            return download_and_save_image(url, folder)
+        
+        # Handle data URL
+        if isinstance(url, str) and url.startswith("data:image/"):
+            try:
+                header, b64 = url.split(",", 1)
+                ctype = header.split(";")[0].split(":")[1].lower()
+                ext = "png" if "png" in ctype else ("webp" if "webp" in ctype else "jpg")
+                
+                # Upload to Cloudinary
+                result = cloudinary.uploader.upload(
+                    base64.b64decode(b64),
+                    folder=folder,
+                    public_id=f"{folder}_{uuid.uuid4().hex}",
+                    format=ext,
+                    resource_type="image"
+                )
+                cloudinary_url = result['secure_url']
+                print(f"✅ Uploaded data URL to Cloudinary: {cloudinary_url[:50]}...")
+                return cloudinary_url
+            except Exception as e:
+                print(f"❌ Failed to upload data URL to Cloudinary: {e}")
+                return download_and_save_image(url, folder)
+
+        # Handle http(s) URL
+        if isinstance(url, str) and (url.startswith("http://") or url.startswith("https://")):
+            try:
+                # Upload directly from URL to Cloudinary
+                result = cloudinary.uploader.upload(
+                    url,
+                    folder=folder,
+                    public_id=f"{folder}_{uuid.uuid4().hex}",
+                    resource_type="image"
+                )
+                cloudinary_url = result['secure_url']
+                print(f"✅ Uploaded URL to Cloudinary: {cloudinary_url[:50]}...")
+                return cloudinary_url
+            except Exception as e:
+                print(f"❌ Failed to upload URL to Cloudinary: {e}")
+                return download_and_save_image(url, folder)
+
+        # Handle local file path
+        try:
+            result = cloudinary.uploader.upload(
+                url,
+                folder=folder,
+                public_id=f"{folder}_{uuid.uuid4().hex}",
+                resource_type="image"
+            )
+            cloudinary_url = result['secure_url']
+            print(f"✅ Uploaded local file to Cloudinary: {cloudinary_url[:50]}...")
+            return cloudinary_url
+        except Exception as e:
+            print(f"❌ Failed to upload local file to Cloudinary: {e}")
+            return download_and_save_image(url, folder)
+
+    except Exception as e:
+        print(f"❌ Failed to process image with Cloudinary: {e}")
+        return download_and_save_image(url, folder)
+
 def download_and_save_image(url: str, prefix: str = "packshot") -> str:
     """
     Persist an image into uploads/ and return a stable /static URL.
@@ -1690,13 +1782,13 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
         # Force persist ephemeral replicate URLs to stable /static before calling Vella
         if isinstance(model_image_url, str) and model_image_url.startswith("https://replicate.delivery/"):
             try:
-                model_image_url = download_and_save_image(model_image_url, "vella_model")
+                model_image_url = upload_to_cloudinary(model_image_url, "vella_model")
                 print(f"🧩 Persisted model to /static for Vella: {model_image_url}")
             except Exception as e:
                 print(f"⚠️ Failed to persist model for Vella: {e}")
         if isinstance(product_image_url, str) and product_image_url.startswith("https://replicate.delivery/"):
             try:
-                product_image_url = download_and_save_image(product_image_url, "vella_product")
+                product_image_url = upload_to_cloudinary(product_image_url, "vella_product")
                 print(f"🧩 Persisted garment to /static for Vella: {product_image_url}")
             except Exception as e:
                 print(f"⚠️ Failed to persist garment for Vella: {e}")
@@ -1792,7 +1884,7 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             # Immediately persist Replicate URLs to avoid 404 errors
             if isinstance(try_on_url, str) and try_on_url.startswith("https://replicate.delivery/"):
                 try:
-                    try_on_url = download_and_save_image(try_on_url, "vella_try_on")
+                    try_on_url = upload_to_cloudinary(try_on_url, "vella_try_on")
                     print(f"✅ Persisted Vella result: {try_on_url[:50]}...")
                 except Exception as e:
                     print(f"⚠️ Failed to persist Vella result: {e}")
@@ -1927,9 +2019,9 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
         
         # Stabilize ephemeral replicate.delivery inputs by persisting locally first
         if isinstance(model_image_url, str) and model_image_url.startswith("https://replicate.delivery/"):
-            model_image_url = download_and_save_image(model_image_url, "qwen_model")
+            model_image_url = upload_to_cloudinary(model_image_url, "qwen_model")
         if isinstance(scene_image_url, str) and scene_image_url.startswith("https://replicate.delivery/"):
-            scene_image_url = download_and_save_image(scene_image_url, "qwen_scene")
+            scene_image_url = upload_to_cloudinary(scene_image_url, "qwen_scene")
 
         # Do NOT swap the user-selected model. Always persist or fail; never replace.
 
@@ -2020,7 +2112,7 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
             # Immediately persist Replicate URLs to avoid 404 errors
             if isinstance(scene_composite_url, str) and scene_composite_url.startswith("https://replicate.delivery/"):
                 try:
-                    scene_composite_url = download_and_save_image(scene_composite_url, "qwen_scene_composite")
+                    scene_composite_url = upload_to_cloudinary(scene_composite_url, "qwen_scene_composite")
                     print(f"✅ Persisted Qwen result: {scene_composite_url[:50]}...")
                 except Exception as e:
                     print(f"⚠️ Failed to persist Qwen result: {e}")
@@ -2050,7 +2142,7 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
                 # Immediately persist Replicate URLs to avoid 404 errors
                 if isinstance(scene_composite_url, str) and scene_composite_url.startswith("https://replicate.delivery/"):
                     try:
-                        scene_composite_url = download_and_save_image(scene_composite_url, "qwen_scene_composite_retry")
+                        scene_composite_url = upload_to_cloudinary(scene_composite_url, "qwen_scene_composite_retry")
                         print(f"✅ Persisted Qwen retry result: {scene_composite_url[:50]}...")
                     except Exception as e:
                         print(f"⚠️ Failed to persist Qwen retry result: {e}")
@@ -2126,7 +2218,7 @@ def run_qwen_packshot_front_back(
             print(f"Generated front packshot URL: {front_url}")
             
             # Download and save locally
-            front_url = download_and_save_image(front_url, "packshot_front")
+            front_url = upload_to_cloudinary(front_url, "packshot_front")
             
         except Exception as e:
             print(f"Error generating front packshot: {e}")
@@ -2157,7 +2249,7 @@ def run_qwen_packshot_front_back(
             print(f"Generated back packshot URL: {back_url}")
             
             # Download and save locally
-            back_url = download_and_save_image(back_url, "packshot_back")
+            back_url = upload_to_cloudinary(back_url, "packshot_back")
             
         except Exception as e:
             print(f"Error generating back packshot: {e}")
@@ -2254,7 +2346,7 @@ async def upload_product(
             if not packshot_front_url and len(generated_packshots) > 0:
                 # Download and save immediately to avoid ephemeral URL expiration
                 ephemeral_url = generated_packshots[0]
-                packshot_front_url = download_and_save_image(ephemeral_url, "packshot_front")
+                packshot_front_url = upload_to_cloudinary(ephemeral_url, "packshot_front")
                 packshots.append(packshot_front_url)
                 user.credits -= 5
                 print(f"Generated and saved front packshot: {packshot_front_url}")
@@ -2262,7 +2354,7 @@ async def upload_product(
             if not packshot_back_url and len(generated_packshots) > 1:
                 # Download and save immediately to avoid ephemeral URL expiration
                 ephemeral_url = generated_packshots[1]
-                packshot_back_url = download_and_save_image(ephemeral_url, "packshot_back")
+                packshot_back_url = upload_to_cloudinary(ephemeral_url, "packshot_back")
                 packshots.append(packshot_back_url)
                 user.credits -= 5
                 print(f"Generated and saved back packshot: {packshot_back_url}")
@@ -2757,7 +2849,7 @@ async def tweak_image(
         
         # Download and save tweaked image
         print(f"💾 Downloading tweaked image...")
-        final_url = download_and_save_image(tweaked_url, "tweaked")
+        final_url = upload_to_cloudinary(tweaked_url, "tweaked")
         print(f"✅ Tweaked image saved: {final_url[:50]}...")
         
         return {
@@ -2821,7 +2913,7 @@ async def reapply_clothes(
         
         # Download and save the result
         print(f"💾 Downloading result...")
-        final_url = download_and_save_image(vella_result_url, "reapplied_clothes")
+        final_url = upload_to_cloudinary(vella_result_url, "reapplied_clothes")
         print(f"✅ Reapplied clothes saved: {final_url[:50]}...")
         
         # If campaign_id is provided, update the image in the campaign
@@ -3337,7 +3429,7 @@ async def try_on(
 
         # Run Vella
         vella_url = run_vella_try_on(stable_model, stable_garment, request.quality or "standard", clothing_type)
-        vella_url = download_and_save_image(vella_url, "tryon_final")
+        vella_url = upload_to_cloudinary(vella_url, "tryon_final")
         return {"image_url": vella_url}
     except HTTPException:
         raise
