@@ -308,6 +308,10 @@ export default function CampaignsPage() {
     });
 
     setIsCreating(true);
+    
+    // Close modal immediately when generation starts
+    setShowCreateModal(false);
+    
     try {
       const formData = new FormData();
       formData.append("name", newCampaign.name);
@@ -344,7 +348,6 @@ export default function CampaignsPage() {
         setSelectedProducts([]);
         setSelectedModel("");
         setSelectedScenes([]);
-        setShowCreateModal(false);
       } else {
         const error = await response.text();
         throw new Error(error);

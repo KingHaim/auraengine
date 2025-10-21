@@ -467,7 +467,8 @@ async def create_campaign(
             user_id=current_user["user_id"],
             name=name,
             description=description,
-            status="processing",
+            status="draft",
+            generation_status="generating",
             settings={
                 "product_ids": product_id_list,
                 "model_ids": model_id_list,
@@ -647,7 +648,7 @@ async def create_campaign(
                     print(f"\n🎉 Campaign flow complete: {product.name} + {model.name} + {scene.name}")
         
         # Update campaign with generated images
-        campaign.status = "completed" if len(generated_images) > 0 else "failed"
+        campaign.generation_status = "completed" if len(generated_images) > 0 else "failed"
         
         # Create new settings dict to force SQLAlchemy to detect change
         new_settings = dict(campaign.settings) if campaign.settings else {}
@@ -669,6 +670,32 @@ async def create_campaign(
         }
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON format")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/campaigns/{campaign_id}/status")
+async def get_campaign_generation_status(
+    campaign_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get the generation status of a campaign"""
+    try:
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        return {
+            "campaign_id": campaign.id,
+            "generation_status": campaign.generation_status,
+            "status": campaign.status,
+            "generated_images_count": len(campaign.settings.get("generated_images", [])) if campaign.settings else 0,
+            "updated_at": campaign.updated_at
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 type ApiCampaign = {
   id: string;
   name: string;
+  generation_status: string;
   settings?: any;
 };
 
@@ -12,29 +13,72 @@ export default function CampaignGrid() {
   const [campaigns, setCampaigns] = useState<ApiCampaign[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchCampaigns() {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("token");
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/campaigns`,
-          {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          }
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setCampaigns(data);
+  // Function to check campaign status
+  const checkCampaignStatus = async (campaignId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/status`,
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         }
-      } catch (e) {
-        console.error("Failed to load campaigns", e);
-      } finally {
-        setLoading(false);
+      );
+      if (res.ok) {
+        const statusData = await res.json();
+        return statusData;
       }
+    } catch (e) {
+      console.error("Failed to check campaign status", e);
     }
+    return null;
+  };
+
+  // Function to fetch campaigns
+  const fetchCampaigns = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns`,
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setCampaigns(data);
+      }
+    } catch (e) {
+      console.error("Failed to load campaigns", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchCampaigns();
   }, []);
+
+  // Polling for generating campaigns
+  useEffect(() => {
+    const generatingCampaigns = campaigns.filter(
+      (campaign) => campaign.generation_status === "generating"
+    );
+
+    if (generatingCampaigns.length === 0) return;
+
+    const interval = setInterval(async () => {
+      for (const campaign of generatingCampaigns) {
+        const statusData = await checkCampaignStatus(campaign.id);
+        if (statusData && statusData.generation_status !== "generating") {
+          // Campaign finished generating, refresh the list
+          fetchCampaigns();
+        }
+      }
+    }, 3000); // Check every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [campaigns]);
 
   return (
     <div className="space-y-6">
@@ -51,10 +95,17 @@ export default function CampaignGrid() {
             return (
               <div
                 key={campaign.id}
-                className="bg-gray-800 rounded-2xl p-4 border border-gray-700"
+                className={`bg-gray-800 rounded-2xl p-4 border border-gray-700 ${
+                  campaign.generation_status === "generating" ? "opacity-75" : ""
+                }`}
               >
-                <div className="aspect-video bg-gray-700 rounded-lg mb-4 flex items-center justify-center">
-                  {thumb ? (
+                <div className="aspect-video bg-gray-700 rounded-lg mb-4 flex items-center justify-center relative">
+                  {campaign.generation_status === "generating" ? (
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mb-2"></div>
+                      <div className="text-white text-sm font-medium">Generando...</div>
+                    </div>
+                  ) : thumb ? (
                     <img
                       src={thumb}
                       alt={campaign.name}
@@ -76,6 +127,12 @@ export default function CampaignGrid() {
                   <span>
                     🖼️ {campaign.settings?.generated_images?.length || 0}
                   </span>
+                  {campaign.generation_status === "generating" && (
+                    <span className="text-blue-400">⏳ Generando...</span>
+                  )}
+                  {campaign.generation_status === "failed" && (
+                    <span className="text-red-400">❌ Error</span>
+                  )}
                 </div>
               </div>
             );

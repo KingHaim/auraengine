@@ -46,6 +46,7 @@ class CampaignResponse(BaseModel):
     name: str
     description: Optional[str]
     status: str
+    generation_status: str
     settings: Dict[str, Any]
     created_at: datetime
     updated_at: datetime

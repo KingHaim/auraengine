@@ -34,6 +34,7 @@ class Campaign(Base):
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     status = Column(String, default="draft")  # draft, active, completed, archived
+    generation_status = Column(String, default="idle")  # idle, generating, completed, failed
     settings = Column(JSON, default=dict)  # Store campaign-specific settings
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
