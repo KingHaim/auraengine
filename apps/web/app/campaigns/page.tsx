@@ -118,6 +118,7 @@ export default function CampaignsPage() {
     [modelId: string]: string[];
   }>({});
   const [generatingVideo, setGeneratingVideo] = useState<string | null>(null);
+  const [darkAesthetic, setDarkAesthetic] = useState(true); // Default to current dark aesthetic
   const [videoGenerationStatus, setVideoGenerationStatus] = useState<{
     [key: string]: string;
   }>({});
@@ -369,6 +370,7 @@ export default function CampaignsPage() {
       formData.append("scene_ids", JSON.stringify(selectedScenes));
       formData.append("selected_poses", JSON.stringify(selectedPoses));
       formData.append("number_of_images", numberOfImagesToGenerate.toString());
+      formData.append("dark_aesthetic", darkAesthetic.toString());
 
       console.log("🔍 About to make fetch request to create campaign");
       const response = await fetch(
@@ -1873,6 +1875,32 @@ export default function CampaignsPage() {
                     }}
                     placeholder="Enter campaign description"
                   />
+                </div>
+
+                {/* Dark Aesthetic Toggle */}
+                <div style={{ marginBottom: "16px" }}>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      color: "#374151",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={darkAesthetic}
+                      onChange={(e) => setDarkAesthetic(e.target.checked)}
+                      style={{ margin: 0 }}
+                    />
+                    Dark Luxury Aesthetic
+                    <span style={{ fontSize: "12px", color: "#6B7280" }}>
+                      (Dramatic moody lighting and dark luxury styling)
+                    </span>
+                  </label>
                 </div>
               </div>
 
