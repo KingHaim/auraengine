@@ -2946,21 +2946,14 @@ def run_fooocus_realistic_enhancement(image_url: str, custom_prompt: Optional[st
         print(f"🎨 Using prompt: {prompt}")
         print(f"🖼️ Using image: {image_url[:100]}...")
         
-        # Run Fooocus API Realistic with correct parameters
+        # Run Fooocus API Realistic with correct img2img parameters
         print(f"🔄 Calling Fooocus API Realistic...")
         out = replicate.run(
-            "konieshadow/fooocus-api-realistic",
+            "konieshadow/fooocus-api-realistic:612fd74b69e6c030e88f6548848593a1aaabe16a09cb79e6d714718c15f37f47",
             input={
                 "prompt": prompt,
-                "image": image_url,
-                "negative_prompt": "blurry, low quality, distorted, unrealistic, cartoon, anime, painting, sketch",
                 "image_seed": -1,  # Random seed
-                "guidance_scale": 4.0,
-                "sharpness": 2.0,
-                "image_number": 1,
-                "style_selections": ["Fooocus Realistic"],
-                "performance_selection": "Quality",
-                "aspect_ratios_selection": "1024*1024"
+                "uov_input_image": image_url  # img2img input parameter
             }
         )
         
