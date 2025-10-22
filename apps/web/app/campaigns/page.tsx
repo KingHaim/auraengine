@@ -174,6 +174,7 @@ export default function CampaignsPage() {
     Set<number>
   >(new Set());
   const [veoDirectMode, setVeoDirectMode] = useState(false);
+  const [generatingCampaignId, setGeneratingCampaignId] = useState<string | null>(null);
 
   // Function to fetch data from API
   const fetchData = async () => {
@@ -314,6 +315,17 @@ export default function CampaignsPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Clear generating state when campaign is completed
+  useEffect(() => {
+    if (generatingCampaignId) {
+      const campaign = campaigns.find(c => c.id === generatingCampaignId);
+      if (campaign && campaign.generation_status === "completed") {
+        console.log("🔍 Campaign completed, clearing generating state for:", generatingCampaignId);
+        setGeneratingCampaignId(null);
+      }
+    }
+  }, [campaigns, generatingCampaignId]);
+
   const handleCreateCampaign = async () => {
     if (
       !newCampaign.name ||
@@ -369,7 +381,11 @@ export default function CampaignsPage() {
         const result = await response.json();
         console.log("✅ Campaign created:", result);
 
-        // Refresh campaigns list immediately to show the campaign with "generating" status
+        // Set generating state immediately for instant feedback
+        setGeneratingCampaignId(result.campaign.id);
+        console.log("🔍 Set generatingCampaignId to:", result.campaign.id);
+
+        // Refresh campaigns list to get the new campaign
         console.log("🔍 Before fetchData, campaigns count:", campaigns.length);
         const freshCampaignsData = await fetchData();
         console.log("🔍 After fetchData, fresh campaigns data:", freshCampaignsData);
@@ -378,6 +394,11 @@ export default function CampaignsPage() {
         console.log("🔍 Found campaign:", newCampaign);
         if (newCampaign) {
           console.log("🔍 Campaign generation_status:", newCampaign.generation_status);
+          // If campaign is already completed, clear the generating state
+          if (newCampaign.generation_status === "completed") {
+            console.log("🔍 Campaign already completed, clearing generating state");
+            setGeneratingCampaignId(null);
+          }
         }
 
         // Reset form
@@ -1399,7 +1420,7 @@ export default function CampaignsPage() {
                     cursor: "pointer",
                     position: "relative",
                     background: "#FFFFFF",
-                    opacity: campaign.generation_status === "generating" ? 0.75 : 1,
+                    opacity: (campaign.generation_status === "generating" || generatingCampaignId === campaign.id) ? 0.75 : 1,
                     boxShadow: selectedCampaigns.has(campaign.id)
                       ? "0 0 0 3px #8B5CF6"
                       : "0 2px 8px rgba(0,0,0,0.08)",
@@ -1490,12 +1511,15 @@ export default function CampaignsPage() {
                     }}
                   >
                     {(() => {
+                      const isGenerating = campaign.generation_status === "generating" || generatingCampaignId === campaign.id;
                       console.log(`🔍 Rendering campaign ${campaign.id}:`, {
                         name: campaign.name,
                         generation_status: campaign.generation_status,
+                        generatingCampaignId: generatingCampaignId,
+                        isGenerating: isGenerating,
                         hasImages: campaign.settings?.generated_images?.length > 0
                       });
-                      return campaign.generation_status === "generating";
+                      return isGenerating;
                     })() ? (
                       <div
                         style={{
@@ -1635,7 +1659,7 @@ export default function CampaignsPage() {
                           (img: any) => img.video_url
                         )?.length || 0}
                       </span>
-                      {campaign.generation_status === "generating" && (
+                      {(campaign.generation_status === "generating" || generatingCampaignId === campaign.id) && (
                         <span
                           style={{
                             display: "flex",
