@@ -646,7 +646,7 @@ async def generate_campaign_images_background(
                             # Vella result is already persisted in run_vella_try_on
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
-                            # Step 3: Use Vella result directly (Fooocus will be applied after Qwen final)
+                            # Step 3: Use Vella result directly (Nano Banana will be applied after Qwen final)
                             final_result_url = vella_result_url
                             
                             # Step 4: Final Qwen scene integration to restore/enhance scene background
@@ -662,7 +662,7 @@ async def generate_campaign_images_background(
                                 )
                                 
                                 final_result_url = run_qwen_scene_composition(
-                                    final_result_url,  # Dressed model from Vella/Fooocus
+                                    final_result_url,  # Dressed model from Vella/Nano Banana
                                     stable_scene,      # Original scene
                                     quality_mode,
                                     shot_type_prompt=scene_integration_prompt
@@ -672,24 +672,46 @@ async def generate_campaign_images_background(
                                 print(f"⚠️ Final scene integration failed, using previous result: {e}")
                                 # Keep the previous result if scene integration fails
                             
-                            # Step 5: Apply Fooocus API Realistic to enhance realism and quality
-                            print(f"🎨 Step 5: Enhancing realism with Fooocus API Realistic...")
+                            # Step 5: Apply Nano Banana to enhance realism and quality
+                            print(f"🍌 Step 5: Enhancing realism with Nano Banana...")
                             try:
-                                # Use Fooocus for enhanced realism
-                                fooocus_result = run_fooocus_realistic_enhancement(
-                                    final_result_url,
-                                    "masterpiece, best quality, highly detailed, photorealistic, professional fashion photography, natural skin texture, realistic fabric details, perfect lighting, sharp focus, ultra-realistic, hyper-realistic professional fashion photography, enhanced skin texture with natural pores, subtle imperfections, realistic skin tones, improved fabric details with visible weave patterns, realistic folds, material texture, professional studio lighting with soft shadows and natural highlights, authentic facial features and natural expressions, real fabric with proper drape and movement"
-                                )
-                                
-                                if fooocus_result:
-                                    final_result_url = fooocus_result
-                                    print(f"✅ Fooocus enhancement completed: {final_result_url[:50]}...")
-                                else:
-                                    print(f"⚠️ Fooocus enhancement failed, using previous result")
+                                # Convert final result URL to base64 for Nano Banana if needed
+                                if final_result_url.startswith(get_base_url() + "/static/"):
+                                    filename = final_result_url.replace(get_base_url() + "/static/", "")
+                                        filepath = f"uploads/{filename}"
+                                        nb_input = upload_to_replicate(filepath)
+                                elif final_result_url.startswith("https://replicate.delivery/"):
+                                    nb_input = final_result_url
+                                    else:
+                                    nb_input = final_result_url
                                     
-                            except Exception as e:
-                                print(f"⚠️ Fooocus enhancement failed, using previous result: {e}")
-                                # Keep the previous result if Fooocus fails
+                                # Apply Nano Banana img2img for enhanced realism
+                                    nano_result = replicate.run(
+                                        "google/nano-banana",
+                                        input={
+                                        "instructions": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
+                                            "image": nb_input,
+                                            "num_inference_steps": 28,
+                                            "guidance_scale": 5.5,
+                                        "strength": 0.4  # Higher strength for more dramatic realism enhancement
+                                        }
+                                    )
+                                    
+                                    # Handle Nano Banana output
+                                    if hasattr(nano_result, 'url'):
+                                        nano_url = nano_result.url()
+                                    elif isinstance(nano_result, str):
+                                        nano_url = nano_result
+                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                    else:
+                                        nano_url = str(nano_result)
+                                    
+                                    print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+                                    final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
+                                except Exception as e:
+                                print(f"⚠️ Nano Banana failed, using previous result: {e}")
+                                # Keep the previous result if Nano Banana fails
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
@@ -944,7 +966,7 @@ async def generate_campaign_images(
                             # Vella result is already persisted in run_vella_try_on
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
-                            # Step 3: Use Vella result directly (Fooocus will be applied after Qwen final)
+                            # Step 3: Use Vella result directly (Nano Banana will be applied after Qwen final)
                             final_result_url = vella_result_url
                             
                             # Step 4: Final Qwen scene integration to restore/enhance scene background
@@ -960,7 +982,7 @@ async def generate_campaign_images(
                                 )
                                 
                                 final_result_url = run_qwen_scene_composition(
-                                    final_result_url,  # Dressed model from Vella/Fooocus
+                                    final_result_url,  # Dressed model from Vella/Nano Banana
                                     stable_scene,      # Original scene
                                     quality_mode,
                                     shot_type_prompt=scene_integration_prompt
@@ -970,24 +992,46 @@ async def generate_campaign_images(
                                 print(f"⚠️ Final scene integration failed, using previous result: {e}")
                                 # Keep the previous result if scene integration fails
                             
-                            # Step 5: Apply Fooocus API Realistic to enhance realism and quality
-                            print(f"🎨 Step 5: Enhancing realism with Fooocus API Realistic...")
+                            # Step 5: Apply Nano Banana to enhance realism and quality
+                            print(f"🍌 Step 5: Enhancing realism with Nano Banana...")
                             try:
-                                # Use Fooocus for enhanced realism
-                                fooocus_result = run_fooocus_realistic_enhancement(
-                                    final_result_url,
-                                    "masterpiece, best quality, highly detailed, photorealistic, professional fashion photography, natural skin texture, realistic fabric details, perfect lighting, sharp focus, ultra-realistic, hyper-realistic professional fashion photography, enhanced skin texture with natural pores, subtle imperfections, realistic skin tones, improved fabric details with visible weave patterns, realistic folds, material texture, professional studio lighting with soft shadows and natural highlights, authentic facial features and natural expressions, real fabric with proper drape and movement"
-                                )
-                                
-                                if fooocus_result:
-                                    final_result_url = fooocus_result
-                                    print(f"✅ Fooocus enhancement completed: {final_result_url[:50]}...")
-                                else:
-                                    print(f"⚠️ Fooocus enhancement failed, using previous result")
+                                # Convert final result URL to base64 for Nano Banana if needed
+                                if final_result_url.startswith(get_base_url() + "/static/"):
+                                    filename = final_result_url.replace(get_base_url() + "/static/", "")
+                                        filepath = f"uploads/{filename}"
+                                        nb_input = upload_to_replicate(filepath)
+                                elif final_result_url.startswith("https://replicate.delivery/"):
+                                    nb_input = final_result_url
+                                    else:
+                                    nb_input = final_result_url
                                     
-                            except Exception as e:
-                                print(f"⚠️ Fooocus enhancement failed, using previous result: {e}")
-                                # Keep the previous result if Fooocus fails
+                                # Apply Nano Banana img2img for enhanced realism
+                                    nano_result = replicate.run(
+                                        "google/nano-banana",
+                                        input={
+                                        "instructions": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
+                                            "image": nb_input,
+                                            "num_inference_steps": 28,
+                                            "guidance_scale": 5.5,
+                                        "strength": 0.4  # Higher strength for more dramatic realism enhancement
+                                        }
+                                    )
+                                    
+                                    # Handle Nano Banana output
+                                    if hasattr(nano_result, 'url'):
+                                        nano_url = nano_result.url()
+                                    elif isinstance(nano_result, str):
+                                        nano_url = nano_result
+                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                    else:
+                                        nano_url = str(nano_result)
+                                    
+                                    print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+                                final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
+                                except Exception as e:
+                                print(f"⚠️ Nano Banana failed, using previous result: {e}")
+                                # Keep the previous result if Nano Banana fails
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
@@ -1101,7 +1145,7 @@ async def delete_product(
         print(f"Error deleting product: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-def run_fooocus_model_generation(
+def run_nano_banana_model_generation(
     prompt: str, 
     variants: int = 1, 
     gender: str = "male",
@@ -1112,9 +1156,9 @@ def run_fooocus_model_generation(
     eye_color: str = "brown",
     skin_tone: str = "medium"
 ) -> List[str]:
-    """Generate model images using Fooocus API Realistic with base model images"""
+    """Generate model images using Nano Banana with base model images"""
     try:
-        print(f"🎭 Running Fooocus model generation: {prompt}")
+        print(f"🎭 Running Nano Banana model generation: {prompt}")
         print(f"🔧 DEBUG: This is the NEW version with external URLs!")
         
         # Use the base model image as starting point based on gender
@@ -1143,16 +1187,15 @@ def run_fooocus_model_generation(
                 print(f"🎭 Processing variant {i+1} with base model image...")
                 print(f"📝 Prompt: {enhanced_prompt[:150]}...")
                 
-                # Run Fooocus model generation with moderate strength for realistic photo modification
-                result_url = run_fooocus_realistic_enhancement(
-                    base_model_url,
-                    f"{enhanced_prompt}. Masterpiece, best quality, highly detailed, photorealistic, professional fashion photography, natural skin texture, realistic details, perfect lighting, sharp focus, ultra-realistic"
-                )
-                
-                if result_url:
-                    out = type('obj', (object,), {'url': lambda: result_url})()
-                else:
-                    out = None
+                # Run Nano Banana model generation with moderate strength for realistic photo modification
+                out = replicate.run("google/nano-banana", input={
+                    "prompt": enhanced_prompt,  # Use 'prompt' parameter
+                    "image": base_model_url,
+                    "num_inference_steps": 25,  # Moderate for realistic photo
+                    "guidance_scale": 6.0,  # Moderate guidance
+                    "strength": 0.4,  # Moderate strength for realistic photo modification
+                    "seed": None
+                })
                 
                 # Handle different return types
                 if hasattr(out, 'url'):
@@ -1168,17 +1211,17 @@ def run_fooocus_model_generation(
                 else:
                     generated_urls.append(str(out))
                 
-                print(f"✅ Fooocus variant {i+1} completed")
+                print(f"✅ Nano Banana variant {i+1} completed")
                 
             except Exception as e:
-                print(f"❌ Fooocus variant {i+1} failed: {e}")
+                print(f"❌ Nano Banana variant {i+1} failed: {e}")
                 raise
         
-        print(f"✅ Fooocus model generation completed: {len(generated_urls)} images")
+        print(f"✅ Nano Banana model generation completed: {len(generated_urls)} images")
         return generated_urls
         
     except Exception as e:
-        print(f"❌ Fooocus model generation error: {e}")
+        print(f"❌ Nano Banana model generation error: {e}")
         raise
 
 @app.post("/models/ai-generate")
@@ -1214,9 +1257,9 @@ async def generate_model(
                 detail=f"Insufficient credits. You have {user.credits} credits, but need {credits_needed}"
             )
         
-        # Generate model images using Fooocus
-        print(f"Calling run_fooocus_model_generation...")
-        model_urls = run_fooocus_model_generation(
+        # Generate model images using Nano Banana
+        print(f"Calling run_nano_banana_model_generation...")
+        model_urls = run_nano_banana_model_generation(
             prompt, variants, gender, age, height, build, hair_color, eye_color, skin_tone
         )
         print(f"Got model URLs: {model_urls}")
@@ -1802,30 +1845,39 @@ def upload_to_replicate(filepath: str) -> str:
     # Use 384px for Vella (smaller base64, better compatibility)
     return compress_image_for_processing(filepath, max_size=384)
 
-def enhance_with_fooocus(image_url: str, prompt: str = "") -> str:
-    """Enhance person's realism with Fooocus (img2img focused on subject)"""
+def enhance_with_nano_banana(image_url: str, prompt: str = "") -> str:
+    """Enhance person's realism with Nano Banana (img2img focused on subject)"""
     try:
-        print(f"🎨 Enhancing person with Fooocus (img2img mode)...")
+        print(f"🍌 Enhancing person with Nano Banana (img2img mode)...")
         
         # Img2img prompt focused ONLY on enhancing the person, not background
         if not prompt:
             prompt = "enhance the person's realism only, ultra detailed skin texture, natural facial features, realistic fabric and clothing texture, professional portrait lighting on subject, sharp focus on person, photorealistic human details, preserve background as is"
         
-        # Run Fooocus in img2img mode with focus on person
-        result_url = run_fooocus_realistic_enhancement(
-            image_url,
-            f"{prompt}. Masterpiece, best quality, highly detailed, photorealistic, professional fashion photography, natural skin texture, realistic details, perfect lighting, sharp focus, ultra-realistic"
-        )
+        # Run Nano Banana in img2img mode with focus on person
+        out = replicate.run("google/nano-banana", input={
+            "image": image_url,
+            "prompt": prompt,
+            "num_inference_steps": 22,  # Lower steps to avoid changing background
+            "guidance_scale": 5.0,  # Lower guidance to focus on subtle refinement
+            "strength": 0.20  # Very low strength = preserve background, only refine person
+        })
         
-        if result_url:
-            print(f"✅ Fooocus enhancement completed: {result_url[:50]}...")
-            return result_url
+        # Handle output
+        if hasattr(out, 'url'):
+            result_url = out.url()
+        elif isinstance(out, str):
+            result_url = out
+        elif isinstance(out, list) and len(out) > 0:
+            result_url = str(out[0])
         else:
-            print(f"⚠️ Fooocus enhancement failed, using original image")
-            return image_url
+            result_url = str(out)
+        
+        print(f"✅ Nano Banana enhancement completed: {result_url[:50]}...")
+        return result_url
         
     except Exception as e:
-        print(f"❌ Fooocus enhancement failed: {e}")
+        print(f"❌ Nano Banana enhancement failed: {e}")
         print(f"Continuing with original image")
         return image_url
 
@@ -2114,11 +2166,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             for attempt in range(max_retries):
                 try:
                     print(f"🎭 Vella attempt {attempt + 1}/{max_retries}...")
-                    out = replicate.run("omnious/vella-1.5", input=vella_input)
+            out = replicate.run("omnious/vella-1.5", input=vella_input)
                     print(f"✅ Vella API call succeeded on attempt {attempt + 1}!")
-                    print(f"🎭 Vella API response type: {type(out)}")
-                    if hasattr(out, '__dict__'):
-                        print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
+            print(f"🎭 Vella API response type: {type(out)}")
+            if hasattr(out, '__dict__'):
+                print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
                     break  # Success, exit retry loop
                 except Exception as e:
                     print(f"⚠️ Vella attempt {attempt + 1} failed: {e}")
@@ -2926,67 +2978,6 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         
     except Exception as e:
         print(f"❌ Veo 3.1 video generation failed: {e}")
-        return None
-
-def run_fooocus_realistic_enhancement(image_url: str, custom_prompt: Optional[str] = None) -> str:
-    """Enhance image realism using Fooocus API Realistic ONLY"""
-    try:
-        print(f"🎨 Running Fooocus API Realistic enhancement: {image_url[:50]}...")
-        
-        # Convert local URLs to base64 for Replicate
-        if image_url.startswith(get_base_url() + "/static/"):
-            filename = image_url.replace(get_base_url() + "/static/", "")
-            filepath = f"uploads/{filename}"
-            image_url = upload_to_replicate(filepath)
-            print(f"Converted image to base64: {image_url[:100]}...")
-        
-        # Fooocus realistic enhancement prompt - preserve original composition
-        prompt = custom_prompt or "enhance the existing image with realistic details, preserve the original composition and scene, improve skin texture and fabric details, professional fashion photography quality, natural lighting, sharp focus, photorealistic enhancement"
-        
-        print(f"🎨 Using prompt: {prompt}")
-        print(f"🖼️ Using image: {image_url[:100]}...")
-        
-        # Run Fooocus API Realistic with correct img2img parameters
-        print(f"🔄 Calling Fooocus API Realistic...")
-        out = replicate.run(
-            "konieshadow/fooocus-api-realistic:612fd74b69e6c030e88f6548848593a1aaabe16a09cb79e6d714718c15f37f47",
-            input={
-                "prompt": prompt,
-                "image_seed": -1,  # Random seed
-                "uov_input_image": image_url,  # img2img input parameter
-                "uov_method": "Upscale (2x)",  # Tell Fooocus to enhance the input image
-                "uov_upscale_value": 2.0,  # Upscale factor
-                "performance_selection": "Quality",  # High quality processing
-                "aspect_ratios_selection": "1024*1024",  # Maintain aspect ratio
-                "guidance_scale": 4.0,  # How closely to follow the prompt
-                "sharpness": 2.0  # Image sharpness
-            }
-        )
-        
-        # Debug: Check what Fooocus is returning
-        print(f"🔍 Fooocus raw output type: {type(out)}")
-        print(f"🔍 Fooocus raw output: {out}")
-        
-        # Handle output - Fooocus returns a list of URLs
-        if isinstance(out, list) and len(out) > 0:
-            enhanced_url = out[0]
-        elif hasattr(out, 'url'):
-            enhanced_url = out.url
-        elif hasattr(out, 'url()'):
-            enhanced_url = out.url()
-        else:
-            enhanced_url = str(out)
-        
-        # Persist the enhanced image URL
-        if enhanced_url:
-            enhanced_url = upload_to_cloudinary(enhanced_url, "fooocus_enhanced")
-            print(f"✅ Fooocus enhancement completed and persisted: {enhanced_url}")
-            return enhanced_url
-        
-        return None
-        
-    except Exception as e:
-        print(f"❌ Fooocus enhancement failed: {e}")
         return None
 
 def run_kling_video_generation(image_url: str, video_quality: str = "480p", duration: str = "5s", custom_prompt: Optional[str] = None) -> str:
