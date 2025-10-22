@@ -397,7 +397,15 @@ export default function CampaignsPage() {
         setGeneratingCampaignId(result.campaign.id);
         console.log("🔍 Set generatingCampaignId to:", result.campaign.id);
 
-        // Refresh campaigns list to get the new campaign
+        // Add the new campaign to the list immediately with generating status
+        const newCampaignWithGeneratingStatus = {
+          ...result.campaign,
+          generation_status: "generating"
+        };
+        console.log("🔍 Adding new campaign to list immediately:", newCampaignWithGeneratingStatus);
+        setCampaigns(prevCampaigns => [newCampaignWithGeneratingStatus, ...prevCampaigns]);
+
+        // Refresh campaigns list to get the real campaign data
         console.log("🔍 Before fetchData, campaigns count:", campaigns.length);
         const freshCampaignsData = await fetchData();
         console.log("🔍 After fetchData, fresh campaigns data:", freshCampaignsData);
@@ -406,6 +414,12 @@ export default function CampaignsPage() {
         console.log("🔍 Found campaign:", newCampaign);
         if (newCampaign) {
           console.log("🔍 Campaign generation_status:", newCampaign.generation_status);
+          // Replace the temporary campaign with the real one from the server
+          setCampaigns(prevCampaigns => 
+            prevCampaigns.map(campaign => 
+              campaign.id === result.campaign.id ? newCampaign : campaign
+            )
+          );
           // If campaign is already completed, clear the generating state
           if (newCampaign.generation_status === "completed") {
             console.log("🔍 Campaign already completed, clearing generating state");
