@@ -684,10 +684,10 @@ async def generate_campaign_images_background(
                                 if fooocus_result:
                                     final_result_url = fooocus_result
                                     print(f"✅ Fooocus enhancement completed: {final_result_url[:50]}...")
-                                else:
+                                    else:
                                     print(f"⚠️ Fooocus enhancement failed, using previous result")
                                     
-                            except Exception as e:
+                                except Exception as e:
                                 print(f"⚠️ Fooocus enhancement failed, using previous result: {e}")
                                 # Keep the previous result if Fooocus fails
                             
@@ -982,10 +982,10 @@ async def generate_campaign_images(
                                 if fooocus_result:
                                     final_result_url = fooocus_result
                                     print(f"✅ Fooocus enhancement completed: {final_result_url[:50]}...")
-                                else:
+                                    else:
                                     print(f"⚠️ Fooocus enhancement failed, using previous result")
                                     
-                            except Exception as e:
+                                except Exception as e:
                                 print(f"⚠️ Fooocus enhancement failed, using previous result: {e}")
                                 # Keep the previous result if Fooocus fails
                             
@@ -2114,11 +2114,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             for attempt in range(max_retries):
                 try:
                     print(f"🎭 Vella attempt {attempt + 1}/{max_retries}...")
-                    out = replicate.run("omnious/vella-1.5", input=vella_input)
+            out = replicate.run("omnious/vella-1.5", input=vella_input)
                     print(f"✅ Vella API call succeeded on attempt {attempt + 1}!")
-                    print(f"🎭 Vella API response type: {type(out)}")
-                    if hasattr(out, '__dict__'):
-                        print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
+            print(f"🎭 Vella API response type: {type(out)}")
+            if hasattr(out, '__dict__'):
+                print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
                     break  # Success, exit retry loop
                 except Exception as e:
                     print(f"⚠️ Vella attempt {attempt + 1} failed: {e}")
@@ -2940,8 +2940,8 @@ def run_fooocus_realistic_enhancement(image_url: str, custom_prompt: Optional[st
             image_url = upload_to_replicate(filepath)
             print(f"Converted image to base64: {image_url[:100]}...")
         
-        # Fooocus realistic enhancement prompt
-        prompt = custom_prompt or "masterpiece, best quality, highly detailed, photorealistic, professional fashion photography, natural skin texture, realistic fabric details, perfect lighting, sharp focus, ultra-realistic"
+        # Fooocus realistic enhancement prompt - preserve original composition
+        prompt = custom_prompt or "enhance the existing image with realistic details, preserve the original composition and scene, improve skin texture and fabric details, professional fashion photography quality, natural lighting, sharp focus, photorealistic enhancement"
         
         print(f"🎨 Using prompt: {prompt}")
         print(f"🖼️ Using image: {image_url[:100]}...")
@@ -2953,7 +2953,14 @@ def run_fooocus_realistic_enhancement(image_url: str, custom_prompt: Optional[st
             input={
                 "prompt": prompt,
                 "image_seed": -1,  # Random seed
-                "uov_input_image": image_url  # img2img input parameter
+                "uov_input_image": image_url,  # img2img input parameter
+                "uov_mode": "Upscale (2x)",  # Tell Fooocus to enhance the input image
+                "uov_method": "Lanczos",  # Upscaling method
+                "uov_upscale_value": 2.0,  # Upscale factor
+                "performance_selection": "Quality",  # High quality processing
+                "aspect_ratios_selection": "1024*1024",  # Maintain aspect ratio
+                "guidance_scale": 4.0,  # How closely to follow the prompt
+                "sharpness": 2.0  # Image sharpness
             }
         )
         
