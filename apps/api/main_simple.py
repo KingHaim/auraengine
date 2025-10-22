@@ -8,7 +8,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
-from typing import List, Dict
 from database import SessionLocal, create_tables
 from models import User, Product, Model, Scene, Campaign, Generation
 from schemas import UserCreate, UserResponse, Token, ProductResponse, ModelResponse, SceneResponse, CampaignResponse
@@ -360,6 +359,92 @@ async def get_scenes(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/scenes/bulk-add-from-uploads")
+async def bulk_add_scenes_from_uploads(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Bulk add all scene images from uploads directory as scenes"""
+    try:
+        import os
+        import glob
+        from pathlib import Path
+        
+        # Get all scene images from uploads directory
+        uploads_dir = Path("uploads")
+        scene_files = list(uploads_dir.glob("scene_*"))
+        
+        if not scene_files:
+            return {"message": "No scene images found in uploads directory", "added": 0, "skipped": 0}
+        
+        added_count = 0
+        skipped_count = 0
+        added_scenes = []
+        
+        for scene_file in scene_files:
+            try:
+                # Extract scene name from filename
+                scene_name = scene_file.stem.replace("scene_", "").replace("_", " ").title()
+                
+                # Create a more readable name
+                if scene_name.startswith("-"):
+                    scene_name = f"Scene {scene_name[1:]}"
+                else:
+                    scene_name = f"Scene {scene_name}"
+                
+                # Check if scene already exists
+                existing_scene = db.query(Scene).filter(
+                    Scene.user_id == current_user["user_id"],
+                    Scene.name == scene_name
+                ).first()
+                
+                if existing_scene:
+                    skipped_count += 1
+                    continue
+                
+                # Create the scene URL (using the static URL format)
+                scene_url = f"{get_base_url()}/static/{scene_file.name}"
+                
+                # Create scene in database
+                scene = Scene(
+                    id=str(uuid.uuid4()),
+                    user_id=current_user["user_id"],
+                    name=scene_name,
+                    description="Professional fashion photography scene",
+                    category="lifestyle",
+                    tags=["fashion", "photography", "background"],
+                    image_url=scene_url,
+                    is_standard=False,
+                    created_at=datetime.utcnow()
+                )
+                
+                db.add(scene)
+                added_scenes.append({
+                    "id": scene.id,
+                    "name": scene.name,
+                    "image_url": scene.image_url
+                })
+                added_count += 1
+                
+            except Exception as e:
+                print(f"Error adding scene {scene_file.name}: {e}")
+                continue
+        
+        # Commit all changes
+        db.commit()
+        
+        return {
+            "message": f"Bulk scene import complete! Added {added_count} scenes, skipped {skipped_count} existing scenes.",
+            "added": added_count,
+            "skipped": skipped_count,
+            "total_found": len(scene_files),
+            "scenes": added_scenes
+        }
+        
+    except Exception as e:
+        print(f"Bulk scene import error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/scenes/upload")
 async def upload_scene(
     name: str = Form(...),
@@ -555,38 +640,38 @@ async def generate_campaign_images_background(
                                 # Convert final result URL to base64 for Nano Banana if needed
                                 if final_result_url.startswith(get_base_url() + "/static/"):
                                     filename = final_result_url.replace(get_base_url() + "/static/", "")
-                                    filepath = f"uploads/{filename}"
-                                    nb_input = upload_to_replicate(filepath)
+                                        filepath = f"uploads/{filename}"
+                                        nb_input = upload_to_replicate(filepath)
                                 elif final_result_url.startswith("https://replicate.delivery/"):
                                     nb_input = final_result_url
-                                else:
+                                    else:
                                     nb_input = final_result_url
-                                
+                                    
                                 # Apply Nano Banana img2img for enhanced realism
-                                nano_result = replicate.run(
-                                    "google/nano-banana",
-                                    input={
-                                        "prompt": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
-                                        "image": nb_input,
-                                        "num_inference_steps": 28,
-                                        "guidance_scale": 5.5,
+                                    nano_result = replicate.run(
+                                        "google/nano-banana",
+                                        input={
+                                        "instructions": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
+                                            "image": nb_input,
+                                            "num_inference_steps": 28,
+                                            "guidance_scale": 5.5,
                                         "strength": 0.4  # Higher strength for more dramatic realism enhancement
-                                    }
-                                )
-                                
-                                # Handle Nano Banana output
-                                if hasattr(nano_result, 'url'):
-                                    nano_url = nano_result.url()
-                                elif isinstance(nano_result, str):
-                                    nano_url = nano_result
-                                elif isinstance(nano_result, list) and len(nano_result) > 0:
-                                    nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                                else:
-                                    nano_url = str(nano_result)
-                                
-                                print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
-                                final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
-                            except Exception as e:
+                                        }
+                                    )
+                                    
+                                    # Handle Nano Banana output
+                                    if hasattr(nano_result, 'url'):
+                                        nano_url = nano_result.url()
+                                    elif isinstance(nano_result, str):
+                                        nano_url = nano_result
+                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                    else:
+                                        nano_url = str(nano_result)
+                                    
+                                    print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+                                    final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
+                                except Exception as e:
                                 print(f"⚠️ Nano Banana failed, using previous result: {e}")
                                 # Keep the previous result if Nano Banana fails
                             
@@ -657,7 +742,6 @@ async def create_campaign(
     scene_ids: str = Form(...),    # JSON string
     selected_poses: str = Form("{}"),  # JSON string
     number_of_images: int = Form(7),
-    dark_aesthetic: str = Form("true"),  # Add dark aesthetic parameter
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -670,9 +754,6 @@ async def create_campaign(
         model_id_list = json.loads(model_ids)
         scene_id_list = json.loads(scene_ids)
         selected_poses_dict = json.loads(selected_poses)
-        
-        # Parse dark_aesthetic parameter
-        use_dark_aesthetic = dark_aesthetic.lower() == "true"
         
         if not product_id_list or not model_id_list or not scene_id_list:
             raise HTTPException(status_code=400, detail="Please select at least one product, model, and scene")
@@ -715,7 +796,6 @@ async def create_campaign(
             scene_id_list, 
             selected_poses_dict, 
             number_of_images,
-            use_dark_aesthetic,
             db
         ))
         
@@ -751,9 +831,8 @@ async def get_campaign_generation_status(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# DISABLED: This endpoint conflicts with the new background generation
-# @app.post("/campaigns/{campaign_id}/generate")
-async def generate_campaign_images_disabled(
+@app.post("/campaigns/{campaign_id}/generate")
+async def generate_campaign_images(
     campaign_id: str,
     product_ids: str = Form("[]"),
     model_ids: str = Form("[]"),
@@ -881,38 +960,38 @@ async def generate_campaign_images_disabled(
                                 # Convert final result URL to base64 for Nano Banana if needed
                                 if final_result_url.startswith(get_base_url() + "/static/"):
                                     filename = final_result_url.replace(get_base_url() + "/static/", "")
-                                    filepath = f"uploads/{filename}"
-                                    nb_input = upload_to_replicate(filepath)
+                                        filepath = f"uploads/{filename}"
+                                        nb_input = upload_to_replicate(filepath)
                                 elif final_result_url.startswith("https://replicate.delivery/"):
                                     nb_input = final_result_url
-                                else:
+                                    else:
                                     nb_input = final_result_url
-                                
+                                    
                                 # Apply Nano Banana img2img for enhanced realism
-                                nano_result = replicate.run(
-                                    "google/nano-banana",
-                                    input={
-                                        "prompt": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
-                                        "image": nb_input,
-                                        "num_inference_steps": 28,
-                                        "guidance_scale": 5.5,
+                                    nano_result = replicate.run(
+                                        "google/nano-banana",
+                                        input={
+                                        "instructions": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
+                                            "image": nb_input,
+                                            "num_inference_steps": 28,
+                                            "guidance_scale": 5.5,
                                         "strength": 0.4  # Higher strength for more dramatic realism enhancement
-                                    }
-                                )
-                                
-                                # Handle Nano Banana output
-                                if hasattr(nano_result, 'url'):
-                                    nano_url = nano_result.url()
-                                elif isinstance(nano_result, str):
-                                    nano_url = nano_result
-                                elif isinstance(nano_result, list) and len(nano_result) > 0:
-                                    nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                                else:
-                                    nano_url = str(nano_result)
-                                
-                                print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+                                        }
+                                    )
+                                    
+                                    # Handle Nano Banana output
+                                    if hasattr(nano_result, 'url'):
+                                        nano_url = nano_result.url()
+                                    elif isinstance(nano_result, str):
+                                        nano_url = nano_result
+                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                    else:
+                                        nano_url = str(nano_result)
+                                    
+                                    print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
                                 final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
-                            except Exception as e:
+                                except Exception as e:
                                 print(f"⚠️ Nano Banana failed, using previous result: {e}")
                                 # Keep the previous result if Nano Banana fails
                             
@@ -974,202 +1053,6 @@ async def generate_campaign_images_disabled(
     except Exception as e:
         print(f"❌ Campaign generation failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
-async def generate_campaign_images_background(
-    campaign_id: str,
-    product_id_list: List[str],
-    model_id_list: List[str], 
-    scene_id_list: List[str],
-    selected_poses_dict: Dict[str, List[str]],
-    number_of_images: int,
-    dark_aesthetic: bool,
-    db: Session
-):
-    """Background task to generate campaign images"""
-    try:
-        print(f"🎯 Starting background generation for campaign: {campaign_id}")
-        print(f"🎨 Dark aesthetic: {dark_aesthetic}")
-        
-        # Get campaign
-        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
-        if not campaign:
-            print(f"❌ Campaign {campaign_id} not found")
-            return
-        
-        # Get entities
-        products = db.query(Product).filter(Product.id.in_(product_id_list)).all()
-        models = db.query(Model).filter(Model.id.in_(model_id_list)).all()
-        scenes = db.query(Scene).filter(Scene.id.in_(scene_id_list)).all()
-        
-        if not products or not models or not scenes:
-            print(f"❌ Missing entities for campaign {campaign_id}")
-            campaign.generation_status = "failed"
-            db.commit()
-            return
-        
-        campaign.status = "processing"
-        db.commit()
-        
-        print(f"🎯 Generating images for campaign: {campaign.name}")
-        print(f"📊 {len(products)} products × {len(models)} models × {len(scenes)} scenes")
-        
-        # Get existing images to APPEND to them
-        existing_images = campaign.settings.get("generated_images", []) if campaign.settings else []
-        print(f"📌 Existing images: {len(existing_images)}")
-        
-        new_images = []
-        
-        # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
-        for product in products:
-            for model in models:
-                for scene in scenes:
-                    # Use product packshot (front view preferred)
-                    product_image = product.packshot_front_url or product.image_url
-                    
-                    # Use model's pose if available, or select random
-                    if model.poses and len(model.poses) > 0:
-                        import random
-                        model_image = random.choice(model.poses)
-                        print(f"🎭 Using random pose for {model.name}")
-                    else:
-                        model_image = model.image_url
-                    
-                    print(f"🎬 Processing campaign flow: {product.name} + {model.name} + {scene.name}")
-                    print(f"📸 Generating {number_of_images} images for this campaign...")
-                    
-                    # Generate only the requested number of images
-                    shot_types_to_generate = CAMPAIGN_SHOT_TYPES[:number_of_images]
-                    for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
-                        try:
-                            print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
-                            
-                            # REAL WORKFLOW (local-success): Qwen first, then Vella
-                            quality_mode = "standard"
-
-                            # Step 1: Compose model into the scene with shot type (persist inputs first)
-                            stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
-                            stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
-                            qwen_result_url = run_qwen_scene_composition(
-                                stable_model,
-                                stable_scene,
-                                quality_mode,
-                                shot_type_prompt=shot_type['prompt'],
-                                dark_aesthetic=dark_aesthetic
-                            )
-                            # Qwen result is already persisted in run_qwen_scene_composition
-                            print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
-
-                            # Step 2: Apply Vella try-on on the composed image
-                            print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
-                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
-                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
-                            vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
-                            # Vella result is already persisted in run_vella_try_on
-                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
-                            
-                            # Step 3: Apply Qwen scene integration for better blending
-                            # Use the Vella result (with clothing) and integrate it back into the scene
-                            print(f"🌅 Step 3: Applying Qwen scene integration...")
-                            final_result_url = run_qwen_scene_composition(
-                                vella_result_url,  # Use Vella result (model with clothing)
-                                stable_scene,      # Use original scene
-                                quality_mode,
-                                shot_type_prompt=f"Integrate the person wearing {product.name} into the scene with perfect blending and natural lighting. Ensure the clothing and person look naturally placed in the environment.",
-                                dark_aesthetic=dark_aesthetic
-                            )
-                            print(f"✅ Qwen scene integration completed: {final_result_url[:50]}...")
-
-                            # Step 4: Apply Nano Banana for enhanced realism
-                            print(f"🍌 Step 4: Applying Nano Banana for enhanced realism...")
-                            if final_result_url:
-                                nb_input = final_result_url
-                            else:
-                                nb_input = vella_result_url
-                            
-                            # Apply Nano Banana img2img for enhanced realism
-                            nano_result = replicate.run(
-                                "google/nano-banana",
-                                input={
-                                    "prompt": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
-                                    "image": nb_input,
-                                    "num_inference_steps": 28,
-                                    "guidance_scale": 5.5,
-                                    "strength": 0.4  # Higher strength for more dramatic realism enhancement
-                                }
-                            )
-                            
-                            # Handle Nano Banana output
-                            if hasattr(nano_result, 'url'):
-                                nano_url = nano_result.url()
-                            elif isinstance(nano_result, str):
-                                nano_url = nano_result
-                            elif isinstance(nano_result, list) and len(nano_result) > 0:
-                                nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                            else:
-                                nano_url = str(nano_result)
-                            
-                            # Persist Nano Banana result
-                            if nano_url:
-                                final_url = upload_to_cloudinary(nano_url, "nano_enhanced")
-                                print(f"✅ Nano Banana enhancement completed: {final_url[:50]}...")
-                            else:
-                                final_url = final_result_url or vella_result_url
-                                print(f"⚠️ Nano Banana failed, using previous result: {final_url[:50]}...")
-
-                            # Create generation data
-                            generation_data = {
-                                "id": f"{campaign_id}_{product.id}_{model.id}_{scene.id}_{shot_idx}",
-                                "product_id": product.id,
-                                "model_id": model.id,
-                                "scene_id": scene.id,
-                                "shot_type": shot_type['name'],
-                                "image_url": final_url,
-                                "created_at": datetime.now().isoformat(),
-                                "video_urls": []
-                            }
-                            
-                            new_images.append(generation_data)
-                            print(f"✅ Generated image {shot_idx}/{number_of_images}: {final_url[:50]}...")
-                            
-                        except Exception as e:
-                            print(f"❌ Failed to generate image {shot_idx}: {e}")
-                            continue
-        
-        # Combine existing and new images
-        all_images = existing_images + new_images
-        print(f"📊 Total images: {len(existing_images)} existing + {len(new_images)} new = {len(all_images)} total")
-        
-        # Create new settings dict to force SQLAlchemy to detect change
-        new_settings = dict(campaign.settings) if campaign.settings else {}
-        new_settings["generated_images"] = all_images
-        campaign.settings = new_settings
-        
-        # Force SQLAlchemy to detect the change
-        flag_modified(campaign, "settings")
-        
-        # Update campaign status
-        campaign.generation_status = "completed"
-        campaign.status = "completed"
-        
-        db.commit()
-        db.refresh(campaign)
-        
-        print(f"🎉 Background generation complete: {len(new_images)} new images generated, {len(all_images)} total")
-        
-    except Exception as e:
-        print(f"❌ Background generation failed: {e}")
-        import traceback
-        traceback.print_exc()
-        
-        # Update campaign status to failed
-        try:
-            campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
-            if campaign:
-                campaign.generation_status = "failed"
-                db.commit()
-        except Exception as update_error:
-            print(f"❌ Failed to update campaign status: {update_error}")
 
 @app.delete("/campaigns/{campaign_id}")
 async def delete_campaign(
@@ -2245,11 +2128,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             for attempt in range(max_retries):
                 try:
                     print(f"🎭 Vella attempt {attempt + 1}/{max_retries}...")
-                    out = replicate.run("omnious/vella-1.5", input=vella_input)
+            out = replicate.run("omnious/vella-1.5", input=vella_input)
                     print(f"✅ Vella API call succeeded on attempt {attempt + 1}!")
-                    print(f"🎭 Vella API response type: {type(out)}")
-                    if hasattr(out, '__dict__'):
-                        print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
+            print(f"🎭 Vella API response type: {type(out)}")
+            if hasattr(out, '__dict__'):
+                print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
                     break  # Success, exit retry loop
                 except Exception as e:
                     print(f"⚠️ Vella attempt {attempt + 1} failed: {e}")
@@ -2294,7 +2177,7 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
         print("↩️ Returning previous composed image instead of placeholder")
         return model_image_url
 
-def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard", dark_aesthetic: bool = True) -> str:
+def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard") -> str:
     """ONE-STEP: Model + Product + Scene all in one Qwen call"""
     try:
         print(f"🎬 Running Qwen triple composition...")
@@ -2316,13 +2199,7 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             scene_image_url = upload_to_replicate(filepath)
 
         # Strong integration prompt - like campaign hjk
-        # Choose aesthetic based on dark_aesthetic parameter
-        if dark_aesthetic:
-            aesthetic_prompt = "Professional dark luxury fashion aesthetic."
-        else:
-            aesthetic_prompt = "Professional bright, clean fashion aesthetic."
-        
-        scene_prompt = f"Create a cohesive fashion photograph: Take the person from the first image, dress them with the {product_name} from the second image, then integrate them into a setting inspired by the mood and atmosphere of the third image. The person should adapt to match the lighting, color grading, and visual style of the scene environment. Create a natural, believable composition where everything flows together. Preserve the person's face and pose but adjust their appearance to fit harmoniously. {aesthetic_prompt}"
+        scene_prompt = f"Create a cohesive fashion photograph: Take the person from the first image, dress them with the {product_name} from the second image, then integrate them into a setting inspired by the mood and atmosphere of the third image. The person should adapt to match the lighting, color grading, and visual style of the scene environment. Create a natural, believable composition where everything flows together. Preserve the person's face and pose but adjust their appearance to fit harmoniously. Professional dark luxury fashion aesthetic."
         
         # Strong integration parameters (like hjk)
         num_steps = 38
@@ -2409,7 +2286,7 @@ CAMPAIGN_SHOT_TYPES = [
     }
 ]
 
-def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quality_mode: str = "standard", shot_type_prompt: str = None, dark_aesthetic: bool = True) -> str:
+def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:
     """Compose model pose into scene using Qwen (the workflow that worked for jenny swag)"""
     try:
         print(f"🎬 Running Qwen composition: model={model_image_url[:50]}..., scene={scene_image_url[:50]}...")
@@ -2444,12 +2321,6 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
             scene_image_url = upload_to_replicate(filepath)
 
         # Build prompt - use shot_type_prompt if provided, otherwise use default
-        # Choose aesthetic based on dark_aesthetic parameter
-        if dark_aesthetic:
-            aesthetic_prompt = "Dark luxury fashion aesthetic with dramatic moody lighting."
-        else:
-            aesthetic_prompt = "Bright, clean fashion aesthetic with natural lighting."
-        
         if shot_type_prompt:
             scene_prompt = (
                 f"Place the person from the first image into the BACKGROUND from the second image. "
@@ -2457,7 +2328,7 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
                 f"Use the second image as the actual background - location, environment, architecture, and setting. "
                 f"Match the lighting, colors, and atmosphere from the scene. "
                 f"Keep the person's face and pose exactly the same. "
-                f"{aesthetic_prompt} "
+                f"Dark luxury fashion aesthetic with dramatic moody lighting. "
                 f"Professional editorial photography, cinematic quality."
             )
         else:
@@ -2466,7 +2337,7 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
                 "Use the second image as the actual background - location, environment, architecture, and setting. "
                 "Match the lighting, colors, and atmosphere from the scene. "
                 "Keep the person's face and pose exactly the same. "
-                f"{aesthetic_prompt} "
+                "Dark luxury fashion aesthetic with dramatic moody lighting. "
                 "Professional editorial photography, cinematic quality."
             )
         
@@ -3270,7 +3141,6 @@ def download_and_save_video(url: str) -> str:
 class TweakImageRequest(BaseModel):
     image_url: str
     prompt: str
-    dark_aesthetic: bool = True
 
 class TryOnRequest(BaseModel):
     model_image_url: str
@@ -3320,15 +3190,8 @@ async def tweak_image(
         
         # Use Qwen for image tweaking (img2img editing)
         print(f"🎨 Running Qwen for image tweaking...")
-        
-        # Choose aesthetic based on dark_aesthetic parameter
-        if request.dark_aesthetic:
-            aesthetic_prompt = "Dark luxury fashion aesthetic, professional quality."
-        else:
-            aesthetic_prompt = "Bright, clean fashion aesthetic, professional quality."
-        
         out = replicate.run("qwen/qwen-image-edit-plus", input={
-            "prompt": f"{request.prompt}. {aesthetic_prompt}",
+            "prompt": f"{request.prompt}. Dark luxury fashion aesthetic, professional quality.",
             "image": [image_base64],  # Only one image for editing
             "num_inference_steps": 35,
             "guidance_scale": 7.0,
