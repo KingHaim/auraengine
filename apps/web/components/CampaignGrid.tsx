@@ -47,6 +47,7 @@ export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
       });
       if (res.ok) {
         const data = await res.json();
+        console.log("🔍 CampaignGrid - fetchCampaigns data:", data);
         setCampaigns(data);
       }
     } catch (e) {
@@ -73,13 +74,22 @@ export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
       (campaign) => campaign.generation_status === "generating"
     );
 
+    console.log("🔍 CampaignGrid - Polling check:", {
+      totalCampaigns: campaigns.length,
+      generatingCampaigns: generatingCampaigns.length,
+      generatingIds: generatingCampaigns.map(c => c.id)
+    });
+
     if (generatingCampaigns.length === 0) return;
 
     const interval = setInterval(async () => {
+      console.log("🔍 CampaignGrid - Polling interval triggered");
       for (const campaign of generatingCampaigns) {
         const statusData = await checkCampaignStatus(campaign.id);
+        console.log(`🔍 CampaignGrid - Status check for ${campaign.id}:`, statusData);
         if (statusData && statusData.generation_status !== "generating") {
           // Campaign finished generating, refresh the list
+          console.log(`🔍 CampaignGrid - Campaign ${campaign.id} finished, refreshing...`);
           fetchCampaigns();
         }
       }

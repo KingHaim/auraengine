@@ -212,8 +212,18 @@ export default function CampaignsPage() {
 
       if (campaignsRes.ok) {
         const campaignsData = await campaignsRes.json();
-        console.log("Campaigns data:", campaignsData);
+        console.log("🔍 fetchData - Raw campaigns data:", campaignsData);
+        console.log("🔍 fetchData - Number of campaigns:", campaignsData.length);
+        campaignsData.forEach((campaign: any, index: number) => {
+          console.log(`🔍 fetchData - Campaign ${index}:`, {
+            id: campaign.id,
+            name: campaign.name,
+            generation_status: campaign.generation_status,
+            status: campaign.status
+          });
+        });
         setCampaigns(campaignsData);
+        console.log("🔍 fetchData - setCampaigns called with:", campaignsData.length, "campaigns");
       } else {
         console.error(
           "Campaigns fetch failed:",
@@ -357,7 +367,16 @@ export default function CampaignsPage() {
         console.log("✅ Campaign created:", result);
 
         // Refresh campaigns list immediately to show the campaign with "generating" status
+        console.log("🔍 Before fetchData, campaigns count:", campaigns.length);
         await fetchData();
+        console.log("🔍 After fetchData, campaigns count:", campaigns.length);
+        console.log("🔍 Campaigns data:", campaigns);
+        console.log("🔍 Looking for campaign with ID:", result.campaign.id);
+        const newCampaign = campaigns.find(c => c.id === result.campaign.id);
+        console.log("🔍 Found campaign:", newCampaign);
+        if (newCampaign) {
+          console.log("🔍 Campaign generation_status:", newCampaign.generation_status);
+        }
 
         // Reset form
         setNewCampaign({ name: "", description: "" });
@@ -1468,7 +1487,14 @@ export default function CampaignsPage() {
                       backgroundColor: "#F3F4F6",
                     }}
                   >
-                    {campaign.generation_status === "generating" ? (
+                    {(() => {
+                      console.log(`🔍 Rendering campaign ${campaign.id}:`, {
+                        name: campaign.name,
+                        generation_status: campaign.generation_status,
+                        hasImages: campaign.settings?.generated_images?.length > 0
+                      });
+                      return campaign.generation_status === "generating";
+                    })() ? (
                       <div
                         style={{
                           width: "100%",
