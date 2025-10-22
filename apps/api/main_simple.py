@@ -445,6 +445,41 @@ async def bulk_add_scenes_from_uploads(
         print(f"Bulk scene import error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.patch("/scenes/{scene_id}")
+async def update_scene(
+    scene_id: str,
+    is_standard: bool = Form(None),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update scene properties"""
+    try:
+        scene = db.query(Scene).filter(
+            Scene.id == scene_id,
+            Scene.user_id == current_user["user_id"]
+        ).first()
+        
+        if not scene:
+            raise HTTPException(status_code=404, detail="Scene not found")
+        
+        # Update is_standard if provided
+        if is_standard is not None:
+            scene.is_standard = is_standard
+        
+        db.commit()
+        db.refresh(scene)
+        
+        return {
+            "id": scene.id,
+            "name": scene.name,
+            "is_standard": scene.is_standard,
+            "message": "Scene updated successfully"
+        }
+        
+    except Exception as e:
+        print(f"Scene update error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/scenes/upload")
 async def upload_scene(
     name: str = Form(...),
@@ -479,6 +514,9 @@ async def upload_scene(
         tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()] if tags else []
         
         # Create scene in database
+        # Set is_standard=True for scenes from static/scenes (they start with "Scene ")
+        is_standard_scene = name.startswith("Scene ") and len(name.split()) == 2
+        
         scene = Scene(
             id=str(uuid.uuid4()),
             user_id=current_user["user_id"],
@@ -487,7 +525,7 @@ async def upload_scene(
             category=category,
             tags=tag_list,
             image_url=image_url,
-            is_standard=False,
+            is_standard=is_standard_scene,
             created_at=datetime.utcnow()
         )
         
