@@ -1724,25 +1724,6 @@ export default function CampaignsPage() {
                           ❌ Error
                         </span>
                       )}
-                      <span
-                        style={{
-                          marginLeft: "auto",
-                          padding: "2px 8px",
-                          borderRadius: "12px",
-                          backgroundColor:
-                            campaign.status === "completed"
-                              ? "#D1FAE5"
-                              : "#FEF3C7",
-                          color:
-                            campaign.status === "completed"
-                              ? "#065F46"
-                              : "#92400E",
-                          fontSize: "11px",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {campaign.status}
-                      </span>
                     </div>
                   </div>
 
@@ -2548,28 +2529,6 @@ export default function CampaignsPage() {
                 <div
                   style={{ display: "flex", alignItems: "center", gap: "16px" }}
                 >
-                  <span
-                    style={{
-                      backgroundColor:
-                        selectedCampaign.status === "completed"
-                          ? "rgba(16,185,129,0.15)"
-                          : selectedCampaign.status === "processing"
-                          ? "rgba(245,158,11,0.15)"
-                          : "rgba(107,114,128,0.15)",
-                      color:
-                        selectedCampaign.status === "completed"
-                          ? "#10B981"
-                          : selectedCampaign.status === "processing"
-                          ? "#F59E0B"
-                          : "#6B7280",
-                      padding: "8px 16px",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      fontWeight: "600",
-                    }}
-                  >
-                    {selectedCampaign.status.toUpperCase()}
-                  </span>
 
                   {selectedCampaign.settings?.total_combinations && (
                     <span
