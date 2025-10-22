@@ -2237,7 +2237,7 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             scene_image_url = upload_to_replicate(filepath)
 
         # Strong integration prompt - like campaign hjk
-        scene_prompt = f"Create a cohesive fashion photograph: Take the person from the first image, dress them with the {product_name} from the second image, then integrate them into a setting inspired by the mood and atmosphere of the third image. The person should adapt to match the lighting, color grading, and visual style of the scene environment. Create a natural, believable composition where everything flows together. Preserve the person's face and pose but adjust their appearance to fit harmoniously. Professional dark luxury fashion aesthetic."
+        scene_prompt = f"Create a cohesive fashion photograph: Take the person from the first image, dress them with the {product_name} from the second image, then integrate them into a setting inspired by the mood and atmosphere of the third image. The person should adapt to match the lighting, color grading, and visual style of the scene environment. Create a natural, believable composition where everything flows together. Preserve the person's face and pose but adjust their appearance to fit harmoniously. Professional luxury fashion aesthetic."
         
         # Strong integration parameters (like hjk)
         num_steps = 38
@@ -2366,7 +2366,7 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
                 f"Use the second image as the actual background - location, environment, architecture, and setting. "
                 f"Match the lighting, colors, and atmosphere from the scene. "
                 f"Keep the person's face and pose exactly the same. "
-                f"Dark luxury fashion aesthetic with dramatic moody lighting. "
+                f"Professional luxury fashion aesthetic with dramatic moody lighting. "
                 f"Professional editorial photography, cinematic quality."
             )
         else:
@@ -2375,7 +2375,7 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
                 "Use the second image as the actual background - location, environment, architecture, and setting. "
                 "Match the lighting, colors, and atmosphere from the scene. "
                 "Keep the person's face and pose exactly the same. "
-                "Dark luxury fashion aesthetic with dramatic moody lighting. "
+                "Professional luxury fashion aesthetic with dramatic moody lighting. "
                 "Professional editorial photography, cinematic quality."
             )
         
@@ -2384,12 +2384,12 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
             num_steps = 50        # Maximum quality
             guidance = 8.0        # Very strong guidance to follow prompt
             strength = 0.75       # Very high strength to use scene heavily
-            print("🎨 Using HIGH QUALITY mode (scene-based dark luxury)")
+            print("🎨 Using HIGH QUALITY mode (scene-based luxury)")
         else:  # standard
             num_steps = 45        # High quality
             guidance = 7.5        # Strong guidance to follow prompt
             strength = 0.70       # High strength to use scene heavily
-            print("⚡ Using STANDARD mode (scene-based dark luxury)")
+            print("⚡ Using STANDARD mode (scene-based luxury)")
 
         # Special handling for Sitting Shot: increase adherence to background
         if shot_type_prompt and ("sitting" in shot_type_prompt.lower()):
@@ -3105,7 +3105,7 @@ def run_veo_direct_generation(model_image: str, product_image: str, scene_image:
             full_prompt = (
                 "Professional fashion video: model wearing the product in the scene setting. "
                 "Slow subtle poses, minimal movement, elegant and refined. "
-                "Cinematic lighting, dark luxury aesthetic, high-end editorial style, dramatic atmosphere."
+                "Cinematic lighting, luxury aesthetic, high-end editorial style, dramatic atmosphere."
             )
         
         print(f"🎨 Veo Direct prompt: {full_prompt}")
@@ -3229,7 +3229,7 @@ async def tweak_image(
         # Use Qwen for image tweaking (img2img editing)
         print(f"🎨 Running Qwen for image tweaking...")
         out = replicate.run("qwen/qwen-image-edit-plus", input={
-            "prompt": f"{request.prompt}. Dark luxury fashion aesthetic, professional quality.",
+            "prompt": f"{request.prompt}. Professional luxury fashion aesthetic, professional quality.",
             "image": [image_base64],  # Only one image for editing
             "num_inference_steps": 35,
             "guidance_scale": 7.0,
