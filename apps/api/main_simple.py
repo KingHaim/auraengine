@@ -779,7 +779,7 @@ async def create_campaign(
     model_ids: str = Form(...),    # JSON string
     scene_ids: str = Form(...),    # JSON string
     selected_poses: str = Form("{}"),  # JSON string
-    number_of_images: int = Form(7),
+    number_of_images: int = Form(10),
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -876,7 +876,7 @@ async def generate_campaign_images(
     model_ids: str = Form("[]"),
     scene_ids: str = Form("[]"),
     selected_poses: str = Form("{}"),
-    number_of_images: int = Form(1),
+    number_of_images: int = Form(10),
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -2285,7 +2285,7 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
         fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url) % 10000}"
         return fallback_url
 
-# Campaign shot types for varied content generation
+# Campaign shot types for comprehensive 10-shot photoshoot
 CAMPAIGN_SHOT_TYPES = [
     {
         "name": "sitting_intro",
@@ -2321,6 +2321,21 @@ CAMPAIGN_SHOT_TYPES = [
         "name": "hero_finale",
         "title": "Hero Pose (Campaign Finale)",
         "prompt": "Full-body confident hero pose facing camera, product fully shown and emphasized, gradient backdrop, professional lighting, editorial fashion campaign aesthetic, striking and memorable composition"
+    },
+    {
+        "name": "detail_macro",
+        "title": "Fabric Detail Macro",
+        "prompt": "Extreme close-up macro shot of fabric texture, stitching details, material quality, professional product photography, sharp focus on textile details, studio lighting highlighting texture, macro lens effect"
+    },
+    {
+        "name": "profile_side",
+        "title": "Profile Side View",
+        "prompt": "Side profile shot showing product silhouette and fit, model in natural side pose, clean background, professional fashion photography, side lighting creating depth and dimension, elegant profile composition"
+    },
+    {
+        "name": "lifestyle_context",
+        "title": "Lifestyle Context Shot",
+        "prompt": "Lifestyle shot showing product in natural context, model in relaxed pose, environmental storytelling, warm natural lighting, authentic lifestyle photography aesthetic, candid moment capture"
     }
 ]
 

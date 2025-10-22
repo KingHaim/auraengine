@@ -144,7 +144,7 @@ export default function CampaignsPage() {
   const [selectedPosesForGeneration, setSelectedPosesForGeneration] = useState<{
     [key: string]: string[];
   }>({});
-  const [numberOfImagesToGenerate, setNumberOfImagesToGenerate] = useState(1);
+  const [numberOfImagesToGenerate, setNumberOfImagesToGenerate] = useState(10);
   const [showCampaignProfileModal, setShowCampaignProfileModal] =
     useState(false);
   const [selectedCampaignForProfile, setSelectedCampaignForProfile] =
@@ -1808,7 +1808,7 @@ export default function CampaignsPage() {
                   fontWeight: "600",
                 }}
               >
-                Create New Campaign
+                Create 10-Shot Photoshoot
               </h2>
 
               {/* Campaign Details */}
@@ -2418,7 +2418,7 @@ export default function CampaignsPage() {
                     cursor: isCreating ? "not-allowed" : "pointer",
                   }}
                 >
-                  {isCreating ? "Creating..." : "Create Campaign"}
+                  {isCreating ? "Creating 10-Shot Photoshoot..." : "Create 10-Shot Photoshoot"}
                 </button>
               </div>
             </div>
@@ -3103,8 +3103,7 @@ export default function CampaignsPage() {
                     color: "#6B7280",
                   }}
                 >
-                  Each image will use a different shot type (Sitting, Standing,
-                  Close-up, etc.)
+                  Generate 10 diverse photoshoot images including close-ups, full-body, profile, and lifestyle shots
                 </p>
               </div>
 
@@ -4201,8 +4200,7 @@ export default function CampaignsPage() {
                     color: "#6B7280",
                   }}
                 >
-                  Each image will use a different shot type (Sitting, Standing,
-                  Close-up, etc.)
+                  Generate 10 diverse photoshoot images including close-ups, full-body, profile, and lifestyle shots
                 </p>
               </div>
 
@@ -5199,10 +5197,7 @@ export default function CampaignsPage() {
                   lineHeight: 1.5,
                 }}
               >
-                Generate videos for all{" "}
-                {selectedCampaignForBulkVideo.settings?.generated_images
-                  ?.length || 0}{" "}
-                images in "{selectedCampaignForBulkVideo.name}"
+                Select shots from your 10-shot photoshoot to create videos for TikTok, CapCut, or other social media platforms
               </p>
 
               {/* Veo Direct Mode Toggle */}
@@ -5254,17 +5249,56 @@ export default function CampaignsPage() {
               {/* Image Selection (only if NOT in Veo Direct Mode) */}
               {!veoDirectMode && (
                 <div style={{ marginBottom: "20px" }}>
-                  <label
-                    style={{
-                      display: "block",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                      marginBottom: "8px",
-                      color: "#374151",
-                    }}
-                  >
-                    Select Images for Video Generation
-                  </label>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                    <label
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        color: "#374151",
+                        margin: "0"
+                      }}
+                    >
+                      Select Images for Video Generation
+                    </label>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        onClick={() => {
+                          const allIndices = new Set(
+                            Array.from(
+                              { length: selectedCampaignForBulkVideo.settings?.generated_images?.length || 0 },
+                              (_, i) => i
+                            )
+                          );
+                          setSelectedImagesForVideo(allIndices);
+                        }}
+                        style={{
+                          padding: "4px 8px",
+                          backgroundColor: "#F3F4F6",
+                          border: "1px solid #D1D5DB",
+                          borderRadius: "4px",
+                          fontSize: "11px",
+                          cursor: "pointer",
+                          color: "#374151"
+                        }}
+                      >
+                        Select All
+                      </button>
+                      <button
+                        onClick={() => setSelectedImagesForVideo(new Set())}
+                        style={{
+                          padding: "4px 8px",
+                          backgroundColor: "#F3F4F6",
+                          border: "1px solid #D1D5DB",
+                          borderRadius: "4px",
+                          fontSize: "11px",
+                          cursor: "pointer",
+                          color: "#374151"
+                        }}
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                  </div>
                   <div
                     style={{
                       display: "grid",
@@ -5317,6 +5351,27 @@ export default function CampaignsPage() {
                                 : 0.6,
                             }}
                           />
+                          {/* Shot type label */}
+                          <div
+                            style={{
+                              position: "absolute",
+                              bottom: "4px",
+                              left: "4px",
+                              right: "4px",
+                              backgroundColor: "rgba(0, 0, 0, 0.7)",
+                              color: "#FFFFFF",
+                              borderRadius: "4px",
+                              padding: "2px 4px",
+                              fontSize: "10px",
+                              fontWeight: "500",
+                              textAlign: "center",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap"
+                            }}
+                          >
+                            {img.shot_type || `Shot ${idx + 1}`}
+                          </div>
                           {selectedImagesForVideo.has(idx) && (
                             <div
                               style={{
@@ -5350,12 +5405,17 @@ export default function CampaignsPage() {
                       alignItems: "center",
                     }}
                   >
-                    <span style={{ fontSize: "12px", color: "#6B7280" }}>
-                      {selectedImagesForVideo.size} of{" "}
-                      {selectedCampaignForBulkVideo.settings?.generated_images
-                        ?.length || 0}{" "}
-                      selected
-                    </span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      <span style={{ fontSize: "12px", color: "#6B7280" }}>
+                        {selectedImagesForVideo.size} of{" "}
+                        {selectedCampaignForBulkVideo.settings?.generated_images
+                          ?.length || 0}{" "}
+                        selected
+                      </span>
+                      <span style={{ fontSize: "11px", color: "#9CA3AF" }}>
+                        💡 Tip: Select 3-5 shots for TikTok, or all 10 for a complete CapCut sequence
+                      </span>
+                    </div>
                     <div style={{ display: "flex", gap: "8px" }}>
                       <button
                         onClick={() => {
