@@ -2114,11 +2114,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             for attempt in range(max_retries):
                 try:
                     print(f"🎭 Vella attempt {attempt + 1}/{max_retries}...")
-            out = replicate.run("omnious/vella-1.5", input=vella_input)
+                    out = replicate.run("omnious/vella-1.5", input=vella_input)
                     print(f"✅ Vella API call succeeded on attempt {attempt + 1}!")
-            print(f"🎭 Vella API response type: {type(out)}")
-            if hasattr(out, '__dict__'):
-                print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
+                    print(f"🎭 Vella API response type: {type(out)}")
+                    if hasattr(out, '__dict__'):
+                        print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
                     break  # Success, exit retry loop
                 except Exception as e:
                     print(f"⚠️ Vella attempt {attempt + 1} failed: {e}")
