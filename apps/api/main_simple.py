@@ -684,10 +684,10 @@ async def generate_campaign_images_background(
                                 if fooocus_result:
                                     final_result_url = fooocus_result
                                     print(f"✅ Fooocus enhancement completed: {final_result_url[:50]}...")
-                                    else:
+                                else:
                                     print(f"⚠️ Fooocus enhancement failed, using previous result")
                                     
-                                except Exception as e:
+                            except Exception as e:
                                 print(f"⚠️ Fooocus enhancement failed, using previous result: {e}")
                                 # Keep the previous result if Fooocus fails
                             
@@ -982,10 +982,10 @@ async def generate_campaign_images(
                                 if fooocus_result:
                                     final_result_url = fooocus_result
                                     print(f"✅ Fooocus enhancement completed: {final_result_url[:50]}...")
-                                    else:
+                                else:
                                     print(f"⚠️ Fooocus enhancement failed, using previous result")
                                     
-                                except Exception as e:
+                            except Exception as e:
                                 print(f"⚠️ Fooocus enhancement failed, using previous result: {e}")
                                 # Keep the previous result if Fooocus fails
                             
