@@ -359,15 +359,16 @@ export default function CampaignsPage() {
         // Refresh campaigns list immediately to show the campaign with "generating" status
         await fetchData();
 
-        alert(
-          `✅ Campaign "${result.campaign.name}" created successfully! ${result.total_combinations} images will be generated. Credits remaining: ${result.credits_remaining}`
-        );
-
         // Reset form
         setNewCampaign({ name: "", description: "" });
         setSelectedProducts([]);
         setSelectedModel("");
         setSelectedScenes([]);
+
+        // Show alert after UI has been updated
+        alert(
+          `✅ Campaign "${result.campaign.name}" created successfully! ${result.total_combinations} images will be generated. Credits remaining: ${result.credits_remaining}`
+        );
       } else {
         const error = await response.text();
         throw new Error(error);
