@@ -394,6 +394,15 @@ export default function CampaignsPage() {
 
         // Set generating state immediately for instant feedback
         console.log("🔍 About to set generatingCampaignId...");
+        console.log("🔍 result.campaign:", result.campaign);
+        console.log("🔍 result.campaign.id:", result.campaign?.id);
+        console.log("🔍 typeof result.campaign.id:", typeof result.campaign?.id);
+        
+        if (!result.campaign?.id) {
+          console.error("❌ ERROR: result.campaign.id is undefined or null!");
+          throw new Error("Campaign ID is missing from response");
+        }
+        
         setGeneratingCampaignId(result.campaign.id);
         console.log("🔍 Set generatingCampaignId to:", result.campaign.id);
 
