@@ -327,12 +327,15 @@ export default function CampaignsPage() {
   }, [campaigns, generatingCampaignId]);
 
   const handleCreateCampaign = async () => {
+    console.log("🔍 handleCreateCampaign called");
+    
     if (
       !newCampaign.name ||
       selectedProducts.length === 0 ||
       !selectedModel ||
       selectedScenes.length === 0
     ) {
+      console.log("❌ Validation failed - missing fields");
       alert(
         "Please fill in campaign name and select at least one product, model, and scene"
       );
@@ -352,6 +355,7 @@ export default function CampaignsPage() {
     });
 
     setIsCreating(true);
+    console.log("🔍 Set isCreating to true and closing modal");
 
     // Close modal immediately when generation starts
     setShowCreateModal(false);
@@ -366,6 +370,7 @@ export default function CampaignsPage() {
       formData.append("selected_poses", JSON.stringify(selectedPoses));
       formData.append("number_of_images", numberOfImagesToGenerate.toString());
 
+      console.log("🔍 About to make fetch request to create campaign");
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/campaigns/create`,
         {
@@ -376,12 +381,19 @@ export default function CampaignsPage() {
           body: formData,
         }
       );
+      console.log("🔍 Fetch request completed");
 
+      console.log("🔍 Response status:", response.status);
+      console.log("🔍 Response ok:", response.ok);
+      
       if (response.ok) {
+        console.log("🔍 Response is OK, processing...");
         const result = await response.json();
         console.log("✅ Campaign created:", result);
+        console.log("🔍 Campaign ID from result:", result.campaign?.id);
 
         // Set generating state immediately for instant feedback
+        console.log("🔍 About to set generatingCampaignId...");
         setGeneratingCampaignId(result.campaign.id);
         console.log("🔍 Set generatingCampaignId to:", result.campaign.id);
 
@@ -412,7 +424,11 @@ export default function CampaignsPage() {
           `✅ Campaign "${result.campaign.name}" created successfully! ${result.total_combinations} images will be generated. Credits remaining: ${result.credits_remaining}`
         );
       } else {
+        console.log("❌ Response not OK - Status:", response.status);
+        console.log("❌ Response not OK - StatusText:", response.statusText);
         const error = await response.text();
+        console.error("❌ Campaign creation failed:", response.status);
+        console.error("Error details:", error);
         throw new Error(error);
       }
     } catch (error) {
