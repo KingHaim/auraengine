@@ -2884,6 +2884,17 @@ def run_kling_video_generation(image_url: str, video_quality: str = "480p", dura
             }
         )
         
+        # Debug: Check what Kling is actually returning
+        print(f"🔍 Kling raw output type: {type(out)}")
+        print(f"🔍 Kling raw output: {out}")
+        if hasattr(out, '__dict__'):
+            print(f"🔍 Kling output attributes: {dir(out)}")
+        if hasattr(out, '__iter__') and not isinstance(out, str):
+            print(f"🔍 Kling output is iterable, length: {len(out) if hasattr(out, '__len__') else 'unknown'}")
+            if hasattr(out, '__len__') and len(out) > 0:
+                for i, item in enumerate(out):
+                    print(f"🔍 Kling output item {i}: {type(item)} - {item}")
+        
         # Handle output - Kling returns a string URL directly
         if isinstance(out, str):
             video_url = out
