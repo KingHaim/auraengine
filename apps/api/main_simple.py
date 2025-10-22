@@ -2868,40 +2868,24 @@ def run_kling_video_generation(image_url: str, video_quality: str = "480p", dura
             image_url = upload_to_replicate(filepath)
             print(f"Converted image to base64: {image_url[:100]}...")
         
-        # Map quality to Kling's resolution parameters
-        if video_quality == "1080p":
-            resolution = "1920x1080"
-        elif video_quality == "720p":
-            resolution = "1280x720"
-        else:  # 480p
-            resolution = "854x480"
+        # Kling only supports prompt and image parameters
+        prompt = custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness"
         
-        # Duration in seconds (5s or 10s)
-        duration_seconds = 10 if duration == "10s" else 5
+        print(f"🎨 Using prompt: {prompt}")
+        print(f"🖼️ Using image: {image_url[:100]}...")
         
-        print(f"🎨 Using {resolution} resolution")
-        print(f"⏱️ Using {duration_seconds}s duration")
-        
-        # Run Kling 2.5 Turbo Pro
+        # Run Kling 2.5 Turbo Pro - ONLY with supported parameters
         print(f"🔄 Calling Kling 2.5 Turbo Pro API...")
         out = replicate.run(
             "kwaivgi/kling-v2.5-turbo-pro",
             input={
-                "prompt": custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness",
-                "image": image_url,
-                "resolution": resolution,
-                "duration": duration_seconds,
-                "quality": "high"
+                "prompt": prompt,
+                "image": image_url
             }
         )
         
-        # Handle output
-        if hasattr(out, 'url'):
-            video_url = out.url
-        elif isinstance(out, list) and len(out) > 0:
-            video_url = out[0]
-        else:
-            video_url = str(out)
+        # Handle output - get the URL using the correct method
+        video_url = out.url()
         
         # Persist the video URL
         if video_url:
