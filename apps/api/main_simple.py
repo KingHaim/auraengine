@@ -1087,14 +1087,14 @@ async def generate_campaign_images_background(
                                 nb_input = vella_result_url
                             
                             # Apply Nano Banana img2img for enhanced realism
+                            # Use image-to-image mode without prompt to preserve the composition
                             nano_result = replicate.run(
                                 "google/nano-banana",
                                 input={
-                                    "prompt": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
                                     "image": nb_input,
-                                    "num_inference_steps": 28,
-                                    "guidance_scale": 5.5,
-                                    "strength": 0.4  # Higher strength for more dramatic realism enhancement
+                                    "num_inference_steps": 20,
+                                    "guidance_scale": 3.0,
+                                    "strength": 0.25  # Lower strength to preserve composition
                                 }
                             )
                             
