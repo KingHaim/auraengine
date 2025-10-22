@@ -2929,7 +2929,7 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         return None
 
 def run_fooocus_realistic_enhancement(image_url: str, custom_prompt: Optional[str] = None) -> str:
-    """Enhance image realism using Fooocus API Realistic"""
+    """Enhance image realism using Fooocus API Realistic with fallback models"""
     try:
         print(f"🎨 Running Fooocus API Realistic enhancement: {image_url[:50]}...")
         
@@ -2946,23 +2946,55 @@ def run_fooocus_realistic_enhancement(image_url: str, custom_prompt: Optional[st
         print(f"🎨 Using prompt: {prompt}")
         print(f"🖼️ Using image: {image_url[:100]}...")
         
-        # Run Fooocus API Realistic
+        # Run Fooocus API Realistic with minimal parameters
         print(f"🔄 Calling Fooocus API Realistic...")
-        out = replicate.run(
-            "konieshadow/fooocus-api-realistic",
-            input={
-                "prompt": prompt,
-                "image": image_url,
-                "style": "realistic",
-                "quality": "high",
-                "steps": 30,
-                "guidance_scale": 7.0
-            }
-        )
+        try:
+            out = replicate.run(
+                "konieshadow/fooocus-api-realistic",
+                input={
+                    "prompt": prompt,
+                    "image": image_url
+                }
+            )
+        except Exception as e:
+            print(f"❌ Fooocus model not found or unavailable: {e}")
+            # Try alternative realistic enhancement model
+            print(f"🔄 Trying alternative realistic enhancement...")
+            try:
+                out = replicate.run(
+                    "tencentarc/photomaker",
+                    input={
+                        "input_image": image_url,
+                        "prompt": f"{prompt}, photorealistic, professional fashion photography, high quality, detailed",
+                        "num_steps": 30,
+                        "style_strength_ratio": 20,
+                        "num_outputs": 1,
+                        "guidance_scale": 5.0
+                    }
+                )
+                print(f"✅ Using PhotoMaker as fallback")
+            except Exception as fallback_error:
+                print(f"❌ PhotoMaker fallback also failed: {fallback_error}")
+                # Try one more fallback with a simple img2img model
+                try:
+                    out = replicate.run(
+                        "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
+                        input={
+                            "prompt": f"{prompt}, photorealistic, professional fashion photography, high quality, detailed",
+                            "image": image_url,
+                            "num_inference_steps": 30,
+                            "guidance_scale": 7.0,
+                            "strength": 0.3
+                        }
+                    )
+                    print(f"✅ Using SDXL as final fallback")
+                except Exception as final_error:
+                    print(f"❌ All fallback models failed: {final_error}")
+                    return None
         
-        # Debug: Check what Fooocus is returning
-        print(f"🔍 Fooocus raw output type: {type(out)}")
-        print(f"🔍 Fooocus raw output: {out}")
+        # Debug: Check what model is returning
+        print(f"🔍 Model raw output type: {type(out)}")
+        print(f"🔍 Model raw output: {out}")
         
         # Handle output - Fooocus returns a list of URLs
         if isinstance(out, list) and len(out) > 0:
@@ -2976,14 +3008,14 @@ def run_fooocus_realistic_enhancement(image_url: str, custom_prompt: Optional[st
         
         # Persist the enhanced image URL
         if enhanced_url:
-            enhanced_url = upload_to_cloudinary(enhanced_url, "fooocus_enhanced")
-            print(f"✅ Fooocus enhancement completed and persisted: {enhanced_url}")
+            enhanced_url = upload_to_cloudinary(enhanced_url, "realistic_enhanced")
+            print(f"✅ Realistic enhancement completed and persisted: {enhanced_url}")
             return enhanced_url
         
         return None
         
     except Exception as e:
-        print(f"❌ Fooocus enhancement failed: {e}")
+        print(f"❌ Realistic enhancement failed: {e}")
         return None
 
 def run_kling_video_generation(image_url: str, video_quality: str = "480p", duration: str = "5s", custom_prompt: Optional[str] = None) -> str:
