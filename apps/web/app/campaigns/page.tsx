@@ -3301,6 +3301,39 @@ export default function CampaignsPage() {
                       </div>
                     </div>
                   </label>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "8px 12px",
+                      border:
+                        videoModel === "kling"
+                          ? "2px solid #8B5CF6"
+                          : "1px solid #D1D5DB",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      backgroundColor:
+                        videoModel === "kling" ? "#F3F4F6" : "white",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="videoModel"
+                      value="kling"
+                      checked={videoModel === "kling"}
+                      onChange={(e) => setVideoModel(e.target.value)}
+                      style={{ margin: 0 }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: "500", fontSize: "14px" }}>
+                        Kling 2.5 Turbo Pro
+                      </div>
+                      <div style={{ fontSize: "12px", color: "#6B7280" }}>
+                        Pro-level quality with smooth motion
+                      </div>
+                    </div>
+                  </label>
                 </div>
               </div>
 
@@ -3424,8 +3457,8 @@ export default function CampaignsPage() {
                 </div>
               </div>
 
-              {/* Video Duration Selection (only for Seedance) */}
-              {videoModel === "seedance" && (
+              {/* Video Duration Selection (for Seedance and Kling) */}
+              {(videoModel === "seedance" || videoModel === "kling") && (
                 <div style={{ marginTop: "16px" }}>
                   <label
                     style={{
@@ -3564,6 +3597,10 @@ export default function CampaignsPage() {
                           if (videoQuality === "1080p") credits = 3;
                           else if (videoQuality === "720p") credits = 2;
                           else credits = 1;
+                        } else if (videoModel === "kling") {
+                          if (videoQuality === "1080p") credits = 4;
+                          else if (videoQuality === "720p") credits = 3;
+                          else credits = 2;
                         } else {
                           // wan model
                           if (videoQuality === "720p") credits = 2;
@@ -5518,6 +5555,39 @@ export default function CampaignsPage() {
                       </div>
                     </div>
                   </label>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "10px 14px",
+                      border:
+                        bulkVideoModel === "kling"
+                          ? "2px solid #8B5CF6"
+                          : "1px solid #D1D5DB",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      backgroundColor:
+                        bulkVideoModel === "kling" ? "#F3F4F6" : "white",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="bulkVideoModel"
+                      value="kling"
+                      checked={bulkVideoModel === "kling"}
+                      onChange={(e) => setBulkVideoModel(e.target.value)}
+                      style={{ margin: 0 }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: "500", fontSize: "14px" }}>
+                        Kling 2.5 Turbo Pro ⚡ Pro
+                      </div>
+                      <div style={{ fontSize: "12px", color: "#6B7280" }}>
+                        480p/720p/1080p • 5s/10s • 2-6 credits
+                      </div>
+                    </div>
+                  </label>
                 </div>
               </div>
 
@@ -5572,6 +5642,8 @@ export default function CampaignsPage() {
                       <div style={{ fontSize: "11px", color: "#6B7280" }}>
                         {bulkVideoModel === "seedance"
                           ? `${bulkVideoDuration === "10s" ? "3" : "2"} credits`
+                          : bulkVideoModel === "kling"
+                          ? `${bulkVideoDuration === "10s" ? "3" : "2"} credits`
                           : bulkVideoModel === "veo"
                           ? `${bulkVideoDuration === "10s" ? "4" : "3"} credits`
                           : "1 credit"}
@@ -5608,13 +5680,16 @@ export default function CampaignsPage() {
                         720p
                       </div>
                       <div style={{ fontSize: "11px", color: "#6B7280" }}>
-                        {bulkVideoModel === "veo"
+                        {bulkVideoModel === "kling"
+                          ? `${bulkVideoDuration === "10s" ? "4" : "3"} credits`
+                          : bulkVideoModel === "veo"
                           ? `${bulkVideoDuration === "10s" ? "6" : "4"} credits`
                           : "2 credits"}
                       </div>
                     </div>
                   </label>
                   {(bulkVideoModel === "seedance" ||
+                    bulkVideoModel === "kling" ||
                     bulkVideoModel === "veo") && (
                     <label
                       style={{
@@ -5646,7 +5721,11 @@ export default function CampaignsPage() {
                           1080p
                         </div>
                         <div style={{ fontSize: "11px", color: "#6B7280" }}>
-                          {bulkVideoModel === "veo"
+                          {bulkVideoModel === "kling"
+                            ? `${
+                                bulkVideoDuration === "10s" ? "6" : "4"
+                              } credits`
+                            : bulkVideoModel === "veo"
                             ? `${
                                 bulkVideoDuration === "10s" ? "8" : "5"
                               } credits`
@@ -5660,8 +5739,8 @@ export default function CampaignsPage() {
                 </div>
               </div>
 
-              {/* Video Duration Selection (for Seedance & Veo) */}
-              {(bulkVideoModel === "seedance" || bulkVideoModel === "veo") && (
+              {/* Video Duration Selection (for Seedance, Kling & Veo) */}
+              {(bulkVideoModel === "seedance" || bulkVideoModel === "kling" || bulkVideoModel === "veo") && (
                 <div style={{ marginBottom: "20px" }}>
                   <label
                     style={{

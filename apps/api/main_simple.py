@@ -2856,6 +2856,65 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         print(f"❌ Veo 3.1 video generation failed: {e}")
         return None
 
+def run_kling_video_generation(image_url: str, video_quality: str = "480p", duration: str = "5s", custom_prompt: Optional[str] = None) -> str:
+    """Generate video from image using Kling 2.5 Turbo Pro API"""
+    try:
+        print(f"🎬 Running Kling 2.5 Turbo Pro video generation: {image_url[:50]}...")
+        
+        # Convert local URLs to base64 for Replicate
+        if image_url.startswith(get_base_url() + "/static/"):
+            filename = image_url.replace(get_base_url() + "/static/", "")
+            filepath = f"uploads/{filename}"
+            image_url = upload_to_replicate(filepath)
+            print(f"Converted image to base64: {image_url[:100]}...")
+        
+        # Map quality to Kling's resolution parameters
+        if video_quality == "1080p":
+            resolution = "1920x1080"
+        elif video_quality == "720p":
+            resolution = "1280x720"
+        else:  # 480p
+            resolution = "854x480"
+        
+        # Duration in seconds (5s or 10s)
+        duration_seconds = 10 if duration == "10s" else 5
+        
+        print(f"🎨 Using {resolution} resolution")
+        print(f"⏱️ Using {duration_seconds}s duration")
+        
+        # Run Kling 2.5 Turbo Pro
+        print(f"🔄 Calling Kling 2.5 Turbo Pro API...")
+        out = replicate.run(
+            "kwaivgi/kling-v2.5-turbo-pro",
+            input={
+                "prompt": custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness",
+                "image": image_url,
+                "resolution": resolution,
+                "duration": duration_seconds,
+                "quality": "high"
+            }
+        )
+        
+        # Handle output
+        if hasattr(out, 'url'):
+            video_url = out.url
+        elif isinstance(out, list) and len(out) > 0:
+            video_url = out[0]
+        else:
+            video_url = str(out)
+        
+        # Persist the video URL
+        if video_url:
+            video_url = upload_to_cloudinary(video_url, "kling_videos")
+            print(f"✅ Kling video generated and persisted: {video_url}")
+            return video_url
+        
+        return None
+        
+    except Exception as e:
+        print(f"❌ Kling video generation failed: {e}")
+        return None
+
 def run_veo_direct_generation(model_image: str, product_image: str, scene_image: str, video_quality: str = "480p", duration: str = "5s", custom_prompt: Optional[str] = None) -> str:
     """Generate video directly from model + product + scene using Google Veo 3.1"""
     try:
@@ -3222,6 +3281,13 @@ async def generate_videos_for_campaign(
       - 480p (10s): 3 credits
       - 1080p (5s): 4 credits
       - 1080p (10s): 6 credits
+    - Kling 2.5 Turbo Pro (Pro-level):
+      - 480p (5s): 2 credits
+      - 480p (10s): 3 credits
+      - 720p (5s): 3 credits
+      - 720p (10s): 4 credits
+      - 1080p (5s): 4 credits
+      - 1080p (10s): 6 credits
     - Google Veo 3.1 (Premium):
       - 480p (5s): 3 credits
       - 480p (10s): 4 credits
@@ -3289,6 +3355,14 @@ async def generate_videos_for_campaign(
                     credits_per_video = 6 if request.duration == "10s" else 4
                 else:  # 480p
                     credits_per_video = 4 if request.duration == "10s" else 3
+            elif request.model == "kling":
+                # Kling 2.5 Turbo Pro pricing (pro-level quality)
+                if request.video_quality == "1080p":
+                    credits_per_video = 6 if request.duration == "10s" else 4
+                elif request.video_quality == "720p":
+                    credits_per_video = 4 if request.duration == "10s" else 3
+                else:  # 480p
+                    credits_per_video = 3 if request.duration == "10s" else 2
             else:  # wan
                 credits_per_video = 2 if request.video_quality == "720p" else 1
             
@@ -3404,6 +3478,8 @@ async def generate_videos_for_campaign(
                         video_url = run_seedance_video_generation(image_url, request.video_quality, request.duration, request.custom_prompt)
                     elif request.model == "veo":
                         video_url = run_veo_video_generation(image_url, request.video_quality, request.duration, request.custom_prompt)
+                    elif request.model == "kling":
+                        video_url = run_kling_video_generation(image_url, request.video_quality, request.duration, request.custom_prompt)
                     else:  # wan
                         video_url = run_wan_video_generation(image_url, request.video_quality, request.custom_prompt)
                     
@@ -3489,6 +3565,13 @@ async def generate_video_for_generation(
       - 480p (10s): 3 credits
       - 1080p (5s): 4 credits
       - 1080p (10s): 6 credits
+    - Kling 2.5 Turbo Pro (Pro-level):
+      - 480p (5s): 2 credits
+      - 480p (10s): 3 credits
+      - 720p (5s): 3 credits
+      - 720p (10s): 4 credits
+      - 1080p (5s): 4 credits
+      - 1080p (10s): 6 credits
     """
     try:
         # Get the generation
@@ -3521,6 +3604,22 @@ async def generate_video_for_generation(
                     credits_needed = 3  # 480p 10s Seedance
                 else:  # 5s
                     credits_needed = 2  # 480p 5s Seedance
+        elif model == "kling":
+            if video_quality == "1080p":
+                if duration == "10s":
+                    credits_needed = 6  # 1080p 10s Kling
+                else:  # 5s
+                    credits_needed = 4  # 1080p 5s Kling
+            elif video_quality == "720p":
+                if duration == "10s":
+                    credits_needed = 4  # 720p 10s Kling
+                else:  # 5s
+                    credits_needed = 3  # 720p 5s Kling
+            else:  # 480p
+                if duration == "10s":
+                    credits_needed = 3  # 480p 10s Kling
+                else:  # 5s
+                    credits_needed = 2  # 480p 5s Kling
         else:  # wan model
             if video_quality == "720p":
                 credits_needed = 2  # 720p Wan
@@ -3530,7 +3629,7 @@ async def generate_video_for_generation(
         if user.credits < credits_needed:
             raise HTTPException(
                 status_code=400,
-                detail=f"Insufficient credits. You have {user.credits} credits, but need {credits_needed} for {model} {video_quality} {duration if model == 'seedance' else ''} video generation"
+                detail=f"Insufficient credits. You have {user.credits} credits, but need {credits_needed} for {model} {video_quality} {duration if model in ['seedance', 'kling'] else ''} video generation"
             )
         
         # Get the image URL from the generation
@@ -3546,6 +3645,8 @@ async def generate_video_for_generation(
         
         if model == "seedance":
             video_url = run_seedance_video_generation(image_url, video_quality, duration, custom_prompt)
+        elif model == "kling":
+            video_url = run_kling_video_generation(image_url, video_quality, duration, custom_prompt)
         else:  # wan model (default)
             video_url = run_wan_video_generation(image_url, video_quality, custom_prompt)
         
