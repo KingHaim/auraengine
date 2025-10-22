@@ -1087,10 +1087,11 @@ async def generate_campaign_images_background(
                                 nb_input = vella_result_url
                             
                             # Apply Nano Banana img2img for enhanced realism
-                            # Use image-to-image mode without prompt to preserve the composition
+                            # Use minimal prompt to preserve composition while enhancing quality
                             nano_result = replicate.run(
                                 "google/nano-banana",
                                 input={
+                                    "prompt": "enhance quality, improve realism",
                                     "image": nb_input,
                                     "num_inference_steps": 20,
                                     "guidance_scale": 3.0,
