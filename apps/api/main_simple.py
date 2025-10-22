@@ -1068,13 +1068,13 @@ async def generate_campaign_images_background(
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
                             # Step 3: Apply Qwen scene integration for better blending
+                            # Use the Vella result (with clothing) and integrate it back into the scene
                             print(f"🌅 Step 3: Applying Qwen scene integration...")
-                            final_result_url = run_qwen_triple_composition(
-                                stable_model,
-                                stable_product,
-                                stable_scene,
-                                product.name,
+                            final_result_url = run_qwen_scene_composition(
+                                vella_result_url,  # Use Vella result (model with clothing)
+                                stable_scene,      # Use original scene
                                 quality_mode,
+                                shot_type_prompt=f"Integrate the person wearing {product.name} into the scene with perfect blending and natural lighting. Ensure the clothing and person look naturally placed in the environment.",
                                 dark_aesthetic=dark_aesthetic
                             )
                             print(f"✅ Qwen scene integration completed: {final_result_url[:50]}...")
