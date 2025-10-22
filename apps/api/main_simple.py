@@ -2909,9 +2909,35 @@ def run_kling_video_generation(image_url: str, video_quality: str = "480p", dura
         
         # Persist the video URL
         if video_url:
-            video_url = upload_to_cloudinary(video_url, "kling_videos")
-            print(f"✅ Kling video generated and persisted: {video_url}")
-            return video_url
+            # Check if it's a video file (Kling returns .mp4)
+            if video_url.endswith('.mp4') or 'video' in video_url.lower():
+                # For video files, use direct download instead of Cloudinary
+                try:
+                    import requests
+                    response = requests.get(video_url)
+                    if response.status_code == 200:
+                        # Save video to local storage
+                        import uuid
+                        video_filename = f"kling_videos_{uuid.uuid4().hex}.mp4"
+                        video_path = f"uploads/{video_filename}"
+                        
+                        with open(video_path, 'wb') as f:
+                            f.write(response.content)
+                        
+                        video_url = f"{get_base_url()}/static/{video_filename}"
+                        print(f"✅ Kling video downloaded and saved: {video_url}")
+                        return video_url
+                    else:
+                        print(f"❌ Failed to download video: {response.status_code}")
+                        return None
+                except Exception as e:
+                    print(f"❌ Failed to download video: {e}")
+                    return None
+            else:
+                # For non-video files, use Cloudinary
+                video_url = upload_to_cloudinary(video_url, "kling_videos")
+                print(f"✅ Kling video generated and persisted: {video_url}")
+                return video_url
         
         return None
         
