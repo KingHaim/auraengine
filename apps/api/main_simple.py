@@ -751,8 +751,9 @@ async def get_campaign_generation_status(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/campaigns/{campaign_id}/generate")
-async def generate_campaign_images(
+# DISABLED: This endpoint conflicts with the new background generation
+# @app.post("/campaigns/{campaign_id}/generate")
+async def generate_campaign_images_disabled(
     campaign_id: str,
     product_ids: str = Form("[]"),
     model_ids: str = Form("[]"),
