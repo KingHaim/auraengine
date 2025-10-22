@@ -77,7 +77,7 @@ export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
     console.log("🔍 CampaignGrid - Polling check:", {
       totalCampaigns: campaigns.length,
       generatingCampaigns: generatingCampaigns.length,
-      generatingIds: generatingCampaigns.map(c => c.id)
+      generatingIds: generatingCampaigns.map((c) => c.id),
     });
 
     if (generatingCampaigns.length === 0) return;
@@ -86,10 +86,15 @@ export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
       console.log("🔍 CampaignGrid - Polling interval triggered");
       for (const campaign of generatingCampaigns) {
         const statusData = await checkCampaignStatus(campaign.id);
-        console.log(`🔍 CampaignGrid - Status check for ${campaign.id}:`, statusData);
+        console.log(
+          `🔍 CampaignGrid - Status check for ${campaign.id}:`,
+          statusData
+        );
         if (statusData && statusData.generation_status !== "generating") {
           // Campaign finished generating, refresh the list
-          console.log(`🔍 CampaignGrid - Campaign ${campaign.id} finished, refreshing...`);
+          console.log(
+            `🔍 CampaignGrid - Campaign ${campaign.id} finished, refreshing...`
+          );
           fetchCampaigns();
         }
       }

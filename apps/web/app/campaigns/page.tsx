@@ -179,7 +179,7 @@ export default function CampaignsPage() {
   const fetchData = async () => {
     if (!token) {
       console.log("No token available, skipping fetch");
-      return;
+      return null;
     }
 
     try {
@@ -210,8 +210,9 @@ export default function CampaignsPage() {
         scenes: scenesRes.status,
       });
 
+      let campaignsData = [];
       if (campaignsRes.ok) {
-        const campaignsData = await campaignsRes.json();
+        campaignsData = await campaignsRes.json();
         console.log("🔍 fetchData - Raw campaigns data:", campaignsData);
         console.log("🔍 fetchData - Number of campaigns:", campaignsData.length);
         campaignsData.forEach((campaign: any, index: number) => {
@@ -269,8 +270,10 @@ export default function CampaignsPage() {
       }
 
       console.log("✅ Fetched all campaigns data");
+      return campaignsData;
     } catch (error) {
       console.error("💥 Error fetching campaigns data:", error);
+      return [];
     }
   };
 
@@ -368,11 +371,10 @@ export default function CampaignsPage() {
 
         // Refresh campaigns list immediately to show the campaign with "generating" status
         console.log("🔍 Before fetchData, campaigns count:", campaigns.length);
-        await fetchData();
-        console.log("🔍 After fetchData, campaigns count:", campaigns.length);
-        console.log("🔍 Campaigns data:", campaigns);
+        const freshCampaignsData = await fetchData();
+        console.log("🔍 After fetchData, fresh campaigns data:", freshCampaignsData);
         console.log("🔍 Looking for campaign with ID:", result.campaign.id);
-        const newCampaign = campaigns.find(c => c.id === result.campaign.id);
+        const newCampaign = freshCampaignsData?.find((c: any) => c.id === result.campaign.id);
         console.log("🔍 Found campaign:", newCampaign);
         if (newCampaign) {
           console.log("🔍 Campaign generation_status:", newCampaign.generation_status);
