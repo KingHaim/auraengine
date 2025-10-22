@@ -2954,8 +2954,7 @@ def run_fooocus_realistic_enhancement(image_url: str, custom_prompt: Optional[st
                 "prompt": prompt,
                 "image_seed": -1,  # Random seed
                 "uov_input_image": image_url,  # img2img input parameter
-                "uov_mode": "Upscale (2x)",  # Tell Fooocus to enhance the input image
-                "uov_method": "Lanczos",  # Upscaling method
+                "uov_method": "Upscale (2x)",  # Tell Fooocus to enhance the input image
                 "uov_upscale_value": 2.0,  # Upscale factor
                 "performance_selection": "Quality",  # High quality processing
                 "aspect_ratios_selection": "1024*1024",  # Maintain aspect ratio
