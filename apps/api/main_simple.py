@@ -2884,8 +2884,17 @@ def run_kling_video_generation(image_url: str, video_quality: str = "480p", dura
             }
         )
         
-        # Handle output - get the URL using the correct method
-        video_url = out.url()
+        # Handle output - Kling returns a string URL directly
+        if isinstance(out, str):
+            video_url = out
+        elif hasattr(out, 'url'):
+            video_url = out.url
+        elif hasattr(out, 'url()'):
+            video_url = out.url()
+        elif isinstance(out, list) and len(out) > 0:
+            video_url = out[0]
+        else:
+            video_url = str(out)
         
         # Persist the video URL
         if video_url:
