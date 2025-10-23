@@ -353,7 +353,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
       {/* Main Content */}
       <div
         style={{
-          marginLeft: "270px",
+          marginLeft: "257px",
+          marginRight: "257px",
           minHeight: "100vh",
         }}
       >
