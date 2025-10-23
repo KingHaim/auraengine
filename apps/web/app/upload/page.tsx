@@ -59,13 +59,16 @@ export default function UploadPage() {
       fd.append("product", product);
       if (mode === "backshot" && scene) fd.append("scene_or_model", scene);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs/generate`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: fd,
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/jobs/generate`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: fd,
+        }
+      );
 
       if (!res.ok) {
         throw new Error("Generation failed");
@@ -365,7 +368,7 @@ export default function UploadPage() {
                     transition: "all 0.2s",
                     backgroundColor:
                       mode === "packshot"
-                        ? "#5c5c5c"
+                        ? "#d42f48"
                         : "rgba(255,255,255,0.05)",
                     color: mode === "packshot" ? "#FFFFFF" : "#C7CDD6",
                     border: "none",
@@ -383,7 +386,7 @@ export default function UploadPage() {
                     transition: "all 0.2s",
                     backgroundColor:
                       mode === "backshot"
-                        ? "#5c5c5c"
+                        ? "#d42f48"
                         : "rgba(255,255,255,0.05)",
                     color: mode === "backshot" ? "#FFFFFF" : "#C7CDD6",
                     border: "none",
@@ -536,7 +539,7 @@ export default function UploadPage() {
                 padding: "16px 24px",
                 borderRadius: "12px",
                 backgroundColor:
-                  !product || isGenerating ? "#9CA3AF" : "#5c5c5c",
+                  !product || isGenerating ? "#9CA3AF" : "#d42f48",
                 color: "#FFFFFF",
                 fontWeight: "500",
                 border: "none",

@@ -159,7 +159,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
           disabled={!stripe || isProcessing}
           style={{
             width: "100%",
-            backgroundColor: isProcessing ? "#9CA3AF" : "#3B82F6",
+            backgroundColor: isProcessing ? "#9CA3AF" : "#d42f48",
             color: "white",
             padding: "16px 24px",
             borderRadius: "8px",
@@ -180,7 +180,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
           }}
           onMouseLeave={(e) => {
             if (!isProcessing) {
-              e.currentTarget.style.backgroundColor = "#3B82F6";
+              e.currentTarget.style.backgroundColor = "#d42f48";
               e.currentTarget.style.transform = "translateY(0)";
               e.currentTarget.style.boxShadow =
                 "0 4px 6px -1px rgba(0, 0, 0, 0.1)";

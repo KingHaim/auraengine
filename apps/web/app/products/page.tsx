@@ -401,7 +401,7 @@ export default function ProductsPage() {
             href="/"
             style={{
               padding: "12px 24px",
-              backgroundColor: "#5c5c5c",
+              backgroundColor: "#d42f48",
               color: "white",
               textDecoration: "none",
               borderRadius: "8px",
@@ -460,7 +460,7 @@ export default function ProductsPage() {
             onClick={() => setShowUploadModal(true)}
             style={{
               padding: "12px 24px",
-              backgroundColor: "#5c5c5c",
+              backgroundColor: "#d42f48",
               border: "none",
               borderRadius: "8px",
               color: "#FFFFFF",
@@ -518,7 +518,7 @@ export default function ProductsPage() {
               onClick={() => setShowUploadModal(true)}
               style={{
                 padding: "12px 24px",
-                backgroundColor: "#5c5c5c",
+                backgroundColor: "#d42f48",
                 border: "none",
                 borderRadius: "8px",
                 color: "#FFFFFF",
@@ -641,7 +641,7 @@ export default function ProductsPage() {
                         display: "flex",
                         alignItems: "center",
                         gap: "4px",
-                        color: "#5c5c5c",
+                        color: "#d42f48",
                         fontSize: "12px",
                         fontWeight: "500",
                         marginBottom: "12px",
@@ -694,7 +694,7 @@ export default function ProductsPage() {
                             <span
                               key={index}
                               style={{
-                                backgroundColor: "#5c5c5c",
+                                backgroundColor: "#d42f48",
                                 color: "white",
                                 padding: "2px 6px",
                                 borderRadius: "12px",
@@ -736,7 +736,7 @@ export default function ProductsPage() {
                       onClick={() => handleEditProduct(product)}
                       style={{
                         padding: "6px 12px",
-                        backgroundColor: "#5c5c5c",
+                        backgroundColor: "#d42f48",
                         color: "white",
                         border: "none",
                         borderRadius: "6px",
@@ -990,7 +990,7 @@ export default function ProductsPage() {
                     <span
                       key={index}
                       style={{
-                        backgroundColor: "#5c5c5c",
+                        backgroundColor: "#d42f48",
                         color: "white",
                         padding: "4px 8px",
                         borderRadius: "16px",
@@ -1056,7 +1056,7 @@ export default function ProductsPage() {
                           borderRadius: "12px",
                           fontSize: "11px",
                           backgroundColor: selectedTags.includes(tag)
-                            ? "#5c5c5c"
+                            ? "#d42f48"
                             : "white",
                           color: selectedTags.includes(tag)
                             ? "white"
@@ -1250,7 +1250,7 @@ export default function ProductsPage() {
                   padding: "12px 24px",
                   background: isUploading
                     ? "#9CA3AF"
-                    : "linear-gradient(90deg, #5c5c5c, #7C3AED)",
+                    : "linear-gradient(90deg, #d42f48, #7C3AED)",
                   border: "none",
                   borderRadius: "8px",
                   color: "#FFFFFF",
@@ -1319,7 +1319,7 @@ export default function ProductsPage() {
                   disabled={isRerolling}
                   style={{
                     padding: "8px 16px",
-                    backgroundColor: isRerolling ? "#9CA3AF" : "#5c5c5c",
+                    backgroundColor: isRerolling ? "#9CA3AF" : "#d42f48",
                     border: "none",
                     borderRadius: "8px",
                     color: "white",
@@ -1601,7 +1601,7 @@ export default function ProductsPage() {
                     <span
                       key={index}
                       style={{
-                        backgroundColor: "#5c5c5c",
+                        backgroundColor: "#d42f48",
                         color: "white",
                         padding: "4px 8px",
                         borderRadius: "16px",
@@ -1667,7 +1667,7 @@ export default function ProductsPage() {
                           borderRadius: "12px",
                           fontSize: "11px",
                           backgroundColor: selectedTags.includes(tag)
-                            ? "#5c5c5c"
+                            ? "#d42f48"
                             : "white",
                           color: selectedTags.includes(tag)
                             ? "white"
@@ -1771,7 +1771,7 @@ export default function ProductsPage() {
                 style={{
                   padding: "12px 24px",
                   backgroundColor:
-                    !newProduct.name || isUploading ? "#9CA3AF" : "#5c5c5c",
+                    !newProduct.name || isUploading ? "#9CA3AF" : "#d42f48",
                   color: "white",
                   border: "none",
                   borderRadius: "8px",

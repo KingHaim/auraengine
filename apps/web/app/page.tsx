@@ -376,7 +376,7 @@ export default function Home() {
                 }}
                 style={{
                   padding: "8px 16px",
-                  backgroundColor: "#5c5c5c",
+                  backgroundColor: "#d42f48",
                   border: "none",
                   borderRadius: "8px",
                   color: "#FFFFFF",
@@ -450,10 +450,10 @@ export default function Home() {
                 }}
                 style={{
                   padding: "12px 24px",
-                  backgroundColor: "#5c5c5c",
+                  backgroundColor: "#d42f48",
                   border: "none",
                   borderRadius: "8px",
-                    color: "#FFFFFF",
+                  color: "#FFFFFF",
                   fontSize: "16px",
                   fontWeight: "600",
                   cursor: "pointer",
@@ -476,7 +476,7 @@ export default function Home() {
                   fontSize: "16px",
                   fontWeight: "600",
                   cursor: "pointer",
-                transition: "all 0.2s",
+                  transition: "all 0.2s",
                 }}
               >
                 Sign In

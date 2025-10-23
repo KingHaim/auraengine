@@ -585,7 +585,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 }}
                 style={{
                   padding: "8px 16px",
-                  backgroundColor: "#5c5c5c",
+                  backgroundColor: "#d42f48",
                   border: "none",
                   borderRadius: "8px",
                   color: "#FFFFFF",

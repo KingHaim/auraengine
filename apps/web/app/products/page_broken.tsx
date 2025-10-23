@@ -48,11 +48,14 @@ export default function ProductsPage() {
 
     try {
       console.log("🔍 Fetching products from API...");
-      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/products", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "${process.env.NEXT_PUBLIC_API_URL}/products",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const apiProducts = await response.json();
@@ -71,11 +74,14 @@ export default function ProductsPage() {
     if (!token) return;
 
     try {
-      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/categories", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "${process.env.NEXT_PUBLIC_API_URL}/categories",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -117,13 +123,16 @@ export default function ProductsPage() {
         formData.append("packshot_back_type", newProduct.packshotBackType);
       }
 
-      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/products", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        "${process.env.NEXT_PUBLIC_API_URL}/products",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
 
       if (response.ok) {
         const newProductData = await response.json();
@@ -249,7 +258,7 @@ export default function ProductsPage() {
             href="/"
             style={{
               padding: "12px 24px",
-              backgroundColor: "#5c5c5c",
+              backgroundColor: "#d42f48",
               color: "white",
               textDecoration: "none",
               borderRadius: "8px",
@@ -297,7 +306,7 @@ export default function ProductsPage() {
             onClick={() => setShowUploadModal(true)}
             style={{
               padding: "12px 24px",
-              backgroundColor: "#5c5c5c",
+              backgroundColor: "#d42f48",
               color: "white",
               border: "none",
               borderRadius: "8px",
@@ -314,7 +323,7 @@ export default function ProductsPage() {
                 "0 10px 15px -3px rgba(0, 0, 0, 0.1)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#5c5c5c";
+              e.currentTarget.style.backgroundColor = "#d42f48";
               e.currentTarget.style.transform = "translateY(0)";
               e.currentTarget.style.boxShadow =
                 "0 4px 6px -1px rgba(0, 0, 0, 0.1)";
@@ -364,7 +373,7 @@ export default function ProductsPage() {
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
                     "0 10px 25px -5px rgba(0, 0, 0, 0.1)";
-                  e.currentTarget.style.borderColor = "#5c5c5c";
+                  e.currentTarget.style.borderColor = "#d42f48";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "translateY(0)";
@@ -569,7 +578,7 @@ export default function ProductsPage() {
                     outline: "none",
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#5c5c5c";
+                    e.target.style.borderColor = "#d42f48";
                     e.target.style.boxShadow =
                       "0 0 0 3px rgba(139, 92, 246, 0.1)";
                   }}
@@ -614,7 +623,7 @@ export default function ProductsPage() {
                     outline: "none",
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#5c5c5c";
+                    e.target.style.borderColor = "#d42f48";
                     e.target.style.boxShadow =
                       "0 0 0 3px rgba(139, 92, 246, 0.1)";
                   }}
@@ -654,7 +663,7 @@ export default function ProductsPage() {
                     outline: "none",
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#5c5c5c";
+                    e.target.style.borderColor = "#d42f48";
                     e.target.style.boxShadow =
                       "0 0 0 3px rgba(139, 92, 246, 0.1)";
                   }}
@@ -704,7 +713,7 @@ export default function ProductsPage() {
                     outline: "none",
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#5c5c5c";
+                    e.target.style.borderColor = "#d42f48";
                     e.target.style.boxShadow =
                       "0 0 0 3px rgba(139, 92, 246, 0.1)";
                   }}
@@ -757,7 +766,7 @@ export default function ProductsPage() {
                 disabled={isUploading || !newProduct.name || !newProduct.image}
                 style={{
                   padding: "12px 24px",
-                  backgroundColor: isUploading ? "#9CA3AF" : "#5c5c5c",
+                  backgroundColor: isUploading ? "#9CA3AF" : "#d42f48",
                   border: "none",
                   borderRadius: "8px",
                   color: "#FFFFFF",
@@ -779,7 +788,7 @@ export default function ProductsPage() {
                 }}
                 onMouseLeave={(e) => {
                   if (!isUploading) {
-                    e.currentTarget.style.backgroundColor = "#5c5c5c";
+                    e.currentTarget.style.backgroundColor = "#d42f48";
                     e.currentTarget.style.transform = "translateY(0)";
                     e.currentTarget.style.boxShadow =
                       "0 4px 6px -1px rgba(0, 0, 0, 0.1)";
@@ -1057,7 +1066,7 @@ export default function ProductsPage() {
                       <span
                         key={index}
                         style={{
-                          backgroundColor: "#5c5c5c",
+                          backgroundColor: "#d42f48",
                           color: "white",
                           padding: "6px 12px",
                           borderRadius: "16px",
@@ -1099,7 +1108,7 @@ export default function ProductsPage() {
                       padding: "8px 16px",
                       backgroundColor: isGeneratingMockup
                         ? "#9CA3AF"
-                        : "#5c5c5c",
+                        : "#d42f48",
                       color: "white",
                       border: "none",
                       borderRadius: "6px",
@@ -1161,7 +1170,7 @@ export default function ProductsPage() {
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.transform = "scale(1.02)";
-                          e.currentTarget.style.borderColor = "#5c5c5c";
+                          e.currentTarget.style.borderColor = "#d42f48";
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.transform = "scale(1)";

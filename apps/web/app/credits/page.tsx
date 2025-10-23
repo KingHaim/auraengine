@@ -67,7 +67,7 @@ export default function CreditsPage() {
       popular: false,
       description: "Solo creator friendly",
       features: ["Basic AI generation", "Standard support", "Community access"],
-      color: "#3B82F6", // Light blue
+      color: "#d42f48", // Light blue
       anchor: false,
       perCredit: 0.21,
     },
@@ -84,7 +84,7 @@ export default function CreditsPage() {
         "Advanced analytics",
         "Custom branding",
       ],
-      color: "#5c5c5c", // Bold violet
+      color: "#d42f48", // Bold violet
       anchor: false,
       perCredit: 0.19,
     },
@@ -134,11 +134,11 @@ export default function CreditsPage() {
   };
 
   const handlePaymentSuccess = (result: any) => {
-            setMessage(result.message);
+    setMessage(result.message);
     setShowPaymentForm(false);
     setSelectedPackage(null);
-            // Refresh user data to show updated credits
-            window.location.reload();
+    // Refresh user data to show updated credits
+    window.location.reload();
   };
 
   const handlePaymentError = (error: string) => {
@@ -170,7 +170,7 @@ export default function CreditsPage() {
         {/* Header */}
         <div style={{ marginBottom: "40px" }}>
           <h1
-      style={{
+            style={{
               fontSize: "32px",
               fontWeight: "700",
               color: "#1E293B",
@@ -199,7 +199,7 @@ export default function CreditsPage() {
             style={{
               fontSize: "48px",
               fontWeight: "700",
-              color: "#5c5c5c",
+              color: "#d42f48",
               marginBottom: "8px",
             }}
           >
@@ -225,10 +225,10 @@ export default function CreditsPage() {
 
         {/* Subscription Upsell Banner */}
         <div
-              style={{
+          style={{
             backgroundColor:
-              "linear-gradient(135deg, #5c5c5c 0%, #3B82F6 100%)",
-            background: "linear-gradient(135deg, #5c5c5c 0%, #3B82F6 100%)",
+              "linear-gradient(135deg, #d42f48 0%, #d42f48 100%)",
+            background: "linear-gradient(135deg, #d42f48 0%, #d42f48 100%)",
             borderRadius: "16px",
             padding: "24px",
             marginBottom: "40px",
@@ -245,7 +245,7 @@ export default function CreditsPage() {
             From $0.17/credit (vs $0.25 one-time) • Unused credits roll over •
             Cancel anytime
           </p>
-          </div>
+        </div>
 
         {/* Subscription Plans */}
         <div style={{ marginBottom: "60px" }}>
@@ -275,10 +275,10 @@ export default function CreditsPage() {
               </span>
               <button
                 onClick={() => setIsAnnual(!isAnnual)}
-              style={{
+                style={{
                   width: "48px",
                   height: "24px",
-                  backgroundColor: isAnnual ? "#5c5c5c" : "#E2E8F0",
+                  backgroundColor: isAnnual ? "#d42f48" : "#E2E8F0",
                   border: "none",
                   borderRadius: "12px",
                   position: "relative",
@@ -306,8 +306,8 @@ export default function CreditsPage() {
                   (Save 15%)
                 </span>
               </span>
+            </div>
           </div>
-      </div>
 
           <div
             style={{
@@ -374,7 +374,7 @@ export default function CreditsPage() {
                       }}
                     >
                       MOST POPULAR
-                </div>
+                    </div>
                   )}
 
                   {tier.anchor && (
@@ -392,8 +392,8 @@ export default function CreditsPage() {
                       }}
                     >
                       PREMIUM
-            </div>
-          )}
+                    </div>
+                  )}
 
                   <div
                     style={{
@@ -430,8 +430,8 @@ export default function CreditsPage() {
                     )}
                   </div>
 
-            <div
-              style={{
+                  <div
+                    style={{
                       fontSize: "16px",
                       color: "#64748B",
                       marginBottom: "16px",
@@ -441,13 +441,13 @@ export default function CreditsPage() {
                   </div>
 
                   <div
-                style={{
+                    style={{
                       fontSize: "20px",
-                  fontWeight: "600",
-                  color: "#1E293B",
-                  marginBottom: "8px",
-                }}
-              >
+                      fontWeight: "600",
+                      color: "#1E293B",
+                      marginBottom: "8px",
+                    }}
+                  >
                     {tier.credits} Credits
                   </div>
                   <div
@@ -461,8 +461,8 @@ export default function CreditsPage() {
                     ${tier.perCredit} / credit
                   </div>
 
-              <div
-                style={{
+                  <div
+                    style={{
                       fontSize: "14px",
                       color: "#64748B",
                       marginBottom: "24px",
@@ -533,42 +533,42 @@ export default function CreditsPage() {
                 </div>
               );
             })}
-              </div>
-            </div>
+          </div>
+        </div>
 
-            {/* Credit Packages */}
+        {/* Credit Packages */}
         <div style={{ marginBottom: "60px" }}>
-              <h2
-                style={{
+          <h2
+            style={{
               fontSize: "24px",
-                  fontWeight: "600",
-                  color: "#1E293B",
-                  marginBottom: "24px",
-                }}
-              >
+              fontWeight: "600",
+              color: "#1E293B",
+              marginBottom: "24px",
+            }}
+          >
             One-Time Credit Purchase
-              </h2>
+          </h2>
 
-              <div
-                style={{
-                  display: "grid",
+          <div
+            style={{
+              display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
               gap: "20px",
               marginBottom: "32px",
-                }}
-              >
-                {creditPackages.map((pkg, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      backgroundColor: pkg.popular ? "#F8FAFC" : "#FFFFFF",
-                      border: pkg.popular
-                        ? "2px solid #5c5c5c"
-                        : "1px solid #E2E8F0",
+            }}
+          >
+            {creditPackages.map((pkg, index) => (
+              <div
+                key={index}
+                style={{
+                  backgroundColor: pkg.popular ? "#F8FAFC" : "#FFFFFF",
+                  border: pkg.popular
+                    ? "2px solid #d42f48"
+                    : "1px solid #E2E8F0",
                   borderRadius: "16px",
                   padding: "24px",
-                      textAlign: "center",
-                      position: "relative",
+                  textAlign: "center",
+                  position: "relative",
                   transition: "all 0.2s",
                   cursor: "pointer",
                 }}
@@ -580,26 +580,26 @@ export default function CreditsPage() {
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "translateY(0)";
                   e.currentTarget.style.boxShadow = "none";
-                    }}
-                  >
-                    {pkg.popular && (
-                      <div
-                        style={{
-                          position: "absolute",
+                }}
+              >
+                {pkg.popular && (
+                  <div
+                    style={{
+                      position: "absolute",
                       top: "-12px",
-                          left: "50%",
-                          transform: "translateX(-50%)",
-                          backgroundColor: "#5c5c5c",
-                          color: "#FFFFFF",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      backgroundColor: "#d42f48",
+                      color: "#FFFFFF",
                       padding: "6px 16px",
                       borderRadius: "16px",
-                          fontSize: "12px",
-                          fontWeight: "600",
-                        }}
-                      >
-                        POPULAR
-                      </div>
-                    )}
+                      fontSize: "12px",
+                      fontWeight: "600",
+                    }}
+                  >
+                    POPULAR
+                  </div>
+                )}
 
                 {pkg.savings && (
                   <div
@@ -619,35 +619,35 @@ export default function CreditsPage() {
                   </div>
                 )}
 
-                    <div
-                      style={{
+                <div
+                  style={{
                     fontSize: "32px",
-                        fontWeight: "700",
-                        color: "#1E293B",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      {pkg.credits}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "14px",
-                        color: "#64748B",
-                        marginBottom: "16px",
-                      }}
-                    >
-                      credits
-                    </div>
-                    <div
-                      style={{
-                    fontSize: "24px",
-                        fontWeight: "600",
-                        color: "#5c5c5c",
+                    fontWeight: "700",
+                    color: "#1E293B",
                     marginBottom: "4px",
-                      }}
-                    >
-                      ${pkg.price}
-                    </div>
+                  }}
+                >
+                  {pkg.credits}
+                </div>
+                <div
+                  style={{
+                    fontSize: "14px",
+                    color: "#64748B",
+                    marginBottom: "16px",
+                  }}
+                >
+                  credits
+                </div>
+                <div
+                  style={{
+                    fontSize: "24px",
+                    fontWeight: "600",
+                    color: "#d42f48",
+                    marginBottom: "4px",
+                  }}
+                >
+                  ${pkg.price}
+                </div>
                 <div
                   style={{
                     fontSize: "12px",
@@ -666,49 +666,49 @@ export default function CreditsPage() {
                   }}
                 >
                   {pkg.description}
-                    </div>
-                    <button
-                      onClick={() => handlePurchase(pkg.credits, pkg.price)}
-                      disabled={isProcessing}
-                      style={{
-                        width: "100%",
-                        padding: "12px",
-                        backgroundColor: isProcessing ? "#9CA3AF" : "#5c5c5c",
-                        color: "#FFFFFF",
-                        border: "none",
-                        borderRadius: "8px",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        cursor: isProcessing ? "not-allowed" : "pointer",
-                        transition: "all 0.2s",
-                      }}
-                    >
-                      {isProcessing ? "Processing..." : "Purchase"}
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              {/* Message */}
-              {message && (
-                <div
+                </div>
+                <button
+                  onClick={() => handlePurchase(pkg.credits, pkg.price)}
+                  disabled={isProcessing}
                   style={{
-                    backgroundColor: message.includes("Successfully")
-                      ? "#D1FAE5"
-                      : "#FEE2E2",
-                    border: message.includes("Successfully")
-                      ? "1px solid #A7F3D0"
-                      : "1px solid #FECACA",
+                    width: "100%",
+                    padding: "12px",
+                    backgroundColor: isProcessing ? "#9CA3AF" : "#d42f48",
+                    color: "#FFFFFF",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    cursor: isProcessing ? "not-allowed" : "pointer",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {isProcessing ? "Processing..." : "Purchase"}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Message */}
+          {message && (
+            <div
+              style={{
+                backgroundColor: message.includes("Successfully")
+                  ? "#D1FAE5"
+                  : "#FEE2E2",
+                border: message.includes("Successfully")
+                  ? "1px solid #A7F3D0"
+                  : "1px solid #FECACA",
                 borderRadius: "12px",
                 padding: "16px",
                 color: message.includes("Successfully") ? "#065F46" : "#991B1B",
-                    fontSize: "14px",
+                fontSize: "14px",
                 marginBottom: "24px",
-                  }}
-                >
-                  {message}
-                </div>
-              )}
+              }}
+            >
+              {message}
+            </div>
+          )}
         </div>
 
         {/* Pricing Information */}
@@ -1037,7 +1037,7 @@ export default function CreditsPage() {
               </div>
             </div>
           </div>
-      </div>
+        </div>
       )}
     </AppLayout>
   );

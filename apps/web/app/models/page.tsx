@@ -248,10 +248,10 @@ export default function ModelsPage() {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/models/${model.id}`,
         {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -282,11 +282,11 @@ export default function ModelsPage() {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/models`,
         {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -406,11 +406,11 @@ export default function ModelsPage() {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/models/upload`,
         {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
         }
       );
 
@@ -459,11 +459,11 @@ export default function ModelsPage() {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/models/${selectedModel.id}/generate-poses`,
         {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
         }
       );
 
@@ -559,7 +559,7 @@ export default function ModelsPage() {
             href="/"
             style={{
               padding: "12px 24px",
-              backgroundColor: "#5c5c5c",
+              backgroundColor: "#d42f48",
               color: "white",
               textDecoration: "none",
               borderRadius: "8px",
@@ -575,29 +575,29 @@ export default function ModelsPage() {
 
   return (
     <AppLayout>
-    <div
-      style={{
+      <div
+        style={{
           padding: "32px",
           flex: 1,
           backgroundColor: "#FFFFFF",
           color: "#1E293B",
-        fontFamily:
-          "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
+          fontFamily:
+            "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
             justifyContent: "space-between",
-              alignItems: "center",
+            alignItems: "center",
             marginBottom: "32px",
-            }}
-          >
+          }}
+        >
           <div>
             <h1
-            style={{
+              style={{
                 fontSize: "24px",
-              fontWeight: "600",
+                fontWeight: "600",
                 color: "#1E293B",
                 margin: 0,
               }}
@@ -630,104 +630,104 @@ export default function ModelsPage() {
             >
               ✨ Generate Model
             </button>
-          <button
-            onClick={() => setShowUploadModal(true)}
-            style={{
-              padding: "12px 24px",
-              backgroundColor: "#5c5c5c",
-              border: "none",
-              borderRadius: "8px",
-              color: "#FFFFFF",
-              fontSize: "14px",
-              fontWeight: "500",
-              cursor: "pointer",
-            }}
-          >
-            + Add Model
-          </button>
+            <button
+              onClick={() => setShowUploadModal(true)}
+              style={{
+                padding: "12px 24px",
+                backgroundColor: "#d42f48",
+                border: "none",
+                borderRadius: "8px",
+                color: "#FFFFFF",
+                fontSize: "14px",
+                fontWeight: "500",
+                cursor: "pointer",
+              }}
+            >
+              + Add Model
+            </button>
           </div>
         </div>
+        <div
+          style={{
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#9BA3AF",
+            letterSpacing: "0.18em",
+            marginBottom: "16px",
+          }}
+        >
+          YOUR MODELS ({models.length})
+        </div>
+
+        {models.length === 0 ? (
           <div
             style={{
-              fontSize: "12px",
-              fontWeight: "600",
-              color: "#9BA3AF",
-              letterSpacing: "0.18em",
-              marginBottom: "16px",
+              textAlign: "center",
+              padding: "64px 32px",
+              color: "#6B7280",
             }}
           >
-            YOUR MODELS ({models.length})
-          </div>
-
-          {models.length === 0 ? (
             <div
               style={{
-                textAlign: "center",
-                padding: "64px 32px",
-                color: "#6B7280",
+                fontSize: "48px",
+                marginBottom: "16px",
               }}
             >
-              <div
-                style={{
-                  fontSize: "48px",
-                  marginBottom: "16px",
-                }}
-              >
-                👤
-              </div>
-              <h3
-                style={{
-                  fontSize: "18px",
-                  fontWeight: "600",
-                  color: "#374151",
-                  marginBottom: "8px",
-                }}
-              >
-                No models yet
-              </h3>
-              <p style={{ marginBottom: "24px" }}>
-                Upload model photos for virtual try-on campaigns
-              </p>
-              <button
-                onClick={() => setShowUploadModal(true)}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: "#5c5c5c",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#FFFFFF",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                }}
-              >
-                Add Your First Model
-              </button>
+              👤
             </div>
-          ) : (
-            <div
+            <h3
               style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "24px",
+                fontSize: "18px",
+                fontWeight: "600",
+                color: "#374151",
+                marginBottom: "8px",
               }}
             >
-              {models.map((model) => (
-                <div
-                  key={model.id}
-                  style={{
+              No models yet
+            </h3>
+            <p style={{ marginBottom: "24px" }}>
+              Upload model photos for virtual try-on campaigns
+            </p>
+            <button
+              onClick={() => setShowUploadModal(true)}
+              style={{
+                padding: "12px 24px",
+                backgroundColor: "#d42f48",
+                border: "none",
+                borderRadius: "8px",
+                color: "#FFFFFF",
+                fontSize: "14px",
+                fontWeight: "500",
+                cursor: "pointer",
+              }}
+            >
+              Add Your First Model
+            </button>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: "24px",
+            }}
+          >
+            {models.map((model) => (
+              <div
+                key={model.id}
+                style={{
                   aspectRatio: "2/3",
-                    borderRadius: "12px",
-                    overflow: "hidden",
+                  borderRadius: "12px",
+                  overflow: "hidden",
                   transition: "all 0.3s ease",
                   cursor: "pointer",
-                    position: "relative",
+                  position: "relative",
                   background: "#F3F4F6",
-                  }}
+                }}
                 onClick={() => handleOpenModelProfile(model)}
-                  onMouseEnter={(e) => {
+                onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "scale(1.02)";
-                    e.currentTarget.style.boxShadow =
+                  e.currentTarget.style.boxShadow =
                     "0 12px 40px rgba(0,0,0,0.15)";
                   const overlay = e.currentTarget.querySelector(
                     "[data-hover-overlay]"
@@ -735,10 +735,10 @@ export default function ModelsPage() {
                   if (overlay) {
                     overlay.style.opacity = "1";
                   }
-                  }}
-                  onMouseLeave={(e) => {
+                }}
+                onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "scale(1)";
-                    e.currentTarget.style.boxShadow = "none";
+                  e.currentTarget.style.boxShadow = "none";
                   const overlay = e.currentTarget.querySelector(
                     "[data-hover-overlay]"
                   ) as HTMLElement;
@@ -748,30 +748,30 @@ export default function ModelsPage() {
                 }}
               >
                 {/* Main Model Image */}
-                    <img
-                      src={model.image_url}
-                      alt={model.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
+                <img
+                  src={model.image_url}
+                  alt={model.name}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
                     position: "absolute",
                     top: 0,
                     left: 0,
-                      }}
-                      onError={(e) => {
-                        console.error(
-                          `Failed to load image for model ${model.name}:`,
-                          model.image_url
-                        );
+                  }}
+                  onError={(e) => {
+                    console.error(
+                      `Failed to load image for model ${model.name}:`,
+                      model.image_url
+                    );
                     e.currentTarget.src = `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`;
-                      }}
-                    />
+                  }}
+                />
 
                 {/* Dark Semi-transparent Banner with Model Name */}
-                    <div
-                      style={{
-                        position: "absolute",
+                <div
+                  style={{
+                    position: "absolute",
                     bottom: 0,
                     left: 0,
                     right: 0,
@@ -781,24 +781,24 @@ export default function ModelsPage() {
                     alignItems: "flex-end",
                   }}
                 >
-                    <h3
-                      style={{
+                  <h3
+                    style={{
                       fontSize: "18px",
-                        fontWeight: "600",
+                      fontWeight: "600",
                       color: "#FFFFFF",
                       margin: 0,
                       textShadow: "0 2px 4px rgba(0,0,0,0.5)",
                       lineHeight: 1.2,
-                      }}
-                    >
-                      {model.name}
-                    </h3>
+                    }}
+                  >
+                    {model.name}
+                  </h3>
                 </div>
 
                 {/* Poses Indicator */}
-                    {model.poses && model.poses.length > 0 && (
-                      <div
-                        style={{
+                {model.poses && model.poses.length > 0 && (
+                  <div
+                    style={{
                       position: "absolute",
                       top: "12px",
                       right: "12px",
@@ -808,28 +808,28 @@ export default function ModelsPage() {
                       borderRadius: "20px",
                       fontSize: "11px",
                       fontWeight: "600",
-                          display: "flex",
-                          alignItems: "center",
+                      display: "flex",
+                      alignItems: "center",
                       gap: "6px",
                       backdropFilter: "blur(4px)",
                     }}
                   >
                     🎭 {model.poses.length} poses
-                      </div>
-                    )}
+                  </div>
+                )}
 
                 {/* Hover Overlay with Model Information */}
-                    <div
+                <div
                   data-hover-overlay
-                      style={{
+                  style={{
                     position: "absolute",
                     top: 0,
                     left: 0,
                     right: 0,
                     bottom: 0,
                     backgroundColor: "rgba(0,0,0,0.4)",
-                        display: "flex",
-                        flexDirection: "column",
+                    display: "flex",
+                    flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
                     padding: "20px",
@@ -840,16 +840,16 @@ export default function ModelsPage() {
                 >
                   {/* Model Description */}
                   {model.description && (
-                      <div
-                        style={{
+                    <div
+                      style={{
                         textAlign: "center",
                         marginBottom: "20px",
                         maxWidth: "80%",
-                        }}
-                      >
+                      }}
+                    >
                       <p
-                          style={{
-                            color: "#FFFFFF",
+                        style={{
+                          color: "#FFFFFF",
                           fontSize: "14px",
                           lineHeight: 1.5,
                           margin: 0,
@@ -868,11 +868,11 @@ export default function ModelsPage() {
                       gap: "20px",
                       fontSize: "14px",
                       color: "#FFFFFF",
-                            fontWeight: "500",
-                          }}
-                        >
+                      fontWeight: "500",
+                    }}
+                  >
                     <span
-                          style={{
+                      style={{
                         display: "flex",
                         alignItems: "center",
                         gap: "6px",
@@ -882,7 +882,7 @@ export default function ModelsPage() {
                       {model.poses?.length || 0} Poses
                     </span>
                     <span
-                          style={{
+                      style={{
                         display: "flex",
                         alignItems: "center",
                         gap: "6px",
@@ -891,14 +891,14 @@ export default function ModelsPage() {
                       <span style={{ fontSize: "16px" }}>👤</span>
                       Model
                     </span>
-                      </div>
+                  </div>
 
                   {/* Regenerate Poses Button */}
                   <button
                     onClick={async (e) => {
                       e.stopPropagation();
                       if (!token) return;
-                      
+
                       setIsGeneratingPoses(true);
                       try {
                         const res = await fetch(
@@ -912,16 +912,23 @@ export default function ModelsPage() {
                         );
 
                         if (!res.ok) {
-                          throw new Error(`Pose generation failed: ${res.status}`);
+                          throw new Error(
+                            `Pose generation failed: ${res.status}`
+                          );
                         }
 
                         const result = await res.json();
-                        console.log("✅ Poses regenerated:", result.total_poses);
-                        
+                        console.log(
+                          "✅ Poses regenerated:",
+                          result.total_poses
+                        );
+
                         // Refresh models list to show new poses
                         await fetchModels();
-                        
-                        alert(`✅ Successfully generated ${result.total_poses} new poses for ${model.name}!`);
+
+                        alert(
+                          `✅ Successfully generated ${result.total_poses} new poses for ${model.name}!`
+                        );
                       } catch (error) {
                         console.error("❌ Pose generation error:", error);
                         alert("Failed to generate poses. Please try again.");
@@ -933,8 +940,8 @@ export default function ModelsPage() {
                     style={{
                       marginTop: "16px",
                       padding: "10px 20px",
-                      backgroundColor: isGeneratingPoses 
-                        ? "rgba(107, 114, 128, 0.9)" 
+                      backgroundColor: isGeneratingPoses
+                        ? "rgba(107, 114, 128, 0.9)"
                         : "rgba(34, 211, 238, 0.9)",
                       color: "white",
                       border: "none",
@@ -949,40 +956,44 @@ export default function ModelsPage() {
                     }}
                     onMouseEnter={(e) => {
                       if (!isGeneratingPoses) {
-                        e.currentTarget.style.backgroundColor = "rgba(34, 211, 238, 1)";
+                        e.currentTarget.style.backgroundColor =
+                          "rgba(34, 211, 238, 1)";
                         e.currentTarget.style.transform = "scale(1.05)";
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isGeneratingPoses) {
-                        e.currentTarget.style.backgroundColor = "rgba(34, 211, 238, 0.9)";
+                        e.currentTarget.style.backgroundColor =
+                          "rgba(34, 211, 238, 0.9)";
                         e.currentTarget.style.transform = "scale(1)";
                       }
                     }}
                   >
-                    {isGeneratingPoses ? "⏳ Generating..." : "🔄 Regenerate Poses"}
+                    {isGeneratingPoses
+                      ? "⏳ Generating..."
+                      : "🔄 Regenerate Poses"}
                   </button>
 
                   {/* Click to View Profile */}
                   <div
-                        style={{
+                    style={{
                       marginTop: "16px",
                       backgroundColor: "rgba(139, 92, 246, 0.8)",
-                          color: "#FFFFFF",
+                      color: "#FFFFFF",
                       padding: "8px 16px",
                       borderRadius: "20px",
-                          fontSize: "12px",
+                      fontSize: "12px",
                       fontWeight: "600",
                       backdropFilter: "blur(4px)",
                     }}
                   >
                     Click to View Profile
-                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Upload Modal */}
@@ -1132,7 +1143,7 @@ export default function ModelsPage() {
                     borderRadius: "8px",
                     border: "1px solid #D1D5DB",
                     backgroundColor:
-                      newModel.gender === "male" ? "#5c5c5c" : "transparent",
+                      newModel.gender === "male" ? "#d42f48" : "transparent",
                     color: newModel.gender === "male" ? "#FFFFFF" : "#6B7280",
                     cursor: "pointer",
                     fontSize: "14px",
@@ -1153,7 +1164,7 @@ export default function ModelsPage() {
                     borderRadius: "8px",
                     border: "1px solid #D1D5DB",
                     backgroundColor:
-                      newModel.gender === "female" ? "#5c5c5c" : "transparent",
+                      newModel.gender === "female" ? "#d42f48" : "transparent",
                     color: newModel.gender === "female" ? "#FFFFFF" : "#6B7280",
                     cursor: "pointer",
                     fontSize: "14px",
@@ -1240,7 +1251,7 @@ export default function ModelsPage() {
                   backgroundColor:
                     !newModel.name || !newModel.image || isUploading
                       ? "#9CA3AF"
-                      : "#5c5c5c",
+                      : "#d42f48",
                   border: "none",
                   borderRadius: "8px",
                   color: "#FFFFFF",
@@ -1334,7 +1345,7 @@ export default function ModelsPage() {
                       borderRadius: "6px",
                       border: "none",
                       backgroundColor:
-                        selectedGender === "male" ? "#5c5c5c" : "transparent",
+                        selectedGender === "male" ? "#d42f48" : "transparent",
                       color: selectedGender === "male" ? "#FFFFFF" : "#6B7280",
                       cursor: "pointer",
                       fontSize: "16px",
@@ -1357,7 +1368,7 @@ export default function ModelsPage() {
                       borderRadius: "6px",
                       border: "none",
                       backgroundColor:
-                        selectedGender === "female" ? "#5c5c5c" : "transparent",
+                        selectedGender === "female" ? "#d42f48" : "transparent",
                       color:
                         selectedGender === "female" ? "#FFFFFF" : "#6B7280",
                       cursor: "pointer",
@@ -1546,7 +1557,7 @@ export default function ModelsPage() {
                           borderRadius: "2px",
                           background: "#374151",
                           outline: "none",
-                          accentColor: "#5c5c5c",
+                          accentColor: "#d42f48",
                         }}
                       />
                     </div>
@@ -1828,210 +1839,210 @@ export default function ModelsPage() {
               }
             }
           `}</style>
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowPoseModal(false);
-            }
-          }}
-        >
           <div
             style={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "16px",
-              padding: "32px",
-              width: "500px",
-              maxWidth: "90vw",
-              border: "1px solid #E5E7EB",
-              position: "relative",
-              zIndex: 1001,
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowPoseModal(false);
+              }
+            }}
           >
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "24px",
+                backgroundColor: "#FFFFFF",
+                borderRadius: "16px",
+                padding: "32px",
+                width: "500px",
+                maxWidth: "90vw",
+                border: "1px solid #E5E7EB",
+                position: "relative",
+                zIndex: 1001,
               }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <h2
-                style={{
-                  color: "#1F2937",
-                  fontSize: "20px",
-                  fontWeight: "600",
-                  margin: 0,
-                }}
-              >
-                Generate Model Poses
-              </h2>
-              <button
-                onClick={() => setShowPoseModal(false)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#6B7280",
-                  fontSize: "24px",
-                  cursor: "pointer",
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            <div style={{ marginBottom: "16px" }}>
               <div
                 style={{
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  color: "#374151",
-                  marginBottom: "8px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "24px",
                 }}
               >
-                Model: {selectedModel.name}
+                <h2
+                  style={{
+                    color: "#1F2937",
+                    fontSize: "20px",
+                    fontWeight: "600",
+                    margin: 0,
+                  }}
+                >
+                  Generate Model Poses
+                </h2>
+                <button
+                  onClick={() => setShowPoseModal(false)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#6B7280",
+                    fontSize: "24px",
+                    cursor: "pointer",
+                  }}
+                >
+                  ✕
+                </button>
               </div>
-              <div
-                style={{
-                  width: "100%",
-                  height: "200px",
-                  borderRadius: "8px",
-                  overflow: "hidden",
-                  backgroundColor: "#F3F4F6",
-                }}
-              >
-                <img
-                  src={selectedModel.image_url}
-                  alt={selectedModel.name}
+
+              <div style={{ marginBottom: "16px" }}>
+                <div
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Model: {selectedModel.name}
+                </div>
+                <div
                   style={{
                     width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
+                    height: "200px",
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                    backgroundColor: "#F3F4F6",
                   }}
+                >
+                  <img
+                    src={selectedModel.image_url}
+                    alt={selectedModel.name}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: "16px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    color: "#374151",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Model Gender
+                </label>
+                <div style={{ display: "flex", gap: "12px" }}>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="male"
+                      checked={modelGender === "male"}
+                      onChange={(e) =>
+                        setModelGender(e.target.value as "male" | "female")
+                      }
+                      style={{ margin: 0 }}
+                    />
+                    <span style={{ color: "#374151", fontSize: "14px" }}>
+                      Male
+                    </span>
+                  </label>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="female"
+                      checked={modelGender === "female"}
+                      onChange={(e) =>
+                        setModelGender(e.target.value as "male" | "female")
+                      }
+                      style={{ margin: 0 }}
+                    />
+                    <span style={{ color: "#374151", fontSize: "14px" }}>
+                      Female
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: "16px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    color: "#374151",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Pose Description
+                </label>
+                <textarea
+                  value={posePrompt}
+                  onChange={(e) => setPosePrompt(e.target.value)}
+                  style={{
+                    width: "100%",
+                    height: "80px",
+                    padding: "12px",
+                    backgroundColor: "#F9FAFB",
+                    border: "1px solid #D1D5DB",
+                    borderRadius: "8px",
+                    color: "#1F2937",
+                    fontSize: "14px",
+                    resize: "vertical",
+                  }}
+                  placeholder="Describe the poses you want to generate..."
                 />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: "16px" }}>
-              <label
-                style={{
-                  display: "block",
-                  color: "#374151",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  marginBottom: "8px",
-                }}
-              >
-                Model Gender
-              </label>
-              <div style={{ display: "flex", gap: "12px" }}>
-                <label
+                <p
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    cursor: "pointer",
+                    fontSize: "12px",
+                    color: "#6B7280",
+                    marginTop: "4px",
                   }}
                 >
-                  <input
-                    type="radio"
-                    name="gender"
-                    value="male"
-                    checked={modelGender === "male"}
-                    onChange={(e) =>
-                      setModelGender(e.target.value as "male" | "female")
-                    }
-                    style={{ margin: 0 }}
-                  />
-                  <span style={{ color: "#374151", fontSize: "14px" }}>
-                    Male
-                  </span>
-                </label>
-                <label
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    cursor: "pointer",
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name="gender"
-                    value="female"
-                    checked={modelGender === "female"}
-                    onChange={(e) =>
-                      setModelGender(e.target.value as "male" | "female")
-                    }
-                    style={{ margin: 0 }}
-                  />
-                  <span style={{ color: "#374151", fontSize: "14px" }}>
-                    Female
-                  </span>
-                </label>
+                  Example: "fashion model in different poses, standing, sitting,
+                  walking"
+                </p>
               </div>
-            </div>
 
-            <div style={{ marginBottom: "16px" }}>
-              <label
+              <div
                 style={{
-                  display: "block",
-                  color: "#374151",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  marginBottom: "8px",
-                }}
-              >
-                Pose Description
-              </label>
-              <textarea
-                value={posePrompt}
-                onChange={(e) => setPosePrompt(e.target.value)}
-                style={{
-                  width: "100%",
-                  height: "80px",
-                  padding: "12px",
-                  backgroundColor: "#F9FAFB",
-                  border: "1px solid #D1D5DB",
+                  backgroundColor: "#F8FAFC",
                   borderRadius: "8px",
-                  color: "#1F2937",
-                  fontSize: "14px",
-                  resize: "vertical",
-                }}
-                placeholder="Describe the poses you want to generate..."
-              />
-              <p
-                style={{
-                  fontSize: "12px",
-                  color: "#6B7280",
-                  marginTop: "4px",
+                  padding: "12px",
+                  marginBottom: "24px",
                 }}
               >
-                Example: "fashion model in different poses, standing, sitting,
-                walking"
-              </p>
-            </div>
-
-            <div
-              style={{
-                backgroundColor: "#F8FAFC",
-                borderRadius: "8px",
-                padding: "12px",
-                marginBottom: "24px",
-              }}
-            >
                 {/* Variants Selector */}
                 <div
                   style={{
@@ -2070,83 +2081,83 @@ export default function ModelsPage() {
                   </select>
                 </div>
 
-              <div
-                style={{
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  color: "#1E293B",
-                  marginBottom: "4px",
-                }}
-              >
+                <div
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    color: "#1E293B",
+                    marginBottom: "4px",
+                  }}
+                >
                   Cost: {poseVariants} credit{poseVariants > 1 ? "s" : ""}
-              </div>
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "#64748B",
-                }}
-              >
+                </div>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: "#64748B",
+                  }}
+                >
                   This will generate {poseVariants} dynamic pose
                   {poseVariants > 1 ? "s" : ""} of the same model
+                </div>
               </div>
-            </div>
 
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-                justifyContent: "flex-end",
-              }}
-            >
-              <button
-                onClick={() => setShowPoseModal(false)}
+              <div
                 style={{
-                  padding: "12px 24px",
-                  backgroundColor: "transparent",
-                  border: "1px solid #D1D5DB",
-                  borderRadius: "8px",
-                  color: "#6B7280",
-                  fontSize: "14px",
-                  cursor: "pointer",
+                  display: "flex",
+                  gap: "12px",
+                  justifyContent: "flex-end",
                 }}
               >
-                Cancel
-              </button>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleGeneratePoses();
-                }}
-                disabled={isGeneratingPoses}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: isGeneratingPoses ? "#9CA3AF" : "#22D3EE",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#FFFFFF",
-                  fontSize: "14px",
-                  cursor: isGeneratingPoses ? "not-allowed" : "pointer",
-                  position: "relative",
-                  zIndex: 10,
-                  transition: "all 0.2s",
+                <button
+                  onClick={() => setShowPoseModal(false)}
+                  style={{
+                    padding: "12px 24px",
+                    backgroundColor: "transparent",
+                    border: "1px solid #D1D5DB",
+                    borderRadius: "8px",
+                    color: "#6B7280",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleGeneratePoses();
+                  }}
+                  disabled={isGeneratingPoses}
+                  style={{
+                    padding: "12px 24px",
+                    backgroundColor: isGeneratingPoses ? "#9CA3AF" : "#22D3EE",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#FFFFFF",
+                    fontSize: "14px",
+                    cursor: isGeneratingPoses ? "not-allowed" : "pointer",
+                    position: "relative",
+                    zIndex: 10,
+                    transition: "all 0.2s",
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isGeneratingPoses) {
-                    e.currentTarget.style.backgroundColor = "#06B6D4";
-                    e.currentTarget.style.transform = "translateY(-1px)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isGeneratingPoses) {
-                    e.currentTarget.style.backgroundColor = "#22D3EE";
-                    e.currentTarget.style.transform = "translateY(0)";
-                  }
-                }}
-              >
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isGeneratingPoses) {
+                      e.currentTarget.style.backgroundColor = "#06B6D4";
+                      e.currentTarget.style.transform = "translateY(-1px)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isGeneratingPoses) {
+                      e.currentTarget.style.backgroundColor = "#22D3EE";
+                      e.currentTarget.style.transform = "translateY(0)";
+                    }
+                  }}
+                >
                   {isGeneratingPoses && (
                     <div
                       style={{
@@ -2160,10 +2171,10 @@ export default function ModelsPage() {
                     />
                   )}
                   {isGeneratingPoses ? "Generating Poses..." : "Generate Poses"}
-              </button>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
         </>
       )}
 
@@ -2315,7 +2326,7 @@ export default function ModelsPage() {
                     onClick={() => setShowPoseResults(false)}
                     style={{
                       padding: "12px 24px",
-                      backgroundColor: "#5c5c5c",
+                      backgroundColor: "#d42f48",
                       border: "none",
                       borderRadius: "8px",
                       color: "#FFFFFF",
@@ -2667,7 +2678,7 @@ export default function ModelsPage() {
                     borderRadius: "8px",
                     border: "1px solid #D1D5DB",
                     backgroundColor:
-                      editForm.gender === "male" ? "#5c5c5c" : "transparent",
+                      editForm.gender === "male" ? "#d42f48" : "transparent",
                     color: editForm.gender === "male" ? "#FFFFFF" : "#6B7280",
                     cursor: "pointer",
                     fontSize: "14px",
@@ -2688,7 +2699,7 @@ export default function ModelsPage() {
                     borderRadius: "8px",
                     border: "1px solid #D1D5DB",
                     backgroundColor:
-                      editForm.gender === "female" ? "#5c5c5c" : "transparent",
+                      editForm.gender === "female" ? "#d42f48" : "transparent",
                     color: editForm.gender === "female" ? "#FFFFFF" : "#6B7280",
                     cursor: "pointer",
                     fontSize: "14px",
@@ -2733,7 +2744,7 @@ export default function ModelsPage() {
                 disabled={!editForm.name.trim()}
                 style={{
                   padding: "10px 20px",
-                  backgroundColor: editForm.name.trim() ? "#5c5c5c" : "#D1D5DB",
+                  backgroundColor: editForm.name.trim() ? "#d42f48" : "#D1D5DB",
                   border: "none",
                   borderRadius: "8px",
                   color: "#FFFFFF",
@@ -2811,7 +2822,7 @@ export default function ModelsPage() {
               >
                 ✕
               </button>
-    </div>
+            </div>
 
             {/* Modal Content */}
             <div
@@ -3132,9 +3143,9 @@ export default function ModelsPage() {
                           marginTop: "12px",
                           padding: "8px 12px",
                           backgroundColor: "transparent",
-                          border: "1px solid #5c5c5c",
+                          border: "1px solid #d42f48",
                           borderRadius: "6px",
-                          color: "#5c5c5c",
+                          color: "#d42f48",
                           fontSize: "12px",
                           fontWeight: "500",
                           cursor: "pointer",
