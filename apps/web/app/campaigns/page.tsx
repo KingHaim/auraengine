@@ -2119,64 +2119,66 @@ export default function CampaignsPage() {
                       scenes.map((scene) => {
                         console.log("🎬 Rendering scene:", scene);
                         return (
-                      <div
-                        key={scene.id}
-                        onClick={() => toggleSelection(scene.id, "scenes")}
-                        style={{
-                          minWidth: "120px",
-                          height: "80px",
-                          backgroundColor: "#4B5563",
-                          borderRadius: "8px",
-                          backgroundImage: `url(${scene.image_url})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                          cursor: "pointer",
-                          border: selectedScenes.includes(scene.id)
-                            ? "2px solid #8B5CF6"
-                            : "1px solid #6B7280",
-                          position: "relative",
-                          overflow: "hidden",
-                          flexShrink: 0,
-                        }}
-                      >
-                        <div
-                          style={{
-                            position: "absolute",
-                            bottom: "0",
-                            left: "0",
-                            right: "0",
-                            backgroundColor: "rgba(0, 0, 0, 0.7)",
-                            color: "#FFFFFF",
-                            padding: "4px 8px",
-                            fontSize: "12px",
-                            fontWeight: "500",
-                          }}
-                        >
-                          {scene.name}
-                        </div>
-                        {selectedScenes.includes(scene.id) && (
                           <div
+                            key={scene.id}
+                            onClick={() => toggleSelection(scene.id, "scenes")}
                             style={{
-                              position: "absolute",
-                              top: "6px",
-                              right: "6px",
-                              width: "20px",
-                              height: "20px",
-                              backgroundColor: "#8B5CF6",
-                              borderRadius: "50%",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "12px",
-                              color: "#FFFFFF",
-                              fontWeight: "bold",
+                              minWidth: "120px",
+                              height: "80px",
+                              backgroundColor: "#4B5563",
+                              borderRadius: "8px",
+                              backgroundImage: `url(${scene.image_url})`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                              cursor: "pointer",
+                              border: selectedScenes.includes(scene.id)
+                                ? "2px solid #8B5CF6"
+                                : "1px solid #6B7280",
+                              position: "relative",
+                              overflow: "hidden",
+                              flexShrink: 0,
                             }}
                           >
-                            ✓
+                            <div
+                              style={{
+                                position: "absolute",
+                                bottom: "0",
+                                left: "0",
+                                right: "0",
+                                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                                color: "#FFFFFF",
+                                padding: "4px 8px",
+                                fontSize: "12px",
+                                fontWeight: "500",
+                              }}
+                            >
+                              {scene.name}
+                            </div>
+                            {selectedScenes.includes(scene.id) && (
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  top: "6px",
+                                  right: "6px",
+                                  width: "20px",
+                                  height: "20px",
+                                  backgroundColor: "#8B5CF6",
+                                  borderRadius: "50%",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: "12px",
+                                  color: "#FFFFFF",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                ✓
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ))}
+                        );
+                      })
+                    )}
                   </div>
                 </div>
 
