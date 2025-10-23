@@ -2247,7 +2247,22 @@ export default function CampaignsPage() {
                   }}
                 >
                   <button
-                    onClick={handleCreateCampaign}
+                    onClick={() => {
+                      console.log("🔍 REGENERATE button clicked!");
+                      console.log("🔍 Button state:", {
+                        isCreating,
+                        hasName: !!newCampaign.name,
+                        hasProducts: selectedProducts.length > 0,
+                        hasModel: !!selectedModel,
+                        hasScenes: selectedScenes.length > 0,
+                        disabled: isCreating ||
+                          !newCampaign.name ||
+                          selectedProducts.length === 0 ||
+                          !selectedModel ||
+                          selectedScenes.length === 0
+                      });
+                      handleCreateCampaign();
+                    }}
                     disabled={
                       isCreating ||
                       !newCampaign.name ||
@@ -2258,18 +2273,20 @@ export default function CampaignsPage() {
                     style={{
                       width: "100%",
                       padding: "12px 20px",
-                      backgroundColor: isCreating ? "#6B7280" : "#EF4444",
+                      backgroundColor: isCreating ? "#6B7280" : 
+                        (!newCampaign.name || selectedProducts.length === 0 || !selectedModel || selectedScenes.length === 0) ? "#4B5563" : "#EF4444",
                       border: "none",
                       borderRadius: "8px",
                       color: "#FFFFFF",
                       fontSize: "14px",
                       fontWeight: "600",
-                      cursor: isCreating ? "not-allowed" : "pointer",
+                      cursor: (isCreating || !newCampaign.name || selectedProducts.length === 0 || !selectedModel || selectedScenes.length === 0) ? "not-allowed" : "pointer",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       gap: "8px",
                       transition: "all 0.2s",
+                      opacity: (isCreating || !newCampaign.name || selectedProducts.length === 0 || !selectedModel || selectedScenes.length === 0) ? 0.6 : 1,
                     }}
                     onMouseEnter={(e) => {
                       if (!isCreating) {
@@ -2282,7 +2299,9 @@ export default function CampaignsPage() {
                       }
                     }}
                   >
-                    {isCreating ? "Creating Campaign..." : "REGENERATE"}
+                    {isCreating ? "Creating Campaign..." : 
+                     (!newCampaign.name || selectedProducts.length === 0 || !selectedModel || selectedScenes.length === 0) ? 
+                     "Complete Selection" : "REGENERATE"}
                     <div
                       style={{
                         display: "flex",
