@@ -1953,14 +1953,13 @@ export default function CampaignsPage() {
                       gap: "20px",
                     }}
                   >
-                    <div
+                    <img
+                      src="/beating.gif"
+                      alt="Generating..."
                       style={{
                         width: "60px",
                         height: "60px",
-                        border: "4px solid #FFFFFF",
-                        borderTop: "4px solid transparent",
-                        borderRadius: "50%",
-                        animation: "spin 1s linear infinite",
+                        objectFit: "contain",
                       }}
                     />
                     <div
