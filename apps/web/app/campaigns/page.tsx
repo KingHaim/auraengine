@@ -1957,8 +1957,8 @@ export default function CampaignsPage() {
                       src="/beating.gif"
                       alt="Generating..."
                       style={{
-                        width: "100px",
-                        height: "100px",
+                        width: "150px",
+                        height: "150px",
                         objectFit: "contain",
                       }}
                     />
@@ -2549,14 +2549,15 @@ export default function CampaignsPage() {
                     style={{
                       width: "100%",
                       padding: "12px 20px",
-                      backgroundColor: isCreating || isGeneratingInModal
-                        ? "#6B7280"
-                        : !newCampaign.name ||
-                          selectedProducts.length === 0 ||
-                          !selectedModel ||
-                          selectedScenes.length === 0
-                        ? "#4B5563"
-                        : "#EF4444",
+                      backgroundColor:
+                        isCreating || isGeneratingInModal
+                          ? "#6B7280"
+                          : !newCampaign.name ||
+                            selectedProducts.length === 0 ||
+                            !selectedModel ||
+                            selectedScenes.length === 0
+                          ? "#4B5563"
+                          : "#EF4444",
                       border: "none",
                       borderRadius: "8px",
                       color: "#FFFFFF",
