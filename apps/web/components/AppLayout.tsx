@@ -250,12 +250,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
         style={{
           width: "256px",
           background:
-            "linear-gradient(180deg, #090a0c 0%, #090a0c 50%, #1a1a1a 70%, #d42f48 100%)",
+            "linear-gradient(180deg, #090a0c 0%, #090a0c 60%, #1a1a1a 80%, #8b1a2a 100%)",
           borderRight: "1px solid #1F2630",
           padding: "32px 24px",
           display: "flex",
           flexDirection: "column",
-          position: "relative",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          height: "100vh",
+          zIndex: 1000,
         }}
       >
         {/* Radial glow overlay */}
@@ -581,7 +585,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </header>
 
         {/* Main Content */}
-        <main style={{ padding: "32px", flex: 1, backgroundColor: "#FFFFFF" }}>
+        <main style={{ padding: "32px", flex: 1, backgroundColor: "#FFFFFF", marginLeft: "256px" }}>
           {children}
         </main>
       </div>
