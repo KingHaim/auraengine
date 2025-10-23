@@ -180,7 +180,9 @@ export default function CampaignsPage() {
   const [showModelSelectionModal, setShowModelSelectionModal] = useState(false);
   const [showProductSelectionModal, setShowProductSelectionModal] =
     useState(false);
-  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
+    null
+  );
 
   // Function to fetch data from API
   const fetchData = async () => {
@@ -338,12 +340,18 @@ export default function CampaignsPage() {
           generatingCampaignId
         );
         setGeneratingCampaignId(null);
-        
+
         // Show the first generated image in the left panel
         if (campaign.settings?.generated_images?.length > 0) {
           const firstImage = campaign.settings.generated_images[0];
-          console.log("🖼️ Setting generated image URL from polling:", firstImage.image_url);
+          console.log("🖼️ First image object from polling:", firstImage);
+          console.log(
+            "🖼️ Setting generated image URL from polling:",
+            firstImage.image_url
+          );
           setGeneratedImageUrl(firstImage.image_url);
+        } else {
+          console.log("❌ No generated images found in campaign from polling");
         }
       }
     }
@@ -466,6 +474,8 @@ export default function CampaignsPage() {
             "🔍 Campaign generation_status:",
             newCampaign.generation_status
           );
+          console.log("🔍 Campaign settings:", newCampaign.settings);
+          console.log("🔍 Generated images:", newCampaign.settings?.generated_images);
           // Replace the temporary campaign with the real one from the server
           setCampaigns((prevCampaigns) =>
             prevCampaigns.map((campaign) =>
@@ -478,12 +488,18 @@ export default function CampaignsPage() {
               "🔍 Campaign already completed, clearing generating state"
             );
             setGeneratingCampaignId(null);
-            
+
             // Show the first generated image in the left panel
             if (newCampaign.settings?.generated_images?.length > 0) {
               const firstImage = newCampaign.settings.generated_images[0];
-              console.log("🖼️ Setting generated image URL:", firstImage.image_url);
+              console.log("🖼️ First image object:", firstImage);
+              console.log(
+                "🖼️ Setting generated image URL:",
+                firstImage.image_url
+              );
               setGeneratedImageUrl(firstImage.image_url);
+            } else {
+              console.log("❌ No generated images found in campaign");
             }
           }
         }
@@ -1943,7 +1959,7 @@ export default function CampaignsPage() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundImage: generatedImageUrl 
+                    backgroundImage: generatedImageUrl
                       ? `url(${generatedImageUrl})`
                       : 'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600"><rect width="400" height="600" fill="%23374151"/><text x="200" y="300" text-anchor="middle" dy=".3em" fill="white" font-size="18">Generated Image Will Appear Here</text></svg>\')',
                     backgroundSize: "cover",
