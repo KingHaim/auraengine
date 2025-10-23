@@ -180,6 +180,7 @@ export default function CampaignsPage() {
   const [showModelSelectionModal, setShowModelSelectionModal] = useState(false);
   const [showProductSelectionModal, setShowProductSelectionModal] =
     useState(false);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
 
   // Function to fetch data from API
   const fetchData = async () => {
@@ -337,6 +338,13 @@ export default function CampaignsPage() {
           generatingCampaignId
         );
         setGeneratingCampaignId(null);
+        
+        // Show the first generated image in the left panel
+        if (campaign.settings?.generated_images?.length > 0) {
+          const firstImage = campaign.settings.generated_images[0];
+          console.log("🖼️ Setting generated image URL from polling:", firstImage.image_url);
+          setGeneratedImageUrl(firstImage.image_url);
+        }
       }
     }
   }, [campaigns, generatingCampaignId]);
@@ -371,6 +379,9 @@ export default function CampaignsPage() {
 
     setIsCreating(true);
     console.log("🔍 Set isCreating to true and closing modal");
+
+    // Clear any previous generated image
+    setGeneratedImageUrl(null);
 
     // Close modal immediately when generation starts
     setShowCreateModal(false);
@@ -461,12 +472,19 @@ export default function CampaignsPage() {
               campaign.id === result.campaign.id ? newCampaign : campaign
             )
           );
-          // If campaign is already completed, clear the generating state
+          // If campaign is already completed, clear the generating state and show the image
           if (newCampaign.generation_status === "completed") {
             console.log(
               "🔍 Campaign already completed, clearing generating state"
             );
             setGeneratingCampaignId(null);
+            
+            // Show the first generated image in the left panel
+            if (newCampaign.settings?.generated_images?.length > 0) {
+              const firstImage = newCampaign.settings.generated_images[0];
+              console.log("🖼️ Setting generated image URL:", firstImage.image_url);
+              setGeneratedImageUrl(firstImage.image_url);
+            }
           }
         }
 
@@ -1925,13 +1943,64 @@ export default function CampaignsPage() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundImage:
-                      'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600"><rect width="400" height="600" fill="%23374151"/><text x="200" y="300" text-anchor="middle" dy=".3em" fill="white" font-size="18">Generated Image Will Appear Here</text></svg>\')',
+                    backgroundImage: generatedImageUrl 
+                      ? `url(${generatedImageUrl})`
+                      : 'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600"><rect width="400" height="600" fill="%23374151"/><text x="200" y="300" text-anchor="middle" dy=".3em" fill="white" font-size="18">Generated Image Will Appear Here</text></svg>\')',
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     border: "2px solid #4B5563",
+                    position: "relative",
                   }}
-                />
+                >
+                  {generatingCampaignId && !generatedImageUrl && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        backgroundColor: "rgba(0, 0, 0, 0.8)",
+                        color: "#FFFFFF",
+                        padding: "20px 30px",
+                        borderRadius: "12px",
+                        fontSize: "16px",
+                        fontWeight: "500",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "20px",
+                          height: "20px",
+                          border: "2px solid #FFFFFF",
+                          borderTop: "2px solid transparent",
+                          borderRadius: "50%",
+                          animation: "spin 1s linear infinite",
+                        }}
+                      />
+                      Generating...
+                    </div>
+                  )}
+                  {generatedImageUrl && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "10px",
+                        right: "10px",
+                        backgroundColor: "rgba(0, 0, 0, 0.7)",
+                        color: "#FFFFFF",
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      ✨ Generated
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Right Panel - Control Panel (40% width) */}
@@ -2255,11 +2324,12 @@ export default function CampaignsPage() {
                         hasProducts: selectedProducts.length > 0,
                         hasModel: !!selectedModel,
                         hasScenes: selectedScenes.length > 0,
-                        disabled: isCreating ||
+                        disabled:
+                          isCreating ||
                           !newCampaign.name ||
                           selectedProducts.length === 0 ||
                           !selectedModel ||
-                          selectedScenes.length === 0
+                          selectedScenes.length === 0,
                       });
                       handleCreateCampaign();
                     }}
@@ -2273,20 +2343,40 @@ export default function CampaignsPage() {
                     style={{
                       width: "100%",
                       padding: "12px 20px",
-                      backgroundColor: isCreating ? "#6B7280" : 
-                        (!newCampaign.name || selectedProducts.length === 0 || !selectedModel || selectedScenes.length === 0) ? "#4B5563" : "#EF4444",
+                      backgroundColor: isCreating
+                        ? "#6B7280"
+                        : !newCampaign.name ||
+                          selectedProducts.length === 0 ||
+                          !selectedModel ||
+                          selectedScenes.length === 0
+                        ? "#4B5563"
+                        : "#EF4444",
                       border: "none",
                       borderRadius: "8px",
                       color: "#FFFFFF",
                       fontSize: "14px",
                       fontWeight: "600",
-                      cursor: (isCreating || !newCampaign.name || selectedProducts.length === 0 || !selectedModel || selectedScenes.length === 0) ? "not-allowed" : "pointer",
+                      cursor:
+                        isCreating ||
+                        !newCampaign.name ||
+                        selectedProducts.length === 0 ||
+                        !selectedModel ||
+                        selectedScenes.length === 0
+                          ? "not-allowed"
+                          : "pointer",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       gap: "8px",
                       transition: "all 0.2s",
-                      opacity: (isCreating || !newCampaign.name || selectedProducts.length === 0 || !selectedModel || selectedScenes.length === 0) ? 0.6 : 1,
+                      opacity:
+                        isCreating ||
+                        !newCampaign.name ||
+                        selectedProducts.length === 0 ||
+                        !selectedModel ||
+                        selectedScenes.length === 0
+                          ? 0.6
+                          : 1,
                     }}
                     onMouseEnter={(e) => {
                       if (!isCreating) {
@@ -2299,9 +2389,14 @@ export default function CampaignsPage() {
                       }
                     }}
                   >
-                    {isCreating ? "Creating Campaign..." : 
-                     (!newCampaign.name || selectedProducts.length === 0 || !selectedModel || selectedScenes.length === 0) ? 
-                     "Complete Selection" : "REGENERATE"}
+                    {isCreating
+                      ? "Creating Campaign..."
+                      : !newCampaign.name ||
+                        selectedProducts.length === 0 ||
+                        !selectedModel ||
+                        selectedScenes.length === 0
+                      ? "Complete Selection"
+                      : "REGENERATE"}
                     <div
                       style={{
                         display: "flex",
