@@ -563,6 +563,11 @@ async def get_campaigns(
                 # Ensure generation_status exists, default to "idle" if missing
                 if not hasattr(campaign, 'generation_status') or campaign.generation_status is None:
                     campaign.generation_status = "idle"
+                
+                # Ensure scene_generation_status exists, default to "idle" if missing
+                if not hasattr(campaign, 'scene_generation_status') or campaign.scene_generation_status is None:
+                    campaign.scene_generation_status = "idle"
+                
                 result.append(CampaignResponse.model_validate(campaign))
             except Exception as validation_error:
                 print(f"⚠️ Campaign validation failed for {campaign.id}: {validation_error}")
