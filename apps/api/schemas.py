@@ -47,6 +47,8 @@ class CampaignResponse(BaseModel):
     description: Optional[str]
     status: str
     generation_status: str
+    scene_generation_status: str
+    approved_scene_url: Optional[str]
     settings: Dict[str, Any]
     created_at: datetime
     updated_at: datetime

@@ -588,8 +588,7 @@ async def generate_campaign_images_background(
         
         # Clamp requested number of images to available shot types
         try:
-            # TESTING: Force 1 image generation for Enhancor.ai testing
-            shots_to_generate_count = 1  # max(1, min(int(number_of_images), len(CAMPAIGN_SHOT_TYPES)))
+            shots_to_generate_count = max(1, min(int(number_of_images), len(CAMPAIGN_SHOT_TYPES)))
         except Exception:
             shots_to_generate_count = 1
 
@@ -620,10 +619,10 @@ async def generate_campaign_images_background(
                     print(f"🎬 Starting generation of {len(shot_types_to_generate)} shots...")
                     for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
                         try:
-                            print(f"\n🎥 [{shot_idx}/1] {shot_type['title']} (TESTING: Single image for Enhancor.ai)")
-                            print(f"📊 Progress: {shot_idx}/1 shots for {product.name} + {model.name} + {scene.name}")
+                            print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
+                            print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for {product.name} + {model.name} + {scene.name}")
                             
-                            # REAL WORKFLOW: Qwen → Vella → Qwen → Nano Banana → Enhancor.ai
+                            # REAL WORKFLOW (local-success): Qwen first, then Vella
                             quality_mode = "standard"
 
                             # Step 1: Compose model into the scene with shot type (persist inputs first)
@@ -649,7 +648,7 @@ async def generate_campaign_images_background(
                             # Vella result is already persisted in run_vella_try_on
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
-                            # Step 3: Use Vella result directly (Nano Banana and Enhancor.ai will be applied after Qwen final)
+                            # Step 3: Use Vella result directly (Nano Banana will be applied after Qwen final)
                             final_result_url = vella_result_url
                             
                             # Step 4: Final Qwen scene integration to restore/enhance scene background
@@ -665,7 +664,7 @@ async def generate_campaign_images_background(
                                 )
                                 
                                 final_result_url = run_qwen_scene_composition(
-                                    final_result_url,  # Dressed model from Vella
+                                    final_result_url,  # Dressed model from Vella/Nano Banana
                                     stable_scene,      # Original scene
                                     quality_mode,
                                     shot_type_prompt=scene_integration_prompt
@@ -681,53 +680,40 @@ async def generate_campaign_images_background(
                                 # Convert final result URL to base64 for Nano Banana if needed
                                 if final_result_url.startswith(get_base_url() + "/static/"):
                                     filename = final_result_url.replace(get_base_url() + "/static/", "")
-                                    filepath = f"uploads/{filename}"
-                                    nb_input = upload_to_replicate(filepath)
+                                        filepath = f"uploads/{filename}"
+                                        nb_input = upload_to_replicate(filepath)
                                 elif final_result_url.startswith("https://replicate.delivery/"):
                                     nb_input = final_result_url
-                                else:
+                                    else:
                                     nb_input = final_result_url
                                     
                                 # Apply Nano Banana img2img for enhanced realism
-                                nano_result = replicate.run(
-                                    "google/nano-banana",
-                                    input={
-                                        "prompt": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
-                                        "image": nb_input,
-                                        "num_inference_steps": 28,
-                                        "guidance_scale": 5.5,
+                                    nano_result = replicate.run(
+                                        "google/nano-banana",
+                                        input={
+                                        "instructions": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
+                                            "image": nb_input,
+                                            "num_inference_steps": 28,
+                                            "guidance_scale": 5.5,
                                         "strength": 0.4  # Higher strength for more dramatic realism enhancement
-                                    }
-                                )
-                                
-                                # Handle Nano Banana output
-                                if hasattr(nano_result, 'url'):
-                                    nano_url = nano_result.url()
-                                elif isinstance(nano_result, str):
-                                    nano_url = nano_result
-                                elif isinstance(nano_result, list) and len(nano_result) > 0:
-                                    nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                                else:
-                                    nano_url = str(nano_result)
+                                        }
+                                    )
+                                    
+                                    # Handle Nano Banana output
+                                    if hasattr(nano_result, 'url'):
+                                        nano_url = nano_result.url()
+                                    elif isinstance(nano_result, str):
+                                        nano_url = nano_result
+                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                    else:
+                                        nano_url = str(nano_result)
                                     
                                     print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
                                     final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
-                            except Exception as e:
+                                except Exception as e:
                                 print(f"⚠️ Nano Banana failed, using previous result: {e}")
                                 # Keep the previous result if Nano Banana fails
-                            
-                            # Step 6: Apply Enhancor.ai for final realism enhancement
-                            print(f"🎨 Step 6: Final realism enhancement with Enhancor.ai...")
-                            try:
-                                enhancor_result = run_enhancor_realism_enhancement(final_result_url)
-                                if enhancor_result and enhancor_result != final_result_url:
-                                    final_result_url = enhancor_result
-                                    print(f"✅ Enhancor.ai enhancement completed: {final_result_url[:50]}...")
-                                else:
-                                    print(f"⚠️ Enhancor.ai enhancement skipped or failed, using previous result")
-                            except Exception as e:
-                                print(f"⚠️ Enhancor.ai enhancement failed, using previous result: {e}")
-                                # Keep the previous result if Enhancor.ai fails
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
@@ -816,13 +802,14 @@ async def create_campaign(
         if not product_id_list or not model_id_list or not scene_id_list:
             raise HTTPException(status_code=400, detail="Please select at least one product, model, and scene")
         
-        # Create campaign
+        # Create campaign with new workflow
         campaign = Campaign(
             user_id=current_user["user_id"],
             name=name,
             description=description,
             status="draft",
-            generation_status="generating",
+            generation_status="idle",
+            scene_generation_status="pending",
             settings={
                 "product_ids": product_id_list,
                 "model_ids": model_id_list,
@@ -835,29 +822,13 @@ async def create_campaign(
         db.commit()
         db.refresh(campaign)
         
-        # Return the campaign immediately so frontend can show it with "generating" status
-        print(f"🎯 Campaign created with ID: {campaign.id}, starting generation...")
+        print(f"🎯 Campaign created with ID: {campaign.id}, ready for scene generation...")
         
-        # Return immediately so frontend can show the campaign with "generating" status
-        response_data = {
+        return {
             "campaign": CampaignResponse.model_validate(campaign),
-            "message": f"Campaign '{name}' created and generation started!",
+            "message": f"Campaign '{name}' created! Now generate a scene to get started.",
             "generated_images": []
         }
-        
-        # Start generation in background (this will run after the response is sent)
-        import asyncio
-        asyncio.create_task(generate_campaign_images_background(
-            campaign.id, 
-            product_id_list, 
-            model_id_list, 
-            scene_id_list, 
-            selected_poses_dict, 
-            number_of_images,
-            db
-        ))
-        
-        return response_data
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON format")
     except Exception as e:
@@ -957,13 +928,12 @@ async def generate_campaign_images(
                     print(f"📸 Generating {number_of_images} images for this campaign...")
                     
                     # Generate only the requested number of images
-                    # TESTING: Force 1 image generation for Enhancor.ai testing
-                    shot_types_to_generate = CAMPAIGN_SHOT_TYPES[:1]  # [:number_of_images]
+                    shot_types_to_generate = CAMPAIGN_SHOT_TYPES[:number_of_images]
                     for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
                         try:
-                            print(f"\n🎥 [{shot_idx}/1] {shot_type['title']} (TESTING: Single image for Enhancor.ai)")
+                            print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
                             
-                            # REAL WORKFLOW: Qwen → Vella → Qwen → Nano Banana → Enhancor.ai
+                            # REAL WORKFLOW (local-success): Qwen first, then Vella
                             quality_mode = "standard"
 
                             # Step 1: Compose model into the scene with shot type (persist inputs first)
@@ -987,7 +957,7 @@ async def generate_campaign_images(
                             # Vella result is already persisted in run_vella_try_on
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
-                            # Step 3: Use Vella result directly (Nano Banana and Enhancor.ai will be applied after Qwen final)
+                            # Step 3: Use Vella result directly (Nano Banana will be applied after Qwen final)
                             final_result_url = vella_result_url
                             
                             # Step 4: Final Qwen scene integration to restore/enhance scene background
@@ -1003,7 +973,7 @@ async def generate_campaign_images(
                                 )
                                 
                                 final_result_url = run_qwen_scene_composition(
-                                    final_result_url,  # Dressed model from Vella
+                                    final_result_url,  # Dressed model from Vella/Nano Banana
                                     stable_scene,      # Original scene
                                     quality_mode,
                                     shot_type_prompt=scene_integration_prompt
@@ -1019,53 +989,40 @@ async def generate_campaign_images(
                                 # Convert final result URL to base64 for Nano Banana if needed
                                 if final_result_url.startswith(get_base_url() + "/static/"):
                                     filename = final_result_url.replace(get_base_url() + "/static/", "")
-                                    filepath = f"uploads/{filename}"
-                                    nb_input = upload_to_replicate(filepath)
+                                        filepath = f"uploads/{filename}"
+                                        nb_input = upload_to_replicate(filepath)
                                 elif final_result_url.startswith("https://replicate.delivery/"):
                                     nb_input = final_result_url
-                                else:
+                                    else:
                                     nb_input = final_result_url
                                     
                                 # Apply Nano Banana img2img for enhanced realism
-                                nano_result = replicate.run(
-                                    "google/nano-banana",
-                                    input={
-                                        "prompt": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
-                                        "image": nb_input,
-                                        "num_inference_steps": 28,
-                                        "guidance_scale": 5.5,
+                                    nano_result = replicate.run(
+                                        "google/nano-banana",
+                                        input={
+                                        "instructions": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
+                                            "image": nb_input,
+                                            "num_inference_steps": 28,
+                                            "guidance_scale": 5.5,
                                         "strength": 0.4  # Higher strength for more dramatic realism enhancement
-                                    }
-                                )
-                                
-                                # Handle Nano Banana output
-                                if hasattr(nano_result, 'url'):
-                                    nano_url = nano_result.url()
-                                elif isinstance(nano_result, str):
-                                    nano_url = nano_result
-                                elif isinstance(nano_result, list) and len(nano_result) > 0:
-                                    nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                                else:
-                                    nano_url = str(nano_result)
-                                
-                                print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+                                        }
+                                    )
+                                    
+                                    # Handle Nano Banana output
+                                    if hasattr(nano_result, 'url'):
+                                        nano_url = nano_result.url()
+                                    elif isinstance(nano_result, str):
+                                        nano_url = nano_result
+                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                    else:
+                                        nano_url = str(nano_result)
+                                    
+                                    print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
                                 final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
-                            except Exception as e:
+                                except Exception as e:
                                 print(f"⚠️ Nano Banana failed, using previous result: {e}")
                                 # Keep the previous result if Nano Banana fails
-                            
-                            # Step 6: Apply Enhancor.ai for final realism enhancement
-                            print(f"🎨 Step 6: Final realism enhancement with Enhancor.ai...")
-                            try:
-                                enhancor_result = run_enhancor_realism_enhancement(final_result_url)
-                                if enhancor_result and enhancor_result != final_result_url:
-                                    final_result_url = enhancor_result
-                                    print(f"✅ Enhancor.ai enhancement completed: {final_result_url[:50]}...")
-                                else:
-                                    print(f"⚠️ Enhancor.ai enhancement skipped or failed, using previous result")
-                            except Exception as e:
-                                print(f"⚠️ Enhancor.ai enhancement failed, using previous result: {e}")
-                                # Keep the previous result if Enhancor.ai fails
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
@@ -1150,6 +1107,429 @@ async def delete_campaign(
         raise
     except Exception as e:
         print(f"Error deleting campaign: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/campaigns/{campaign_id}/generate-scene")
+async def generate_scene(
+    campaign_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate a single scene with model and products for user approval"""
+    try:
+        # Get campaign
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        # Get campaign settings
+        product_id_list = campaign.settings.get("product_ids", [])
+        model_id_list = campaign.settings.get("model_ids", [])
+        scene_id_list = campaign.settings.get("scene_ids", [])
+        selected_poses_dict = campaign.settings.get("selected_poses", {})
+        
+        if not product_id_list or not model_id_list or not scene_id_list:
+            raise HTTPException(status_code=400, detail="Campaign missing products, models, or scenes")
+        
+        # Get entities
+        products = db.query(Product).filter(Product.id.in_(product_id_list)).all()
+        models = db.query(Model).filter(Model.id.in_(model_id_list)).all()
+        scenes = db.query(Scene).filter(Scene.id.in_(scene_id_list)).all()
+        
+        if not products or not models or not scenes:
+            raise HTTPException(status_code=400, detail="Missing products, models, or scenes")
+        
+        # Update campaign status
+        campaign.scene_generation_status = "generating_scene"
+        db.commit()
+        
+        print(f"🎨 Generating scene for campaign: {campaign.name}")
+        
+        # Generate scene for the first combination (user can regenerate if not happy)
+        product = products[0]
+        model = models[0]
+        scene = scenes[0]
+        
+        # Use product packshot (front view preferred)
+        product_image = product.packshot_front_url or product.image_url
+        
+        # Use model's selected pose if available
+        model_image = model.image_url
+        if selected_poses_dict.get(str(model.id)) and len(selected_poses_dict[str(model.id)]) > 0:
+            import random
+            model_image = random.choice(selected_poses_dict[str(model.id)])
+            print(f"🎭 Using selected pose for {model.name}")
+        elif model.poses and len(model.poses) > 0:
+            import random
+            model_image = random.choice(model.poses)
+            print(f"🎭 Using random pose for {model.name}")
+        
+        print(f"🎬 Generating scene: {product.name} + {model.name} + {scene.name}")
+        
+        # Generate scene using the workflow: Qwen → Vella → Qwen → Nano Banana
+        quality_mode = "standard"
+        
+        # Step 1: Compose model into the scene
+        stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
+        stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
+        print(f"🎨 Step 1: Composing model into scene...")
+        qwen_result_url = run_qwen_scene_composition(
+            stable_model,
+            stable_scene,
+            quality_mode,
+            shot_type_prompt="Full-body shot with model naturally placed in the scene, professional fashion photography, balanced composition"
+        )
+        print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
+        
+        # Step 2: Apply Vella try-on
+        print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
+        clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
+        stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
+        vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
+        print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
+        
+        # Step 3: Final scene integration
+        print(f"🎨 Step 3: Final scene integration...")
+        try:
+            scene_integration_prompt = (
+                f"Take the person wearing {product.name} from the first image and integrate them into the scene from the second image. "
+                f"Preserve the clothing and model's appearance but ensure they fit naturally into the scene environment. "
+                f"Match the lighting, shadows, and atmosphere of the scene. "
+                f"Create a cohesive composition where the person looks naturally placed in the environment. "
+                f"Professional fashion photography with natural scene lighting."
+            )
+            
+            final_result_url = run_qwen_scene_composition(
+                vella_result_url,
+                stable_scene,
+                quality_mode,
+                shot_type_prompt=scene_integration_prompt
+            )
+            print(f"✅ Final scene integration completed: {final_result_url[:50]}...")
+        except Exception as e:
+            print(f"⚠️ Final scene integration failed, using Vella result: {e}")
+            final_result_url = vella_result_url
+        
+        # Step 4: Apply Nano Banana for realism
+        print(f"🍌 Step 4: Enhancing realism with Nano Banana...")
+        try:
+            # Convert final result URL to base64 for Nano Banana if needed
+            if final_result_url.startswith(get_base_url() + "/static/"):
+                filename = final_result_url.replace(get_base_url() + "/static/", "")
+                filepath = f"uploads/{filename}"
+                nb_input = upload_to_replicate(filepath)
+            elif final_result_url.startswith("https://replicate.delivery/"):
+                nb_input = final_result_url
+            else:
+                nb_input = final_result_url
+            
+            # Apply Nano Banana img2img for enhanced realism
+            nano_result = replicate.run(
+                "google/nano-banana",
+                input={
+                    "instructions": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
+                    "image": nb_input,
+                    "num_inference_steps": 28,
+                    "guidance_scale": 5.5,
+                    "strength": 0.4
+                }
+            )
+            
+            # Handle Nano Banana output
+            if hasattr(nano_result, 'url'):
+                nano_url = nano_result.url()
+            elif isinstance(nano_result, str):
+                nano_url = nano_result
+            elif isinstance(nano_result, list) and len(nano_result) > 0:
+                nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+            else:
+                nano_url = str(nano_result)
+            
+            print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+            final_result_url = stabilize_url(to_url(nano_result), f"scene_enhanced") if 'stabilize_url' in globals() else to_url(nano_result)
+        except Exception as e:
+            print(f"⚠️ Nano Banana failed, using previous result: {e}")
+        
+        # Update campaign with generated scene
+        campaign.approved_scene_url = final_result_url
+        campaign.scene_generation_status = "scene_approved"
+        db.commit()
+        
+        print(f"🎉 Scene generation completed: {final_result_url[:50]}...")
+        
+        return {
+            "message": "Scene generated successfully! Review and approve to proceed with photoshoot.",
+            "scene_url": final_result_url,
+            "campaign": CampaignResponse.model_validate(campaign)
+        }
+        
+    except Exception as e:
+        print(f"❌ Scene generation failed: {e}")
+        # Update campaign status to failed
+        try:
+            campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+            if campaign:
+                campaign.scene_generation_status = "failed"
+                db.commit()
+        except Exception as update_error:
+            print(f"❌ Failed to update campaign status: {update_error}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+def enhance_with_nano_banana(image_url, prompt):
+    """Enhance image with Nano Banana using custom prompt"""
+    try:
+        # Convert image URL to input for Nano Banana
+        if image_url.startswith(get_base_url() + "/static/"):
+            filename = image_url.replace(get_base_url() + "/static/", "")
+            filepath = f"uploads/{filename}"
+            nb_input = upload_to_replicate(filepath)
+        elif image_url.startswith("https://replicate.delivery/"):
+            nb_input = image_url
+        else:
+            nb_input = image_url
+        
+        # Apply Nano Banana img2img with custom prompt
+        nano_result = replicate.run(
+            "google/nano-banana",
+            input={
+                "instructions": prompt,
+                "image": nb_input,
+                "num_inference_steps": 28,
+                "guidance_scale": 5.5,
+                "strength": 0.4
+            }
+        )
+        
+        # Handle Nano Banana output
+        if hasattr(nano_result, 'url'):
+            nano_url = nano_result.url()
+        elif isinstance(nano_result, str):
+            nano_url = nano_result
+        elif isinstance(nano_result, list) and len(nano_result) > 0:
+            nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+        else:
+            nano_url = str(nano_result)
+        
+        return stabilize_url(to_url(nano_result), f"enhanced") if 'stabilize_url' in globals() else to_url(nano_result)
+    except Exception as e:
+        print(f"⚠️ Nano Banana enhancement failed: {e}")
+        return image_url  # Return original if enhancement fails
+
+def generate_smart_shot_types(products):
+    """Generate smart shot types based on product types"""
+    shot_types = []
+    
+    # Product-specific close-ups (one for each product)
+    for i, product in enumerate(products):
+        product_name = product.name.lower()
+        if any(keyword in product_name for keyword in ['shirt', 'top', 'blouse', 't-shirt', 'tshirt']):
+            shot_types.append({
+                "name": f"product_{i+1}_closeup",
+                "title": f"{product.name} Close-Up",
+                "prompt": f"Close-up shot focusing on the {product.name}, showing fabric texture, fit, and details. Professional product photography with sharp focus on the clothing item.",
+                "type": "product_focus"
+            })
+        elif any(keyword in product_name for keyword in ['cap', 'hat', 'beanie']):
+            shot_types.append({
+                "name": f"product_{i+1}_closeup",
+                "title": f"{product.name} Close-Up",
+                "prompt": f"Close-up shot of the {product.name}, showing the headwear details, fit, and style. Professional fashion photography with focus on the accessory.",
+                "type": "product_focus"
+            })
+        elif any(keyword in product_name for keyword in ['pants', 'jeans', 'trousers', 'shorts']):
+            shot_types.append({
+                "name": f"product_{i+1}_closeup",
+                "title": f"{product.name} Close-Up",
+                "prompt": f"Close-up shot of the {product.name}, showing fit, fabric texture, and details. Professional fashion photography focusing on the lower body garment.",
+                "type": "product_focus"
+            })
+        else:
+            # Generic product close-up
+            shot_types.append({
+                "name": f"product_{i+1}_closeup",
+                "title": f"{product.name} Close-Up",
+                "prompt": f"Close-up shot focusing on the {product.name}, showing details and fit. Professional product photography with sharp focus.",
+                "type": "product_focus"
+            })
+    
+    # Scene variations (2 shots)
+    shot_types.extend([
+        {
+            "name": "scene_wide",
+            "title": "Wide Scene Shot",
+            "prompt": "Wide-angle shot showing the full scene with the model, emphasizing the environment and setting. Professional fashion photography with environmental context.",
+            "type": "scene_variation"
+        },
+        {
+            "name": "scene_medium",
+            "title": "Medium Scene Shot",
+            "prompt": "Medium shot showing the model in the scene, balanced composition between model and environment. Professional fashion photography with good scene integration.",
+            "type": "scene_variation"
+        }
+    ])
+    
+    # Random poses (2 shots)
+    shot_types.extend([
+        {
+            "name": "pose_casual",
+            "title": "Casual Pose",
+            "prompt": "Model in a natural, casual pose within the scene. Relaxed and authentic positioning that looks natural and comfortable. Professional fashion photography with lifestyle feel.",
+            "type": "random_pose"
+        },
+        {
+            "name": "pose_dynamic",
+            "title": "Dynamic Pose",
+            "prompt": "Model in a more dynamic, energetic pose within the scene. Confident and stylish positioning that shows movement and personality. Professional fashion photography with editorial feel.",
+            "type": "random_pose"
+        }
+    ])
+    
+    # Hero shot (final shot)
+    shot_types.append({
+        "name": "hero_final",
+        "title": "Hero Shot",
+        "prompt": "Confident hero pose with the model prominently featured in the scene. Strong, memorable composition that showcases the complete look. Professional fashion photography with editorial impact.",
+        "type": "hero"
+    })
+    
+    return shot_types
+
+@app.post("/campaigns/{campaign_id}/generate-photoshoot")
+async def generate_photoshoot(
+    campaign_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate 7-shot photoshoot from approved scene"""
+    try:
+        # Get campaign
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        # Check if scene is approved
+        if campaign.scene_generation_status != "scene_approved" or not campaign.approved_scene_url:
+            raise HTTPException(status_code=400, detail="Please generate and approve a scene first")
+        
+        # Get campaign settings
+        product_id_list = campaign.settings.get("product_ids", [])
+        model_id_list = campaign.settings.get("model_ids", [])
+        scene_id_list = campaign.settings.get("scene_ids", [])
+        
+        if not product_id_list or not model_id_list or not scene_id_list:
+            raise HTTPException(status_code=400, detail="Campaign missing products, models, or scenes")
+        
+        # Get entities
+        products = db.query(Product).filter(Product.id.in_(product_id_list)).all()
+        models = db.query(Model).filter(Model.id.in_(model_id_list)).all()
+        scenes = db.query(Scene).filter(Scene.id.in_(scene_id_list)).all()
+        
+        if not products or not models or not scenes:
+            raise HTTPException(status_code=400, detail="Missing products, models, or scenes")
+        
+        # Update campaign status
+        campaign.scene_generation_status = "generating_photoshoot"
+        db.commit()
+        
+        print(f"📸 Generating 7-shot photoshoot for campaign: {campaign.name}")
+        
+        # Generate smart shot types based on products
+        shot_types = generate_smart_shot_types(products)
+        print(f"🎯 Generated {len(shot_types)} smart shot types based on {len(products)} products")
+        
+        # Use the approved scene as base
+        approved_scene_url = campaign.approved_scene_url
+        
+        generated_images = []
+        
+        # Generate each shot type
+        for shot_idx, shot_type in enumerate(shot_types, 1):
+            try:
+                print(f"\n🎥 [{shot_idx}/{len(shot_types)}] {shot_type['title']}")
+                
+                # For photoshoot generation, we use the approved scene and apply variations
+                if shot_type['type'] == 'product_focus':
+                    # Product close-up: Use Nano Banana with product-focused prompt
+                    print(f"🔍 Generating product close-up: {shot_type['title']}")
+                    final_url = enhance_with_nano_banana(
+                        approved_scene_url,
+                        shot_type['prompt']
+                    )
+                elif shot_type['type'] in ['scene_variation', 'random_pose', 'hero']:
+                    # Scene/pose variations: Use Qwen with scene variation
+                    print(f"🎨 Generating scene variation: {shot_type['title']}")
+                    final_url = run_qwen_scene_composition(
+                        approved_scene_url,
+                        approved_scene_url,  # Use same scene as reference
+                        "standard",
+                        shot_type_prompt=shot_type['prompt']
+                    )
+                else:
+                    # Default: Use approved scene
+                    final_url = approved_scene_url
+                
+                # Store the generated image
+                generated_images.append({
+                    "shot_name": shot_type['name'],
+                    "shot_title": shot_type['title'],
+                    "shot_type": shot_type['type'],
+                    "image_url": final_url,
+                    "generated_at": datetime.utcnow().isoformat()
+                })
+                
+                print(f"✅ Shot completed: {shot_type['title']}")
+                
+            except Exception as e:
+                print(f"❌ Failed shot {shot_type['title']}: {e}")
+                import traceback
+                traceback.print_exc()
+                print(f"🔄 Continuing to next shot... (Shot {shot_idx}/{len(shot_types)})")
+                continue
+        
+        # Update campaign with generated photoshoot
+        campaign.scene_generation_status = "completed"
+        campaign.generation_status = "completed"
+        
+        # Create new settings dict to force SQLAlchemy to detect change
+        new_settings = dict(campaign.settings) if campaign.settings else {}
+        new_settings["generated_images"] = generated_images
+        campaign.settings = new_settings
+        
+        # Force SQLAlchemy to detect the change
+        flag_modified(campaign, "settings")
+        
+        db.commit()
+        db.refresh(campaign)
+        
+        print(f"🎉 Photoshoot generation completed with {len(generated_images)} images")
+        print(f"📊 Expected: {len(shot_types)} shots, Generated: {len(generated_images)} shots")
+        if len(generated_images) < len(shot_types):
+            print(f"⚠️ WARNING: Only {len(generated_images)}/{len(shot_types)} shots were generated successfully")
+        
+        return {
+            "message": f"Photoshoot completed! Generated {len(generated_images)} shots.",
+            "generated_images": generated_images,
+            "campaign": CampaignResponse.model_validate(campaign)
+        }
+        
+    except Exception as e:
+        print(f"❌ Photoshoot generation failed: {e}")
+        # Update campaign status to failed
+        try:
+            campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+            if campaign:
+                campaign.scene_generation_status = "failed"
+                db.commit()
+        except Exception as update_error:
+            print(f"❌ Failed to update campaign status: {update_error}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ---------- Delete Endpoints ----------
@@ -2200,11 +2580,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             for attempt in range(max_retries):
                 try:
                     print(f"🎭 Vella attempt {attempt + 1}/{max_retries}...")
-                    out = replicate.run("omnious/vella-1.5", input=vella_input)
+            out = replicate.run("omnious/vella-1.5", input=vella_input)
                     print(f"✅ Vella API call succeeded on attempt {attempt + 1}!")
-                    print(f"🎭 Vella API response type: {type(out)}")
-                    if hasattr(out, '__dict__'):
-                        print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
+            print(f"🎭 Vella API response type: {type(out)}")
+            if hasattr(out, '__dict__'):
+                print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
                     break  # Success, exit retry loop
                 except Exception as e:
                     print(f"⚠️ Vella attempt {attempt + 1} failed: {e}")
@@ -3028,83 +3408,6 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
     except Exception as e:
         print(f"❌ Veo 3.1 video generation failed: {e}")
         return None
-
-def run_enhancor_realism_enhancement(image_url: str) -> str:
-    """Enhance image realism using Enhancor.ai API"""
-    try:
-        print(f"🎨 Running Enhancor.ai realism enhancement: {image_url[:50]}...")
-        
-        # Use image_url directly - no need to convert to base64
-        
-        # Prepare API request
-        import requests
-        import os
-        api_key = os.getenv("ENHANCOR_API_KEY", "1940af76223d1ee40184cbb9669669a1460241650d517ae4971ffda7d2501e01")
-        
-        # Try different API endpoint formats
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-        
-        payload = {
-            "image_url": image_url,
-            "enhancement_type": "realism"
-        }
-        
-        print(f"🔄 Calling Enhancor.ai API...")
-        
-        # Try multiple possible endpoints
-        endpoints_to_try = [
-            "https://api.enhancor.ai/v1/enhance",
-            "https://api.enhancor.ai/enhance",
-            "https://enhancor.ai/api/v1/enhance",
-            "https://enhancor.ai/api/enhance"
-        ]
-        
-        response = None
-        for endpoint in endpoints_to_try:
-            try:
-                print(f"🔄 Trying endpoint: {endpoint}")
-                response = requests.post(
-                    endpoint,
-                    headers=headers,
-                    json=payload,
-                    timeout=60
-                )
-                if response.status_code == 200:
-                    print(f"✅ Found working endpoint: {endpoint}")
-                    break
-                else:
-                    print(f"❌ {response.status_code} for {endpoint}: {response.text[:100]}")
-            except Exception as e:
-                print(f"❌ Error with {endpoint}: {e}")
-                continue
-        
-        if not response:
-            print(f"❌ All Enhancor.ai endpoints failed, skipping enhancement")
-            return image_url
-        
-        if response.status_code == 200:
-            result = response.json()
-            enhanced_image_url = result.get("enhanced_image_url") or result.get("url")
-            
-            if enhanced_image_url:
-                # Persist the enhanced image
-                enhanced_url = upload_to_cloudinary(enhanced_image_url, "enhancor_enhanced")
-                print(f"✅ Enhancor.ai enhancement completed: {enhanced_url[:50]}...")
-                return enhanced_url
-            else:
-                print(f"⚠️ No enhanced image URL in response")
-                return image_url
-        else:
-            print(f"❌ Enhancor.ai API failed: {response.status_code} - {response.text}")
-            return image_url
-            
-    except Exception as e:
-        print(f"❌ Enhancor.ai enhancement failed: {e}")
-        print(f"Continuing with original image")
-        return image_url
 
 def run_kling_video_generation(image_url: str, video_quality: str = "480p", duration: str = "5s", custom_prompt: Optional[str] = None) -> str:
     """Generate video from image using Kling 2.5 Turbo Pro API"""
