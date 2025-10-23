@@ -1687,7 +1687,7 @@ export default function CampaignsPage() {
                           flexDirection: "column",
                           alignItems: "center",
                           justifyContent: "center",
-                          backgroundColor: "#374151",
+                          backgroundColor: "#454545",
                         }}
                       >
                         <div
@@ -1928,7 +1928,7 @@ export default function CampaignsPage() {
                 style={{
                   width: "40%",
                   height: "100%",
-                  backgroundColor: "#111827",
+                  backgroundColor: "#454545",
                   position: "relative",
                   display: "flex",
                   flexDirection: "column",
@@ -2016,11 +2016,11 @@ export default function CampaignsPage() {
                         style={{
                           width: "60px",
                           height: "60px",
-                          backgroundColor: "#374151",
+                          backgroundColor: "#454545",
                           borderRadius: "8px",
                           border: "1px solid #6B7280",
                           backgroundImage:
-                            'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23374151"/><text x="50" y="50" text-anchor="middle" dy=".3em" fill="white" font-size="12">Preview</text></svg>\')',
+                            'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23454545"/><text x="50" y="50" text-anchor="middle" dy=".3em" fill="white" font-size="12">Preview</text></svg>\')',
                           backgroundSize: "cover",
                           backgroundPosition: "center",
                           opacity: 0.5,
@@ -2030,11 +2030,11 @@ export default function CampaignsPage() {
                         style={{
                           width: "60px",
                           height: "60px",
-                          backgroundColor: "#374151",
+                          backgroundColor: "#454545",
                           borderRadius: "8px",
                           border: "1px solid #6B7280",
                           backgroundImage:
-                            'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23374151"/><text x="50" y="50" text-anchor="middle" dy=".3em" fill="white" font-size="12">Previous</text></svg>\')',
+                            'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23454545"/><text x="50" y="50" text-anchor="middle" dy=".3em" fill="white" font-size="12">Previous</text></svg>\')',
                           backgroundSize: "cover",
                           backgroundPosition: "center",
                           opacity: 0.5,
@@ -6667,7 +6667,7 @@ export default function CampaignsPage() {
                           onClick={() => setTweakPrompt(example)}
                           style={{
                             padding: "6px 12px",
-                            backgroundColor: "#374151",
+                            backgroundColor: "#454545",
                             border: "1px solid #4B5563",
                             borderRadius: "6px",
                             fontSize: "12px",
