@@ -1928,7 +1928,7 @@ export default function CampaignsPage() {
                 style={{
                   width: "40%",
                   height: "100%",
-                  backgroundColor: "#454545",
+                  backgroundColor: "#111827",
                   position: "relative",
                   display: "flex",
                   flexDirection: "column",
@@ -2104,7 +2104,7 @@ export default function CampaignsPage() {
                 style={{
                   width: "60%",
                   height: "100%",
-                  backgroundColor: "#374151",
+                  backgroundColor: "#454545",
                   padding: "20px",
                   display: "flex",
                   flexDirection: "column",
