@@ -184,13 +184,15 @@ export default function CampaignsPage() {
     null
   );
   const [lastGeneratedImages, setLastGeneratedImages] = useState<string[]>([]);
-  const [currentDisplayedImage, setCurrentDisplayedImage] = useState<string | null>(null);
+  const [currentDisplayedImage, setCurrentDisplayedImage] = useState<
+    string | null
+  >(null);
 
   // Function to get last generated images from campaigns
   const getLastGeneratedImages = () => {
     const allImages: string[] = [];
-    
-    campaigns.forEach(campaign => {
+
+    campaigns.forEach((campaign) => {
       if (campaign.settings?.generated_images?.length > 0) {
         campaign.settings.generated_images.forEach((img: any) => {
           if (img.image_url) {
@@ -199,16 +201,16 @@ export default function CampaignsPage() {
         });
       }
     });
-    
+
     // Sort by campaign creation date (most recent first) and take last 2
     const sortedImages = allImages.slice(-2).reverse();
     setLastGeneratedImages(sortedImages);
-    
+
     // Set the most recent image as current displayed image
     if (sortedImages.length > 0 && !currentDisplayedImage) {
       setCurrentDisplayedImage(sortedImages[0]);
     }
-    
+
     console.log("🖼️ Last generated images:", sortedImages);
   };
 
@@ -1921,10 +1923,10 @@ export default function CampaignsPage() {
                 closeModelDropdown();
               }}
             >
-              {/* Left Panel - Visual Display (60% width) */}
+              {/* Left Panel - Visual Display (40% width) */}
               <div
                 style={{
-                  width: "60%",
+                  width: "40%",
                   height: "100%",
                   backgroundColor: "#111827",
                   position: "relative",
@@ -1977,9 +1979,10 @@ export default function CampaignsPage() {
                           backgroundPosition: "center",
                           borderRadius: "8px",
                           cursor: "pointer",
-                          border: currentDisplayedImage === imageUrl 
-                            ? "2px solid #8B5CF6" 
-                            : "1px solid #6B7280",
+                          border:
+                            currentDisplayedImage === imageUrl
+                              ? "2px solid #8B5CF6"
+                              : "1px solid #6B7280",
                           position: "relative",
                           overflow: "hidden",
                         }}
@@ -2050,46 +2053,49 @@ export default function CampaignsPage() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundImage: (currentDisplayedImage || generatedImageUrl)
-                      ? `url(${currentDisplayedImage || generatedImageUrl})`
-                      : 'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600"><rect width="400" height="600" fill="%23374151"/><text x="200" y="300" text-anchor="middle" dy=".3em" fill="white" font-size="18">Generated Image Will Appear Here</text></svg>\')',
+                    backgroundImage:
+                      currentDisplayedImage || generatedImageUrl
+                        ? `url(${currentDisplayedImage || generatedImageUrl})`
+                        : 'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600"><rect width="400" height="600" fill="%23374151"/><text x="200" y="300" text-anchor="middle" dy=".3em" fill="white" font-size="18">Generated Image Will Appear Here</text></svg>\')',
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     border: "2px solid #4B5563",
                     position: "relative",
                   }}
                 >
-                  {generatingCampaignId && !currentDisplayedImage && !generatedImageUrl && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        backgroundColor: "rgba(0, 0, 0, 0.8)",
-                        color: "#FFFFFF",
-                        padding: "20px 30px",
-                        borderRadius: "12px",
-                        fontSize: "16px",
-                        fontWeight: "500",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
-                      }}
-                    >
+                  {generatingCampaignId &&
+                    !currentDisplayedImage &&
+                    !generatedImageUrl && (
                       <div
                         style={{
-                          width: "20px",
-                          height: "20px",
-                          border: "2px solid #FFFFFF",
-                          borderTop: "2px solid transparent",
-                          borderRadius: "50%",
-                          animation: "spin 1s linear infinite",
+                          position: "absolute",
+                          top: "50%",
+                          left: "50%",
+                          transform: "translate(-50%, -50%)",
+                          backgroundColor: "rgba(0, 0, 0, 0.8)",
+                          color: "#FFFFFF",
+                          padding: "20px 30px",
+                          borderRadius: "12px",
+                          fontSize: "16px",
+                          fontWeight: "500",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "12px",
                         }}
-                      />
-                      Generating...
-                    </div>
-                  )}
+                      >
+                        <div
+                          style={{
+                            width: "20px",
+                            height: "20px",
+                            border: "2px solid #FFFFFF",
+                            borderTop: "2px solid transparent",
+                            borderRadius: "50%",
+                            animation: "spin 1s linear infinite",
+                          }}
+                        />
+                        Generating...
+                      </div>
+                    )}
                   {(currentDisplayedImage || generatedImageUrl) && (
                     <div
                       style={{
@@ -2110,10 +2116,10 @@ export default function CampaignsPage() {
                 </div>
               </div>
 
-              {/* Right Panel - Control Panel (40% width) */}
+              {/* Right Panel - Control Panel (60% width) */}
               <div
                 style={{
-                  width: "40%",
+                  width: "60%",
                   height: "100%",
                   backgroundColor: "#374151",
                   padding: "20px",
