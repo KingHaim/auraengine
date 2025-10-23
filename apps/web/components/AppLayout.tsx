@@ -244,6 +244,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
         fontFamily:
           "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
         minHeight: "100vh",
+        paddingLeft: `${SIDEBAR_WIDTH}px`,
+        position: "relative",
+        zIndex: 1,
       }}
     >
       {/* Sidebar */}
@@ -260,6 +263,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           top: 0,
           left: 0,
           height: "100vh",
+          zIndex: 0,
         }}
       >
         {/* Radial glow overlay */}
@@ -358,7 +362,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          marginLeft: `${SIDEBAR_WIDTH}px`,
+          position: "relative",
+          zIndex: 1,
         }}
       >
         {/* Topbar */}
