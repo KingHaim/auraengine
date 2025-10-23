@@ -237,12 +237,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <div
       style={{
-        display: "flex",
-        height: "100vh",
         backgroundColor: "#0E1115",
         color: "#E6E8EB",
         fontFamily:
           "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
+        minHeight: "100vh",
       }}
     >
       {/* Sidebar */}
@@ -352,7 +351,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", marginLeft: "256px" }}>
+      <div
+        style={{
+          marginLeft: "256px",
+          minHeight: "100vh",
+        }}
+      >
         {/* Topbar */}
         <header
           style={{
@@ -588,8 +592,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <main
           style={{
             padding: "32px",
-            flex: 1,
             backgroundColor: "#FFFFFF",
+            minHeight: "calc(100vh - 72px)",
           }}
         >
           {children}
