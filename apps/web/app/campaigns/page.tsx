@@ -65,8 +65,6 @@ interface Campaign {
   description?: string;
   status: string;
   generation_status: string;
-  scene_generation_status: string;
-  approved_scene_url?: string;
   settings: any;
   generations?: Generation[];
   created_at: string;
@@ -146,7 +144,7 @@ export default function CampaignsPage() {
   const [selectedPosesForGeneration, setSelectedPosesForGeneration] = useState<{
     [key: string]: string[];
   }>({});
-  const [numberOfImagesToGenerate, setNumberOfImagesToGenerate] = useState(10);
+  const [numberOfImagesToGenerate, setNumberOfImagesToGenerate] = useState(1);
   const [showCampaignProfileModal, setShowCampaignProfileModal] =
     useState(false);
   const [selectedCampaignForProfile, setSelectedCampaignForProfile] =
@@ -387,7 +385,7 @@ export default function CampaignsPage() {
 
       console.log("🔍 Response status:", response.status);
       console.log("🔍 Response ok:", response.ok);
-      
+
       if (response.ok) {
         console.log("🔍 Response is OK, processing...");
         const result = await response.json();
@@ -948,107 +946,6 @@ export default function CampaignsPage() {
     setSelectedScenesForGeneration(campaign.settings?.scene_ids || []);
     setSelectedPosesForGeneration(campaign.settings?.selected_poses || {});
     setShowParameterModal(true);
-  };
-
-  // New Workflow Functions
-  const generateScene = async (campaign: Campaign) => {
-    if (!token) {
-      alert("Please log in to generate scene");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaign.id}/generate-scene`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        alert("Scene generated successfully! Review and approve to proceed with photoshoot.");
-        await fetchData(); // Refresh campaigns
-        setShowCampaignModal(false); // Close modal
-      } else {
-        const error = await response.text();
-        alert(`Failed to generate scene: ${error}`);
-      }
-    } catch (error) {
-      console.error("Error generating scene:", error);
-      alert("Failed to generate scene. Please try again.");
-    }
-  };
-
-  const generatePhotoshoot = async (campaign: Campaign) => {
-    if (!token) {
-      alert("Please log in to generate photoshoot");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaign.id}/generate-photoshoot`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        alert(`Photoshoot completed! Generated ${result.generated_images?.length || 0} shots.`);
-        await fetchData(); // Refresh campaigns
-        setShowCampaignModal(false); // Close modal
-      } else {
-        const error = await response.text();
-        alert(`Failed to generate photoshoot: ${error}`);
-      }
-    } catch (error) {
-      console.error("Error generating photoshoot:", error);
-      alert("Failed to generate photoshoot. Please try again.");
-    }
-  };
-
-  const regenerateScene = async (campaign: Campaign) => {
-    if (!token) {
-      alert("Please log in to regenerate scene");
-      return;
-    }
-
-    if (!confirm("Are you sure you want to regenerate the scene? This will create a new scene.")) {
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaign.id}/generate-scene`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        alert("New scene generated! Review and approve to proceed with photoshoot.");
-        await fetchData(); // Refresh campaigns
-        setShowCampaignModal(false); // Close modal
-      } else {
-        const error = await response.text();
-        alert(`Failed to regenerate scene: ${error}`);
-      }
-    } catch (error) {
-      console.error("Error regenerating scene:", error);
-      alert("Failed to regenerate scene. Please try again.");
-    }
   };
 
   const executeImageGeneration = async () => {
@@ -1801,60 +1698,20 @@ export default function CampaignsPage() {
                           (img: any) => img.video_url
                         )?.length || 0}
                       </span>
-                      {/* New Workflow Status Display */}
-                      {campaign.scene_generation_status === "generating_scene" && (
-                        <span
-                          style={{
+                      {(campaign.generation_status === "generating" || generatingCampaignId === campaign.id) && (
+                      <span
+                        style={{
                             display: "flex",
                             alignItems: "center",
                             gap: "4px",
                             color: "#3B82F6",
-                            fontWeight: "500",
-                          }}
-                        >
-                          🎨 Generating Scene...
-                        </span>
+                          fontWeight: "500",
+                        }}
+                      >
+                          ⏳ Generando...
+                      </span>
                       )}
-                      {campaign.scene_generation_status === "scene_approved" && (
-                        <span
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            color: "#10B981",
-                            fontWeight: "500",
-                          }}
-                        >
-                          ✅ Scene Ready
-                        </span>
-                      )}
-                      {campaign.scene_generation_status === "generating_photoshoot" && (
-                        <span
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            color: "#8B5CF6",
-                            fontWeight: "500",
-                          }}
-                        >
-                          📸 Generating Photoshoot...
-                        </span>
-                      )}
-                      {campaign.scene_generation_status === "completed" && (
-                        <span
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            color: "#10B981",
-                            fontWeight: "500",
-                          }}
-                        >
-                          🎉 Photoshoot Complete
-                        </span>
-                      )}
-                      {campaign.scene_generation_status === "failed" && (
+                      {campaign.generation_status === "failed" && (
                         <span
                           style={{
                             display: "flex",
@@ -1865,19 +1722,6 @@ export default function CampaignsPage() {
                           }}
                         >
                           ❌ Error
-                        </span>
-                      )}
-                      {campaign.scene_generation_status === "pending" && (
-                        <span
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            color: "#6B7280",
-                            fontWeight: "500",
-                          }}
-                        >
-                          ⏳ Ready to Start
                         </span>
                       )}
                     </div>
@@ -2636,94 +2480,25 @@ export default function CampaignsPage() {
                     {selectedCampaign.name}
                   </h2>
                 </div>
-                <div style={{ display: "flex", gap: "12px" }}>
-                  {/* New Workflow Buttons */}
-                  {selectedCampaign.scene_generation_status === "pending" && (
-                    <button
-                      onClick={() => generateScene(selectedCampaign)}
-                      style={{
-                        padding: "8px 16px",
-                        backgroundColor: "#3B82F6",
-                        border: "none",
-                        borderRadius: "8px",
-                        color: "#FFFFFF",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      🎨 Generate Scene
-                    </button>
-                  )}
-                  
-                  {selectedCampaign.scene_generation_status === "scene_approved" && (
-                    <button
-                      onClick={() => generatePhotoshoot(selectedCampaign)}
-                      style={{
-                        padding: "8px 16px",
-                        backgroundColor: "#8B5CF6",
-                        border: "none",
-                        borderRadius: "8px",
-                        color: "#FFFFFF",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      📸 Generate Photoshoot
-                    </button>
-                  )}
-                  
-                  {selectedCampaign.scene_generation_status === "scene_approved" && (
-                    <button
-                      onClick={() => regenerateScene(selectedCampaign)}
-                      style={{
-                        padding: "8px 16px",
-                        backgroundColor: "#F59E0B",
-                        border: "none",
-                        borderRadius: "8px",
-                        color: "#FFFFFF",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      🔄 Regenerate Scene
-                    </button>
-                  )}
-                  
-                  {/* Legacy Generate More button for completed campaigns */}
-                  {selectedCampaign.scene_generation_status === "completed" && (
-                    <button
-                      onClick={() => generateMoreImages(selectedCampaign)}
-                      disabled={generatingMore}
-                      style={{
-                        padding: "8px 16px",
-                        backgroundColor: generatingMore ? "#9CA3AF" : "#8B5CF6",
-                        border: "none",
-                        borderRadius: "8px",
-                        color: "#FFFFFF",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        cursor: generatingMore ? "not-allowed" : "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      {generatingMore ? "⏳ Generating..." : "✨ Generate More"}
-                    </button>
-                  )}
-                </div>
+                <button
+                  onClick={() => generateMoreImages(selectedCampaign)}
+                  disabled={generatingMore}
+                  style={{
+                    padding: "8px 16px",
+                    backgroundColor: generatingMore ? "#9CA3AF" : "#8B5CF6",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#FFFFFF",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    cursor: generatingMore ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  {generatingMore ? "⏳ Generating..." : "✨ Generate More"}
+                </button>
               </div>
 
               {selectedCampaign.description && (
@@ -2793,54 +2568,6 @@ export default function CampaignsPage() {
                   </span>
                 </div>
               </div>
-
-              {/* Approved Scene Display */}
-              {selectedCampaign.approved_scene_url && (
-                <div style={{ marginBottom: "24px" }}>
-                  <h3
-                    style={{
-                      margin: "0 0 16px 0",
-                      fontSize: "18px",
-                      fontWeight: "600",
-                      color: "#1F2937",
-                    }}
-                  >
-                    🎨 Approved Scene
-                  </h3>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      backgroundColor: "#F9FAFB",
-                      borderRadius: "12px",
-                      padding: "16px",
-                      border: "2px solid #E5E7EB",
-                    }}
-                  >
-                    <img
-                      src={selectedCampaign.approved_scene_url}
-                      alt="Approved Scene"
-                      style={{
-                        maxWidth: "100%",
-                        maxHeight: "400px",
-                        borderRadius: "8px",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                      }}
-                    />
-                  </div>
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      textAlign: "center",
-                      marginTop: "8px",
-                    }}
-                  >
-                    This is your approved scene. Generate photoshoot to create 7 variations from this scene.
-                  </p>
-                </div>
-              )}
 
               {/* Generated Images */}
               {selectedCampaign.settings?.generated_images &&
@@ -3376,7 +3103,7 @@ export default function CampaignsPage() {
                     color: "#6B7280",
                   }}
                 >
-                  Create a campaign and generate a scene first, then create a 7-shot photoshoot from the approved scene
+                  Generate a professional photoshoot image with the selected model, product, and scene
                 </p>
               </div>
 
@@ -4473,7 +4200,7 @@ export default function CampaignsPage() {
                     color: "#6B7280",
                   }}
                 >
-                  Create a campaign and generate a scene first, then create a 7-shot photoshoot from the approved scene
+                  Generate a professional photoshoot image with the selected model, product, and scene
                 </p>
               </div>
 
@@ -5523,16 +5250,16 @@ export default function CampaignsPage() {
               {!veoDirectMode && (
                 <div style={{ marginBottom: "20px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                    <label
-                      style={{
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        color: "#374151",
+                  <label
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      color: "#374151",
                         margin: "0"
-                      }}
-                    >
-                      Select Images for Video Generation
-                    </label>
+                    }}
+                  >
+                    Select Images for Video Generation
+                  </label>
                     <div style={{ display: "flex", gap: "8px" }}>
                       <button
                         onClick={() => {
@@ -5679,12 +5406,12 @@ export default function CampaignsPage() {
                     }}
                   >
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                      <span style={{ fontSize: "12px", color: "#6B7280" }}>
-                        {selectedImagesForVideo.size} of{" "}
-                        {selectedCampaignForBulkVideo.settings?.generated_images
-                          ?.length || 0}{" "}
-                        selected
-                      </span>
+                    <span style={{ fontSize: "12px", color: "#6B7280" }}>
+                      {selectedImagesForVideo.size} of{" "}
+                      {selectedCampaignForBulkVideo.settings?.generated_images
+                        ?.length || 0}{" "}
+                      selected
+                    </span>
                       <span style={{ fontSize: "11px", color: "#9CA3AF" }}>
                         💡 Tip: Select 3-5 shots for TikTok, or all 10 for a complete CapCut sequence
                       </span>

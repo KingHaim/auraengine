@@ -802,7 +802,7 @@ async def create_campaign(
     model_ids: str = Form(...),    # JSON string
     scene_ids: str = Form(...),    # JSON string
     selected_poses: str = Form("{}"),  # JSON string
-    number_of_images: int = Form(10),
+    number_of_images: int = Form(1),
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -899,7 +899,7 @@ async def generate_campaign_images(
     model_ids: str = Form("[]"),
     scene_ids: str = Form("[]"),
     selected_poses: str = Form("{}"),
-    number_of_images: int = Form(10),
+    number_of_images: int = Form(1),
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
