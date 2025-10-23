@@ -622,7 +622,7 @@ async def generate_campaign_images_background(
                             print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
                             print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for {product.name} + {model.name} + {scene.name}")
                             
-                            # REAL WORKFLOW (local-success): Qwen first, then Vella
+                            # REAL WORKFLOW: Qwen → Vella → Qwen → Nano Banana → Enhancor.ai
                             quality_mode = "standard"
 
                             # Step 1: Compose model into the scene with shot type (persist inputs first)
@@ -648,7 +648,7 @@ async def generate_campaign_images_background(
                             # Vella result is already persisted in run_vella_try_on
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
-                            # Step 3: Use Vella result directly (Nano Banana will be applied after Qwen final)
+                            # Step 3: Use Vella result directly (Nano Banana and Enhancor.ai will be applied after Qwen final)
                             final_result_url = vella_result_url
                             
                             # Step 4: Final Qwen scene integration to restore/enhance scene background
@@ -664,7 +664,7 @@ async def generate_campaign_images_background(
                                 )
                                 
                                 final_result_url = run_qwen_scene_composition(
-                                    final_result_url,  # Dressed model from Vella/Nano Banana
+                                    final_result_url,  # Dressed model from Vella
                                     stable_scene,      # Original scene
                                     quality_mode,
                                     shot_type_prompt=scene_integration_prompt
@@ -714,6 +714,19 @@ async def generate_campaign_images_background(
                             except Exception as e:
                                 print(f"⚠️ Nano Banana failed, using previous result: {e}")
                                 # Keep the previous result if Nano Banana fails
+                            
+                            # Step 6: Apply Enhancor.ai for final realism enhancement
+                            print(f"🎨 Step 6: Final realism enhancement with Enhancor.ai...")
+                            try:
+                                enhancor_result = run_enhancor_realism_enhancement(final_result_url)
+                                if enhancor_result and enhancor_result != final_result_url:
+                                    final_result_url = enhancor_result
+                                    print(f"✅ Enhancor.ai enhancement completed: {final_result_url[:50]}...")
+                                else:
+                                    print(f"⚠️ Enhancor.ai enhancement skipped or failed, using previous result")
+                            except Exception as e:
+                                print(f"⚠️ Enhancor.ai enhancement failed, using previous result: {e}")
+                                # Keep the previous result if Enhancor.ai fails
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
@@ -948,7 +961,7 @@ async def generate_campaign_images(
                         try:
                             print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
                             
-                            # REAL WORKFLOW (local-success): Qwen first, then Vella
+                            # REAL WORKFLOW: Qwen → Vella → Qwen → Nano Banana → Enhancor.ai
                             quality_mode = "standard"
 
                             # Step 1: Compose model into the scene with shot type (persist inputs first)
@@ -972,7 +985,7 @@ async def generate_campaign_images(
                             # Vella result is already persisted in run_vella_try_on
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
-                            # Step 3: Use Vella result directly (Nano Banana will be applied after Qwen final)
+                            # Step 3: Use Vella result directly (Nano Banana and Enhancor.ai will be applied after Qwen final)
                             final_result_url = vella_result_url
                             
                             # Step 4: Final Qwen scene integration to restore/enhance scene background
@@ -988,7 +1001,7 @@ async def generate_campaign_images(
                                 )
                                 
                                 final_result_url = run_qwen_scene_composition(
-                                    final_result_url,  # Dressed model from Vella/Nano Banana
+                                    final_result_url,  # Dressed model from Vella
                                     stable_scene,      # Original scene
                                     quality_mode,
                                     shot_type_prompt=scene_integration_prompt
@@ -1038,6 +1051,19 @@ async def generate_campaign_images(
                             except Exception as e:
                                 print(f"⚠️ Nano Banana failed, using previous result: {e}")
                                 # Keep the previous result if Nano Banana fails
+                            
+                            # Step 6: Apply Enhancor.ai for final realism enhancement
+                            print(f"🎨 Step 6: Final realism enhancement with Enhancor.ai...")
+                            try:
+                                enhancor_result = run_enhancor_realism_enhancement(final_result_url)
+                                if enhancor_result and enhancor_result != final_result_url:
+                                    final_result_url = enhancor_result
+                                    print(f"✅ Enhancor.ai enhancement completed: {final_result_url[:50]}...")
+                                else:
+                                    print(f"⚠️ Enhancor.ai enhancement skipped or failed, using previous result")
+                            except Exception as e:
+                                print(f"⚠️ Enhancor.ai enhancement failed, using previous result: {e}")
+                                # Keep the previous result if Enhancor.ai fails
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
@@ -3000,6 +3026,85 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
     except Exception as e:
         print(f"❌ Veo 3.1 video generation failed: {e}")
         return None
+
+def run_enhancor_realism_enhancement(image_url: str) -> str:
+    """Enhance image realism using Enhancor.ai API"""
+    try:
+        print(f"🎨 Running Enhancor.ai realism enhancement: {image_url[:50]}...")
+        
+        # Convert local URLs to base64 for API
+        if image_url.startswith(get_base_url() + "/static/"):
+            filename = image_url.replace(get_base_url() + "/static/", "")
+            filepath = f"uploads/{filename}"
+            with open(filepath, 'rb') as f:
+                image_data = f.read()
+                import base64
+                image_base64 = base64.b64encode(image_data).decode('utf-8')
+        elif image_url.startswith("https://replicate.delivery/"):
+            # Download from Replicate URL
+            import requests
+            response = requests.get(image_url)
+            if response.status_code == 200:
+                import base64
+                image_base64 = base64.b64encode(response.content).decode('utf-8')
+            else:
+                print(f"❌ Failed to download image from Replicate: {response.status_code}")
+                return image_url
+        else:
+            # Assume it's already a Cloudinary URL or other accessible URL
+            import requests
+            response = requests.get(image_url)
+            if response.status_code == 200:
+                import base64
+                image_base64 = base64.b64encode(response.content).decode('utf-8')
+            else:
+                print(f"❌ Failed to download image: {response.status_code}")
+                return image_url
+        
+        # Prepare API request
+        import requests
+        import os
+        api_key = os.getenv("ENHANCOR_API_KEY", "1940af76223d1ee40184cbb9669669a1460241650d517ae4971ffda7d2501e01")
+        
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "image": image_base64,
+            "enhancement_type": "realism",
+            "quality": "high"
+        }
+        
+        print(f"🔄 Calling Enhancor.ai API...")
+        response = requests.post(
+            "https://api.enhancor.ai/v1/enhance",
+            headers=headers,
+            json=payload,
+            timeout=60
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            enhanced_image_url = result.get("enhanced_image_url") or result.get("url")
+            
+            if enhanced_image_url:
+                # Persist the enhanced image
+                enhanced_url = upload_to_cloudinary(enhanced_image_url, "enhancor_enhanced")
+                print(f"✅ Enhancor.ai enhancement completed: {enhanced_url[:50]}...")
+                return enhanced_url
+            else:
+                print(f"⚠️ No enhanced image URL in response")
+                return image_url
+        else:
+            print(f"❌ Enhancor.ai API failed: {response.status_code} - {response.text}")
+            return image_url
+            
+    except Exception as e:
+        print(f"❌ Enhancor.ai enhancement failed: {e}")
+        print(f"Continuing with original image")
+        return image_url
 
 def run_kling_video_generation(image_url: str, video_quality: str = "480p", duration: str = "5s", custom_prompt: Optional[str] = None) -> str:
     """Generate video from image using Kling 2.5 Turbo Pro API"""
