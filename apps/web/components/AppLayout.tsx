@@ -352,7 +352,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", marginLeft: "256px" }}>
         {/* Topbar */}
         <header
           style={{
@@ -362,7 +362,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
             alignItems: "center",
             justifyContent: "space-between",
             backgroundColor: "#11161C",
-            marginLeft: "256px",
           }}
         >
           <div
@@ -591,7 +590,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
             padding: "32px",
             flex: 1,
             backgroundColor: "#FFFFFF",
-            marginLeft: "256px",
           }}
         >
           {children}
