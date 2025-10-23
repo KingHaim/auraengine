@@ -616,9 +616,11 @@ async def generate_campaign_images_background(
                     print(f"📸 Generating {len(shot_types_to_generate)} shots for this combination...")
                     
                     # Generate the requested shot types for this combination
+                    print(f"🎬 Starting generation of {len(shot_types_to_generate)} shots...")
                     for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
                         try:
                             print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
+                            print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for {product.name} + {model.name} + {scene.name}")
                             
                             # REAL WORKFLOW (local-success): Qwen first, then Vella
                             quality_mode = "standard"
@@ -737,6 +739,7 @@ async def generate_campaign_images_background(
                             print(f"❌ Failed shot {shot_type['title']}: {e}")
                             import traceback
                             traceback.print_exc()
+                            print(f"🔄 Continuing to next shot... (Shot {shot_idx}/{len(shot_types_to_generate)})")
                             continue
                     
                     print(f"\n🎉 Campaign flow complete: {product.name} + {model.name} + {scene.name}")
@@ -756,6 +759,9 @@ async def generate_campaign_images_background(
         db.refresh(campaign)
         
         print(f"🎉 Campaign generation completed with {len(generated_images)} images")
+        print(f"📊 Expected: {shots_to_generate_count} shots, Generated: {len(generated_images)} shots")
+        if len(generated_images) < shots_to_generate_count:
+            print(f"⚠️ WARNING: Only {len(generated_images)}/{shots_to_generate_count} shots were generated successfully")
         
     except Exception as e:
         print(f"❌ Background generation failed: {e}")
@@ -2396,22 +2402,22 @@ def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quali
         
         # Stronger parameters to force scene usage
         if quality_mode == "high":
-            num_steps = 50        # Maximum quality
-            guidance = 8.0        # Very strong guidance to follow prompt
-            strength = 0.75       # Very high strength to use scene heavily
-            print("🎨 Using HIGH QUALITY mode (scene-based luxury)")
+            num_steps = 40        # High quality
+            guidance = 6.0        # Strong guidance but scene-preserving
+            strength = 0.55       # High strength but preserve scene better
+            print("🎨 Using HIGH QUALITY mode (scene-preserving luxury)")
         else:  # standard
-            num_steps = 45        # High quality
-            guidance = 7.5        # Strong guidance to follow prompt
-            strength = 0.70       # High strength to use scene heavily
-            print("⚡ Using STANDARD mode (scene-based luxury)")
+            num_steps = 35        # Moderate quality
+            guidance = 5.0        # Moderate guidance to preserve scene
+            strength = 0.45       # Moderate strength to preserve scene better
+            print("⚡ Using STANDARD mode (scene-preserving luxury)")
 
-        # Special handling for Sitting Shot: increase adherence to background
+        # Special handling for Sitting Shot: moderate increase for better integration
         if shot_type_prompt and ("sitting" in shot_type_prompt.lower()):
-            num_steps = max(num_steps, 52)
-            guidance = max(guidance, 8.2)
-            strength = max(strength, 0.78)
-            print("🪑 Sitting Shot detected → boosting steps/guidance/strength for stronger background usage")
+            num_steps = max(num_steps, 40)  # Reduced from 52
+            guidance = max(guidance, 6.0)   # Reduced from 8.2
+            strength = max(strength, 0.55)  # Reduced from 0.78
+            print("🪑 Sitting Shot detected → moderate boost for better scene integration")
         
         # Use Qwen with improved parameters for better scene composition
         try:
