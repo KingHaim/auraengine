@@ -2096,23 +2096,6 @@ export default function CampaignsPage() {
                         Generating...
                       </div>
                     )}
-                  {(currentDisplayedImage || generatedImageUrl) && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "10px",
-                        right: "10px",
-                        backgroundColor: "rgba(0, 0, 0, 0.7)",
-                        color: "#FFFFFF",
-                        padding: "8px 12px",
-                        borderRadius: "6px",
-                        fontSize: "12px",
-                        fontWeight: "500",
-                      }}
-                    >
-                      ✨ Generated
-                    </div>
-                  )}
                 </div>
               </div>
 
