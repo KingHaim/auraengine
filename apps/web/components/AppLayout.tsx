@@ -362,6 +362,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             alignItems: "center",
             justifyContent: "space-between",
             backgroundColor: "#11161C",
+            marginLeft: "256px",
           }}
         >
           <div
@@ -585,7 +586,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </header>
 
         {/* Main Content */}
-        <main style={{ padding: "32px", flex: 1, backgroundColor: "#FFFFFF", marginLeft: "256px" }}>
+        <main
+          style={{
+            padding: "32px",
+            flex: 1,
+            backgroundColor: "#FFFFFF",
+            marginLeft: "256px",
+          }}
+        >
           {children}
         </main>
       </div>
