@@ -475,7 +475,10 @@ export default function CampaignsPage() {
             newCampaign.generation_status
           );
           console.log("🔍 Campaign settings:", newCampaign.settings);
-          console.log("🔍 Generated images:", newCampaign.settings?.generated_images);
+          console.log(
+            "🔍 Generated images:",
+            newCampaign.settings?.generated_images
+          );
           // Replace the temporary campaign with the real one from the server
           setCampaigns((prevCampaigns) =>
             prevCampaigns.map((campaign) =>
@@ -2065,23 +2068,43 @@ export default function CampaignsPage() {
                       marginBottom: "12px",
                       textTransform: "uppercase",
                       letterSpacing: "0.5px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
                     }}
                   >
                     SCENES
+                    {selectedScenes.length > 0 && (
+                      <span
+                        style={{
+                          fontSize: "12px",
+                          backgroundColor: "#8B5CF6",
+                          color: "#FFFFFF",
+                          padding: "2px 8px",
+                          borderRadius: "12px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {selectedScenes.length} selected
+                      </span>
+                    )}
                   </h3>
                   <div
                     style={{
                       display: "flex",
                       gap: "12px",
-                      flexWrap: "wrap",
+                      overflowX: "auto",
+                      paddingBottom: "8px",
+                      scrollbarWidth: "thin",
+                      scrollbarColor: "#4B5563 #374151",
                     }}
                   >
-                    {scenes.slice(0, 2).map((scene) => (
+                    {scenes.map((scene) => (
                       <div
                         key={scene.id}
                         onClick={() => toggleSelection(scene.id, "scenes")}
                         style={{
-                          width: "120px",
+                          minWidth: "120px",
                           height: "80px",
                           backgroundColor: "#4B5563",
                           borderRadius: "8px",
@@ -2094,6 +2117,7 @@ export default function CampaignsPage() {
                             : "1px solid #6B7280",
                           position: "relative",
                           overflow: "hidden",
+                          flexShrink: 0,
                         }}
                       >
                         <div
@@ -2111,6 +2135,27 @@ export default function CampaignsPage() {
                         >
                           {scene.name}
                         </div>
+                        {selectedScenes.includes(scene.id) && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "6px",
+                              right: "6px",
+                              width: "20px",
+                              height: "20px",
+                              backgroundColor: "#8B5CF6",
+                              borderRadius: "50%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "12px",
+                              color: "#FFFFFF",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            ✓
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
