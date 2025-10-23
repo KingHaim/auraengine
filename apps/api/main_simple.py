@@ -2520,13 +2520,14 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
         
         # Use Qwen with improved parameters for better scene composition
         try:
-            print("🔄 Using Qwen for scene composition with improved parameters...")
-            out = replicate.run("qwen/qwen-image-edit-plus", input={
+            print("🔄 Using Nano Banana for scene composition with improved parameters...")
+            out = replicate.run("google/nano-banana", input={
                 "prompt": scene_prompt,
-                "image": [model_image_url, scene_image_url],
+                "image": model_image_url,
                 "num_inference_steps": num_steps,
                 "guidance_scale": guidance,
-                "strength": strength
+                "strength": strength,
+                "seed": None
             })
             
             # Handle different return types
@@ -2539,27 +2540,28 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
             else:
                 scene_composite_url = str(out)
             
-            print(f"✅ Qwen scene composition completed: {scene_composite_url[:50]}...")
+            print(f"✅ Nano Banana scene composition completed: {scene_composite_url[:50]}...")
             
             # Immediately persist Replicate URLs to avoid 404 errors
             if isinstance(scene_composite_url, str) and scene_composite_url.startswith("https://replicate.delivery/"):
                 try:
                     scene_composite_url = upload_to_cloudinary(scene_composite_url, "nano_scene_composite")
-                    print(f"✅ Persisted Qwen result: {scene_composite_url[:50]}...")
+                    print(f"✅ Persisted Nano Banana result: {scene_composite_url[:50]}...")
                 except Exception as e:
-                    print(f"⚠️ Failed to persist Qwen result: {e}")
+                    print(f"⚠️ Failed to persist Nano Banana result: {e}")
             
             return scene_composite_url
             
         except Exception as e:
-            print(f"⚠️ Qwen scene composition failed, retrying with safer params: {e}")
+            print(f"⚠️ Nano Banana scene composition failed, retrying with safer params: {e}")
             try:
-                safer_out = replicate.run("qwen/qwen-image-edit-plus", input={
+                safer_out = replicate.run("google/nano-banana", input={
                     "prompt": scene_prompt,
-                    "image": [model_image_url, scene_image_url],
+                    "image": model_image_url,
                     "num_inference_steps": max(30, num_steps - 10),
                     "guidance_scale": max(5.0, guidance - 1.5),
-                    "strength": max(0.5, strength - 0.15)
+                    "strength": max(0.5, strength - 0.15),
+                    "seed": None
                 })
                 if hasattr(safer_out, 'url'):
                     scene_composite_url = safer_out.url()
@@ -2569,19 +2571,19 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
                     scene_composite_url = safer_out[0] if isinstance(safer_out[0], str) else safer_out[0].url()
                 else:
                     scene_composite_url = str(safer_out)
-                print(f"✅ Qwen retry succeeded: {scene_composite_url[:50]}...")
+                print(f"✅ Nano Banana retry succeeded: {scene_composite_url[:50]}...")
                 
                 # Immediately persist Replicate URLs to avoid 404 errors
                 if isinstance(scene_composite_url, str) and scene_composite_url.startswith("https://replicate.delivery/"):
                     try:
                         scene_composite_url = upload_to_cloudinary(scene_composite_url, "nano_scene_composite_retry")
-                        print(f"✅ Persisted Qwen retry result: {scene_composite_url[:50]}...")
+                        print(f"✅ Persisted Nano Banana retry result: {scene_composite_url[:50]}...")
                     except Exception as e:
-                        print(f"⚠️ Failed to persist Qwen retry result: {e}")
+                        print(f"⚠️ Failed to persist Nano Banana retry result: {e}")
                 
                 return scene_composite_url
             except Exception as e2:
-                print(f"❌ Qwen retry failed: {e2}")
+                print(f"❌ Nano Banana retry failed: {e2}")
                 if DISABLE_PLACEHOLDERS:
                     print("↩️ Returning model image instead of placeholder")
                     return model_image_url
