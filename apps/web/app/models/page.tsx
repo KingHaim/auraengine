@@ -1005,7 +1005,7 @@ export default function ModelsPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            backgroundColor: "rgba(9, 10, 12, 0.8)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1289,7 +1289,7 @@ export default function ModelsPage() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              backgroundColor: "rgba(9, 10, 12, 0.8)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -1333,7 +1333,7 @@ export default function ModelsPage() {
                     backgroundColor: "rgba(255, 255, 255, 0.95)",
                     borderRadius: "8px",
                     padding: "2px",
-                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                    boxShadow: "0 2px 8px rgba(9, 10, 12, 0.1)",
                     border: "1px solid rgba(229, 231, 235, 0.8)",
                     backdropFilter: "blur(4px)",
                   }}
@@ -1397,7 +1397,7 @@ export default function ModelsPage() {
                       height: "100%",
                       objectFit: "contain",
                       borderRadius: "8px",
-                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                      boxShadow: "0 4px 12px rgba(9, 10, 12, 0.1)",
                     }}
                   />
                 ) : (
@@ -1415,7 +1415,7 @@ export default function ModelsPage() {
                       height: "100%",
                       objectFit: "contain",
                       borderRadius: "8px",
-                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                      boxShadow: "0 4px 12px rgba(9, 10, 12, 0.1)",
                     }}
                   />
                 )}
@@ -1425,7 +1425,7 @@ export default function ModelsPage() {
               <div
                 style={{
                   flex: 1,
-                  backgroundColor: "#000000",
+                  backgroundColor: "#090a0c",
                   display: "flex",
                   flexDirection: "column",
                   padding: "32px",
@@ -1846,7 +1846,7 @@ export default function ModelsPage() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              backgroundColor: "rgba(9, 10, 12, 0.8)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -2191,7 +2191,7 @@ export default function ModelsPage() {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.8)",
+                backgroundColor: "rgba(9, 10, 12, 0.8)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -2351,7 +2351,7 @@ export default function ModelsPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            backgroundColor: "rgba(9, 10, 12, 0.8)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -2482,7 +2482,7 @@ export default function ModelsPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.9)",
+            backgroundColor: "rgba(9, 10, 12, 0.9)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -2540,7 +2540,7 @@ export default function ModelsPage() {
                 maxHeight: "100%",
                 objectFit: "contain",
                 borderRadius: "8px",
-                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                boxShadow: "0 25px 50px -12px rgba(9, 10, 12, 0.25)",
               }}
               onError={(e) => {
                 console.error(
@@ -2562,7 +2562,7 @@ export default function ModelsPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backgroundColor: "rgba(9, 10, 12, 0.5)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -2768,7 +2768,7 @@ export default function ModelsPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            backgroundColor: "rgba(9, 10, 12, 0.8)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

@@ -1896,7 +1896,7 @@ export default function CampaignsPage() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              backgroundColor: "rgba(9, 10, 12, 0.8)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -1951,7 +1951,7 @@ export default function CampaignsPage() {
                     style={{
                       width: "40px",
                       height: "40px",
-                      backgroundColor: "rgba(0, 0, 0, 0.7)",
+                      backgroundColor: "rgba(9, 10, 12, 0.7)",
                       borderRadius: "50%",
                       display: "flex",
                       alignItems: "center",
@@ -2072,7 +2072,7 @@ export default function CampaignsPage() {
                           top: "50%",
                           left: "50%",
                           transform: "translate(-50%, -50%)",
-                          backgroundColor: "rgba(0, 0, 0, 0.8)",
+                          backgroundColor: "rgba(9, 10, 12, 0.8)",
                           color: "#FFFFFF",
                           padding: "20px 30px",
                           borderRadius: "12px",
@@ -2218,7 +2218,7 @@ export default function CampaignsPage() {
                                 bottom: "0",
                                 left: "0",
                                 right: "0",
-                                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                                backgroundColor: "rgba(9, 10, 12, 0.7)",
                                 color: "#FFFFFF",
                                 padding: "4px 8px",
                                 fontSize: "12px",
@@ -2300,7 +2300,7 @@ export default function CampaignsPage() {
                             position: "absolute",
                             top: "4px",
                             right: "4px",
-                            backgroundColor: "rgba(0, 0, 0, 0.7)",
+                            backgroundColor: "rgba(9, 10, 12, 0.7)",
                             color: "#FFFFFF",
                             padding: "2px 4px",
                             borderRadius: "4px",
@@ -2383,7 +2383,7 @@ export default function CampaignsPage() {
                                 position: "absolute",
                                 top: "4px",
                                 right: "4px",
-                                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                                backgroundColor: "rgba(9, 10, 12, 0.7)",
                                 color: "#FFFFFF",
                                 padding: "2px 4px",
                                 borderRadius: "4px",
@@ -2399,7 +2399,7 @@ export default function CampaignsPage() {
                                 bottom: "0",
                                 left: "0",
                                 right: "0",
-                                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                                backgroundColor: "rgba(9, 10, 12, 0.7)",
                                 color: "#FFFFFF",
                                 padding: "4px 8px",
                                 fontSize: "12px",
@@ -2582,7 +2582,7 @@ export default function CampaignsPage() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              backgroundColor: "rgba(9, 10, 12, 0.8)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -2719,7 +2719,7 @@ export default function CampaignsPage() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              backgroundColor: "rgba(9, 10, 12, 0.8)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -2852,7 +2852,7 @@ export default function CampaignsPage() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              backgroundColor: "rgba(9, 10, 12, 0.8)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -3352,7 +3352,7 @@ export default function CampaignsPage() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              backgroundColor: "rgba(9, 10, 12, 0.8)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -3583,7 +3583,7 @@ export default function CampaignsPage() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              backgroundColor: "rgba(9, 10, 12, 0.5)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -4042,7 +4042,7 @@ export default function CampaignsPage() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              backgroundColor: "rgba(9, 10, 12, 0.8)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -4135,7 +4135,7 @@ export default function CampaignsPage() {
                           product.id
                         )
                           ? "0 2px 4px rgba(139, 92, 246, 0.1)"
-                          : "0 1px 2px rgba(0, 0, 0, 0.05)",
+                          : "0 1px 2px rgba(9, 10, 12, 0.05)",
                         minWidth: "120px",
                         maxWidth: "120px",
                       }}
@@ -4241,7 +4241,7 @@ export default function CampaignsPage() {
                         boxShadow:
                           selectedModelForGeneration === model.id
                             ? "0 2px 4px rgba(139, 92, 246, 0.1)"
-                            : "0 1px 2px rgba(0, 0, 0, 0.05)",
+                            : "0 1px 2px rgba(9, 10, 12, 0.05)",
                         minWidth: "120px",
                         maxWidth: "120px",
                       }}
@@ -4342,7 +4342,7 @@ export default function CampaignsPage() {
                           scene.id
                         )
                           ? "0 2px 4px rgba(139, 92, 246, 0.1)"
-                          : "0 1px 2px rgba(0, 0, 0, 0.05)",
+                          : "0 1px 2px rgba(9, 10, 12, 0.05)",
                         minWidth: "120px",
                         maxWidth: "120px",
                       }}
@@ -4465,7 +4465,7 @@ export default function CampaignsPage() {
                                   modelId
                                 ]?.includes(poseUrl)
                                   ? "0 2px 4px rgba(139, 92, 246, 0.1)"
-                                  : "0 1px 2px rgba(0, 0, 0, 0.05)",
+                                  : "0 1px 2px rgba(9, 10, 12, 0.05)",
                                 minWidth: "80px",
                                 maxWidth: "80px",
                               }}
@@ -4701,7 +4701,7 @@ export default function CampaignsPage() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              backgroundColor: "rgba(9, 10, 12, 0.8)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -4939,7 +4939,7 @@ export default function CampaignsPage() {
                                   position: "absolute",
                                   top: "8px",
                                   right: "8px",
-                                  backgroundColor: "rgba(0, 0, 0, 0.7)",
+                                  backgroundColor: "rgba(9, 10, 12, 0.7)",
                                   color: "white",
                                   padding: "4px 8px",
                                   borderRadius: "4px",
@@ -4956,7 +4956,7 @@ export default function CampaignsPage() {
                                 position: "absolute",
                                 bottom: "8px",
                                 left: "8px",
-                                backgroundColor: "rgba(0, 0, 0, 0.8)",
+                                backgroundColor: "rgba(9, 10, 12, 0.8)",
                                 color: "white",
                                 padding: "4px 8px",
                                 borderRadius: "6px",
@@ -5311,7 +5311,7 @@ export default function CampaignsPage() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.9)",
+              backgroundColor: "rgba(9, 10, 12, 0.9)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -5579,7 +5579,7 @@ export default function CampaignsPage() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              backgroundColor: "rgba(9, 10, 12, 0.5)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -5789,7 +5789,7 @@ export default function CampaignsPage() {
                               bottom: "4px",
                               left: "4px",
                               right: "4px",
-                              backgroundColor: "rgba(0, 0, 0, 0.7)",
+                              backgroundColor: "rgba(9, 10, 12, 0.7)",
                               color: "#FFFFFF",
                               borderRadius: "4px",
                               padding: "2px 4px",
@@ -6462,7 +6462,7 @@ export default function CampaignsPage() {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.8)",
+                backgroundColor: "rgba(9, 10, 12, 0.8)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -6537,7 +6537,7 @@ export default function CampaignsPage() {
                       height: "100%",
                       objectFit: "contain",
                       borderRadius: "8px",
-                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                      boxShadow: "0 4px 12px rgba(9, 10, 12, 0.1)",
                       opacity: tweaking ? 0.5 : 1,
                       transition: "opacity 0.3s ease",
                     }}
@@ -6548,7 +6548,7 @@ export default function CampaignsPage() {
                 <div
                   style={{
                     flex: 1,
-                    backgroundColor: "#000000",
+                    backgroundColor: "#090a0c",
                     display: "flex",
                     flexDirection: "column",
                     padding: "32px",

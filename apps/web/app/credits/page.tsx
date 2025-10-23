@@ -348,7 +348,7 @@ export default function CreditsPage() {
                       ? "scale(1.08)"
                       : "translateY(-4px)";
                     e.currentTarget.style.boxShadow =
-                      "0 12px 40px rgba(0, 0, 0, 0.1)";
+                      "0 12px 40px rgba(9, 10, 12, 0.1)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = tier.anchor
@@ -521,7 +521,7 @@ export default function CreditsPage() {
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = "translateY(-1px)";
                       e.currentTarget.style.boxShadow =
-                        "0 4px 12px rgba(0, 0, 0, 0.2)";
+                        "0 4px 12px rgba(9, 10, 12, 0.2)";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = "translateY(0)";
@@ -575,7 +575,7 @@ export default function CreditsPage() {
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
-                    "0 8px 25px rgba(0, 0, 0, 0.1)";
+                    "0 8px 25px rgba(9, 10, 12, 0.1)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "translateY(0)";
@@ -826,7 +826,7 @@ export default function CreditsPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            backgroundColor: "rgba(9, 10, 12, 0.6)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -843,7 +843,7 @@ export default function CreditsPage() {
               width: "90%",
               maxHeight: "90vh",
               overflow: "hidden",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+              boxShadow: "0 25px 50px -12px rgba(9, 10, 12, 0.25)",
               border: "1px solid #E5E7EB",
             }}
           >

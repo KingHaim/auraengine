@@ -422,7 +422,7 @@ export default function UploadPage() {
                   display: "block",
                   fontSize: "14px",
                   fontWeight: "500",
-                  color: "#000000",
+                  color: "#090a0c",
                   marginBottom: "8px",
                 }}
               >
@@ -440,7 +440,7 @@ export default function UploadPage() {
                   border: "1px solid #D1D5DB",
                   borderRadius: "8px",
                   fontSize: "14px",
-                  color: "#000000",
+                  color: "#090a0c",
                 }}
               />
               {product && (
@@ -464,7 +464,7 @@ export default function UploadPage() {
                     display: "block",
                     fontSize: "14px",
                     fontWeight: "500",
-                    color: "#000000",
+                    color: "#090a0c",
                     marginBottom: "8px",
                   }}
                 >
@@ -482,7 +482,7 @@ export default function UploadPage() {
                     border: "1px solid #D1D5DB",
                     borderRadius: "8px",
                     fontSize: "14px",
-                    color: "#000000",
+                    color: "#090a0c",
                   }}
                 />
                 {scene && (
@@ -506,7 +506,7 @@ export default function UploadPage() {
                   display: "block",
                   fontSize: "14px",
                   fontWeight: "500",
-                  color: "#000000",
+                  color: "#090a0c",
                   marginBottom: "8px",
                 }}
               >
@@ -524,7 +524,7 @@ export default function UploadPage() {
                   border: "1px solid #D1D5DB",
                   borderRadius: "8px",
                   fontSize: "14px",
-                  color: "#000000",
+                  color: "#090a0c",
                   resize: "vertical",
                 }}
               />

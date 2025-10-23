@@ -281,35 +281,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
             zIndex: 1,
           }}
         >
-          <div
+          <img
+            src="/logo.jpg"
+            alt="Logo"
             style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              backgroundColor: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              margin: "0 auto 12px",
-              fontSize: "20px",
+              width: "60px",
+              height: "60px",
+              objectFit: "contain",
+              margin: "0 auto",
             }}
-          >
-            ✶
-          </div>
-          <div
-            style={{
-              fontSize: "12px",
-              fontWeight: "600",
-              letterSpacing: "0.25em",
-              color: "#E6E8EB",
-              lineHeight: "1.2",
-            }}
-          >
-            AURA
-            <br />
-            ENGINE
-          </div>
+          />
         </div>
 
         {/* Navigation */}
@@ -437,7 +418,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   maxHeight: "400px",
                   overflowY: "auto",
                   zIndex: 1000,
-                  boxShadow: "0 10px 25px rgba(0, 0, 0, 0.3)",
+                  boxShadow: "0 10px 25px rgba(9, 10, 12, 0.3)",
                 }}
               >
                 {searchResults.map((result, index) => (

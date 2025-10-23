@@ -293,7 +293,7 @@ export default function ScenesPage() {
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(0, 0, 0, 0.1)";
+                    "0 4px 12px rgba(9, 10, 12, 0.1)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "translateY(0)";
@@ -404,7 +404,7 @@ export default function ScenesPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            backgroundColor: "rgba(9, 10, 12, 0.8)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

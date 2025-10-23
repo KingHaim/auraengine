@@ -168,14 +168,14 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
             border: "none",
             cursor: isProcessing ? "not-allowed" : "pointer",
             transition: "all 0.2s ease",
-            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+            boxShadow: "0 4px 6px -1px rgba(9, 10, 12, 0.1)",
           }}
           onMouseEnter={(e) => {
             if (!isProcessing) {
               e.currentTarget.style.backgroundColor = "#2563EB";
               e.currentTarget.style.transform = "translateY(-1px)";
               e.currentTarget.style.boxShadow =
-                "0 10px 15px -3px rgba(0, 0, 0, 0.1)";
+                "0 10px 15px -3px rgba(9, 10, 12, 0.1)";
             }
           }}
           onMouseLeave={(e) => {
@@ -183,7 +183,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
               e.currentTarget.style.backgroundColor = "#d42f48";
               e.currentTarget.style.transform = "translateY(0)";
               e.currentTarget.style.boxShadow =
-                "0 4px 6px -1px rgba(0, 0, 0, 0.1)";
+                "0 4px 6px -1px rgba(9, 10, 12, 0.1)";
             }
           }}
         >

@@ -461,7 +461,7 @@ export default function PreviewPage() {
                     padding: "12px 24px",
                     borderRadius: "8px",
                     backgroundColor: "rgba(255,255,255,0.1)",
-                    color: "#000000",
+                    color: "#090a0c",
                     fontWeight: "500",
                     textDecoration: "none",
                     textAlign: "center",

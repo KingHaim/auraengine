@@ -48,7 +48,7 @@ export default function AuthModal({ isOpen, onClose, mode }: AuthModalProps) {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        backgroundColor: "rgba(9, 10, 12, 0.8)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

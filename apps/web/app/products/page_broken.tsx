@@ -314,19 +314,19 @@ export default function ProductsPage() {
               fontWeight: "600",
               cursor: "pointer",
               transition: "all 0.2s ease",
-              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+              boxShadow: "0 4px 6px -1px rgba(9, 10, 12, 0.1)",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = "#7C3AED";
               e.currentTarget.style.transform = "translateY(-1px)";
               e.currentTarget.style.boxShadow =
-                "0 10px 15px -3px rgba(0, 0, 0, 0.1)";
+                "0 10px 15px -3px rgba(9, 10, 12, 0.1)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = "#d42f48";
               e.currentTarget.style.transform = "translateY(0)";
               e.currentTarget.style.boxShadow =
-                "0 4px 6px -1px rgba(0, 0, 0, 0.1)";
+                "0 4px 6px -1px rgba(9, 10, 12, 0.1)";
             }}
           >
             Add Product
@@ -365,20 +365,20 @@ export default function ProductsPage() {
                   borderRadius: "12px",
                   border: "1px solid #E5E7EB",
                   overflow: "hidden",
-                  boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+                  boxShadow: "0 1px 3px 0 rgba(9, 10, 12, 0.1)",
                   transition: "all 0.2s ease",
                   cursor: "pointer",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
-                    "0 10px 25px -5px rgba(0, 0, 0, 0.1)";
+                    "0 10px 25px -5px rgba(9, 10, 12, 0.1)";
                   e.currentTarget.style.borderColor = "#d42f48";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "translateY(0)";
                   e.currentTarget.style.boxShadow =
-                    "0 1px 3px 0 rgba(0, 0, 0, 0.1)";
+                    "0 1px 3px 0 rgba(9, 10, 12, 0.1)";
                   e.currentTarget.style.borderColor = "#E5E7EB";
                 }}
               >
@@ -458,7 +458,7 @@ export default function ProductsPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            backgroundColor: "rgba(9, 10, 12, 0.6)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -476,7 +476,7 @@ export default function ProductsPage() {
               width: "90%",
               maxHeight: "90vh",
               overflow: "hidden",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+              boxShadow: "0 25px 50px -12px rgba(9, 10, 12, 0.25)",
               border: "1px solid #E5E7EB",
             }}
             onClick={(e) => e.stopPropagation()}
@@ -776,14 +776,14 @@ export default function ProductsPage() {
                   transition: "all 0.2s ease",
                   boxShadow: isUploading
                     ? "none"
-                    : "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                    : "0 4px 6px -1px rgba(9, 10, 12, 0.1)",
                 }}
                 onMouseEnter={(e) => {
                   if (!isUploading) {
                     e.currentTarget.style.backgroundColor = "#7C3AED";
                     e.currentTarget.style.transform = "translateY(-1px)";
                     e.currentTarget.style.boxShadow =
-                      "0 10px 15px -3px rgba(0, 0, 0, 0.1)";
+                      "0 10px 15px -3px rgba(9, 10, 12, 0.1)";
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -791,7 +791,7 @@ export default function ProductsPage() {
                     e.currentTarget.style.backgroundColor = "#d42f48";
                     e.currentTarget.style.transform = "translateY(0)";
                     e.currentTarget.style.boxShadow =
-                      "0 4px 6px -1px rgba(0, 0, 0, 0.1)";
+                      "0 4px 6px -1px rgba(9, 10, 12, 0.1)";
                   }
                 }}
               >
@@ -845,7 +845,7 @@ export default function ProductsPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            backgroundColor: "rgba(9, 10, 12, 0.6)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -863,7 +863,7 @@ export default function ProductsPage() {
               width: "90%",
               maxHeight: "90vh",
               overflow: "hidden",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+              boxShadow: "0 25px 50px -12px rgba(9, 10, 12, 0.25)",
               border: "1px solid #E5E7EB",
             }}
             onClick={(e) => e.stopPropagation()}
