@@ -1869,7 +1869,7 @@ export default function CampaignsPage() {
                   >
                     <div
                       style={{
-                        backgroundColor: "rgba(139, 92, 246, 0.9)",
+                        backgroundColor: "rgba(212, 47, 72, 0.9)",
                         color: "#FFFFFF",
                         padding: "10px 20px",
                         borderRadius: "24px",
