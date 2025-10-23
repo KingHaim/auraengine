@@ -291,6 +291,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
               width: "200px",
               height: "200px",
               objectFit: "contain",
+              display: "block",
               margin: "0 auto",
             }}
           />
