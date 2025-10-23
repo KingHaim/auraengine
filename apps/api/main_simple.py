@@ -557,8 +557,20 @@ async def get_campaigns(
     """Get all campaigns for the current user"""
     try:
         campaigns = db.query(Campaign).filter(Campaign.user_id == current_user["user_id"]).all()
-        return [CampaignResponse.model_validate(campaign) for campaign in campaigns]
+        result = []
+        for campaign in campaigns:
+            try:
+                # Ensure generation_status exists, default to "idle" if missing
+                if not hasattr(campaign, 'generation_status') or campaign.generation_status is None:
+                    campaign.generation_status = "idle"
+                result.append(CampaignResponse.model_validate(campaign))
+            except Exception as validation_error:
+                print(f"⚠️ Campaign validation failed for {campaign.id}: {validation_error}")
+                # Skip this campaign if validation fails
+                continue
+        return result
     except Exception as e:
+        print(f"❌ Error fetching campaigns: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 async def generate_campaign_images_background(
