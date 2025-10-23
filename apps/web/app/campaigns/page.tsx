@@ -178,7 +178,8 @@ export default function CampaignsPage() {
     string | null
   >(null);
   const [showModelSelectionModal, setShowModelSelectionModal] = useState(false);
-  const [showProductSelectionModal, setShowProductSelectionModal] = useState(false);
+  const [showProductSelectionModal, setShowProductSelectionModal] =
+    useState(false);
 
   // Function to fetch data from API
   const fetchData = async () => {
@@ -1832,8 +1833,8 @@ export default function CampaignsPage() {
                 borderRadius: "16px",
                 maxWidth: "95vw",
                 maxHeight: "95vh",
-                width: "1400px",
-                height: "800px",
+                width: "min(1400px, 95vw)",
+                height: "min(800px, 95vh)",
                 position: "relative",
                 overflow: "hidden",
                 display: "flex",
@@ -1939,14 +1940,15 @@ export default function CampaignsPage() {
                   width: "40%",
                   height: "100%",
                   backgroundColor: "#374151",
-                  padding: "24px",
+                  padding: "20px",
                   display: "flex",
                   flexDirection: "column",
                   overflowY: "auto",
+                  boxSizing: "border-box",
                 }}
               >
                 {/* Campaign Name Input */}
-                <div style={{ marginBottom: "24px" }}>
+                <div style={{ marginBottom: "16px" }}>
                   <input
                     type="text"
                     value={newCampaign.name}
@@ -1955,20 +1957,21 @@ export default function CampaignsPage() {
                     }
                     style={{
                       width: "100%",
-                      padding: "12px 16px",
+                      padding: "10px 12px",
                       backgroundColor: "#4B5563",
                       border: "1px solid #6B7280",
                       borderRadius: "8px",
-                      fontSize: "16px",
+                      fontSize: "14px",
                       color: "#FFFFFF",
                       outline: "none",
+                      boxSizing: "border-box",
                     }}
                     placeholder="Enter campaign name"
                   />
                 </div>
 
                 {/* SCENES Section */}
-                <div style={{ marginBottom: "24px" }}>
+                <div style={{ marginBottom: "16px" }}>
                   <h3
                     style={{
                       fontSize: "14px",
@@ -2029,7 +2032,7 @@ export default function CampaignsPage() {
                 </div>
 
                 {/* MODELS Section */}
-                <div style={{ marginBottom: "24px" }}>
+                <div style={{ marginBottom: "16px" }}>
                   <h3
                     style={{
                       fontSize: "14px",
@@ -2056,7 +2059,10 @@ export default function CampaignsPage() {
                           height: "80px",
                           backgroundColor: "#4B5563",
                           borderRadius: "8px",
-                          backgroundImage: `url(${models.find(m => m.id === selectedModel)?.image_url})`,
+                          backgroundImage: `url(${
+                            models.find((m) => m.id === selectedModel)
+                              ?.image_url
+                          })`,
                           backgroundSize: "cover",
                           backgroundPosition: "center",
                           cursor: "pointer",
@@ -2106,7 +2112,7 @@ export default function CampaignsPage() {
                 </div>
 
                 {/* PRODUCTS Section */}
-                <div style={{ marginBottom: "24px" }}>
+                <div style={{ marginBottom: "16px" }}>
                   <h3
                     style={{
                       fontSize: "14px",
@@ -2128,7 +2134,9 @@ export default function CampaignsPage() {
                   >
                     {selectedProducts.length > 0 ? (
                       selectedProducts.slice(0, 2).map((productId) => {
-                        const product = products.find(p => p.id === productId);
+                        const product = products.find(
+                          (p) => p.id === productId
+                        );
                         return (
                           <div
                             key={productId}
@@ -2208,7 +2216,7 @@ export default function CampaignsPage() {
                 </div>
 
                 {/* POSES Section */}
-                <div style={{ marginBottom: "24px" }}>
+                <div style={{ marginBottom: "16px" }}>
                   <h3
                     style={{
                       fontSize: "14px",
@@ -2235,7 +2243,7 @@ export default function CampaignsPage() {
                 <div
                   style={{
                     marginTop: "auto",
-                    paddingTop: "24px",
+                    paddingTop: "16px",
                   }}
                 >
                   <button
@@ -2249,18 +2257,18 @@ export default function CampaignsPage() {
                     }
                     style={{
                       width: "100%",
-                      padding: "16px 24px",
+                      padding: "12px 20px",
                       backgroundColor: isCreating ? "#6B7280" : "#EF4444",
                       border: "none",
-                      borderRadius: "12px",
+                      borderRadius: "8px",
                       color: "#FFFFFF",
-                      fontSize: "16px",
+                      fontSize: "14px",
                       fontWeight: "600",
                       cursor: isCreating ? "not-allowed" : "pointer",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: "12px",
+                      gap: "8px",
                       transition: "all 0.2s",
                     }}
                     onMouseEnter={(e) => {
@@ -2281,9 +2289,9 @@ export default function CampaignsPage() {
                         alignItems: "center",
                         gap: "4px",
                         backgroundColor: "rgba(255, 255, 255, 0.2)",
-                        padding: "4px 8px",
-                        borderRadius: "6px",
-                        fontSize: "14px",
+                        padding: "3px 6px",
+                        borderRadius: "4px",
+                        fontSize: "12px",
                       }}
                     >
                       <span>🪙</span>
@@ -2336,7 +2344,7 @@ export default function CampaignsPage() {
               >
                 Select Model
               </h3>
-              
+
               <div
                 style={{
                   display: "flex",
@@ -2356,10 +2364,14 @@ export default function CampaignsPage() {
                       alignItems: "center",
                       gap: "12px",
                       padding: "12px",
-                      backgroundColor: selectedModel === model.id ? "#374151" : "#4B5563",
+                      backgroundColor:
+                        selectedModel === model.id ? "#374151" : "#4B5563",
                       borderRadius: "8px",
                       cursor: "pointer",
-                      border: selectedModel === model.id ? "2px solid #8B5CF6" : "1px solid #6B7280",
+                      border:
+                        selectedModel === model.id
+                          ? "2px solid #8B5CF6"
+                          : "1px solid #6B7280",
                       transition: "all 0.2s",
                     }}
                   >
@@ -2407,7 +2419,7 @@ export default function CampaignsPage() {
                   </div>
                 ))}
               </div>
-              
+
               <button
                 onClick={() => setShowModelSelectionModal(false)}
                 style={{
@@ -2469,7 +2481,7 @@ export default function CampaignsPage() {
               >
                 Select Products
               </h3>
-              
+
               <div
                 style={{
                   display: "flex",
@@ -2486,10 +2498,14 @@ export default function CampaignsPage() {
                       alignItems: "center",
                       gap: "12px",
                       padding: "12px",
-                      backgroundColor: selectedProducts.includes(product.id) ? "#374151" : "#4B5563",
+                      backgroundColor: selectedProducts.includes(product.id)
+                        ? "#374151"
+                        : "#4B5563",
                       borderRadius: "8px",
                       cursor: "pointer",
-                      border: selectedProducts.includes(product.id) ? "2px solid #8B5CF6" : "1px solid #6B7280",
+                      border: selectedProducts.includes(product.id)
+                        ? "2px solid #8B5CF6"
+                        : "1px solid #6B7280",
                       transition: "all 0.2s",
                     }}
                   >
@@ -2536,7 +2552,7 @@ export default function CampaignsPage() {
                   </div>
                 ))}
               </div>
-              
+
               <button
                 onClick={() => setShowProductSelectionModal(false)}
                 style={{
