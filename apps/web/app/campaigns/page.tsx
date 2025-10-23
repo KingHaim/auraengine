@@ -177,6 +177,8 @@ export default function CampaignsPage() {
   const [generatingCampaignId, setGeneratingCampaignId] = useState<
     string | null
   >(null);
+  const [showModelSelectionModal, setShowModelSelectionModal] = useState(false);
+  const [showProductSelectionModal, setShowProductSelectionModal] = useState(false);
 
   // Function to fetch data from API
   const fetchData = async () => {
@@ -1883,7 +1885,7 @@ export default function CampaignsPage() {
                   >
                     ↶
                   </div>
-                  
+
                   {/* History Thumbnails */}
                   <div
                     style={{
@@ -1892,7 +1894,8 @@ export default function CampaignsPage() {
                       backgroundColor: "#374151",
                       borderRadius: "8px",
                       border: "2px solid #EF4444",
-                      backgroundImage: "url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><rect width=\"100\" height=\"100\" fill=\"%23374151\"/><text x=\"50\" y=\"50\" text-anchor=\"middle\" dy=\".3em\" fill=\"white\" font-size=\"12\">Preview</text></svg>')",
+                      backgroundImage:
+                        'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23374151"/><text x="50" y="50" text-anchor="middle" dy=".3em" fill="white" font-size="12">Preview</text></svg>\')',
                       backgroundSize: "cover",
                       backgroundPosition: "center",
                     }}
@@ -1904,41 +1907,30 @@ export default function CampaignsPage() {
                       backgroundColor: "#374151",
                       borderRadius: "8px",
                       border: "1px solid #6B7280",
-                      backgroundImage: "url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><rect width=\"100\" height=\"100\" fill=\"%23374151\"/><text x=\"50\" y=\"50\" text-anchor=\"middle\" dy=\".3em\" fill=\"white\" font-size=\"12\">Previous</text></svg>')",
+                      backgroundImage:
+                        'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23374151"/><text x="50" y="50" text-anchor="middle" dy=".3em" fill="white" font-size="12">Previous</text></svg>\')',
                       backgroundSize: "cover",
                       backgroundPosition: "center",
                     }}
                   />
                 </div>
 
-                {/* Main Image Display */}
+                {/* Main Image Display - Takes whole left side */}
                 <div
                   style={{
-                    flex: 1,
+                    width: "100%",
+                    height: "100%",
+                    backgroundColor: "#374151",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: "40px",
-                    position: "relative",
+                    backgroundImage:
+                      'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600"><rect width="400" height="600" fill="%23374151"/><text x="200" y="300" text-anchor="middle" dy=".3em" fill="white" font-size="18">Generated Image Will Appear Here</text></svg>\')',
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    border: "2px solid #4B5563",
                   }}
-                >
-                  {/* Placeholder for generated image */}
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      backgroundColor: "#374151",
-                      borderRadius: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundImage: "url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 600\"><rect width=\"400\" height=\"600\" fill=\"%23374151\"/><text x=\"200\" y=\"300\" text-anchor=\"middle\" dy=\".3em\" fill=\"white\" font-size=\"18\">Generated Image Will Appear Here</text></svg>')",
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      border: "2px solid #4B5563",
-                    }}
-                  />
-                </div>
+                />
               </div>
 
               {/* Right Panel - Control Panel (40% width) */}
@@ -1953,7 +1945,6 @@ export default function CampaignsPage() {
                   overflowY: "auto",
                 }}
               >
-
                 {/* Campaign Name Input */}
                 <div style={{ marginBottom: "24px" }}>
                   <input
@@ -2058,25 +2049,59 @@ export default function CampaignsPage() {
                       flexWrap: "wrap",
                     }}
                   >
-                    {models.slice(0, 1).map((model) => (
+                    {selectedModel ? (
                       <div
-                        key={model.id}
-                        onClick={() => toggleSelection(model.id, "models")}
                         style={{
                           width: "80px",
                           height: "80px",
                           backgroundColor: "#4B5563",
                           borderRadius: "8px",
-                          backgroundImage: `url(${model.image_url})`,
+                          backgroundImage: `url(${models.find(m => m.id === selectedModel)?.image_url})`,
                           backgroundSize: "cover",
                           backgroundPosition: "center",
                           cursor: "pointer",
-                          border: selectedModel === model.id
-                            ? "2px solid #8B5CF6"
-                            : "1px solid #6B7280",
+                          border: "2px solid #8B5CF6",
+                          position: "relative",
                         }}
-                      />
-                    ))}
+                        onClick={() => setShowModelSelectionModal(true)}
+                      >
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: "4px",
+                            right: "4px",
+                            backgroundColor: "rgba(0, 0, 0, 0.7)",
+                            color: "#FFFFFF",
+                            padding: "2px 4px",
+                            borderRadius: "4px",
+                            fontSize: "10px",
+                            fontWeight: "500",
+                          }}
+                        >
+                          ✓
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          width: "80px",
+                          height: "80px",
+                          backgroundColor: "#4B5563",
+                          borderRadius: "8px",
+                          border: "2px dashed #6B7280",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          color: "#FFFFFF",
+                          fontSize: "12px",
+                          textAlign: "center",
+                        }}
+                        onClick={() => setShowModelSelectionModal(true)}
+                      >
+                        + Model
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -2096,21 +2121,89 @@ export default function CampaignsPage() {
                   </h3>
                   <div
                     style={{
-                      width: "120px",
-                      height: "80px",
-                      backgroundColor: "#4B5563",
-                      borderRadius: "8px",
-                      border: "2px dashed #6B7280",
                       display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      color: "#FFFFFF",
+                      gap: "12px",
+                      flexWrap: "wrap",
                     }}
                   >
-                    <div style={{ fontSize: "24px", marginBottom: "4px" }}>👔</div>
-                    <div style={{ fontSize: "12px", fontWeight: "500" }}>ADD PRODUCT</div>
+                    {selectedProducts.length > 0 ? (
+                      selectedProducts.slice(0, 2).map((productId) => {
+                        const product = products.find(p => p.id === productId);
+                        return (
+                          <div
+                            key={productId}
+                            style={{
+                              width: "120px",
+                              height: "80px",
+                              backgroundColor: "#4B5563",
+                              borderRadius: "8px",
+                              backgroundImage: `url(${product?.image_url})`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                              cursor: "pointer",
+                              border: "2px solid #8B5CF6",
+                              position: "relative",
+                            }}
+                            onClick={() => setShowProductSelectionModal(true)}
+                          >
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "4px",
+                                right: "4px",
+                                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                                color: "#FFFFFF",
+                                padding: "2px 4px",
+                                borderRadius: "4px",
+                                fontSize: "10px",
+                                fontWeight: "500",
+                              }}
+                            >
+                              ✓
+                            </div>
+                            <div
+                              style={{
+                                position: "absolute",
+                                bottom: "0",
+                                left: "0",
+                                right: "0",
+                                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                                color: "#FFFFFF",
+                                padding: "4px 8px",
+                                fontSize: "12px",
+                                fontWeight: "500",
+                              }}
+                            >
+                              {product?.name}
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div
+                        style={{
+                          width: "120px",
+                          height: "80px",
+                          backgroundColor: "#4B5563",
+                          borderRadius: "8px",
+                          border: "2px dashed #6B7280",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          color: "#FFFFFF",
+                        }}
+                        onClick={() => setShowProductSelectionModal(true)}
+                      >
+                        <div style={{ fontSize: "24px", marginBottom: "4px" }}>
+                          👔
+                        </div>
+                        <div style={{ fontSize: "12px", fontWeight: "500" }}>
+                          ADD PRODUCT
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -2199,6 +2292,268 @@ export default function CampaignsPage() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Model Selection Modal */}
+        {showModelSelectionModal && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 2000,
+            }}
+            onClick={() => setShowModelSelectionModal(false)}
+          >
+            <div
+              style={{
+                backgroundColor: "#1F2937",
+                borderRadius: "16px",
+                padding: "24px",
+                width: "400px",
+                maxHeight: "600px",
+                overflowY: "auto",
+                position: "relative",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3
+                style={{
+                  color: "#FFFFFF",
+                  fontSize: "18px",
+                  fontWeight: "600",
+                  marginBottom: "20px",
+                  textAlign: "center",
+                }}
+              >
+                Select Model
+              </h3>
+              
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                }}
+              >
+                {models.map((model) => (
+                  <div
+                    key={model.id}
+                    onClick={() => {
+                      toggleSelection(model.id, "models");
+                      setShowModelSelectionModal(false);
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "12px",
+                      backgroundColor: selectedModel === model.id ? "#374151" : "#4B5563",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      border: selectedModel === model.id ? "2px solid #8B5CF6" : "1px solid #6B7280",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    <img
+                      src={model.image_url}
+                      alt={model.name}
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          color: "#FFFFFF",
+                          fontSize: "16px",
+                          fontWeight: "500",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        {model.name}
+                      </div>
+                      <div
+                        style={{
+                          color: "#9CA3AF",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {model.poses?.length || 0} poses available
+                      </div>
+                    </div>
+                    {selectedModel === model.id && (
+                      <div
+                        style={{
+                          color: "#8B5CF6",
+                          fontSize: "20px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        ✓
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              
+              <button
+                onClick={() => setShowModelSelectionModal(false)}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  backgroundColor: "#6B7280",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#FFFFFF",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  marginTop: "20px",
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Product Selection Modal */}
+        {showProductSelectionModal && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 2000,
+            }}
+            onClick={() => setShowProductSelectionModal(false)}
+          >
+            <div
+              style={{
+                backgroundColor: "#1F2937",
+                borderRadius: "16px",
+                padding: "24px",
+                width: "500px",
+                maxHeight: "600px",
+                overflowY: "auto",
+                position: "relative",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3
+                style={{
+                  color: "#FFFFFF",
+                  fontSize: "18px",
+                  fontWeight: "600",
+                  marginBottom: "20px",
+                  textAlign: "center",
+                }}
+              >
+                Select Products
+              </h3>
+              
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                }}
+              >
+                {products.map((product) => (
+                  <div
+                    key={product.id}
+                    onClick={() => toggleSelection(product.id, "products")}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "12px",
+                      backgroundColor: selectedProducts.includes(product.id) ? "#374151" : "#4B5563",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      border: selectedProducts.includes(product.id) ? "2px solid #8B5CF6" : "1px solid #6B7280",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          color: "#FFFFFF",
+                          fontSize: "16px",
+                          fontWeight: "500",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        {product.name}
+                      </div>
+                      <div
+                        style={{
+                          color: "#9CA3AF",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {product.packshots.length} packshots
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={selectedProducts.includes(product.id)}
+                      onChange={() => {}}
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        accentColor: "#8B5CF6",
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              
+              <button
+                onClick={() => setShowProductSelectionModal(false)}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  backgroundColor: "#6B7280",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#FFFFFF",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  marginTop: "20px",
+                }}
+              >
+                Close
+              </button>
             </div>
           </div>
         )}
