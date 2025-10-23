@@ -76,7 +76,7 @@ export default function CampaignsPage() {
 
   // Inject spinner CSS
   useEffect(() => {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = spinnerCSS;
     document.head.appendChild(style);
     return () => {
@@ -174,7 +174,9 @@ export default function CampaignsPage() {
     Set<number>
   >(new Set());
   const [veoDirectMode, setVeoDirectMode] = useState(false);
-  const [generatingCampaignId, setGeneratingCampaignId] = useState<string | null>(null);
+  const [generatingCampaignId, setGeneratingCampaignId] = useState<
+    string | null
+  >(null);
 
   // Function to fetch data from API
   const fetchData = async () => {
@@ -215,17 +217,24 @@ export default function CampaignsPage() {
       if (campaignsRes.ok) {
         campaignsData = await campaignsRes.json();
         console.log("🔍 fetchData - Raw campaigns data:", campaignsData);
-        console.log("🔍 fetchData - Number of campaigns:", campaignsData.length);
+        console.log(
+          "🔍 fetchData - Number of campaigns:",
+          campaignsData.length
+        );
         campaignsData.forEach((campaign: any, index: number) => {
           console.log(`🔍 fetchData - Campaign ${index}:`, {
             id: campaign.id,
             name: campaign.name,
             generation_status: campaign.generation_status,
-            status: campaign.status
+            status: campaign.status,
           });
         });
         setCampaigns(campaignsData);
-        console.log("🔍 fetchData - setCampaigns called with:", campaignsData.length, "campaigns");
+        console.log(
+          "🔍 fetchData - setCampaigns called with:",
+          campaignsData.length,
+          "campaigns"
+        );
       } else {
         console.error(
           "Campaigns fetch failed:",
@@ -318,9 +327,12 @@ export default function CampaignsPage() {
   // Clear generating state when campaign is completed
   useEffect(() => {
     if (generatingCampaignId) {
-      const campaign = campaigns.find(c => c.id === generatingCampaignId);
+      const campaign = campaigns.find((c) => c.id === generatingCampaignId);
       if (campaign && campaign.generation_status === "completed") {
-        console.log("🔍 Campaign completed, clearing generating state for:", generatingCampaignId);
+        console.log(
+          "🔍 Campaign completed, clearing generating state for:",
+          generatingCampaignId
+        );
         setGeneratingCampaignId(null);
       }
     }
@@ -328,7 +340,7 @@ export default function CampaignsPage() {
 
   const handleCreateCampaign = async () => {
     console.log("🔍 handleCreateCampaign called");
-    
+
     if (
       !newCampaign.name ||
       selectedProducts.length === 0 ||
@@ -396,42 +408,61 @@ export default function CampaignsPage() {
         console.log("🔍 About to set generatingCampaignId...");
         console.log("🔍 result.campaign:", result.campaign);
         console.log("🔍 result.campaign.id:", result.campaign?.id);
-        console.log("🔍 typeof result.campaign.id:", typeof result.campaign?.id);
-        
+        console.log(
+          "🔍 typeof result.campaign.id:",
+          typeof result.campaign?.id
+        );
+
         if (!result.campaign?.id) {
           console.error("❌ ERROR: result.campaign.id is undefined or null!");
           throw new Error("Campaign ID is missing from response");
         }
-        
+
         setGeneratingCampaignId(result.campaign.id);
         console.log("🔍 Set generatingCampaignId to:", result.campaign.id);
 
         // Add the new campaign to the list immediately with generating status
         const newCampaignWithGeneratingStatus = {
           ...result.campaign,
-          generation_status: "generating"
+          generation_status: "generating",
         };
-        console.log("🔍 Adding new campaign to list immediately:", newCampaignWithGeneratingStatus);
-        setCampaigns(prevCampaigns => [newCampaignWithGeneratingStatus, ...prevCampaigns]);
+        console.log(
+          "🔍 Adding new campaign to list immediately:",
+          newCampaignWithGeneratingStatus
+        );
+        setCampaigns((prevCampaigns) => [
+          newCampaignWithGeneratingStatus,
+          ...prevCampaigns,
+        ]);
 
         // Refresh campaigns list to get the real campaign data
         console.log("🔍 Before fetchData, campaigns count:", campaigns.length);
         const freshCampaignsData = await fetchData();
-        console.log("🔍 After fetchData, fresh campaigns data:", freshCampaignsData);
+        console.log(
+          "🔍 After fetchData, fresh campaigns data:",
+          freshCampaignsData
+        );
         console.log("🔍 Looking for campaign with ID:", result.campaign.id);
-        const newCampaign = freshCampaignsData?.find((c: any) => c.id === result.campaign.id);
+        const newCampaign = freshCampaignsData?.find(
+          (c: any) => c.id === result.campaign.id
+        );
         console.log("🔍 Found campaign:", newCampaign);
         if (newCampaign) {
-          console.log("🔍 Campaign generation_status:", newCampaign.generation_status);
+          console.log(
+            "🔍 Campaign generation_status:",
+            newCampaign.generation_status
+          );
           // Replace the temporary campaign with the real one from the server
-          setCampaigns(prevCampaigns => 
-            prevCampaigns.map(campaign => 
+          setCampaigns((prevCampaigns) =>
+            prevCampaigns.map((campaign) =>
               campaign.id === result.campaign.id ? newCampaign : campaign
             )
           );
           // If campaign is already completed, clear the generating state
           if (newCampaign.generation_status === "completed") {
-            console.log("🔍 Campaign already completed, clearing generating state");
+            console.log(
+              "🔍 Campaign already completed, clearing generating state"
+            );
             setGeneratingCampaignId(null);
           }
         }
@@ -1459,7 +1490,11 @@ export default function CampaignsPage() {
                     cursor: "pointer",
                     position: "relative",
                     background: "#FFFFFF",
-                    opacity: (campaign.generation_status === "generating" || generatingCampaignId === campaign.id) ? 0.75 : 1,
+                    opacity:
+                      campaign.generation_status === "generating" ||
+                      generatingCampaignId === campaign.id
+                        ? 0.75
+                        : 1,
                     boxShadow: selectedCampaigns.has(campaign.id)
                       ? "0 0 0 3px #8B5CF6"
                       : "0 2px 8px rgba(0,0,0,0.08)",
@@ -1550,13 +1585,16 @@ export default function CampaignsPage() {
                     }}
                   >
                     {(() => {
-                      const isGenerating = campaign.generation_status === "generating" || generatingCampaignId === campaign.id;
+                      const isGenerating =
+                        campaign.generation_status === "generating" ||
+                        generatingCampaignId === campaign.id;
                       console.log(`🔍 Rendering campaign ${campaign.id}:`, {
                         name: campaign.name,
                         generation_status: campaign.generation_status,
                         generatingCampaignId: generatingCampaignId,
                         isGenerating: isGenerating,
-                        hasImages: campaign.settings?.generated_images?.length > 0
+                        hasImages:
+                          campaign.settings?.generated_images?.length > 0,
                       });
                       return isGenerating;
                     })() ? (
@@ -1698,18 +1736,19 @@ export default function CampaignsPage() {
                           (img: any) => img.video_url
                         )?.length || 0}
                       </span>
-                      {(campaign.generation_status === "generating" || generatingCampaignId === campaign.id) && (
-                      <span
-                        style={{
+                      {(campaign.generation_status === "generating" ||
+                        generatingCampaignId === campaign.id) && (
+                        <span
+                          style={{
                             display: "flex",
                             alignItems: "center",
                             gap: "4px",
                             color: "#3B82F6",
-                          fontWeight: "500",
-                        }}
-                      >
+                            fontWeight: "500",
+                          }}
+                        >
                           ⏳ Generando...
-                      </span>
+                        </span>
                       )}
                       {campaign.generation_status === "failed" && (
                         <span
@@ -1787,44 +1826,136 @@ export default function CampaignsPage() {
           >
             <div
               style={{
-                backgroundColor: "white",
+                backgroundColor: "#1F2937",
                 borderRadius: "16px",
-                padding: "24px",
-                maxWidth: "90vw",
-                maxHeight: "90vh",
-                width: "1200px",
+                maxWidth: "95vw",
+                maxHeight: "95vh",
+                width: "1400px",
+                height: "800px",
                 position: "relative",
-                overflow: "auto",
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "row",
               }}
               onClick={(e) => {
                 e.stopPropagation();
                 closeModelDropdown();
               }}
             >
-              <h2
+              {/* Left Panel - Visual Display (60% width) */}
+              <div
                 style={{
-                  margin: "0 0 24px 0",
-                  fontSize: "20px",
-                  fontWeight: "600",
+                  width: "60%",
+                  height: "100%",
+                  backgroundColor: "#111827",
+                  position: "relative",
+                  display: "flex",
+                  flexDirection: "column",
                 }}
               >
-                Create Campaign
-              </h2>
-
-              {/* Campaign Details */}
-              <div style={{ marginBottom: "24px" }}>
-                <div style={{ marginBottom: "16px" }}>
-                  <label
+                {/* History/Previous Generations - Top Left */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "20px",
+                    left: "20px",
+                    zIndex: 10,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
+                >
+                  {/* Undo/Refresh Icon */}
+                  <div
                     style={{
-                      display: "block",
-                      color: "#374151",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                      marginBottom: "8px",
+                      width: "40px",
+                      height: "40px",
+                      backgroundColor: "rgba(0, 0, 0, 0.7)",
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      color: "#FFFFFF",
+                      fontSize: "18px",
                     }}
+                    title="Undo/Refresh"
                   >
-                    Campaign Name *
-                  </label>
+                    ↶
+                  </div>
+                  
+                  {/* History Thumbnails */}
+                  <div
+                    style={{
+                      width: "60px",
+                      height: "60px",
+                      backgroundColor: "#374151",
+                      borderRadius: "8px",
+                      border: "2px solid #EF4444",
+                      backgroundImage: "url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><rect width=\"100\" height=\"100\" fill=\"%23374151\"/><text x=\"50\" y=\"50\" text-anchor=\"middle\" dy=\".3em\" fill=\"white\" font-size=\"12\">Preview</text></svg>')",
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  />
+                  <div
+                    style={{
+                      width: "60px",
+                      height: "60px",
+                      backgroundColor: "#374151",
+                      borderRadius: "8px",
+                      border: "1px solid #6B7280",
+                      backgroundImage: "url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><rect width=\"100\" height=\"100\" fill=\"%23374151\"/><text x=\"50\" y=\"50\" text-anchor=\"middle\" dy=\".3em\" fill=\"white\" font-size=\"12\">Previous</text></svg>')",
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  />
+                </div>
+
+                {/* Main Image Display */}
+                <div
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "40px",
+                    position: "relative",
+                  }}
+                >
+                  {/* Placeholder for generated image */}
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      backgroundColor: "#374151",
+                      borderRadius: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundImage: "url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 600\"><rect width=\"400\" height=\"600\" fill=\"%23374151\"/><text x=\"200\" y=\"300\" text-anchor=\"middle\" dy=\".3em\" fill=\"white\" font-size=\"18\">Generated Image Will Appear Here</text></svg>')",
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      border: "2px solid #4B5563",
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Right Panel - Control Panel (40% width) */}
+              <div
+                style={{
+                  width: "40%",
+                  height: "100%",
+                  backgroundColor: "#374151",
+                  padding: "24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  overflowY: "auto",
+                }}
+              >
+
+                {/* Campaign Name Input */}
+                <div style={{ marginBottom: "24px" }}>
                   <input
                     type="text"
                     value={newCampaign.name}
@@ -1833,593 +1964,240 @@ export default function CampaignsPage() {
                     }
                     style={{
                       width: "100%",
-                      padding: "12px",
-                      border: "1px solid #D1D5DB",
+                      padding: "12px 16px",
+                      backgroundColor: "#4B5563",
+                      border: "1px solid #6B7280",
                       borderRadius: "8px",
-                      fontSize: "14px",
+                      fontSize: "16px",
+                      color: "#FFFFFF",
+                      outline: "none",
                     }}
                     placeholder="Enter campaign name"
                   />
                 </div>
 
-                <div style={{ marginBottom: "16px" }}>
-                  <label
+                {/* SCENES Section */}
+                <div style={{ marginBottom: "24px" }}>
+                  <h3
                     style={{
-                      display: "block",
-                      color: "#374151",
                       fontSize: "14px",
-                      fontWeight: "500",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    Description
-                  </label>
-                  <textarea
-                    value={newCampaign.description}
-                    onChange={(e) =>
-                      setNewCampaign({
-                        ...newCampaign,
-                        description: e.target.value,
-                      })
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      border: "1px solid #D1D5DB",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      minHeight: "80px",
-                      resize: "vertical",
-                    }}
-                    placeholder="Enter campaign description"
-                  />
-                </div>
-              </div>
-
-              {/* Selection Grid */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
-                  gap: "24px",
-                  marginBottom: "24px",
-                }}
-              >
-                {/* Products Selection */}
-                <div>
-                  <h3
-                    style={{
-                      fontSize: "16px",
                       fontWeight: "600",
-                      color: "#1F2937",
+                      color: "#FFFFFF",
                       marginBottom: "12px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
                     }}
                   >
-                    Products ({selectedProducts.length})
+                    SCENES
                   </h3>
                   <div
                     style={{
-                      maxHeight: "300px",
-                      overflowY: "auto",
-                      border: "1px solid #E5E7EB",
-                      borderRadius: "8px",
-                      padding: "8px",
+                      display: "flex",
+                      gap: "12px",
+                      flexWrap: "wrap",
                     }}
                   >
-                    {products.map((product) => (
-                      <div
-                        key={product.id}
-                        onClick={() => toggleSelection(product.id, "products")}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          padding: "8px",
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                          backgroundColor: selectedProducts.includes(product.id)
-                            ? "#EDE9FE"
-                            : "transparent",
-                          border: selectedProducts.includes(product.id)
-                            ? "1px solid #8B5CF6"
-                            : "1px solid transparent",
-                          marginBottom: "4px",
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedProducts.includes(product.id)}
-                          onChange={() => {}}
-                          style={{ margin: 0 }}
-                        />
-                        <img
-                          src={product.image_url}
-                          alt={product.name}
-                          style={{
-                            width: "40px",
-                            height: "40px",
-                            objectFit: "cover",
-                            borderRadius: "4px",
-                          }}
-                        />
-                        <div>
-                          <div style={{ fontSize: "14px", fontWeight: "500" }}>
-                            {product.name}
-                          </div>
-                          <div style={{ fontSize: "12px", color: "#6B7280" }}>
-                            {product.packshots.length} packshots
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Models Selection */}
-                <div>
-                  <h3
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "600",
-                      color: "#1F2937",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    Models ({selectedModel ? "1" : "0"})
-                    {Object.keys(selectedPoses).length > 0 && (
-                      <span
-                        style={{
-                          fontSize: "12px",
-                          fontWeight: "400",
-                          color: "#8B5CF6",
-                        }}
-                      >
-                        {" "}
-                        • {Object.values(selectedPoses).flat().length} poses
-                        selected
-                      </span>
-                    )}
-                  </h3>
-                  <div
-                    style={{
-                      maxHeight: "300px",
-                      overflowY: "auto",
-                      border: "1px solid #E5E7EB",
-                      borderRadius: "8px",
-                      padding: "8px",
-                    }}
-                  >
-                    {models.map((model) => (
-                      <div key={model.id}>
-                        <div
-                          onClick={() => toggleSelection(model.id, "models")}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            padding: "8px",
-                            borderRadius: "6px",
-                            cursor: "pointer",
-                            backgroundColor:
-                              selectedModel === model.id
-                                ? "#EDE9FE"
-                                : "transparent",
-                            border:
-                              selectedModel === model.id
-                                ? "1px solid #8B5CF6"
-                                : "1px solid transparent",
-                            marginBottom: "4px",
-                          }}
-                        >
-                          <input
-                            type="radio"
-                            name="selectedModel"
-                            checked={selectedModel === model.id}
-                            onChange={() => {}}
-                            style={{ margin: 0 }}
-                          />
-                          <img
-                            src={model.image_url}
-                            alt={model.name}
-                            style={{
-                              width: "40px",
-                              height: "40px",
-                              objectFit: "cover",
-                              borderRadius: "4px",
-                            }}
-                          />
-                          <div style={{ flex: 1 }}>
-                            <div
-                              style={{ fontSize: "14px", fontWeight: "500" }}
-                            >
-                              {model.name}
-                            </div>
-                            <div style={{ fontSize: "12px", color: "#6B7280" }}>
-                              {model.poses?.length || 0} poses
-                              {selectedPoses[model.id]?.length > 0 && (
-                                <span
-                                  style={{
-                                    color: "#8B5CF6",
-                                    fontWeight: "500",
-                                  }}
-                                >
-                                  {" "}
-                                  • {selectedPoses[model.id].length} selected
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          {model.poses && model.poses.length > 0 && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleModelDropdown(model.id);
-                              }}
-                              style={{
-                                padding: "4px 8px",
-                                backgroundColor:
-                                  expandedModel === model.id
-                                    ? "#EDE9FE"
-                                    : "#F3F4F6",
-                                border:
-                                  expandedModel === model.id
-                                    ? "1px solid #8B5CF6"
-                                    : "1px solid #D1D5DB",
-                                borderRadius: "4px",
-                                fontSize: "12px",
-                                cursor: "pointer",
-                                color:
-                                  expandedModel === model.id
-                                    ? "#8B5CF6"
-                                    : "#374151",
-                                fontWeight:
-                                  expandedModel === model.id ? "500" : "400",
-                                transition: "all 0.2s",
-                              }}
-                              title={`View ${model.poses.length} generated poses`}
-                            >
-                              {expandedModel === model.id ? "▼" : "▶"} Poses
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Pose Images Dropdown */}
-                        {expandedModel === model.id &&
-                          model.poses &&
-                          model.poses.length > 0 && (
-                            <div
-                              style={{
-                                marginLeft: "48px",
-                                marginBottom: "8px",
-                                padding: "12px",
-                                backgroundColor: "#F9FAFB",
-                                borderRadius: "6px",
-                                border: "1px solid #E5E7EB",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "space-between",
-                                  marginBottom: "8px",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontSize: "12px",
-                                    fontWeight: "500",
-                                    color: "#6B7280",
-                                  }}
-                                >
-                                  Generated Poses:
-                                </div>
-                                <div style={{ display: "flex", gap: "8px" }}>
-                                  <button
-                                    onClick={() =>
-                                      selectAllPoses(
-                                        model.id,
-                                        model.poses || []
-                                      )
-                                    }
-                                    style={{
-                                      padding: "2px 6px",
-                                      backgroundColor: "#F3F4F6",
-                                      border: "1px solid #D1D5DB",
-                                      borderRadius: "4px",
-                                      fontSize: "10px",
-                                      cursor: "pointer",
-                                      color: "#374151",
-                                    }}
-                                  >
-                                    Select All
-                                  </button>
-                                  <button
-                                    onClick={() => clearPoseSelection(model.id)}
-                                    style={{
-                                      padding: "2px 6px",
-                                      backgroundColor: "#F3F4F6",
-                                      border: "1px solid #D1D5DB",
-                                      borderRadius: "4px",
-                                      fontSize: "10px",
-                                      cursor: "pointer",
-                                      color: "#374151",
-                                    }}
-                                  >
-                                    Clear
-                                  </button>
-                                </div>
-                              </div>
-                              <div
-                                style={{
-                                  display: "grid",
-                                  gridTemplateColumns:
-                                    "repeat(auto-fill, minmax(60px, 1fr))",
-                                  gap: "6px",
-                                }}
-                              >
-                                {(model.poses || []).map(
-                                  (poseUrl: string, index: number) => {
-                                    const isSelected =
-                                      selectedPoses[model.id]?.includes(
-                                        poseUrl
-                                      ) || false;
-                                    return (
-                                      <div
-                                        key={index}
-                                        style={{
-                                          width: "60px",
-                                          height: "60px",
-                                          backgroundColor: "#F3F4F6",
-                                          borderRadius: "4px",
-                                          backgroundImage: `url(${poseUrl})`,
-                                          backgroundSize: "cover",
-                                          backgroundPosition: "center",
-                                          cursor: "pointer",
-                                          border: isSelected
-                                            ? "2px solid #8B5CF6"
-                                            : "2px solid transparent",
-                                          transition: "all 0.2s",
-                                          position: "relative",
-                                          opacity: isSelected ? 1 : 0.7,
-                                        }}
-                                        onMouseEnter={(e) => {
-                                          if (!isSelected) {
-                                            e.currentTarget.style.borderColor =
-                                              "#8B5CF6";
-                                            e.currentTarget.style.transform =
-                                              "scale(1.05)";
-                                          }
-                                        }}
-                                        onMouseLeave={(e) => {
-                                          if (!isSelected) {
-                                            e.currentTarget.style.borderColor =
-                                              "transparent";
-                                            e.currentTarget.style.transform =
-                                              "scale(1)";
-                                          }
-                                        }}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          togglePoseSelection(
-                                            model.id,
-                                            poseUrl
-                                          );
-                                        }}
-                                      >
-                                        <div
-                                          style={{
-                                            position: "absolute",
-                                            top: "2px",
-                                            right: "2px",
-                                            backgroundColor: isSelected
-                                              ? "rgba(139,92,246,0.9)"
-                                              : "rgba(0,0,0,0.7)",
-                                            color: "white",
-                                            padding: "2px 4px",
-                                            borderRadius: "2px",
-                                            fontSize: "10px",
-                                            fontWeight: "500",
-                                          }}
-                                        >
-                                          {isSelected ? "✓" : `#${index + 1}`}
-                                        </div>
-                                        {isSelected && (
-                                          <div
-                                            style={{
-                                              position: "absolute",
-                                              top: "2px",
-                                              left: "2px",
-                                              backgroundColor:
-                                                "rgba(139,92,246,0.9)",
-                                              color: "white",
-                                              padding: "2px 4px",
-                                              borderRadius: "2px",
-                                              fontSize: "8px",
-                                              fontWeight: "500",
-                                            }}
-                                          >
-                                            SELECTED
-                                          </div>
-                                        )}
-                                      </div>
-                                    );
-                                  }
-                                )}
-                              </div>
-                            </div>
-                          )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Scenes Selection */}
-                <div>
-                  <h3
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "600",
-                      color: "#1F2937",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    Scenes ({selectedScenes.length})
-                  </h3>
-                  <div
-                    style={{
-                      maxHeight: "300px",
-                      overflowY: "auto",
-                      border: "1px solid #E5E7EB",
-                      borderRadius: "8px",
-                      padding: "8px",
-                    }}
-                  >
-                    {scenes.map((scene) => (
+                    {scenes.slice(0, 2).map((scene) => (
                       <div
                         key={scene.id}
                         onClick={() => toggleSelection(scene.id, "scenes")}
                         style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          padding: "8px",
-                          borderRadius: "6px",
+                          width: "120px",
+                          height: "80px",
+                          backgroundColor: "#4B5563",
+                          borderRadius: "8px",
+                          backgroundImage: `url(${scene.image_url})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
                           cursor: "pointer",
-                          backgroundColor: selectedScenes.includes(scene.id)
-                            ? "#EDE9FE"
-                            : "transparent",
                           border: selectedScenes.includes(scene.id)
-                            ? "1px solid #8B5CF6"
-                            : "1px solid transparent",
-                          marginBottom: "4px",
+                            ? "2px solid #8B5CF6"
+                            : "1px solid #6B7280",
+                          position: "relative",
+                          overflow: "hidden",
                         }}
                       >
-                        <input
-                          type="checkbox"
-                          checked={selectedScenes.includes(scene.id)}
-                          onChange={() => {}}
-                          style={{ margin: 0 }}
-                        />
-                        <img
-                          src={scene.image_url}
-                          alt={scene.name}
+                        <div
                           style={{
-                            width: "40px",
-                            height: "40px",
-                            objectFit: "cover",
-                            borderRadius: "4px",
+                            position: "absolute",
+                            bottom: "0",
+                            left: "0",
+                            right: "0",
+                            backgroundColor: "rgba(0, 0, 0, 0.7)",
+                            color: "#FFFFFF",
+                            padding: "4px 8px",
+                            fontSize: "12px",
+                            fontWeight: "500",
                           }}
-                        />
-                        <div>
-                          <div style={{ fontSize: "14px", fontWeight: "500" }}>
-                            {scene.name}
-                          </div>
-                          <div style={{ fontSize: "12px", color: "#6B7280" }}>
-                            {scene.is_standard ? "Standard" : "Custom"}
-                          </div>
+                        >
+                          {scene.name}
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
-              </div>
 
-              {/* Campaign Summary */}
-              {selectedProducts.length > 0 &&
-                selectedModel &&
-                selectedScenes.length > 0 && (
-                  <div
+                {/* MODELS Section */}
+                <div style={{ marginBottom: "24px" }}>
+                  <h3
                     style={{
-                      backgroundColor: "#F8FAFC",
-                      borderRadius: "8px",
-                      padding: "16px",
-                      marginBottom: "24px",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#FFFFFF",
+                      marginBottom: "12px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
                     }}
                   >
-                    <h4
+                    MODELS
+                  </h3>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "12px",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {models.slice(0, 1).map((model) => (
+                      <div
+                        key={model.id}
+                        onClick={() => toggleSelection(model.id, "models")}
+                        style={{
+                          width: "80px",
+                          height: "80px",
+                          backgroundColor: "#4B5563",
+                          borderRadius: "8px",
+                          backgroundImage: `url(${model.image_url})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          cursor: "pointer",
+                          border: selectedModel === model.id
+                            ? "2px solid #8B5CF6"
+                            : "1px solid #6B7280",
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* PRODUCTS Section */}
+                <div style={{ marginBottom: "24px" }}>
+                  <h3
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#FFFFFF",
+                      marginBottom: "12px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    PRODUCTS
+                  </h3>
+                  <div
+                    style={{
+                      width: "120px",
+                      height: "80px",
+                      backgroundColor: "#4B5563",
+                      borderRadius: "8px",
+                      border: "2px dashed #6B7280",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      color: "#FFFFFF",
+                    }}
+                  >
+                    <div style={{ fontSize: "24px", marginBottom: "4px" }}>👔</div>
+                    <div style={{ fontSize: "12px", fontWeight: "500" }}>ADD PRODUCT</div>
+                  </div>
+                </div>
+
+                {/* POSES Section */}
+                <div style={{ marginBottom: "24px" }}>
+                  <h3
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#FFFFFF",
+                      marginBottom: "12px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    POSES
+                  </h3>
+                  <div
+                    style={{
+                      color: "#9CA3AF",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Select a model to view poses
+                  </div>
+                </div>
+
+                {/* REGENERATE Button */}
+                <div
+                  style={{
+                    marginTop: "auto",
+                    paddingTop: "24px",
+                  }}
+                >
+                  <button
+                    onClick={handleCreateCampaign}
+                    disabled={
+                      isCreating ||
+                      !newCampaign.name ||
+                      selectedProducts.length === 0 ||
+                      !selectedModel ||
+                      selectedScenes.length === 0
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "16px 24px",
+                      backgroundColor: isCreating ? "#6B7280" : "#EF4444",
+                      border: "none",
+                      borderRadius: "12px",
+                      color: "#FFFFFF",
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      cursor: isCreating ? "not-allowed" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "12px",
+                      transition: "all 0.2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isCreating) {
+                        e.currentTarget.style.backgroundColor = "#DC2626";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isCreating) {
+                        e.currentTarget.style.backgroundColor = "#EF4444";
+                      }
+                    }}
+                  >
+                    {isCreating ? "Creating Campaign..." : "REGENERATE"}
+                    <div
                       style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        backgroundColor: "rgba(255, 255, 255, 0.2)",
+                        padding: "4px 8px",
+                        borderRadius: "6px",
                         fontSize: "14px",
-                        fontWeight: "600",
-                        color: "#1F2937",
-                        marginBottom: "8px",
                       }}
                     >
-                      Campaign Summary
-                    </h4>
-                    <div style={{ fontSize: "14px", color: "#374151" }}>
-                      <div>Products: {selectedProducts.length}</div>
-                      <div>Models: {selectedModel ? "1" : "0"}</div>
-                      <div>Scenes: {selectedScenes.length}</div>
-                      <div style={{ fontWeight: "600", marginTop: "8px" }}>
-                        Total Images:{" "}
-                        {selectedProducts.length *
-                          (selectedModel ? 1 : 0) *
-                          selectedScenes.length}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "12px",
-                          color: "#6B7280",
-                          marginTop: "4px",
-                        }}
-                      >
-                        Credits needed:{" "}
-                        {selectedProducts.length *
-                          (selectedModel ? 1 : 0) *
-                          selectedScenes.length *
-                          2}
-                      </div>
+                      <span>🪙</span>
+                      <span>5</span>
                     </div>
-                  </div>
-                )}
-
-              {/* Action Buttons */}
-              <div
-                style={{
-                  display: "flex",
-                  gap: "12px",
-                  justifyContent: "flex-end",
-                }}
-              >
-                <button
-                  onClick={() => {
-                    setShowCreateModal(false);
-                    closeModelDropdown();
-                  }}
-                  style={{
-                    padding: "12px 24px",
-                    backgroundColor: "#F3F4F6",
-                    border: "none",
-                    borderRadius: "8px",
-                    color: "#374151",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateCampaign}
-                  disabled={
-                    isCreating ||
-                    !newCampaign.name ||
-                    selectedProducts.length === 0 ||
-                    !selectedModel ||
-                    selectedScenes.length === 0
-                  }
-                  style={{
-                    padding: "12px 24px",
-                    backgroundColor: isCreating ? "#9CA3AF" : "#8B5CF6",
-                    border: "none",
-                    borderRadius: "8px",
-                    color: "#FFFFFF",
-                    fontSize: "14px",
-                    cursor: isCreating ? "not-allowed" : "pointer",
-                  }}
-                >
-                  {isCreating ? "Creating Campaign..." : "Create Campaign"}
-                </button>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -2529,7 +2307,6 @@ export default function CampaignsPage() {
                 <div
                   style={{ display: "flex", alignItems: "center", gap: "16px" }}
                 >
-
                   {selectedCampaign.settings?.total_combinations && (
                     <span
                       style={{
@@ -3103,7 +2880,8 @@ export default function CampaignsPage() {
                     color: "#6B7280",
                   }}
                 >
-                  Generate a professional photoshoot image with the selected model, product, and scene
+                  Generate a professional photoshoot image with the selected
+                  model, product, and scene
                 </p>
               </div>
 
@@ -4200,7 +3978,8 @@ export default function CampaignsPage() {
                     color: "#6B7280",
                   }}
                 >
-                  Generate a professional photoshoot image with the selected model, product, and scene
+                  Generate a professional photoshoot image with the selected
+                  model, product, and scene
                 </p>
               </div>
 
@@ -5197,7 +4976,8 @@ export default function CampaignsPage() {
                   lineHeight: 1.5,
                 }}
               >
-                Select shots from your 10-shot photoshoot to create videos for TikTok, CapCut, or other social media platforms
+                Select shots from your 10-shot photoshoot to create videos for
+                TikTok, CapCut, or other social media platforms
               </p>
 
               {/* Veo Direct Mode Toggle */}
@@ -5249,23 +5029,34 @@ export default function CampaignsPage() {
               {/* Image Selection (only if NOT in Veo Direct Mode) */}
               {!veoDirectMode && (
                 <div style={{ marginBottom: "20px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                  <label
+                  <div
                     style={{
-                      fontSize: "14px",
-                      fontWeight: "500",
-                      color: "#374151",
-                        margin: "0"
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "8px",
                     }}
                   >
-                    Select Images for Video Generation
-                  </label>
+                    <label
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        color: "#374151",
+                        margin: "0",
+                      }}
+                    >
+                      Select Images for Video Generation
+                    </label>
                     <div style={{ display: "flex", gap: "8px" }}>
                       <button
                         onClick={() => {
                           const allIndices = new Set(
                             Array.from(
-                              { length: selectedCampaignForBulkVideo.settings?.generated_images?.length || 0 },
+                              {
+                                length:
+                                  selectedCampaignForBulkVideo.settings
+                                    ?.generated_images?.length || 0,
+                              },
                               (_, i) => i
                             )
                           );
@@ -5278,7 +5069,7 @@ export default function CampaignsPage() {
                           borderRadius: "4px",
                           fontSize: "11px",
                           cursor: "pointer",
-                          color: "#374151"
+                          color: "#374151",
                         }}
                       >
                         Select All
@@ -5292,7 +5083,7 @@ export default function CampaignsPage() {
                           borderRadius: "4px",
                           fontSize: "11px",
                           cursor: "pointer",
-                          color: "#374151"
+                          color: "#374151",
                         }}
                       >
                         Clear All
@@ -5367,7 +5158,7 @@ export default function CampaignsPage() {
                               textAlign: "center",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
-                              whiteSpace: "nowrap"
+                              whiteSpace: "nowrap",
                             }}
                           >
                             {img.shot_type || `Shot ${idx + 1}`}
@@ -5405,15 +5196,22 @@ export default function CampaignsPage() {
                       alignItems: "center",
                     }}
                   >
-                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                    <span style={{ fontSize: "12px", color: "#6B7280" }}>
-                      {selectedImagesForVideo.size} of{" "}
-                      {selectedCampaignForBulkVideo.settings?.generated_images
-                        ?.length || 0}{" "}
-                      selected
-                    </span>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                      }}
+                    >
+                      <span style={{ fontSize: "12px", color: "#6B7280" }}>
+                        {selectedImagesForVideo.size} of{" "}
+                        {selectedCampaignForBulkVideo.settings?.generated_images
+                          ?.length || 0}{" "}
+                        selected
+                      </span>
                       <span style={{ fontSize: "11px", color: "#9CA3AF" }}>
-                        💡 Tip: Select 3-5 shots for TikTok, or all 10 for a complete CapCut sequence
+                        💡 Tip: Select 3-5 shots for TikTok, or all 10 for a
+                        complete CapCut sequence
                       </span>
                     </div>
                     <div style={{ display: "flex", gap: "8px" }}>
@@ -5800,7 +5598,9 @@ export default function CampaignsPage() {
               </div>
 
               {/* Video Duration Selection (for Seedance, Kling & Veo) */}
-              {(bulkVideoModel === "seedance" || bulkVideoModel === "kling" || bulkVideoModel === "veo") && (
+              {(bulkVideoModel === "seedance" ||
+                bulkVideoModel === "kling" ||
+                bulkVideoModel === "veo") && (
                 <div style={{ marginBottom: "20px" }}>
                   <label
                     style={{
