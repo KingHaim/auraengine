@@ -145,7 +145,7 @@ export default function ScenesPage() {
           href="/"
           style={{
             padding: "12px 24px",
-            backgroundColor: "#8B5CF6",
+            backgroundColor: "#5c5c5c",
             color: "white",
             textDecoration: "none",
             borderRadius: "8px",
@@ -194,7 +194,7 @@ export default function ScenesPage() {
             onClick={() => setShowUploadModal(true)}
             style={{
               padding: "12px 24px",
-              backgroundColor: "#8B5CF6",
+              backgroundColor: "#5c5c5c",
               color: "white",
               border: "none",
               borderRadius: "8px",
@@ -259,7 +259,7 @@ export default function ScenesPage() {
               onClick={() => setShowUploadModal(true)}
               style={{
                 padding: "8px 16px",
-                backgroundColor: "#8B5CF6",
+                backgroundColor: "#5c5c5c",
                 color: "#FFFFFF",
                 border: "none",
                 borderRadius: "6px",
@@ -673,7 +673,7 @@ export default function ScenesPage() {
                   backgroundColor:
                     uploading || !newScene.name || !newScene.image
                       ? "#D1D5DB"
-                      : "#8B5CF6",
+                      : "#5c5c5c",
                   color: "white",
                   border: "none",
                   borderRadius: "8px",

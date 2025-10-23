@@ -84,7 +84,7 @@ export default function CreditsPage() {
         "Advanced analytics",
         "Custom branding",
       ],
-      color: "#8B5CF6", // Bold violet
+      color: "#5c5c5c", // Bold violet
       anchor: false,
       perCredit: 0.19,
     },
@@ -199,7 +199,7 @@ export default function CreditsPage() {
             style={{
               fontSize: "48px",
               fontWeight: "700",
-              color: "#8B5CF6",
+              color: "#5c5c5c",
               marginBottom: "8px",
             }}
           >
@@ -227,8 +227,8 @@ export default function CreditsPage() {
         <div
               style={{
             backgroundColor:
-              "linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%)",
-            background: "linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%)",
+              "linear-gradient(135deg, #5c5c5c 0%, #3B82F6 100%)",
+            background: "linear-gradient(135deg, #5c5c5c 0%, #3B82F6 100%)",
             borderRadius: "16px",
             padding: "24px",
             marginBottom: "40px",
@@ -278,7 +278,7 @@ export default function CreditsPage() {
               style={{
                   width: "48px",
                   height: "24px",
-                  backgroundColor: isAnnual ? "#8B5CF6" : "#E2E8F0",
+                  backgroundColor: isAnnual ? "#5c5c5c" : "#E2E8F0",
                   border: "none",
                   borderRadius: "12px",
                   position: "relative",
@@ -563,7 +563,7 @@ export default function CreditsPage() {
                     style={{
                       backgroundColor: pkg.popular ? "#F8FAFC" : "#FFFFFF",
                       border: pkg.popular
-                        ? "2px solid #8B5CF6"
+                        ? "2px solid #5c5c5c"
                         : "1px solid #E2E8F0",
                   borderRadius: "16px",
                   padding: "24px",
@@ -589,7 +589,7 @@ export default function CreditsPage() {
                       top: "-12px",
                           left: "50%",
                           transform: "translateX(-50%)",
-                          backgroundColor: "#8B5CF6",
+                          backgroundColor: "#5c5c5c",
                           color: "#FFFFFF",
                       padding: "6px 16px",
                       borderRadius: "16px",
@@ -642,7 +642,7 @@ export default function CreditsPage() {
                       style={{
                     fontSize: "24px",
                         fontWeight: "600",
-                        color: "#8B5CF6",
+                        color: "#5c5c5c",
                     marginBottom: "4px",
                       }}
                     >
@@ -673,7 +673,7 @@ export default function CreditsPage() {
                       style={{
                         width: "100%",
                         padding: "12px",
-                        backgroundColor: isProcessing ? "#9CA3AF" : "#8B5CF6",
+                        backgroundColor: isProcessing ? "#9CA3AF" : "#5c5c5c",
                         color: "#FFFFFF",
                         border: "none",
                         borderRadius: "8px",

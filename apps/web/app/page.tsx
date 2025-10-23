@@ -376,7 +376,7 @@ export default function Home() {
                 }}
                 style={{
                   padding: "8px 16px",
-                  backgroundColor: "#8B5CF6",
+                  backgroundColor: "#5c5c5c",
                   border: "none",
                   borderRadius: "8px",
                   color: "#FFFFFF",
@@ -450,7 +450,7 @@ export default function Home() {
                 }}
                 style={{
                   padding: "12px 24px",
-                  backgroundColor: "#8B5CF6",
+                  backgroundColor: "#5c5c5c",
                   border: "none",
                   borderRadius: "8px",
                     color: "#FFFFFF",

@@ -365,7 +365,7 @@ export default function UploadPage() {
                     transition: "all 0.2s",
                     backgroundColor:
                       mode === "packshot"
-                        ? "#8B5CF6"
+                        ? "#5c5c5c"
                         : "rgba(255,255,255,0.05)",
                     color: mode === "packshot" ? "#FFFFFF" : "#C7CDD6",
                     border: "none",
@@ -383,7 +383,7 @@ export default function UploadPage() {
                     transition: "all 0.2s",
                     backgroundColor:
                       mode === "backshot"
-                        ? "#8B5CF6"
+                        ? "#5c5c5c"
                         : "rgba(255,255,255,0.05)",
                     color: mode === "backshot" ? "#FFFFFF" : "#C7CDD6",
                     border: "none",
@@ -536,7 +536,7 @@ export default function UploadPage() {
                 padding: "16px 24px",
                 borderRadius: "12px",
                 backgroundColor:
-                  !product || isGenerating ? "#9CA3AF" : "#8B5CF6",
+                  !product || isGenerating ? "#9CA3AF" : "#5c5c5c",
                 color: "#FFFFFF",
                 fontWeight: "500",
                 border: "none",

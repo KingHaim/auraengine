@@ -211,7 +211,7 @@ export default function AuthModal({ isOpen, onClose, mode }: AuthModalProps) {
             style={{
               width: "100%",
               padding: "12px",
-              backgroundColor: loading ? "#9CA3AF" : "#8B5CF6",
+              backgroundColor: loading ? "#9CA3AF" : "#5c5c5c",
               color: "#FFFFFF",
               border: "none",
               borderRadius: "8px",
@@ -245,7 +245,7 @@ export default function AuthModal({ isOpen, onClose, mode }: AuthModalProps) {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#8B5CF6",
+                  color: "#5c5c5c",
                   cursor: "pointer",
                   textDecoration: "underline",
                 }}
@@ -261,7 +261,7 @@ export default function AuthModal({ isOpen, onClose, mode }: AuthModalProps) {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#8B5CF6",
+                  color: "#5c5c5c",
                   cursor: "pointer",
                   textDecoration: "underline",
                 }}

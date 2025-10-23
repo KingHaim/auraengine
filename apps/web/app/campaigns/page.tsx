@@ -1327,7 +1327,7 @@ export default function CampaignsPage() {
             href="/"
             style={{
               padding: "12px 24px",
-              backgroundColor: "#8B5CF6",
+              backgroundColor: "#5c5c5c",
               color: "white",
               textDecoration: "none",
               borderRadius: "8px",
@@ -1482,7 +1482,7 @@ export default function CampaignsPage() {
                 }}
                 style={{
                   padding: "12px 24px",
-                  backgroundColor: "#8B5CF6",
+                  backgroundColor: "#5c5c5c",
                   border: "none",
                   borderRadius: "8px",
                   color: "#FFFFFF",
@@ -1541,7 +1541,7 @@ export default function CampaignsPage() {
                 onClick={() => setShowCreateModal(true)}
                 style={{
                   padding: "12px 24px",
-                  backgroundColor: "#8B5CF6",
+                  backgroundColor: "#5c5c5c",
                   border: "none",
                   borderRadius: "8px",
                   color: "#FFFFFF",
@@ -1577,7 +1577,7 @@ export default function CampaignsPage() {
                         ? 0.75
                         : 1,
                     boxShadow: selectedCampaigns.has(campaign.id)
-                      ? "0 0 0 3px #8B5CF6"
+                      ? "0 0 0 3px #5c5c5c"
                       : "0 2px 8px rgba(0,0,0,0.08)",
                     display: "flex",
                     flexDirection: "column",
@@ -1626,10 +1626,10 @@ export default function CampaignsPage() {
                         height: "28px",
                         borderRadius: "6px",
                         backgroundColor: selectedCampaigns.has(campaign.id)
-                          ? "#8B5CF6"
+                          ? "#5c5c5c"
                           : "#FFFFFF",
                         border: selectedCampaigns.has(campaign.id)
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "2px solid #CBD5E1",
                         display: "flex",
                         alignItems: "center",
@@ -1981,7 +1981,7 @@ export default function CampaignsPage() {
                           cursor: "pointer",
                           border:
                             currentDisplayedImage === imageUrl
-                              ? "2px solid #8B5CF6"
+                              ? "2px solid #5c5c5c"
                               : "1px solid #6B7280",
                           position: "relative",
                           overflow: "hidden",
@@ -1995,7 +1995,7 @@ export default function CampaignsPage() {
                               right: "4px",
                               width: "16px",
                               height: "16px",
-                              backgroundColor: "#8B5CF6",
+                              backgroundColor: "#5c5c5c",
                               borderRadius: "50%",
                               display: "flex",
                               alignItems: "center",
@@ -2155,7 +2155,7 @@ export default function CampaignsPage() {
                       <span
                         style={{
                           fontSize: "12px",
-                          backgroundColor: "#8B5CF6",
+                          backgroundColor: "#5c5c5c",
                           color: "#FFFFFF",
                           padding: "2px 8px",
                           borderRadius: "12px",
@@ -2205,7 +2205,7 @@ export default function CampaignsPage() {
                               backgroundPosition: "center",
                               cursor: "pointer",
                               border: selectedScenes.includes(scene.id)
-                                ? "2px solid #8B5CF6"
+                                ? "2px solid #5c5c5c"
                                 : "1px solid #6B7280",
                               position: "relative",
                               overflow: "hidden",
@@ -2235,7 +2235,7 @@ export default function CampaignsPage() {
                                   right: "6px",
                                   width: "20px",
                                   height: "20px",
-                                  backgroundColor: "#8B5CF6",
+                                  backgroundColor: "#5c5c5c",
                                   borderRadius: "50%",
                                   display: "flex",
                                   alignItems: "center",
@@ -2290,7 +2290,7 @@ export default function CampaignsPage() {
                           backgroundSize: "cover",
                           backgroundPosition: "center",
                           cursor: "pointer",
-                          border: "2px solid #8B5CF6",
+                          border: "2px solid #5c5c5c",
                           position: "relative",
                         }}
                         onClick={() => setShowModelSelectionModal(true)}
@@ -2373,7 +2373,7 @@ export default function CampaignsPage() {
                               backgroundSize: "cover",
                               backgroundPosition: "center",
                               cursor: "pointer",
-                              border: "2px solid #8B5CF6",
+                              border: "2px solid #5c5c5c",
                               position: "relative",
                             }}
                             onClick={() => setShowProductSelectionModal(true)}
@@ -2639,7 +2639,7 @@ export default function CampaignsPage() {
                       cursor: "pointer",
                       border:
                         selectedModel === model.id
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "1px solid #6B7280",
                       transition: "all 0.2s",
                     }}
@@ -2677,7 +2677,7 @@ export default function CampaignsPage() {
                     {selectedModel === model.id && (
                       <div
                         style={{
-                          color: "#8B5CF6",
+                          color: "#5c5c5c",
                           fontSize: "20px",
                           fontWeight: "bold",
                         }}
@@ -2773,7 +2773,7 @@ export default function CampaignsPage() {
                       borderRadius: "8px",
                       cursor: "pointer",
                       border: selectedProducts.includes(product.id)
-                        ? "2px solid #8B5CF6"
+                        ? "2px solid #5c5c5c"
                         : "1px solid #6B7280",
                       transition: "all 0.2s",
                     }}
@@ -2815,7 +2815,7 @@ export default function CampaignsPage() {
                       style={{
                         width: "20px",
                         height: "20px",
-                        accentColor: "#8B5CF6",
+                        accentColor: "#5c5c5c",
                       }}
                     />
                   </div>
@@ -2903,7 +2903,7 @@ export default function CampaignsPage() {
                   disabled={generatingMore}
                   style={{
                     padding: "8px 16px",
-                    backgroundColor: generatingMore ? "#9CA3AF" : "#8B5CF6",
+                    backgroundColor: generatingMore ? "#9CA3AF" : "#5c5c5c",
                     border: "none",
                     borderRadius: "8px",
                     color: "#FFFFFF",
@@ -3190,7 +3190,7 @@ export default function CampaignsPage() {
                                     backgroundColor:
                                       generatingVideo === img.generation_id
                                         ? "#9CA3AF"
-                                        : "#8B5CF6",
+                                        : "#5c5c5c",
                                     color: "white",
                                     border: "none",
                                     borderRadius: "6px",
@@ -3282,7 +3282,7 @@ export default function CampaignsPage() {
                     disabled={generatingMore}
                     style={{
                       padding: "12px 24px",
-                      backgroundColor: generatingMore ? "#9CA3AF" : "#8B5CF6",
+                      backgroundColor: generatingMore ? "#9CA3AF" : "#5c5c5c",
                       border: "none",
                       borderRadius: "8px",
                       color: "#FFFFFF",
@@ -3476,7 +3476,7 @@ export default function CampaignsPage() {
                         padding: "8px 16px",
                         backgroundColor:
                           numberOfImagesToGenerate === num
-                            ? "#8B5CF6"
+                            ? "#5c5c5c"
                             : "#F3F4F6",
                         color:
                           numberOfImagesToGenerate === num
@@ -3555,7 +3555,7 @@ export default function CampaignsPage() {
                     backgroundColor:
                       isUpdating || !editForm.name.trim()
                         ? "#9CA3AF"
-                        : "#8B5CF6",
+                        : "#5c5c5c",
                     border: "none",
                     borderRadius: "8px",
                     color: "#FFFFFF",
@@ -3660,7 +3660,7 @@ export default function CampaignsPage() {
                       padding: "8px 12px",
                       border:
                         videoModel === "wan"
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "1px solid #D1D5DB",
                       borderRadius: "8px",
                       cursor: "pointer",
@@ -3693,7 +3693,7 @@ export default function CampaignsPage() {
                       padding: "8px 12px",
                       border:
                         videoModel === "seedance"
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "1px solid #D1D5DB",
                       borderRadius: "8px",
                       cursor: "pointer",
@@ -3726,7 +3726,7 @@ export default function CampaignsPage() {
                       padding: "8px 12px",
                       border:
                         videoModel === "kling"
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "1px solid #D1D5DB",
                       borderRadius: "8px",
                       cursor: "pointer",
@@ -3776,7 +3776,7 @@ export default function CampaignsPage() {
                       padding: "8px 12px",
                       border:
                         videoQuality === "480p"
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "1px solid #D1D5DB",
                       borderRadius: "8px",
                       cursor: "pointer",
@@ -3810,7 +3810,7 @@ export default function CampaignsPage() {
                       padding: "8px 12px",
                       border:
                         videoQuality === "720p"
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "1px solid #D1D5DB",
                       borderRadius: "8px",
                       cursor: "pointer",
@@ -3845,7 +3845,7 @@ export default function CampaignsPage() {
                         padding: "8px 12px",
                         border:
                           videoQuality === "1080p"
-                            ? "2px solid #8B5CF6"
+                            ? "2px solid #5c5c5c"
                             : "1px solid #D1D5DB",
                         borderRadius: "8px",
                         cursor: "pointer",
@@ -3897,7 +3897,7 @@ export default function CampaignsPage() {
                         padding: "8px 12px",
                         border:
                           videoDuration === "5s"
-                            ? "2px solid #8B5CF6"
+                            ? "2px solid #5c5c5c"
                             : "1px solid #D1D5DB",
                         borderRadius: "8px",
                         cursor: "pointer",
@@ -3930,7 +3930,7 @@ export default function CampaignsPage() {
                         padding: "8px 12px",
                         border:
                           videoDuration === "10s"
-                            ? "2px solid #8B5CF6"
+                            ? "2px solid #5c5c5c"
                             : "1px solid #D1D5DB",
                         borderRadius: "8px",
                         cursor: "pointer",
@@ -3994,7 +3994,7 @@ export default function CampaignsPage() {
                     backgroundColor:
                       generatingVideo === promptModalData.generationId
                         ? "#9CA3AF"
-                        : "#8B5CF6",
+                        : "#5c5c5c",
                     color: "white",
                     border: "none",
                     borderRadius: "8px",
@@ -4121,7 +4121,7 @@ export default function CampaignsPage() {
                         border: selectedProductsForGeneration.includes(
                           product.id
                         )
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "1px solid #E5E7EB",
                         borderRadius: "12px",
                         cursor: "pointer",
@@ -4163,7 +4163,7 @@ export default function CampaignsPage() {
                           margin: 0,
                           width: "16px",
                           height: "16px",
-                          accentColor: "#8B5CF6",
+                          accentColor: "#5c5c5c",
                         }}
                       />
                       <img
@@ -4229,7 +4229,7 @@ export default function CampaignsPage() {
                         padding: "8px",
                         border:
                           selectedModelForGeneration === model.id
-                            ? "2px solid #8B5CF6"
+                            ? "2px solid #5c5c5c"
                             : "1px solid #E5E7EB",
                         borderRadius: "12px",
                         cursor: "pointer",
@@ -4264,7 +4264,7 @@ export default function CampaignsPage() {
                           margin: 0,
                           width: "16px",
                           height: "16px",
-                          accentColor: "#8B5CF6",
+                          accentColor: "#5c5c5c",
                         }}
                       />
                       <img
@@ -4328,7 +4328,7 @@ export default function CampaignsPage() {
                         gap: "8px",
                         padding: "8px",
                         border: selectedScenesForGeneration.includes(scene.id)
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "1px solid #E5E7EB",
                         borderRadius: "12px",
                         cursor: "pointer",
@@ -4368,7 +4368,7 @@ export default function CampaignsPage() {
                           margin: 0,
                           width: "16px",
                           height: "16px",
-                          accentColor: "#8B5CF6",
+                          accentColor: "#5c5c5c",
                         }}
                       />
                       <img
@@ -4451,7 +4451,7 @@ export default function CampaignsPage() {
                                 border: selectedPosesForGeneration[
                                   modelId
                                 ]?.includes(poseUrl)
-                                  ? "2px solid #8B5CF6"
+                                  ? "2px solid #5c5c5c"
                                   : "1px solid #E5E7EB",
                                 borderRadius: "8px",
                                 cursor: "pointer",
@@ -4509,7 +4509,7 @@ export default function CampaignsPage() {
                                   margin: 0,
                                   width: "12px",
                                   height: "12px",
-                                  accentColor: "#8B5CF6",
+                                  accentColor: "#5c5c5c",
                                 }}
                               />
                               <img
@@ -4574,7 +4574,7 @@ export default function CampaignsPage() {
                         padding: "8px 16px",
                         backgroundColor:
                           numberOfImagesToGenerate === num
-                            ? "#8B5CF6"
+                            ? "#5c5c5c"
                             : "#F3F4F6",
                         color:
                           numberOfImagesToGenerate === num
@@ -4659,7 +4659,7 @@ export default function CampaignsPage() {
                       !selectedModelForGeneration ||
                       selectedScenesForGeneration.length === 0
                         ? "#9CA3AF"
-                        : "#8B5CF6",
+                        : "#5c5c5c",
                     color: "white",
                     border: "none",
                     borderRadius: "8px",
@@ -5162,7 +5162,7 @@ export default function CampaignsPage() {
                     }}
                     style={{
                       padding: "12px 16px",
-                      backgroundColor: "#8B5CF6",
+                      backgroundColor: "#5c5c5c",
                       border: "none",
                       borderRadius: "8px",
                       color: "#FFFFFF",
@@ -5179,7 +5179,7 @@ export default function CampaignsPage() {
                       e.currentTarget.style.backgroundColor = "#7C3AED";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#8B5CF6";
+                      e.currentTarget.style.backgroundColor = "#5c5c5c";
                     }}
                   >
                     ➕ Generate More Images
@@ -5456,7 +5456,7 @@ export default function CampaignsPage() {
                   onClick={() => setShowTweakModal(true)}
                   style={{
                     padding: "12px 16px",
-                    backgroundColor: "#8B5CF6",
+                    backgroundColor: "#5c5c5c",
                     border: "none",
                     borderRadius: "8px",
                     color: "#FFFFFF",
@@ -5473,7 +5473,7 @@ export default function CampaignsPage() {
                     e.currentTarget.style.backgroundColor = "#7C3AED";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#8B5CF6";
+                    e.currentTarget.style.backgroundColor = "#5c5c5c";
                   }}
                 >
                   ✨ Tweak Image
@@ -5629,7 +5629,7 @@ export default function CampaignsPage() {
                       alignItems: "center",
                       gap: "8px",
                       padding: "12px",
-                      border: "2px solid #8B5CF6",
+                      border: "2px solid #5c5c5c",
                       borderRadius: "8px",
                       cursor: "pointer",
                       backgroundColor: veoDirectMode ? "#F3E8FF" : "#F9FAFB",
@@ -5646,7 +5646,7 @@ export default function CampaignsPage() {
                         style={{
                           fontWeight: "600",
                           fontSize: "14px",
-                          color: "#8B5CF6",
+                          color: "#5c5c5c",
                         }}
                       >
                         ⭐ Veo Direct Mode (Experimental)
@@ -5763,7 +5763,7 @@ export default function CampaignsPage() {
                             position: "relative",
                             cursor: "pointer",
                             border: selectedImagesForVideo.has(idx)
-                              ? "3px solid #8B5CF6"
+                              ? "3px solid #5c5c5c"
                               : "2px solid #E5E7EB",
                             borderRadius: "8px",
                             overflow: "hidden",
@@ -5809,7 +5809,7 @@ export default function CampaignsPage() {
                                 position: "absolute",
                                 top: "4px",
                                 right: "4px",
-                                backgroundColor: "#8B5CF6",
+                                backgroundColor: "#5c5c5c",
                                 color: "#FFFFFF",
                                 borderRadius: "50%",
                                 width: "24px",
@@ -5871,7 +5871,7 @@ export default function CampaignsPage() {
                         }}
                         style={{
                           padding: "4px 8px",
-                          backgroundColor: "#8B5CF6",
+                          backgroundColor: "#5c5c5c",
                           color: "#FFFFFF",
                           border: "none",
                           borderRadius: "4px",
@@ -5962,7 +5962,7 @@ export default function CampaignsPage() {
                       padding: "10px 14px",
                       border:
                         bulkVideoModel === "wan"
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "1px solid #D1D5DB",
                       borderRadius: "8px",
                       cursor: "pointer",
@@ -5995,7 +5995,7 @@ export default function CampaignsPage() {
                       padding: "10px 14px",
                       border:
                         bulkVideoModel === "seedance"
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "1px solid #D1D5DB",
                       borderRadius: "8px",
                       cursor: "pointer",
@@ -6028,7 +6028,7 @@ export default function CampaignsPage() {
                       padding: "10px 14px",
                       border:
                         bulkVideoModel === "veo"
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "1px solid #D1D5DB",
                       borderRadius: "8px",
                       cursor: "pointer",
@@ -6061,7 +6061,7 @@ export default function CampaignsPage() {
                       padding: "10px 14px",
                       border:
                         bulkVideoModel === "kling"
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "1px solid #D1D5DB",
                       borderRadius: "8px",
                       cursor: "pointer",
@@ -6117,7 +6117,7 @@ export default function CampaignsPage() {
                       padding: "10px 14px",
                       border:
                         bulkVideoQuality === "480p"
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "1px solid #D1D5DB",
                       borderRadius: "8px",
                       cursor: "pointer",
@@ -6157,7 +6157,7 @@ export default function CampaignsPage() {
                       padding: "10px 14px",
                       border:
                         bulkVideoQuality === "720p"
-                          ? "2px solid #8B5CF6"
+                          ? "2px solid #5c5c5c"
                           : "1px solid #D1D5DB",
                       borderRadius: "8px",
                       cursor: "pointer",
@@ -6198,7 +6198,7 @@ export default function CampaignsPage() {
                         padding: "10px 14px",
                         border:
                           bulkVideoQuality === "1080p"
-                            ? "2px solid #8B5CF6"
+                            ? "2px solid #5c5c5c"
                             : "1px solid #D1D5DB",
                         borderRadius: "8px",
                         cursor: "pointer",
@@ -6268,7 +6268,7 @@ export default function CampaignsPage() {
                         padding: "10px 14px",
                         border:
                           bulkVideoDuration === "5s"
-                            ? "2px solid #8B5CF6"
+                            ? "2px solid #5c5c5c"
                             : "1px solid #D1D5DB",
                         borderRadius: "8px",
                         cursor: "pointer",
@@ -6297,7 +6297,7 @@ export default function CampaignsPage() {
                         padding: "10px 14px",
                         border:
                           bulkVideoDuration === "10s"
-                            ? "2px solid #8B5CF6"
+                            ? "2px solid #5c5c5c"
                             : "1px solid #D1D5DB",
                         borderRadius: "8px",
                         cursor: "pointer",
@@ -6424,7 +6424,7 @@ export default function CampaignsPage() {
                     padding: "12px",
                     backgroundColor: generatingBulkVideos
                       ? "#D1D5DB"
-                      : "#8B5CF6",
+                      : "#5c5c5c",
                     border: "none",
                     borderRadius: "8px",
                     color: "#FFFFFF",
@@ -6512,7 +6512,7 @@ export default function CampaignsPage() {
                           width: "60px",
                           height: "60px",
                           border: "4px solid #F3F4F6",
-                          borderTop: "4px solid #8B5CF6",
+                          borderTop: "4px solid #5c5c5c",
                           borderRadius: "50%",
                           animation: "spin 1s linear infinite",
                           margin: "0 auto 16px",
@@ -6733,7 +6733,7 @@ export default function CampaignsPage() {
                         backgroundColor:
                           tweaking || !tweakPrompt.trim()
                             ? "#4B5563"
-                            : "#8B5CF6",
+                            : "#5c5c5c",
                         border: "none",
                         borderRadius: "8px",
                         color: "#FFFFFF",
@@ -6752,7 +6752,7 @@ export default function CampaignsPage() {
                       }}
                       onMouseLeave={(e) => {
                         if (!tweaking && tweakPrompt.trim()) {
-                          e.currentTarget.style.backgroundColor = "#8B5CF6";
+                          e.currentTarget.style.backgroundColor = "#5c5c5c";
                         }
                       }}
                     >

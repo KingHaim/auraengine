@@ -134,7 +134,7 @@ export default function Dashboard() {
                   width: "48px",
                   height: "48px",
                   borderRadius: "12px",
-                  backgroundColor: "#8B5CF6",
+                  backgroundColor: "#5c5c5c",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -513,7 +513,7 @@ export default function Dashboard() {
               href="/campaigns"
               style={{
                 fontSize: "14px",
-                color: "#8B5CF6",
+                color: "#5c5c5c",
                 textDecoration: "none",
                 fontWeight: "500",
               }}
@@ -668,7 +668,7 @@ export default function Dashboard() {
                 style={{
                   display: "inline-block",
                   padding: "8px 16px",
-                  backgroundColor: "#8B5CF6",
+                  backgroundColor: "#5c5c5c",
                   color: "#FFFFFF",
                   textDecoration: "none",
                   borderRadius: "6px",

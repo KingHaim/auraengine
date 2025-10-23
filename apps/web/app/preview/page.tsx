@@ -78,7 +78,7 @@ export default function PreviewPage() {
           <a
             href="/upload"
             style={{
-              color: "#8B5CF6",
+              color: "#5c5c5c",
               textDecoration: "none",
               fontSize: "16px",
             }}
@@ -364,7 +364,7 @@ export default function PreviewPage() {
                     cursor: "pointer",
                     border:
                       selectedImage === url
-                        ? "2px solid #8B5CF6"
+                        ? "2px solid #5c5c5c"
                         : "2px solid transparent",
                     transition: "all 0.2s",
                   }}
@@ -422,7 +422,7 @@ export default function PreviewPage() {
                     padding: "12px 24px",
                     borderRadius: "8px",
                     backgroundColor:
-                      !selectedImage || isDownloading ? "#9CA3AF" : "#8B5CF6",
+                      !selectedImage || isDownloading ? "#9CA3AF" : "#5c5c5c",
                     color: "#FFFFFF",
                     fontWeight: "500",
                     border: "none",

@@ -559,7 +559,7 @@ export default function ModelsPage() {
             href="/"
             style={{
               padding: "12px 24px",
-              backgroundColor: "#8B5CF6",
+              backgroundColor: "#5c5c5c",
               color: "white",
               textDecoration: "none",
               borderRadius: "8px",
@@ -634,7 +634,7 @@ export default function ModelsPage() {
             onClick={() => setShowUploadModal(true)}
             style={{
               padding: "12px 24px",
-              backgroundColor: "#8B5CF6",
+              backgroundColor: "#5c5c5c",
               border: "none",
               borderRadius: "8px",
               color: "#FFFFFF",
@@ -692,7 +692,7 @@ export default function ModelsPage() {
                 onClick={() => setShowUploadModal(true)}
                 style={{
                   padding: "12px 24px",
-                  backgroundColor: "#8B5CF6",
+                  backgroundColor: "#5c5c5c",
                   border: "none",
                   borderRadius: "8px",
                   color: "#FFFFFF",
@@ -1132,7 +1132,7 @@ export default function ModelsPage() {
                     borderRadius: "8px",
                     border: "1px solid #D1D5DB",
                     backgroundColor:
-                      newModel.gender === "male" ? "#8B5CF6" : "transparent",
+                      newModel.gender === "male" ? "#5c5c5c" : "transparent",
                     color: newModel.gender === "male" ? "#FFFFFF" : "#6B7280",
                     cursor: "pointer",
                     fontSize: "14px",
@@ -1153,7 +1153,7 @@ export default function ModelsPage() {
                     borderRadius: "8px",
                     border: "1px solid #D1D5DB",
                     backgroundColor:
-                      newModel.gender === "female" ? "#8B5CF6" : "transparent",
+                      newModel.gender === "female" ? "#5c5c5c" : "transparent",
                     color: newModel.gender === "female" ? "#FFFFFF" : "#6B7280",
                     cursor: "pointer",
                     fontSize: "14px",
@@ -1240,7 +1240,7 @@ export default function ModelsPage() {
                   backgroundColor:
                     !newModel.name || !newModel.image || isUploading
                       ? "#9CA3AF"
-                      : "#8B5CF6",
+                      : "#5c5c5c",
                   border: "none",
                   borderRadius: "8px",
                   color: "#FFFFFF",
@@ -1334,7 +1334,7 @@ export default function ModelsPage() {
                       borderRadius: "6px",
                       border: "none",
                       backgroundColor:
-                        selectedGender === "male" ? "#8B5CF6" : "transparent",
+                        selectedGender === "male" ? "#5c5c5c" : "transparent",
                       color: selectedGender === "male" ? "#FFFFFF" : "#6B7280",
                       cursor: "pointer",
                       fontSize: "16px",
@@ -1357,7 +1357,7 @@ export default function ModelsPage() {
                       borderRadius: "6px",
                       border: "none",
                       backgroundColor:
-                        selectedGender === "female" ? "#8B5CF6" : "transparent",
+                        selectedGender === "female" ? "#5c5c5c" : "transparent",
                       color:
                         selectedGender === "female" ? "#FFFFFF" : "#6B7280",
                       cursor: "pointer",
@@ -1546,7 +1546,7 @@ export default function ModelsPage() {
                           borderRadius: "2px",
                           background: "#374151",
                           outline: "none",
-                          accentColor: "#8B5CF6",
+                          accentColor: "#5c5c5c",
                         }}
                       />
                     </div>
@@ -2315,7 +2315,7 @@ export default function ModelsPage() {
                     onClick={() => setShowPoseResults(false)}
                     style={{
                       padding: "12px 24px",
-                      backgroundColor: "#8B5CF6",
+                      backgroundColor: "#5c5c5c",
                       border: "none",
                       borderRadius: "8px",
                       color: "#FFFFFF",
@@ -2667,7 +2667,7 @@ export default function ModelsPage() {
                     borderRadius: "8px",
                     border: "1px solid #D1D5DB",
                     backgroundColor:
-                      editForm.gender === "male" ? "#8B5CF6" : "transparent",
+                      editForm.gender === "male" ? "#5c5c5c" : "transparent",
                     color: editForm.gender === "male" ? "#FFFFFF" : "#6B7280",
                     cursor: "pointer",
                     fontSize: "14px",
@@ -2688,7 +2688,7 @@ export default function ModelsPage() {
                     borderRadius: "8px",
                     border: "1px solid #D1D5DB",
                     backgroundColor:
-                      editForm.gender === "female" ? "#8B5CF6" : "transparent",
+                      editForm.gender === "female" ? "#5c5c5c" : "transparent",
                     color: editForm.gender === "female" ? "#FFFFFF" : "#6B7280",
                     cursor: "pointer",
                     fontSize: "14px",
@@ -2733,7 +2733,7 @@ export default function ModelsPage() {
                 disabled={!editForm.name.trim()}
                 style={{
                   padding: "10px 20px",
-                  backgroundColor: editForm.name.trim() ? "#8B5CF6" : "#D1D5DB",
+                  backgroundColor: editForm.name.trim() ? "#5c5c5c" : "#D1D5DB",
                   border: "none",
                   borderRadius: "8px",
                   color: "#FFFFFF",
@@ -3132,9 +3132,9 @@ export default function ModelsPage() {
                           marginTop: "12px",
                           padding: "8px 12px",
                           backgroundColor: "transparent",
-                          border: "1px solid #8B5CF6",
+                          border: "1px solid #5c5c5c",
                           borderRadius: "6px",
-                          color: "#8B5CF6",
+                          color: "#5c5c5c",
                           fontSize: "12px",
                           fontWeight: "500",
                           cursor: "pointer",
