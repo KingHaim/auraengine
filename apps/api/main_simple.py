@@ -588,7 +588,8 @@ async def generate_campaign_images_background(
         
         # Clamp requested number of images to available shot types
         try:
-            shots_to_generate_count = max(1, min(int(number_of_images), len(CAMPAIGN_SHOT_TYPES)))
+            # TESTING: Force 1 image generation for Enhancor.ai testing
+            shots_to_generate_count = 1  # max(1, min(int(number_of_images), len(CAMPAIGN_SHOT_TYPES)))
         except Exception:
             shots_to_generate_count = 1
 
@@ -619,8 +620,8 @@ async def generate_campaign_images_background(
                     print(f"🎬 Starting generation of {len(shot_types_to_generate)} shots...")
                     for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
                         try:
-                            print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
-                            print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for {product.name} + {model.name} + {scene.name}")
+                            print(f"\n🎥 [{shot_idx}/1] {shot_type['title']} (TESTING: Single image for Enhancor.ai)")
+                            print(f"📊 Progress: {shot_idx}/1 shots for {product.name} + {model.name} + {scene.name}")
                             
                             # REAL WORKFLOW: Qwen → Vella → Qwen → Nano Banana → Enhancor.ai
                             quality_mode = "standard"
@@ -956,10 +957,11 @@ async def generate_campaign_images(
                     print(f"📸 Generating {number_of_images} images for this campaign...")
                     
                     # Generate only the requested number of images
-                    shot_types_to_generate = CAMPAIGN_SHOT_TYPES[:number_of_images]
+                    # TESTING: Force 1 image generation for Enhancor.ai testing
+                    shot_types_to_generate = CAMPAIGN_SHOT_TYPES[:1]  # [:number_of_images]
                     for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
                         try:
-                            print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
+                            print(f"\n🎥 [{shot_idx}/1] {shot_type['title']} (TESTING: Single image for Enhancor.ai)")
                             
                             # REAL WORKFLOW: Qwen → Vella → Qwen → Nano Banana → Enhancor.ai
                             quality_mode = "standard"
