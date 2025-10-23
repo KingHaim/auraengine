@@ -1007,18 +1007,18 @@ async def generate_campaign_images(
                                         "strength": 0.4  # Higher strength for more dramatic realism enhancement
                                     }
                                 )
-                                    
-                                    # Handle Nano Banana output
-                                    if hasattr(nano_result, 'url'):
-                                        nano_url = nano_result.url()
-                                    elif isinstance(nano_result, str):
-                                        nano_url = nano_result
-                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
-                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                                    else:
-                                        nano_url = str(nano_result)
-                                    
-                                    print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+                                
+                                # Handle Nano Banana output
+                                if hasattr(nano_result, 'url'):
+                                    nano_url = nano_result.url()
+                                elif isinstance(nano_result, str):
+                                    nano_url = nano_result
+                                elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                    nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                else:
+                                    nano_url = str(nano_result)
+                                
+                                print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
                                 final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
                             except Exception as e:
                                 print(f"⚠️ Nano Banana failed, using previous result: {e}")
