@@ -692,7 +692,7 @@ async def generate_campaign_images_background(
                                 nano_result = replicate.run(
                                     "google/nano-banana",
                                     input={
-                                        "instructions": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
+                                        "prompt": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
                                         "image": nb_input,
                                         "num_inference_steps": 28,
                                         "guidance_scale": 5.5,
@@ -1030,7 +1030,7 @@ async def generate_campaign_images(
                                 nano_result = replicate.run(
                                     "google/nano-banana",
                                     input={
-                                        "instructions": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
+                                        "prompt": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
                                         "image": nb_input,
                                         "num_inference_steps": 28,
                                         "guidance_scale": 5.5,
@@ -3068,6 +3068,7 @@ def run_enhancor_realism_enhancement(image_url: str) -> str:
         import os
         api_key = os.getenv("ENHANCOR_API_KEY", "1940af76223d1ee40184cbb9669669a1460241650d517ae4971ffda7d2501e01")
         
+        # Try different API endpoint formats
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
@@ -3080,12 +3081,37 @@ def run_enhancor_realism_enhancement(image_url: str) -> str:
         }
         
         print(f"🔄 Calling Enhancor.ai API...")
-        response = requests.post(
+        
+        # Try multiple possible endpoints
+        endpoints_to_try = [
             "https://api.enhancor.ai/v1/enhance",
-            headers=headers,
-            json=payload,
-            timeout=60
-        )
+            "https://api.enhancor.ai/enhance",
+            "https://enhancor.ai/api/v1/enhance",
+            "https://enhancor.ai/api/enhance"
+        ]
+        
+        response = None
+        for endpoint in endpoints_to_try:
+            try:
+                print(f"🔄 Trying endpoint: {endpoint}")
+                response = requests.post(
+                    endpoint,
+                    headers=headers,
+                    json=payload,
+                    timeout=60
+                )
+                if response.status_code != 404:
+                    print(f"✅ Found working endpoint: {endpoint}")
+                    break
+                else:
+                    print(f"❌ 404 for {endpoint}")
+            except Exception as e:
+                print(f"❌ Error with {endpoint}: {e}")
+                continue
+        
+        if not response or response.status_code == 404:
+            print(f"❌ All Enhancor.ai endpoints failed, skipping enhancement")
+            return image_url
         
         if response.status_code == 200:
             result = response.json()
