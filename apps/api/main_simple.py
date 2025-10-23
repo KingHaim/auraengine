@@ -639,22 +639,22 @@ async def generate_campaign_images_background(
                             print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
                             print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for {product.name} + {model.name} + {scene.name}")
                             
-                            # REAL WORKFLOW (local-success): Qwen first, then Vella
+                            # NEW WORKFLOW: Nano Banana first, then Vella
                             quality_mode = "standard"
 
-                            # Step 1: Compose model into the scene with shot type (persist inputs first)
+                            # Step 1: Compose model into the scene with shot type using Nano Banana
                             # Stabilize model pose to /static to avoid replicate 404s
                             stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
-                            qwen_result_url = run_qwen_scene_composition(
+                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}' using Nano Banana...")
+                            nano_result_url = run_nano_banana_scene_composition(
                                 stable_model,
                                 stable_scene,
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
-                            # Qwen result is already persisted in run_qwen_scene_composition
-                            print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
+                            # Nano Banana result is already persisted
+                            print(f"✅ Nano Banana scene composition completed: {nano_result_url[:50]}...")
 
                             # Step 2: Apply Vella try-on on the composed image
                             print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
@@ -668,8 +668,8 @@ async def generate_campaign_images_background(
                             # Step 3: Use Vella result directly (Nano Banana will be applied after Qwen final)
                             final_result_url = vella_result_url
                             
-                            # Step 4: Final Qwen scene integration to restore/enhance scene background
-                            print(f"🎨 Step 4: Final scene integration with Qwen...")
+                            # Step 4: Final Nano Banana scene integration to restore/enhance scene background
+                            print(f"🎨 Step 4: Final scene integration with Nano Banana...")
                             try:
                                 # Use the dressed model and original scene for final integration
                                 scene_integration_prompt = (
@@ -680,7 +680,7 @@ async def generate_campaign_images_background(
                                     f"Professional fashion photography with dramatic scene lighting."
                                 )
                                 
-                                final_result_url = run_qwen_scene_composition(
+                                final_result_url = run_nano_banana_scene_composition(
                                     final_result_url,  # Dressed model from Vella/Nano Banana
                                     stable_scene,      # Original scene
                                     quality_mode,
@@ -972,13 +972,13 @@ async def generate_campaign_images(
                             stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                             print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
-                            qwen_result_url = run_qwen_scene_composition(
+                            qwen_result_url = run_nano_banana_scene_composition(
                                 stable_model,
                                 stable_scene,
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
-                            # Qwen result is already persisted in run_qwen_scene_composition
+                            # Qwen result is already persisted in run_nano_banana_scene_composition
                             print(f"✅ Qwen scene composition completed: {qwen_result_url[:50]}...")
 
                             # Step 2: Apply Vella try-on on the composed image
@@ -992,8 +992,8 @@ async def generate_campaign_images(
                             # Step 3: Use Vella result directly (Nano Banana will be applied after Qwen final)
                             final_result_url = vella_result_url
                             
-                            # Step 4: Final Qwen scene integration to restore/enhance scene background
-                            print(f"🎨 Step 4: Final scene integration with Qwen...")
+                            # Step 4: Final Nano Banana scene integration to restore/enhance scene background
+                            print(f"🎨 Step 4: Final scene integration with Nano Banana...")
                             try:
                                 # Use the dressed model and original scene for final integration
                                 scene_integration_prompt = (
@@ -1004,7 +1004,7 @@ async def generate_campaign_images(
                                     f"Professional fashion photography with dramatic scene lighting."
                                 )
                                 
-                                final_result_url = run_qwen_scene_composition(
+                                final_result_url = run_nano_banana_scene_composition(
                                     final_result_url,  # Dressed model from Vella/Nano Banana
                                     stable_scene,      # Original scene
                                     quality_mode,
@@ -1904,6 +1904,88 @@ def enhance_with_nano_banana(image_url: str, prompt: str = "") -> str:
         print(f"Continuing with original image")
         return image_url
 
+def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:
+    """Compose model pose into scene using Nano Banana (replacing Qwen workflow)"""
+    try:
+        print(f"🍌 Running Nano Banana composition: model={model_image_url[:50]}..., scene={scene_image_url[:50]}...")
+        
+        # Stabilize ephemeral replicate.delivery inputs by persisting locally first
+        if isinstance(model_image_url, str) and model_image_url.startswith("https://replicate.delivery/"):
+            model_image_url = upload_to_cloudinary(model_image_url, "nano_model")
+        if isinstance(scene_image_url, str) and scene_image_url.startswith("https://replicate.delivery/"):
+            scene_image_url = upload_to_cloudinary(scene_image_url, "nano_scene")
+
+        # Convert local URLs to base64 for Nano Banana
+        if isinstance(model_image_url, str) and model_image_url.startswith(get_base_url() + "/static/"):
+            filename = model_image_url.replace(get_base_url() + "/static/", "")
+            filepath = f"uploads/{filename}"
+            model_image_url = upload_to_replicate(filepath)
+        
+        if isinstance(scene_image_url, str) and scene_image_url.startswith(get_base_url() + "/static/"):
+            filename = scene_image_url.replace(get_base_url() + "/static/", "")
+            filepath = f"uploads/{filename}"
+            scene_image_url = upload_to_replicate(filepath)
+
+        # Build prompt - use shot_type_prompt if provided, otherwise use default
+        if shot_type_prompt:
+            composition_prompt = shot_type_prompt
+        else:
+            composition_prompt = (
+                "Create a professional fashion photograph by taking the person from the first image and placing them into the scene from the second image. "
+                "Match the lighting, shadows, and atmosphere of the scene. "
+                "Ensure the person looks naturally integrated into the environment. "
+                "Professional luxury fashion aesthetic with dramatic scene lighting."
+            )
+
+        # Quality mode parameters for Nano Banana
+        if quality_mode == "high":
+            num_steps = 35
+            guidance = 7.0
+            strength = 0.6
+        else:  # standard
+            num_steps = 28
+            guidance = 5.5
+            strength = 0.5
+
+        print(f"⚡ Using Nano Banana for scene composition (quality: {quality_mode})")
+        
+        # Run Nano Banana with two images (model + scene)
+        try:
+            out = replicate.run("google/nano-banana", input={
+                "prompt": composition_prompt,
+                "image": model_image_url,
+                "num_inference_steps": num_steps,
+                "guidance_scale": guidance,
+                "strength": strength,
+                "seed": None
+            })
+            
+            # Handle different output types
+            if hasattr(out, 'url'):
+                result_url = out.url()
+            elif isinstance(out, str):
+                result_url = out
+            elif isinstance(out, list) and len(out) > 0:
+                result_url = str(out[0])
+            else:
+                result_url = str(out)
+            
+            # Persist the result to avoid 404s
+            if isinstance(result_url, str) and result_url.startswith("https://replicate.delivery/"):
+                result_url = upload_to_cloudinary(result_url, "nano_composition")
+            
+            print(f"✅ Nano Banana composition completed: {result_url[:50]}...")
+            return result_url
+            
+        except Exception as e:
+            print(f"❌ Nano Banana composition failed: {e}")
+            # Fallback to original model image
+            return model_image_url
+            
+    except Exception as e:
+        print(f"❌ Nano Banana scene composition error: {e}")
+        return model_image_url
+
 def upload_pil_to_cloudinary(img: Image.Image, folder: str = "auraengine") -> str:
     """
     Upload a PIL Image to Cloudinary and return the public URL.
@@ -2362,7 +2444,7 @@ CAMPAIGN_SHOT_TYPES = [
     }
 ]
 
-def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:
+def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:
     """Compose model pose into scene using Qwen (the workflow that worked for jenny swag)"""
     try:
         print(f"🎬 Running Qwen composition: model={model_image_url[:50]}..., scene={scene_image_url[:50]}...")
