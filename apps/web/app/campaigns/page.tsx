@@ -98,6 +98,7 @@ export default function CampaignsPage() {
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [selectedScenes, setSelectedScenes] = useState<string[]>([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [isGeneratingInModal, setIsGeneratingInModal] = useState(false);
   const [generatingCampaign, setGeneratingCampaign] = useState<string | null>(
     null
   );
@@ -424,13 +425,11 @@ export default function CampaignsPage() {
     });
 
     setIsCreating(true);
-    console.log("🔍 Set isCreating to true and closing modal");
+    setIsGeneratingInModal(true);
+    console.log("🔍 Set isCreating to true and starting generation in modal");
 
     // Clear any previous generated image
     setGeneratedImageUrl(null);
-
-    // Close modal immediately when generation starts
-    setShowCreateModal(false);
 
     try {
       const formData = new FormData();
@@ -572,6 +571,7 @@ export default function CampaignsPage() {
       );
     } finally {
       setIsCreating(false);
+      setIsGeneratingInModal(false);
     }
   };
 
@@ -1934,6 +1934,57 @@ export default function CampaignsPage() {
                   flexDirection: "column",
                 }}
               >
+                {/* Generation Overlay */}
+                {isGeneratingInModal && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: "rgba(0, 0, 0, 0.7)",
+                      backdropFilter: "blur(8px)",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      zIndex: 100,
+                      gap: "20px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        border: "4px solid #FFFFFF",
+                        borderTop: "4px solid transparent",
+                        borderRadius: "50%",
+                        animation: "spin 1s linear infinite",
+                      }}
+                    />
+                    <div
+                      style={{
+                        color: "#FFFFFF",
+                        fontSize: "18px",
+                        fontWeight: "600",
+                        textAlign: "center",
+                      }}
+                    >
+                      Generating Campaign...
+                    </div>
+                    <div
+                      style={{
+                        color: "#E5E7EB",
+                        fontSize: "14px",
+                        textAlign: "center",
+                        maxWidth: "200px",
+                      }}
+                    >
+                      Creating your campaign with AI models
+                    </div>
+                  </div>
+                )}
                 {/* History/Previous Generations - Top Left */}
                 <div
                   style={{
@@ -2490,6 +2541,7 @@ export default function CampaignsPage() {
                     }}
                     disabled={
                       isCreating ||
+                      isGeneratingInModal ||
                       !newCampaign.name ||
                       selectedProducts.length === 0 ||
                       !selectedModel ||
@@ -2498,7 +2550,7 @@ export default function CampaignsPage() {
                     style={{
                       width: "100%",
                       padding: "12px 20px",
-                      backgroundColor: isCreating
+                      backgroundColor: isCreating || isGeneratingInModal
                         ? "#6B7280"
                         : !newCampaign.name ||
                           selectedProducts.length === 0 ||
@@ -2513,6 +2565,7 @@ export default function CampaignsPage() {
                       fontWeight: "600",
                       cursor:
                         isCreating ||
+                        isGeneratingInModal ||
                         !newCampaign.name ||
                         selectedProducts.length === 0 ||
                         !selectedModel ||
