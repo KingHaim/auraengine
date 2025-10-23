@@ -3034,34 +3034,7 @@ def run_enhancor_realism_enhancement(image_url: str) -> str:
     try:
         print(f"🎨 Running Enhancor.ai realism enhancement: {image_url[:50]}...")
         
-        # Convert local URLs to base64 for API
-        if image_url.startswith(get_base_url() + "/static/"):
-            filename = image_url.replace(get_base_url() + "/static/", "")
-            filepath = f"uploads/{filename}"
-            with open(filepath, 'rb') as f:
-                image_data = f.read()
-                import base64
-                image_base64 = base64.b64encode(image_data).decode('utf-8')
-        elif image_url.startswith("https://replicate.delivery/"):
-            # Download from Replicate URL
-            import requests
-            response = requests.get(image_url)
-            if response.status_code == 200:
-                import base64
-                image_base64 = base64.b64encode(response.content).decode('utf-8')
-            else:
-                print(f"❌ Failed to download image from Replicate: {response.status_code}")
-                return image_url
-        else:
-            # Assume it's already a Cloudinary URL or other accessible URL
-            import requests
-            response = requests.get(image_url)
-            if response.status_code == 200:
-                import base64
-                image_base64 = base64.b64encode(response.content).decode('utf-8')
-            else:
-                print(f"❌ Failed to download image: {response.status_code}")
-                return image_url
+        # Use image_url directly - no need to convert to base64
         
         # Prepare API request
         import requests
@@ -3075,9 +3048,8 @@ def run_enhancor_realism_enhancement(image_url: str) -> str:
         }
         
         payload = {
-            "image": image_base64,
-            "enhancement_type": "realism",
-            "quality": "high"
+            "image_url": image_url,
+            "enhancement_type": "realism"
         }
         
         print(f"🔄 Calling Enhancor.ai API...")
@@ -3100,16 +3072,16 @@ def run_enhancor_realism_enhancement(image_url: str) -> str:
                     json=payload,
                     timeout=60
                 )
-                if response.status_code != 404:
+                if response.status_code == 200:
                     print(f"✅ Found working endpoint: {endpoint}")
                     break
                 else:
-                    print(f"❌ 404 for {endpoint}")
+                    print(f"❌ {response.status_code} for {endpoint}: {response.text[:100]}")
             except Exception as e:
                 print(f"❌ Error with {endpoint}: {e}")
                 continue
         
-        if not response or response.status_code == 404:
+        if not response:
             print(f"❌ All Enhancor.ai endpoints failed, skipping enhancement")
             return image_url
         
