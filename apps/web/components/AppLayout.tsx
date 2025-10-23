@@ -5,6 +5,8 @@ import Link from "next/link";
 import AuthModal from "./AuthModal";
 import { useState, useEffect, useRef } from "react";
 
+const SIDEBAR_WIDTH = 256; // px
+
 interface AppLayoutProps {
   children: React.ReactNode;
 }
@@ -247,7 +249,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
       {/* Sidebar */}
       <div
         style={{
-          width: "256px",
+          width: `${SIDEBAR_WIDTH}px`,
           background:
             "linear-gradient(180deg, #090a0c 0%, #090a0c 60%, #1a1a1a 80%, #8b1a2a 100%)",
           borderRight: "1px solid #1F2630",
@@ -353,9 +355,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
       {/* Main Content */}
       <div
         style={{
-          marginLeft: "257px",
-          marginRight: "257px",
-          minHeight: "100vh",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          marginLeft: `${SIDEBAR_WIDTH}px`,
         }}
       >
         {/* Topbar */}
