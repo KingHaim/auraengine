@@ -250,7 +250,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         style={{
           width: "256px",
           background:
-            "linear-gradient(90deg, #0B0F12 0%, #0E131A 45%, #121826 100%)",
+            "linear-gradient(180deg, #090a0c 0%, #d42f48 100%)",
           borderRight: "1px solid #1F2630",
           padding: "32px 24px",
           display: "flex",
@@ -285,8 +285,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
             src="/logo.jpg"
             alt="Logo"
             style={{
-              width: "60px",
-              height: "60px",
+              width: "100px",
+              height: "100px",
               objectFit: "contain",
               margin: "0 auto",
             }}
