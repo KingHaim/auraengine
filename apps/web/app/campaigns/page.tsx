@@ -275,11 +275,13 @@ export default function CampaignsPage() {
 
       if (scenesRes.ok) {
         const scenesData = await scenesRes.json();
-        console.log("Scenes data:", scenesData);
+        console.log("🎬 Scenes data:", scenesData);
+        console.log("🎬 Scenes count:", scenesData.length);
+        console.log("🎬 First scene:", scenesData[0]);
         setScenes(scenesData);
       } else {
         console.error(
-          "Scenes fetch failed:",
+          "❌ Scenes fetch failed:",
           scenesRes.status,
           await scenesRes.text()
         );
@@ -1436,6 +1438,8 @@ export default function CampaignsPage() {
                     "Current showCreateModal state:",
                     showCreateModal
                   );
+                  console.log("🎬 Current scenes state:", scenes);
+                  console.log("🎬 Scenes length:", scenes.length);
                   setShowCreateModal(true);
                   console.log("Set showCreateModal to true");
                 }}
@@ -2073,7 +2077,7 @@ export default function CampaignsPage() {
                       justifyContent: "space-between",
                     }}
                   >
-                    SCENES
+                    SCENES ({scenes.length})
                     {selectedScenes.length > 0 && (
                       <span
                         style={{
@@ -2099,7 +2103,22 @@ export default function CampaignsPage() {
                       scrollbarColor: "#4B5563 #374151",
                     }}
                   >
-                    {scenes.map((scene) => (
+                    {scenes.length === 0 ? (
+                      <div
+                        style={{
+                          color: "#9CA3AF",
+                          fontSize: "14px",
+                          padding: "20px",
+                          textAlign: "center",
+                          width: "100%",
+                        }}
+                      >
+                        No scenes available
+                      </div>
+                    ) : (
+                      scenes.map((scene) => {
+                        console.log("🎬 Rendering scene:", scene);
+                        return (
                       <div
                         key={scene.id}
                         onClick={() => toggleSelection(scene.id, "scenes")}
