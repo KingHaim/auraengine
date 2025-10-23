@@ -249,7 +249,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <div
         style={{
           width: "256px",
-          background: "linear-gradient(180deg, #090a0c 0%, #090a0c 50%, #1a1a1a 70%, #d42f48 100%)",
+          background:
+            "linear-gradient(180deg, #090a0c 0%, #090a0c 50%, #1a1a1a 70%, #d42f48 100%)",
           borderRight: "1px solid #1F2630",
           padding: "32px 24px",
           display: "flex",
@@ -281,11 +282,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
           }}
         >
           <img
-            src="/logo.jpg"
+            src="/logo.png"
             alt="Logo"
             style={{
-              width: "140px",
-              height: "140px",
+              width: "180px",
+              height: "180px",
               objectFit: "contain",
               margin: "0 auto",
             }}
