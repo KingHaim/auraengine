@@ -258,7 +258,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           top: 0,
           left: 0,
           height: "100vh",
-          zIndex: 1000,
+          zIndex: 1,
         }}
       >
         {/* Radial glow overlay */}
@@ -355,6 +355,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
         style={{
           marginLeft: "256px",
           minHeight: "100vh",
+          position: "relative",
+          zIndex: 2,
         }}
       >
         {/* Topbar */}
