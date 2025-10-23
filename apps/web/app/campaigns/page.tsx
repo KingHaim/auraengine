@@ -1957,8 +1957,8 @@ export default function CampaignsPage() {
                       src="/beating.gif"
                       alt="Generating..."
                       style={{
-                        width: "60px",
-                        height: "60px",
+                        width: "100px",
+                        height: "100px",
                         objectFit: "contain",
                       }}
                     />
