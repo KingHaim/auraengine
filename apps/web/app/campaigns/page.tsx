@@ -183,6 +183,34 @@ export default function CampaignsPage() {
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
     null
   );
+  const [lastGeneratedImages, setLastGeneratedImages] = useState<string[]>([]);
+  const [currentDisplayedImage, setCurrentDisplayedImage] = useState<string | null>(null);
+
+  // Function to get last generated images from campaigns
+  const getLastGeneratedImages = () => {
+    const allImages: string[] = [];
+    
+    campaigns.forEach(campaign => {
+      if (campaign.settings?.generated_images?.length > 0) {
+        campaign.settings.generated_images.forEach((img: any) => {
+          if (img.image_url) {
+            allImages.push(img.image_url);
+          }
+        });
+      }
+    });
+    
+    // Sort by campaign creation date (most recent first) and take last 2
+    const sortedImages = allImages.slice(-2).reverse();
+    setLastGeneratedImages(sortedImages);
+    
+    // Set the most recent image as current displayed image
+    if (sortedImages.length > 0 && !currentDisplayedImage) {
+      setCurrentDisplayedImage(sortedImages[0]);
+    }
+    
+    console.log("🖼️ Last generated images:", sortedImages);
+  };
 
   // Function to fetch data from API
   const fetchData = async () => {
@@ -352,12 +380,18 @@ export default function CampaignsPage() {
             firstImage.image_url
           );
           setGeneratedImageUrl(firstImage.image_url);
+          setCurrentDisplayedImage(firstImage.image_url);
         } else {
           console.log("❌ No generated images found in campaign from polling");
         }
       }
     }
   }, [campaigns, generatingCampaignId]);
+
+  // Update last generated images when campaigns change
+  useEffect(() => {
+    getLastGeneratedImages();
+  }, [campaigns]);
 
   const handleCreateCampaign = async () => {
     console.log("🔍 handleCreateCampaign called");
@@ -503,6 +537,7 @@ export default function CampaignsPage() {
                 firstImage.image_url
               );
               setGeneratedImageUrl(firstImage.image_url);
+              setCurrentDisplayedImage(firstImage.image_url);
             } else {
               console.log("❌ No generated images found in campaign");
             }
@@ -1929,32 +1964,81 @@ export default function CampaignsPage() {
                   </div>
 
                   {/* History Thumbnails */}
-                  <div
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      backgroundColor: "#374151",
-                      borderRadius: "8px",
-                      border: "2px solid #EF4444",
-                      backgroundImage:
-                        'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23374151"/><text x="50" y="50" text-anchor="middle" dy=".3em" fill="white" font-size="12">Preview</text></svg>\')',
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }}
-                  />
-                  <div
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      backgroundColor: "#374151",
-                      borderRadius: "8px",
-                      border: "1px solid #6B7280",
-                      backgroundImage:
-                        'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23374151"/><text x="50" y="50" text-anchor="middle" dy=".3em" fill="white" font-size="12">Previous</text></svg>\')',
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }}
-                  />
+                  {lastGeneratedImages.length > 0 ? (
+                    lastGeneratedImages.slice(0, 2).map((imageUrl, index) => (
+                      <div
+                        key={index}
+                        onClick={() => setCurrentDisplayedImage(imageUrl)}
+                        style={{
+                          width: "60px",
+                          height: "60px",
+                          backgroundImage: `url(${imageUrl})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          border: currentDisplayedImage === imageUrl 
+                            ? "2px solid #8B5CF6" 
+                            : "1px solid #6B7280",
+                          position: "relative",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {currentDisplayedImage === imageUrl && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "4px",
+                              right: "4px",
+                              width: "16px",
+                              height: "16px",
+                              backgroundColor: "#8B5CF6",
+                              borderRadius: "50%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "10px",
+                              color: "#FFFFFF",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            ✓
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <>
+                      <div
+                        style={{
+                          width: "60px",
+                          height: "60px",
+                          backgroundColor: "#374151",
+                          borderRadius: "8px",
+                          border: "1px solid #6B7280",
+                          backgroundImage:
+                            'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23374151"/><text x="50" y="50" text-anchor="middle" dy=".3em" fill="white" font-size="12">Preview</text></svg>\')',
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          opacity: 0.5,
+                        }}
+                      />
+                      <div
+                        style={{
+                          width: "60px",
+                          height: "60px",
+                          backgroundColor: "#374151",
+                          borderRadius: "8px",
+                          border: "1px solid #6B7280",
+                          backgroundImage:
+                            'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23374151"/><text x="50" y="50" text-anchor="middle" dy=".3em" fill="white" font-size="12">Previous</text></svg>\')',
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          opacity: 0.5,
+                        }}
+                      />
+                    </>
+                  )}
                 </div>
 
                 {/* Main Image Display - Takes whole left side */}
@@ -1966,8 +2050,8 @@ export default function CampaignsPage() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundImage: generatedImageUrl
-                      ? `url(${generatedImageUrl})`
+                    backgroundImage: (currentDisplayedImage || generatedImageUrl)
+                      ? `url(${currentDisplayedImage || generatedImageUrl})`
                       : 'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600"><rect width="400" height="600" fill="%23374151"/><text x="200" y="300" text-anchor="middle" dy=".3em" fill="white" font-size="18">Generated Image Will Appear Here</text></svg>\')',
                     backgroundSize: "cover",
                     backgroundPosition: "center",
@@ -1975,7 +2059,7 @@ export default function CampaignsPage() {
                     position: "relative",
                   }}
                 >
-                  {generatingCampaignId && !generatedImageUrl && (
+                  {generatingCampaignId && !currentDisplayedImage && !generatedImageUrl && (
                     <div
                       style={{
                         position: "absolute",
@@ -2006,7 +2090,7 @@ export default function CampaignsPage() {
                       Generating...
                     </div>
                   )}
-                  {generatedImageUrl && (
+                  {(currentDisplayedImage || generatedImageUrl) && (
                     <div
                       style={{
                         position: "absolute",
