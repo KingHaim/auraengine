@@ -35,8 +35,6 @@ class Campaign(Base):
     description = Column(Text, nullable=True)
     status = Column(String, default="draft")  # draft, active, completed, archived
     generation_status = Column(String, default="idle")  # idle, generating, completed, failed
-    scene_generation_status = Column(String, default="pending")  # pending, generating_scene, scene_approved, generating_photoshoot, completed
-    approved_scene_url = Column(String, nullable=True)  # URL of the approved scene for photoshoot generation
     settings = Column(JSON, default=dict)  # Store campaign-specific settings
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
