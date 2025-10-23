@@ -2049,14 +2049,14 @@ export default function CampaignsPage() {
                   style={{
                     width: "100%",
                     height: "100%",
-                    backgroundColor: "#374151",
+                    backgroundColor: "#454545",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     backgroundImage:
                       currentDisplayedImage || generatedImageUrl
                         ? `url(${currentDisplayedImage || generatedImageUrl})`
-                        : 'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600"><rect width="400" height="600" fill="%23374151"/><text x="200" y="300" text-anchor="middle" dy=".3em" fill="white" font-size="18">Generated Image Will Appear Here</text></svg>\')',
+                        : 'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600"><rect width="400" height="600" fill="%23454545"/><text x="200" y="300" text-anchor="middle" dy=".3em" fill="white" font-size="18">Generated Image Will Appear Here</text></svg>\')',
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     border: "2px solid #4B5563",
