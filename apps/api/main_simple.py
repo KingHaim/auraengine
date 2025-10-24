@@ -2518,15 +2518,16 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
             strength = max(strength, 0.55)  # Reduced from 0.78
             print("🪑 Sitting Shot detected → moderate boost for better scene integration")
         
-        # Use Qwen with improved parameters for better scene composition
+        # Use Nano Banana for scene composition
         try:
-            print("🔄 Using Qwen for scene composition with improved parameters...")
-            out = replicate.run("qwen/qwen-image-edit-plus", input={
+            print("🔄 Using Nano Banana for scene composition with improved parameters...")
+            out = replicate.run("google/nano-banana", input={
                 "prompt": scene_prompt,
-                "image": [model_image_url, scene_image_url],
+                "image_input": [model_image_url, scene_image_url],
                 "num_inference_steps": num_steps,
                 "guidance_scale": guidance,
-                "strength": strength
+                "strength": strength,
+                "seed": None
             })
             
             # Handle different return types
@@ -2554,12 +2555,13 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
         except Exception as e:
             print(f"⚠️ Nano Banana scene composition failed, retrying with safer params: {e}")
             try:
-                safer_out = replicate.run("qwen/qwen-image-edit-plus", input={
+                safer_out = replicate.run("google/nano-banana", input={
                     "prompt": scene_prompt,
-                    "image": [model_image_url, scene_image_url],
+                    "image_input": [model_image_url, scene_image_url],
                     "num_inference_steps": max(30, num_steps - 10),
                     "guidance_scale": max(5.0, guidance - 1.5),
-                    "strength": max(0.5, strength - 0.15)
+                    "strength": max(0.5, strength - 0.15),
+                    "seed": None
                 })
                 if hasattr(safer_out, 'url'):
                     scene_composite_url = safer_out.url()
