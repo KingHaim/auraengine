@@ -2203,52 +2203,52 @@ CAMPAIGN_SHOT_TYPES = [
     {
         "name": "sitting_intro",
         "title": "Sitting Shot (Intro)",
-        "prompt": "Full-body shot sitting casually, relaxed posture, model wearing the product naturally"
+        "prompt": "Model standing and posing normally"
     },
     {
         "name": "standing_full",
         "title": "Standing Look (Fit Reveal)",
-        "prompt": "Model standing confidently, straight posture, outfit fully visible from head to toe, product clearly shown"
+        "prompt": "Model standing and posing normally"
     },
     {
         "name": "upper_closeup",
         "title": "Upper Body Close-Up",
-        "prompt": "Close-up of upper torso focusing on product details, fabric texture, stitching visible"
+        "prompt": "Model standing and posing normally"
     },
     {
         "name": "lower_closeup",
         "title": "Lower Body Close-Up",
-        "prompt": "Close-up of lower torso showing product fit, fabric movement, detail work, subtle wrinkles from natural motion"
+        "prompt": "Model standing and posing normally"
     },
     {
         "name": "action_dynamic",
         "title": "Action Shot (Movement)",
-        "prompt": "Full-body dynamic shot of model in natural walking pose, confident stride, energetic and stylish movement"
+        "prompt": "Model standing and posing normally"
     },
     {
         "name": "interaction_pose",
         "title": "Model Interaction",
-        "prompt": "Medium shot of model in natural pose, hands positioned naturally, focused expression, lifestyle tone"
+        "prompt": "Model standing and posing normally"
     },
     {
         "name": "hero_finale",
         "title": "Hero Pose (Campaign Finale)",
-        "prompt": "Full-body confident hero pose facing camera, product fully shown and emphasized, striking and memorable composition"
+        "prompt": "Model standing and posing normally"
     },
     {
         "name": "detail_macro",
         "title": "Fabric Detail Macro",
-        "prompt": "Extreme close-up macro shot of fabric texture, stitching details, material quality, sharp focus on textile details"
+        "prompt": "Model standing and posing normally"
     },
     {
         "name": "profile_side",
         "title": "Profile Side View",
-        "prompt": "Side profile shot showing product silhouette and fit, model in natural side pose, elegant profile composition"
+        "prompt": "Model standing and posing normally"
     },
     {
         "name": "lifestyle_context",
         "title": "Lifestyle Context Shot",
-        "prompt": "Lifestyle shot showing product in natural context, model in relaxed pose, environmental storytelling, candid moment capture"
+        "prompt": "Model standing and posing normally"
     }
 ]
 
