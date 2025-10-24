@@ -17,7 +17,9 @@ export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
   const [campaigns, setCampaigns] = useState<ApiCampaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCampaignModal, setShowCampaignModal] = useState(false);
-  const [selectedCampaign, setSelectedCampaign] = useState<ApiCampaign | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<ApiCampaign | null>(
+    null
+  );
 
   // Function to open campaign modal
   const openCampaignModal = (campaign: ApiCampaign) => {
@@ -307,51 +309,58 @@ export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
               </p>
             </div>
 
-            {selectedCampaign.settings?.generated_images && selectedCampaign.settings.generated_images.length > 0 && (
-              <div>
-                <h3
-                  style={{
-                    margin: "0 0 16px 0",
-                    fontSize: "18px",
-                    fontWeight: "600",
-                    color: "#1F2937",
-                  }}
-                >
-                  Generated Images ({selectedCampaign.settings.generated_images.length})
-                </h3>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-                    gap: "16px",
-                  }}
-                >
-                  {selectedCampaign.settings.generated_images.map((image: any, index: number) => (
-                    <div
-                      key={index}
-                      style={{
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                        border: "1px solid #E5E7EB",
-                      }}
-                    >
-                      <img
-                        src={image.image_url}
-                        alt={`Generated image ${index + 1}`}
-                        style={{
-                          width: "100%",
-                          height: "200px",
-                          objectFit: "cover",
-                        }}
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src = `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`;
-                        }}
-                      />
-                    </div>
-                  ))}
+            {selectedCampaign.settings?.generated_images &&
+              selectedCampaign.settings.generated_images.length > 0 && (
+                <div>
+                  <h3
+                    style={{
+                      margin: "0 0 16px 0",
+                      fontSize: "18px",
+                      fontWeight: "600",
+                      color: "#1F2937",
+                    }}
+                  >
+                    Generated Images (
+                    {selectedCampaign.settings.generated_images.length})
+                  </h3>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(200px, 1fr))",
+                      gap: "16px",
+                    }}
+                  >
+                    {selectedCampaign.settings.generated_images.map(
+                      (image: any, index: number) => (
+                        <div
+                          key={index}
+                          style={{
+                            borderRadius: "8px",
+                            overflow: "hidden",
+                            border: "1px solid #E5E7EB",
+                          }}
+                        >
+                          <img
+                            src={image.image_url}
+                            alt={`Generated image ${index + 1}`}
+                            style={{
+                              width: "100%",
+                              height: "200px",
+                              objectFit: "cover",
+                            }}
+                            onError={(e) => {
+                              (
+                                e.currentTarget as HTMLImageElement
+                              ).src = `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`;
+                            }}
+                          />
+                        </div>
+                      )
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         </div>
       )}

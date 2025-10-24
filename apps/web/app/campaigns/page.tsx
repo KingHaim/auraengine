@@ -4754,19 +4754,22 @@ export default function CampaignsPage() {
               alignItems: "center",
               justifyContent: "center",
               zIndex: 1000,
+              overflow: "auto",
             }}
+            onClick={() => setShowCampaignProfileModal(false)}
           >
             <div
               style={{
-                backgroundColor: "#FFFFFF",
+                backgroundColor: "white",
                 borderRadius: "16px",
                 padding: "32px",
-                width: "900px",
-                maxWidth: "95vw",
+                maxWidth: "90vw",
                 maxHeight: "90vh",
-                border: "1px solid #E5E7EB",
+                width: "1000px",
+                position: "relative",
                 overflow: "auto",
               }}
+              onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
               <div
@@ -4775,16 +4778,14 @@ export default function CampaignsPage() {
                   alignItems: "center",
                   justifyContent: "space-between",
                   marginBottom: "24px",
-                  paddingBottom: "16px",
-                  borderBottom: "1px solid #E5E7EB",
                 }}
               >
                 <h2
                   style={{
-                    fontSize: "24px",
+                    margin: 0,
+                    fontSize: "20px",
                     fontWeight: "600",
                     color: "#1F2937",
-                    margin: 0,
                   }}
                 >
                   {selectedCampaignForProfile.name}
