@@ -57,6 +57,9 @@ else:
 # Helper functions for URL generation
 def get_base_url():
     """Get the base URL for the API"""
+    # In development, use localhost if not explicitly set
+    if os.getenv("ENVIRONMENT") == "development" or os.getenv("API_BASE_URL") is None:
+        return "http://localhost:8000"
     return os.getenv("API_BASE_URL", "https://auraengine-production.up.railway.app")
 
 def get_static_url(filename: str) -> str:
