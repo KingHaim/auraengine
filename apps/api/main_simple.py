@@ -702,38 +702,38 @@ async def generate_campaign_images_background(
                                 # Convert final result URL to base64 for Nano Banana if needed
                                 if final_result_url.startswith(get_base_url() + "/static/"):
                                     filename = final_result_url.replace(get_base_url() + "/static/", "")
-                                    filepath = f"uploads/{filename}"
-                                    nb_input = upload_to_replicate(filepath)
+                                        filepath = f"uploads/{filename}"
+                                        nb_input = upload_to_replicate(filepath)
                                 elif final_result_url.startswith("https://replicate.delivery/"):
                                     nb_input = final_result_url
-                                else:
+                                    else:
                                     nb_input = final_result_url
                                     
                                 # Apply Nano Banana img2img for enhanced realism
-                                nano_result = replicate.run(
+                                    nano_result = replicate.run(
                                         "google/nano-banana",
-                                    input={
+                                        input={
                                     "prompt": f"Enhance this professional fashion photography image with subtle realism improvements. Add natural skin texture and realistic fabric details. Improve lighting and shadows for a more professional look. Preserve the model's appearance and pose exactly as they are. Make subtle enhancements to skin tone and fabric texture without changing the overall composition.",
-                                        "image": nb_input,
-                                        "num_inference_steps": 25,
-                                        "guidance_scale": 4.5,
-                                    "strength": 0.25  # Lower strength to preserve model appearance
-                                    }
-                                )
-                                
-                                # Handle Nano Banana output
-                                if hasattr(nano_result, 'url'):
-                                    nano_url = nano_result.url()
-                                elif isinstance(nano_result, str):
-                                    nano_url = nano_result
-                                elif isinstance(nano_result, list) and len(nano_result) > 0:
-                                    nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                                else:
-                                    nano_url = str(nano_result)
+                                            "image": nb_input,
+                                        "num_inference_steps": 10,
+                                        "guidance_scale": 2.0,
+                                    "strength": 0.05  # Very low strength to preserve model appearance
+                                        }
+                                    )
                                     
-                                print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
-                                final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
-                            except Exception as e:
+                                    # Handle Nano Banana output
+                                    if hasattr(nano_result, 'url'):
+                                        nano_url = nano_result.url()
+                                    elif isinstance(nano_result, str):
+                                        nano_url = nano_result
+                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                    else:
+                                        nano_url = str(nano_result)
+                                    
+                                    print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+                                    final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
+                                except Exception as e:
                                 print(f"⚠️ Nano Banana failed, using previous result: {e}")
                                 # Keep the previous result if Nano Banana fails
                             
@@ -1030,38 +1030,38 @@ async def generate_campaign_images(
                                 # Convert final result URL to base64 for Nano Banana if needed
                                 if final_result_url.startswith(get_base_url() + "/static/"):
                                     filename = final_result_url.replace(get_base_url() + "/static/", "")
-                                    filepath = f"uploads/{filename}"
-                                    nb_input = upload_to_replicate(filepath)
+                                        filepath = f"uploads/{filename}"
+                                        nb_input = upload_to_replicate(filepath)
                                 elif final_result_url.startswith("https://replicate.delivery/"):
                                     nb_input = final_result_url
-                                else:
+                                    else:
                                     nb_input = final_result_url
                                     
                                 # Apply Nano Banana img2img for enhanced realism
-                                nano_result = replicate.run(
+                                    nano_result = replicate.run(
                                         "google/nano-banana",
-                                    input={
+                                        input={
                                     "prompt": f"Enhance this professional fashion photography image with subtle realism improvements. Add natural skin texture and realistic fabric details. Improve lighting and shadows for a more professional look. Preserve the model's appearance and pose exactly as they are. Make subtle enhancements to skin tone and fabric texture without changing the overall composition.",
-                                        "image": nb_input,
-                                        "num_inference_steps": 25,
-                                        "guidance_scale": 4.5,
-                                    "strength": 0.25  # Lower strength to preserve model appearance
-                                    }
-                                )
-                                
-                                # Handle Nano Banana output
-                                if hasattr(nano_result, 'url'):
-                                    nano_url = nano_result.url()
-                                elif isinstance(nano_result, str):
-                                    nano_url = nano_result
-                                elif isinstance(nano_result, list) and len(nano_result) > 0:
-                                    nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                                else:
-                                    nano_url = str(nano_result)
+                                            "image": nb_input,
+                                        "num_inference_steps": 10,
+                                        "guidance_scale": 2.0,
+                                    "strength": 0.05  # Very low strength to preserve model appearance
+                                        }
+                                    )
                                     
-                                print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
+                                    # Handle Nano Banana output
+                                    if hasattr(nano_result, 'url'):
+                                        nano_url = nano_result.url()
+                                    elif isinstance(nano_result, str):
+                                        nano_url = nano_result
+                                    elif isinstance(nano_result, list) and len(nano_result) > 0:
+                                        nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
+                                    else:
+                                        nano_url = str(nano_result)
+                                    
+                                    print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
                                 final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
-                            except Exception as e:
+                                except Exception as e:
                                 print(f"⚠️ Nano Banana failed, using previous result: {e}")
                                 # Keep the previous result if Nano Banana fails
                             
@@ -1219,13 +1219,13 @@ def run_nano_banana_model_generation(
                 print(f"🎭 Processing variant {i+1} with base model image...")
                 print(f"📝 Prompt: {enhanced_prompt[:150]}...")
                 
-                # Run Nano Banana model generation with moderate strength for realistic photo modification
+                # Run Nano Banana model generation with very low strength to preserve input
                 out = replicate.run("google/nano-banana", input={
                     "prompt": enhanced_prompt,  # Use 'prompt' parameter
                     "image": base_model_url,
-                    "num_inference_steps": 25,  # Moderate for realistic photo
-                    "guidance_scale": 6.0,  # Moderate guidance
-                    "strength": 0.4,  # Moderate strength for realistic photo modification
+                    "num_inference_steps": 10,  # Low steps to preserve input
+                    "guidance_scale": 2.0,  # Low guidance to preserve input
+                    "strength": 0.05,  # Very low strength to preserve input
                     "seed": None
                 })
                 
@@ -1890,9 +1890,9 @@ def enhance_with_nano_banana(image_url: str, prompt: str = "") -> str:
         out = replicate.run("google/nano-banana", input={
             "image": image_url,
             "prompt": prompt,
-            "num_inference_steps": 22,  # Lower steps to avoid changing background
-            "guidance_scale": 5.0,  # Lower guidance to focus on subtle refinement
-            "strength": 0.20  # Very low strength = preserve background, only refine person
+            "num_inference_steps": 8,  # Very low steps to preserve input
+            "guidance_scale": 2.0,  # Very low guidance to preserve input
+            "strength": 0.05  # Very low strength = preserve input, only subtle refinement
         })
         
         # Handle output
@@ -2199,11 +2199,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             for attempt in range(max_retries):
                 try:
                     print(f"🎭 Vella attempt {attempt + 1}/{max_retries}...")
-                    out = replicate.run("omnious/vella-1.5", input=vella_input)
+            out = replicate.run("omnious/vella-1.5", input=vella_input)
                     print(f"✅ Vella API call succeeded on attempt {attempt + 1}!")
-                    print(f"🎭 Vella API response type: {type(out)}")
-                    if hasattr(out, '__dict__'):
-                        print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
+            print(f"🎭 Vella API response type: {type(out)}")
+            if hasattr(out, '__dict__'):
+                print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
                     break  # Success, exit retry loop
                 except Exception as e:
                     print(f"⚠️ Vella attempt {attempt + 1} failed: {e}")
@@ -2409,48 +2409,38 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
         # Build prompt - use shot_type_prompt if provided, otherwise use default
         if shot_type_prompt:
             scene_prompt = (
-                f"IMPORTANT: Use ONLY the background from the second image. Do NOT create a new background. "
-                f"Place the person from the first image into the EXACT background environment from the second image. "
+                f"Place the person from the first image into the background from the second image. "
                 f"{shot_type_prompt} "
-                f"The second image shows the EXACT location, environment, architecture, and setting that must be used. "
-                f"Match the lighting, colors, and atmosphere from the second image exactly. "
-                f"PRESERVE the person's face, body proportions, and pose EXACTLY as they are. "
-                f"Do not deform, distort, or change the model's appearance. "
-                f"Do not change the background - use the second image's environment as-is. "
-                f"Professional luxury fashion aesthetic with dramatic moody lighting. "
-                f"Professional editorial photography, cinematic quality."
+                f"Use the second image as the background. "
+                f"Keep the person's appearance the same. "
+                f"Professional fashion photography."
             )
         else:
             scene_prompt = (
-                "IMPORTANT: Use ONLY the background from the second image. Do NOT create a new background. "
-                "Place the person from the first image into the EXACT background environment from the second image. "
-                "The second image shows the EXACT location, environment, architecture, and setting that must be used. "
-                "Match the lighting, colors, and atmosphere from the second image exactly. "
-                "PRESERVE the person's face, body proportions, and pose EXACTLY as they are. "
-                "Do not deform, distort, or change the model's appearance. "
-                "Do not change the background - use the second image's environment as-is. "
-                "Professional luxury fashion aesthetic with dramatic moody lighting. "
-                "Professional editorial photography, cinematic quality."
+                "Place the person from the first image into the background from the second image. "
+                "Use the second image as the background. "
+                "Keep the person's appearance the same. "
+                "Professional fashion photography."
             )
         
-        # Gentler parameters to preserve model appearance
+        # Very gentle parameters to preserve input images
         if quality_mode == "high":
-            num_steps = 35        # High quality
-            guidance = 5.5        # Moderate guidance to preserve model
-            strength = 0.35       # Lower strength to preserve model better
-            print("🎨 Using HIGH QUALITY mode (model-preserving luxury)")
+            num_steps = 20        # Lower steps to preserve input
+            guidance = 3.0        # Much lower guidance to preserve model
+            strength = 0.15       # Very low strength to preserve model
+            print("🎨 Using HIGH QUALITY mode (input-preserving luxury)")
         else:  # standard
-            num_steps = 30        # Moderate quality
-            guidance = 4.5        # Lower guidance to preserve model
-            strength = 0.25       # Lower strength to preserve model better
-            print("⚡ Using STANDARD mode (model-preserving luxury)")
+            num_steps = 15        # Lower steps to preserve input
+            guidance = 2.5        # Much lower guidance to preserve model
+            strength = 0.10       # Very low strength to preserve model
+            print("⚡ Using STANDARD mode (input-preserving luxury)")
 
-        # Special handling for Sitting Shot: gentle increase for better integration
+        # Special handling for Sitting Shot: minimal increase for better integration
         if shot_type_prompt and ("sitting" in shot_type_prompt.lower()):
-            num_steps = max(num_steps, 35)  # Reduced from 40
-            guidance = max(guidance, 5.0)   # Reduced from 6.0
-            strength = max(strength, 0.30)  # Reduced from 0.55
-            print("🪑 Sitting Shot detected → gentle boost for better scene integration")
+            num_steps = max(num_steps, 20)  # Minimal increase
+            guidance = max(guidance, 3.0)   # Minimal increase
+            strength = max(strength, 0.15)  # Minimal increase
+            print("🪑 Sitting Shot detected → minimal boost for better scene integration")
         
         # Use Nano Banana for scene composition
         try:
@@ -2495,9 +2485,9 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
                 safer_out = replicate.run("google/nano-banana", input={
                     "prompt": scene_prompt,
                     "image_input": [model_image_url, scene_image_url],
-                    "num_inference_steps": max(30, num_steps - 10),
-                    "guidance_scale": max(5.0, guidance - 1.5),
-                    "strength": max(0.5, strength - 0.15),
+                    "num_inference_steps": 8,
+                    "guidance_scale": 1.5,
+                    "strength": 0.05,
                     "seed": None
                 })
                 if hasattr(safer_out, 'url'):
