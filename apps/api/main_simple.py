@@ -676,13 +676,10 @@ async def generate_campaign_images_background(
                             try:
                                 # Use the dressed model and original scene for final integration
                                 scene_integration_prompt = (
-                                    f"IMPORTANT: Use ONLY the background from the second image. Do NOT create a new background. "
-                                    f"Take the person wearing {product.name} from the first image and place them into the EXACT background from the second image. "
-                                    f"Preserve the clothing and model's appearance but ensure they fit naturally into the scene environment. "
-                                    f"Match the lighting, shadows, and atmosphere of the second image exactly. "
-                                    f"Create a cohesive composition where the person looks naturally placed in the environment. "
-                                    f"Do not change the background - use the second image's environment as-is. "
-                                    f"Professional fashion photography with dramatic scene lighting."
+                                    f"Take the person wearing {product.name} from the first image and place them into the background from the second image. "
+                                    f"Preserve the clothing and model's appearance exactly. "
+                                    f"Use the second image as the background exactly. "
+                                    f"No aesthetic changes."
                                 )
                                 
                                 final_result_url = run_nano_banana_scene_composition(
@@ -713,7 +710,7 @@ async def generate_campaign_images_background(
                                 nano_result = replicate.run(
                                         "google/nano-banana",
                                         input={
-                                            "prompt": f"Enhance this professional fashion photography image with subtle realism improvements. Add natural skin texture and realistic fabric details. Improve lighting and shadows for a more professional look. Preserve the model's appearance and pose exactly as they are. Make subtle enhancements to skin tone and fabric texture without changing the overall composition.",
+                                            "prompt": f"Make minimal technical improvements only. Preserve the model's appearance and pose exactly as they are. No aesthetic changes.",
                                             "image": nb_input,
                                             "num_inference_steps": 10,
                                             "guidance_scale": 2.0,
@@ -1004,13 +1001,10 @@ async def generate_campaign_images(
                             try:
                                 # Use the dressed model and original scene for final integration
                                 scene_integration_prompt = (
-                                    f"IMPORTANT: Use ONLY the background from the second image. Do NOT create a new background. "
-                                    f"Take the person wearing {product.name} from the first image and place them into the EXACT background from the second image. "
-                                    f"Preserve the clothing and model's appearance but ensure they fit naturally into the scene environment. "
-                                    f"Match the lighting, shadows, and atmosphere of the second image exactly. "
-                                    f"Create a cohesive composition where the person looks naturally placed in the environment. "
-                                    f"Do not change the background - use the second image's environment as-is. "
-                                    f"Professional fashion photography with dramatic scene lighting."
+                                    f"Take the person wearing {product.name} from the first image and place them into the background from the second image. "
+                                    f"Preserve the clothing and model's appearance exactly. "
+                                    f"Use the second image as the background exactly. "
+                                    f"No aesthetic changes."
                                 )
                                 
                                 final_result_url = run_nano_banana_scene_composition(
@@ -1041,7 +1035,7 @@ async def generate_campaign_images(
                                 nano_result = replicate.run(
                                         "google/nano-banana",
                                         input={
-                                            "prompt": f"Enhance this professional fashion photography image with subtle realism improvements. Add natural skin texture and realistic fabric details. Improve lighting and shadows for a more professional look. Preserve the model's appearance and pose exactly as they are. Make subtle enhancements to skin tone and fabric texture without changing the overall composition.",
+                                            "prompt": f"Make minimal technical improvements only. Preserve the model's appearance and pose exactly as they are. No aesthetic changes.",
                                             "image": nb_input,
                                             "num_inference_steps": 10,
                                             "guidance_scale": 2.0,
@@ -2323,52 +2317,52 @@ CAMPAIGN_SHOT_TYPES = [
     {
         "name": "sitting_intro",
         "title": "Sitting Shot (Intro)",
-        "prompt": "Full-body shot sitting casually, relaxed posture, model wearing the product naturally, professional fashion lighting, cinematic fashion lookbook style, sharp focus"
+        "prompt": "Full-body shot sitting casually, relaxed posture, model wearing the product naturally"
     },
     {
         "name": "standing_full",
         "title": "Standing Look (Fit Reveal)",
-        "prompt": "Model standing confidently, straight posture, outfit fully visible from head to toe, product clearly shown, professional fashion lighting, editorial photoshoot aesthetic"
+        "prompt": "Model standing confidently, straight posture, outfit fully visible from head to toe, product clearly shown"
     },
     {
         "name": "upper_closeup",
         "title": "Upper Body Close-Up",
-        "prompt": "Close-up of upper torso focusing on product details, fabric texture, stitching visible, natural lighting highlighting materials, modern fashion ad style, crisp macro photography, shallow depth of field"
+        "prompt": "Close-up of upper torso focusing on product details, fabric texture, stitching visible"
     },
     {
         "name": "lower_closeup",
         "title": "Lower Body Close-Up",
-        "prompt": "Close-up of lower torso showing product fit, fabric movement, detail work, subtle wrinkles from natural motion, soft directional lighting, high-detail fashion macro look"
+        "prompt": "Close-up of lower torso showing product fit, fabric movement, detail work, subtle wrinkles from natural motion"
     },
     {
         "name": "action_dynamic",
         "title": "Action Shot (Movement)",
-        "prompt": "Full-body dynamic shot of model in natural walking pose, confident stride, strong directional light, energetic and stylish movement, professional fashion photography"
+        "prompt": "Full-body dynamic shot of model in natural walking pose, confident stride, energetic and stylish movement"
     },
     {
         "name": "interaction_pose",
         "title": "Model Interaction",
-        "prompt": "Medium shot of model in natural pose, hands positioned naturally, focused expression, lifestyle tone, balanced shadows, professional fashion photography"
+        "prompt": "Medium shot of model in natural pose, hands positioned naturally, focused expression, lifestyle tone"
     },
     {
         "name": "hero_finale",
         "title": "Hero Pose (Campaign Finale)",
-        "prompt": "Full-body confident hero pose facing camera, product fully shown and emphasized, professional lighting, editorial fashion campaign aesthetic, striking and memorable composition"
+        "prompt": "Full-body confident hero pose facing camera, product fully shown and emphasized, striking and memorable composition"
     },
     {
         "name": "detail_macro",
         "title": "Fabric Detail Macro",
-        "prompt": "Extreme close-up macro shot of fabric texture, stitching details, material quality, professional product photography, sharp focus on textile details, studio lighting highlighting texture, macro lens effect"
+        "prompt": "Extreme close-up macro shot of fabric texture, stitching details, material quality, sharp focus on textile details"
     },
     {
         "name": "profile_side",
         "title": "Profile Side View",
-        "prompt": "Side profile shot showing product silhouette and fit, model in natural side pose, professional fashion photography, side lighting creating depth and dimension, elegant profile composition"
+        "prompt": "Side profile shot showing product silhouette and fit, model in natural side pose, elegant profile composition"
     },
     {
         "name": "lifestyle_context",
         "title": "Lifestyle Context Shot",
-        "prompt": "Lifestyle shot showing product in natural context, model in relaxed pose, environmental storytelling, warm natural lighting, authentic lifestyle photography aesthetic, candid moment capture"
+        "prompt": "Lifestyle shot showing product in natural context, model in relaxed pose, environmental storytelling, candid moment capture"
     }
 ]
 
@@ -2409,18 +2403,16 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
         # Build prompt - use shot_type_prompt if provided, otherwise use default
         if shot_type_prompt:
             scene_prompt = (
-                f"Place the person from the first image into the background from the second image. "
+                f"Place this person into the scene from {scene_image_url}. "
                 f"{shot_type_prompt} "
-                f"Use the second image as the background. "
-                f"Keep the person's appearance the same. "
-                f"Professional fashion photography."
+                f"Keep the person's appearance exactly the same. "
+                f"No aesthetic changes."
             )
         else:
             scene_prompt = (
-                "Place the person from the first image into the background from the second image. "
-                "Use the second image as the background. "
-                "Keep the person's appearance the same. "
-                "Professional fashion photography."
+                f"Place this person into the scene from {scene_image_url}. "
+                f"Keep the person's appearance exactly the same. "
+                f"No aesthetic changes."
             )
         
         # Very gentle parameters to preserve input images
@@ -2447,7 +2439,7 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
             print("🔄 Using Nano Banana for scene composition with improved parameters...")
             out = replicate.run("google/nano-banana", input={
                 "prompt": scene_prompt,
-                "image_input": [model_image_url, scene_image_url],
+                "image": model_image_url,
                 "num_inference_steps": num_steps,
                 "guidance_scale": guidance,
                 "strength": strength,
@@ -2484,7 +2476,7 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
             try:
                 safer_out = replicate.run("google/nano-banana", input={
                     "prompt": scene_prompt,
-                    "image_input": [model_image_url, scene_image_url],
+                    "image": model_image_url,
                     "num_inference_steps": 8,
                     "guidance_scale": 1.5,
                     "strength": 0.05,
