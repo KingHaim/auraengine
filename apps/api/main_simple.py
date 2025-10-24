@@ -2203,52 +2203,52 @@ CAMPAIGN_SHOT_TYPES = [
     {
         "name": "sitting_intro",
         "title": "Sitting Shot (Intro)",
-        "prompt": "Model standing and posing normally"
+        "prompt": "Full-body shot of model standing and posing normally"
     },
     {
         "name": "standing_full",
         "title": "Standing Look (Fit Reveal)",
-        "prompt": "Model standing and posing normally"
+        "prompt": "Full-body shot of model standing and posing normally"
     },
     {
         "name": "upper_closeup",
         "title": "Upper Body Close-Up",
-        "prompt": "Model standing and posing normally"
+        "prompt": "Full-body shot of model standing and posing normally"
     },
     {
         "name": "lower_closeup",
         "title": "Lower Body Close-Up",
-        "prompt": "Model standing and posing normally"
+        "prompt": "Full-body shot of model standing and posing normally"
     },
     {
         "name": "action_dynamic",
         "title": "Action Shot (Movement)",
-        "prompt": "Model standing and posing normally"
+        "prompt": "Full-body shot of model standing and posing normally"
     },
     {
         "name": "interaction_pose",
         "title": "Model Interaction",
-        "prompt": "Model standing and posing normally"
+        "prompt": "Full-body shot of model standing and posing normally"
     },
     {
         "name": "hero_finale",
         "title": "Hero Pose (Campaign Finale)",
-        "prompt": "Model standing and posing normally"
+        "prompt": "Full-body shot of model standing and posing normally"
     },
     {
         "name": "detail_macro",
         "title": "Fabric Detail Macro",
-        "prompt": "Model standing and posing normally"
+        "prompt": "Full-body shot of model standing and posing normally"
     },
     {
         "name": "profile_side",
         "title": "Profile Side View",
-        "prompt": "Model standing and posing normally"
+        "prompt": "Full-body shot of model standing and posing normally"
     },
     {
         "name": "lifestyle_context",
         "title": "Lifestyle Context Shot",
-        "prompt": "Model standing and posing normally"
+        "prompt": "Full-body shot of model standing and posing normally"
     }
 ]
 
