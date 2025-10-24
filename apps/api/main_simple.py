@@ -2554,6 +2554,9 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
             
         except Exception as e:
             print(f"⚠️ Nano Banana scene composition failed, retrying with safer params: {e}")
+            print(f"🔍 DEBUG: Model URL: {model_image_url[:100]}...")
+            print(f"🔍 DEBUG: Scene URL: {scene_image_url[:100]}...")
+            print(f"🔍 DEBUG: Prompt: {scene_prompt[:200]}...")
             try:
                 safer_out = replicate.run("google/nano-banana", input={
                     "prompt": scene_prompt,
@@ -2584,6 +2587,8 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
                 return scene_composite_url
             except Exception as e2:
                 print(f"❌ Nano Banana retry failed: {e2}")
+                print(f"🔍 DEBUG: Retry failed with model URL: {model_image_url[:100]}...")
+                print(f"🔍 DEBUG: Retry failed with scene URL: {scene_image_url[:100]}...")
                 if DISABLE_PLACEHOLDERS:
                     print("↩️ Returning model image instead of placeholder")
                     return model_image_url
