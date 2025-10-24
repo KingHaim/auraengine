@@ -2910,21 +2910,20 @@ export default function CampaignsPage() {
               alignItems: "center",
               justifyContent: "center",
               zIndex: 1000,
+              overflow: "auto",
             }}
             onClick={() => setShowCampaignModal(false)}
           >
             <div
               style={{
-                backgroundColor: "#FFFFFF",
+                backgroundColor: "white",
                 borderRadius: "16px",
                 padding: "32px",
-                width: "90%",
-                maxWidth: "1000px",
+                maxWidth: "90vw",
                 maxHeight: "90vh",
-                overflowY: "auto",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-                color: "#1F2937",
+                width: "1000px",
                 position: "relative",
+                overflow: "auto",
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -2936,21 +2935,16 @@ export default function CampaignsPage() {
                   marginBottom: "24px",
                 }}
               >
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: "20px",
+                    fontWeight: "600",
+                    color: "#1F2937",
+                  }}
                 >
-                  <div style={{ fontSize: "24px" }}>📁</div>
-                  <h2
-                    style={{
-                      margin: 0,
-                      fontSize: "24px",
-                      fontWeight: "600",
-                      color: "#1F2937",
-                    }}
-                  >
-                    {selectedCampaign.name}
-                  </h2>
-                </div>
+                  {selectedCampaign.name}
+                </h2>
                 <button
                   onClick={() => generateMoreImages(selectedCampaign)}
                   disabled={generatingMore}
@@ -2975,9 +2969,10 @@ export default function CampaignsPage() {
               {selectedCampaign.description && (
                 <p
                   style={{
-                    fontSize: "16px",
+                    margin: "0 0 32px 0",
                     color: "#6B7280",
-                    marginBottom: "24px",
+                    fontSize: "16px",
+                    lineHeight: "1.5",
                   }}
                 >
                   {selectedCampaign.description}
