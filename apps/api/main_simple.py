@@ -2065,6 +2065,8 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 "model_image": model_image_url,
                 "top_image": garment_url,
                 "num_outputs": num_outputs,
+                "garment_only": True,  # Try to replace existing clothing instead of adding layers
+                "remove_background": False,  # Keep the scene background
             }
             
             if seed is not None:
