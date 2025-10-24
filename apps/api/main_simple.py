@@ -670,71 +670,13 @@ async def generate_campaign_images_background(
                             # Vella result is already persisted in run_vella_try_on
                             print(f"✅ Product applied to model: {vella_result_url[:50]}...")
                             
-                            # Step 3: Use Vella result directly (final Nano Banana enhancement will be applied)
+                            # Step 3: Use Vella result as final result (clean two-step workflow)
                             final_result_url = vella_result_url
+                            print(f"✅ Two-step workflow completed: Model placed in scene + Product applied")
                             
-                            # Step 4: Final Qwen scene integration to restore/enhance scene background
-                            print(f"🎨 Step 4: Final scene integration with Qwen...")
-                            try:
-                                # Use the dressed model and original scene for final integration
-                                scene_integration_prompt = (
-                                    f"Take the person wearing {product.name} from the first image and place them into the background from the second image. "
-                                    f"Preserve the clothing and model's appearance exactly. "
-                                    f"Use the second image as the background exactly. "
-                                    f"No aesthetic changes."
-                                )
-                                
-                                final_result_url = run_nano_banana_scene_composition(
-                                    final_result_url,  # Dressed model from Vella/Nano Banana
-                                    stable_scene,      # Original scene
-                                    quality_mode,
-                                    shot_type_prompt=scene_integration_prompt
-                                )
-                                print(f"✅ Final scene integration completed: {final_result_url[:50]}...")
-                            except Exception as e:
-                                print(f"⚠️ Final scene integration failed, using previous result: {e}")
-                                # Keep the previous result if scene integration fails
+                            # Step 4: REMOVED - Clean two-step workflow (Step 1: Model→Scene, Step 2: Product→Model)
                             
-                            # Step 5: Apply Nano Banana to enhance realism and quality
-                            print(f"🍌 Step 5: Enhancing realism with Nano Banana...")
-                            try:
-                                # Convert final result URL to base64 for Nano Banana if needed
-                                if final_result_url.startswith(get_base_url() + "/static/"):
-                                    filename = final_result_url.replace(get_base_url() + "/static/", "")
-                                    filepath = f"uploads/{filename}"
-                                    nb_input = upload_to_replicate(filepath)
-                                elif final_result_url.startswith("https://replicate.delivery/"):
-                                    nb_input = final_result_url
-                                else:
-                                    nb_input = final_result_url
-                                    
-                                # Apply Nano Banana img2img for enhanced realism
-                                nano_result = replicate.run(
-                                        "google/nano-banana",
-                                        input={
-                                            "prompt": f"Make minimal technical improvements only. Preserve the model's appearance and pose exactly as they are. No aesthetic changes.",
-                                            "image": nb_input,
-                                            "num_inference_steps": 10,
-                                            "guidance_scale": 2.0,
-                                            "strength": 0.05  # Very low strength to preserve model appearance
-                                        }
-                                    )
-                                    
-                                # Handle Nano Banana output
-                                if hasattr(nano_result, 'url'):
-                                    nano_url = nano_result.url()
-                                elif isinstance(nano_result, str):
-                                    nano_url = nano_result
-                                elif isinstance(nano_result, list) and len(nano_result) > 0:
-                                    nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                                else:
-                                    nano_url = str(nano_result)
-                                
-                                print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
-                                final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
-                            except Exception as e:
-                                print(f"⚠️ Nano Banana failed, using previous result: {e}")
-                                # Keep the previous result if Nano Banana fails
+                            # Step 5: REMOVED - Clean two-step workflow (Step 1: Model→Scene, Step 2: Product→Model)
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
@@ -995,71 +937,13 @@ async def generate_campaign_images(
                             # Vella result is already persisted in run_vella_try_on
                             print(f"✅ Product applied to model: {vella_result_url[:50]}...")
                             
-                            # Step 3: Use Vella result directly (final Nano Banana enhancement will be applied)
+                            # Step 3: Use Vella result as final result (clean two-step workflow)
                             final_result_url = vella_result_url
+                            print(f"✅ Two-step workflow completed: Model placed in scene + Product applied")
                             
-                            # Step 4: Final Qwen scene integration to restore/enhance scene background
-                            print(f"🎨 Step 4: Final scene integration with Qwen...")
-                            try:
-                                # Use the dressed model and original scene for final integration
-                                scene_integration_prompt = (
-                                    f"Take the person wearing {product.name} from the first image and place them into the background from the second image. "
-                                    f"Preserve the clothing and model's appearance exactly. "
-                                    f"Use the second image as the background exactly. "
-                                    f"No aesthetic changes."
-                                )
-                                
-                                final_result_url = run_nano_banana_scene_composition(
-                                    final_result_url,  # Dressed model from Vella/Nano Banana
-                                    stable_scene,      # Original scene
-                                    quality_mode,
-                                    shot_type_prompt=scene_integration_prompt
-                                )
-                                print(f"✅ Final scene integration completed: {final_result_url[:50]}...")
-                            except Exception as e:
-                                print(f"⚠️ Final scene integration failed, using previous result: {e}")
-                                # Keep the previous result if scene integration fails
+                            # Step 4: REMOVED - Clean two-step workflow (Step 1: Model→Scene, Step 2: Product→Model)
                             
-                            # Step 5: Apply Nano Banana to enhance realism and quality
-                            print(f"🍌 Step 5: Enhancing realism with Nano Banana...")
-                            try:
-                                # Convert final result URL to base64 for Nano Banana if needed
-                                if final_result_url.startswith(get_base_url() + "/static/"):
-                                    filename = final_result_url.replace(get_base_url() + "/static/", "")
-                                    filepath = f"uploads/{filename}"
-                                    nb_input = upload_to_replicate(filepath)
-                                elif final_result_url.startswith("https://replicate.delivery/"):
-                                    nb_input = final_result_url
-                                else:
-                                    nb_input = final_result_url
-                                    
-                                # Apply Nano Banana img2img for enhanced realism
-                                nano_result = replicate.run(
-                                        "google/nano-banana",
-                                        input={
-                                            "prompt": f"Make minimal technical improvements only. Preserve the model's appearance and pose exactly as they are. No aesthetic changes.",
-                                            "image": nb_input,
-                                            "num_inference_steps": 10,
-                                            "guidance_scale": 2.0,
-                                            "strength": 0.05  # Very low strength to preserve model appearance
-                                        }
-                                    )
-                                    
-                                # Handle Nano Banana output
-                                if hasattr(nano_result, 'url'):
-                                    nano_url = nano_result.url()
-                                elif isinstance(nano_result, str):
-                                    nano_url = nano_result
-                                elif isinstance(nano_result, list) and len(nano_result) > 0:
-                                    nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                                else:
-                                    nano_url = str(nano_result)
-                                
-                                print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
-                                final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
-                            except Exception as e:
-                                print(f"⚠️ Nano Banana failed, using previous result: {e}")
-                                # Keep the previous result if Nano Banana fails
+                            # Step 5: REMOVED - Clean two-step workflow (Step 1: Model→Scene, Step 2: Product→Model)
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
