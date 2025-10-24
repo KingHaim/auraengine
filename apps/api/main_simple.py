@@ -697,8 +697,8 @@ async def generate_campaign_images_background(
                                 # Convert final result URL to base64 for Nano Banana if needed
                                 if final_result_url.startswith(get_base_url() + "/static/"):
                                     filename = final_result_url.replace(get_base_url() + "/static/", "")
-                                        filepath = f"uploads/{filename}"
-                                        nb_input = upload_to_replicate(filepath)
+                                    filepath = f"uploads/{filename}"
+                                    nb_input = upload_to_replicate(filepath)
                                 elif final_result_url.startswith("https://replicate.delivery/"):
                                     nb_input = final_result_url
                                     else:
@@ -1021,8 +1021,8 @@ async def generate_campaign_images(
                                 # Convert final result URL to base64 for Nano Banana if needed
                                 if final_result_url.startswith(get_base_url() + "/static/"):
                                     filename = final_result_url.replace(get_base_url() + "/static/", "")
-                                        filepath = f"uploads/{filename}"
-                                        nb_input = upload_to_replicate(filepath)
+                                    filepath = f"uploads/{filename}"
+                                    nb_input = upload_to_replicate(filepath)
                                 elif final_result_url.startswith("https://replicate.delivery/"):
                                     nb_input = final_result_url
                                     else:
