@@ -680,7 +680,7 @@ async def generate_campaign_images_background(
                                     f"Professional fashion photography with dramatic scene lighting."
                                 )
                                 
-                                final_result_url = run_qwen_scene_composition(
+                                final_result_url = run_nano_banana_scene_composition(
                                     final_result_url,  # Dressed model from Vella/Nano Banana
                                     stable_scene,      # Original scene
                                     quality_mode,
@@ -708,7 +708,7 @@ async def generate_campaign_images_background(
                                 nano_result = replicate.run(
                                         "google/nano-banana",
                                     input={
-                                    "instructions": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
+                                    "prompt": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
                                         "image": nb_input,
                                         "num_inference_steps": 28,
                                         "guidance_scale": 5.5,
@@ -972,13 +972,13 @@ async def generate_campaign_images(
                             stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                             print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
-                            qwen_result_url = run_qwen_scene_composition(
+                            qwen_result_url = run_nano_banana_scene_composition(
                                 stable_model,
                                 stable_scene,
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
-                            # Nano Banana result is already persisted in run_qwen_scene_composition
+                            # Nano Banana result is already persisted in run_nano_banana_scene_composition
                             print(f"✅ Nano Banana scene composition completed: {qwen_result_url[:50]}...")
 
                             # Step 2: Apply Vella try-on on the composed image
@@ -1004,7 +1004,7 @@ async def generate_campaign_images(
                                     f"Professional fashion photography with dramatic scene lighting."
                                 )
                                 
-                                final_result_url = run_qwen_scene_composition(
+                                final_result_url = run_nano_banana_scene_composition(
                                     final_result_url,  # Dressed model from Vella/Nano Banana
                                     stable_scene,      # Original scene
                                     quality_mode,
@@ -1032,7 +1032,7 @@ async def generate_campaign_images(
                                 nano_result = replicate.run(
                                         "google/nano-banana",
                                     input={
-                                    "instructions": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
+                                    "prompt": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
                                         "image": nb_input,
                                         "num_inference_steps": 28,
                                         "guidance_scale": 5.5,
