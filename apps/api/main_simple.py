@@ -777,6 +777,8 @@ async def generate_campaign_images_background(
         
         print(f"🎉 Campaign generation completed with {len(generated_images)} images")
         print(f"📊 Expected: {shots_to_generate_count} shots, Generated: {len(generated_images)} shots")
+        print(f"🔍 DEBUG: Generated images structure: {generated_images}")
+        print(f"🔍 DEBUG: Campaign settings after update: {campaign.settings}")
         if len(generated_images) < shots_to_generate_count:
             print(f"⚠️ WARNING: Only {len(generated_images)}/{shots_to_generate_count} shots were generated successfully")
         
