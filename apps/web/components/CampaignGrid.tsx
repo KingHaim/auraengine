@@ -52,6 +52,18 @@ export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
           "🔍 CampaignGrid - First campaign generated_images:",
           data[0]?.settings?.generated_images
         );
+        console.log(
+          "🔍 CampaignGrid - First campaign generated_images length:",
+          data[0]?.settings?.generated_images?.length
+        );
+        console.log(
+          "🔍 CampaignGrid - First campaign first image:",
+          data[0]?.settings?.generated_images?.[0]
+        );
+        console.log(
+          "🔍 CampaignGrid - First campaign first image URL:",
+          data[0]?.settings?.generated_images?.[0]?.image_url
+        );
         setCampaigns(data);
       }
     } catch (e) {
@@ -119,6 +131,8 @@ export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
           {campaigns.map((campaign) => {
             const thumb =
               campaign.settings?.generated_images?.[0]?.image_url || "";
+            console.log(`🔍 CampaignGrid - Campaign ${campaign.id} thumb:`, thumb);
+            console.log(`🔍 CampaignGrid - Campaign ${campaign.id} generated_images:`, campaign.settings?.generated_images);
             return (
               <div
                 key={campaign.id}
@@ -142,9 +156,14 @@ export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
                       alt={campaign.name}
                       className="w-full h-full object-cover rounded-lg"
                       onError={(e) => {
+                        console.log(`🔍 CampaignGrid - Image load error for ${campaign.id}:`, thumb);
+                        console.log(`🔍 CampaignGrid - Error event:`, e);
                         (
                           e.currentTarget as HTMLImageElement
                         ).src = `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`;
+                      }}
+                      onLoad={() => {
+                        console.log(`🔍 CampaignGrid - Image loaded successfully for ${campaign.id}:`, thumb);
                       }}
                     />
                   ) : (
