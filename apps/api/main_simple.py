@@ -642,26 +642,26 @@ async def generate_campaign_images_background(
                             # REAL WORKFLOW: Qwen first, then Vella
                             quality_mode = "standard"
 
-                            # Step 1: Compose model into the scene with shot type
+                            # Step 1: Compose model into the scene with shot type using Nano Banana
                             # Stabilize model pose to /static to avoid replicate 404s
                             stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
-                            qwen_result_url = run_qwen_scene_composition(
+                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}' using Nano Banana...")
+                            nano_result_url = run_nano_banana_scene_composition(
                                 stable_model,
                                 stable_scene,
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
                             # Nano Banana result is already persisted
-                            print(f"✅ Nano Banana scene composition completed: {qwen_result_url[:50]}...")
+                            print(f"✅ Nano Banana scene composition completed: {nano_result_url[:50]}...")
 
                             # Step 2: Apply Vella try-on on the composed image
                             print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
                             clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
                             # Stabilize garment to /static (PNG with alpha already handled inside run_vella_try_on)
                             stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
-                            vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
+                            vella_result_url = run_vella_try_on(nano_result_url, stable_product, quality_mode, clothing_type)
                             # Vella result is already persisted in run_vella_try_on
                             print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
                             
@@ -1904,8 +1904,8 @@ def enhance_with_nano_banana(image_url: str, prompt: str = "") -> str:
         print(f"Continuing with original image")
         return image_url
 
-def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:
-    """Compose model pose into scene using Nano Banana (replacing Qwen workflow)"""
+def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:
+    """Compose model pose into scene using Nano Banana"""
     try:
         print(f"🍌 Running Nano Banana composition: model={model_image_url[:50]}..., scene={scene_image_url[:50]}...")
         
@@ -2444,8 +2444,8 @@ CAMPAIGN_SHOT_TYPES = [
     }
 ]
 
-def run_qwen_scene_composition(model_image_url: str, scene_image_url: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:
-    """Compose model pose into scene using Nano Banana (replacing Qwen workflow)"""
+def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:
+    """Compose model pose into scene using Nano Banana"""
     try:
         print(f"🍌 Running Nano Banana composition: model={model_image_url[:50]}..., scene={scene_image_url[:50]}...")
         
