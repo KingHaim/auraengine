@@ -676,10 +676,12 @@ async def generate_campaign_images_background(
                             try:
                                 # Use the dressed model and original scene for final integration
                                 scene_integration_prompt = (
-                                    f"Take the person wearing {product.name} from the first image and integrate them into the scene from the second image. "
+                                    f"IMPORTANT: Use ONLY the background from the second image. Do NOT create a new background. "
+                                    f"Take the person wearing {product.name} from the first image and place them into the EXACT background from the second image. "
                                     f"Preserve the clothing and model's appearance but ensure they fit naturally into the scene environment. "
-                                    f"Match the lighting, shadows, and atmosphere of the scene. "
+                                    f"Match the lighting, shadows, and atmosphere of the second image exactly. "
                                     f"Create a cohesive composition where the person looks naturally placed in the environment. "
+                                    f"Do not change the background - use the second image's environment as-is. "
                                     f"Professional fashion photography with dramatic scene lighting."
                                 )
                                 
@@ -1002,10 +1004,12 @@ async def generate_campaign_images(
                             try:
                                 # Use the dressed model and original scene for final integration
                                 scene_integration_prompt = (
-                                    f"Take the person wearing {product.name} from the first image and integrate them into the scene from the second image. "
+                                    f"IMPORTANT: Use ONLY the background from the second image. Do NOT create a new background. "
+                                    f"Take the person wearing {product.name} from the first image and place them into the EXACT background from the second image. "
                                     f"Preserve the clothing and model's appearance but ensure they fit naturally into the scene environment. "
-                                    f"Match the lighting, shadows, and atmosphere of the scene. "
+                                    f"Match the lighting, shadows, and atmosphere of the second image exactly. "
                                     f"Create a cohesive composition where the person looks naturally placed in the environment. "
+                                    f"Do not change the background - use the second image's environment as-is. "
                                     f"Professional fashion photography with dramatic scene lighting."
                                 )
                                 
@@ -2319,12 +2323,12 @@ CAMPAIGN_SHOT_TYPES = [
     {
         "name": "sitting_intro",
         "title": "Sitting Shot (Intro)",
-        "prompt": "Full-body shot sitting casually, relaxed posture, model wearing the product naturally, modern studio setting, soft diffused lighting, neutral tones, cinematic fashion lookbook style, sharp focus"
+        "prompt": "Full-body shot sitting casually, relaxed posture, model wearing the product naturally, professional fashion lighting, cinematic fashion lookbook style, sharp focus"
     },
     {
         "name": "standing_full",
         "title": "Standing Look (Fit Reveal)",
-        "prompt": "Model standing confidently, straight posture, outfit fully visible from head to toe, product clearly shown, minimalist background with subtle shadows, professional fashion lighting, editorial photoshoot aesthetic"
+        "prompt": "Model standing confidently, straight posture, outfit fully visible from head to toe, product clearly shown, professional fashion lighting, editorial photoshoot aesthetic"
     },
     {
         "name": "upper_closeup",
@@ -2334,22 +2338,22 @@ CAMPAIGN_SHOT_TYPES = [
     {
         "name": "lower_closeup",
         "title": "Lower Body Close-Up",
-        "prompt": "Close-up of lower torso showing product fit, fabric movement, detail work, subtle wrinkles from natural motion, soft directional lighting, clean background, high-detail fashion macro look"
+        "prompt": "Close-up of lower torso showing product fit, fabric movement, detail work, subtle wrinkles from natural motion, soft directional lighting, high-detail fashion macro look"
     },
     {
         "name": "action_dynamic",
         "title": "Action Shot (Movement)",
-        "prompt": "Full-body dynamic shot of model in natural walking pose, confident stride, strong directional light, energetic and stylish movement, professional fashion photography, clean urban setting"
+        "prompt": "Full-body dynamic shot of model in natural walking pose, confident stride, strong directional light, energetic and stylish movement, professional fashion photography"
     },
     {
         "name": "interaction_pose",
         "title": "Model Interaction",
-        "prompt": "Medium shot of model in natural pose, hands positioned naturally, focused expression, lifestyle tone, balanced shadows, soft background, professional fashion photography"
+        "prompt": "Medium shot of model in natural pose, hands positioned naturally, focused expression, lifestyle tone, balanced shadows, professional fashion photography"
     },
     {
         "name": "hero_finale",
         "title": "Hero Pose (Campaign Finale)",
-        "prompt": "Full-body confident hero pose facing camera, product fully shown and emphasized, gradient backdrop, professional lighting, editorial fashion campaign aesthetic, striking and memorable composition"
+        "prompt": "Full-body confident hero pose facing camera, product fully shown and emphasized, professional lighting, editorial fashion campaign aesthetic, striking and memorable composition"
     },
     {
         "name": "detail_macro",
@@ -2359,7 +2363,7 @@ CAMPAIGN_SHOT_TYPES = [
     {
         "name": "profile_side",
         "title": "Profile Side View",
-        "prompt": "Side profile shot showing product silhouette and fit, model in natural side pose, clean background, professional fashion photography, side lighting creating depth and dimension, elegant profile composition"
+        "prompt": "Side profile shot showing product silhouette and fit, model in natural side pose, professional fashion photography, side lighting creating depth and dimension, elegant profile composition"
     },
     {
         "name": "lifestyle_context",
@@ -2405,24 +2409,26 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
         # Build prompt - use shot_type_prompt if provided, otherwise use default
         if shot_type_prompt:
             scene_prompt = (
-                f"Place the person from the first image into the BACKGROUND from the second image. "
+                f"IMPORTANT: Use ONLY the background from the second image. Do NOT create a new background. "
+                f"Place the person from the first image into the EXACT background environment from the second image. "
                 f"{shot_type_prompt} "
-                f"Use the second image as the actual background - location, environment, architecture, and setting. "
-                f"Match the lighting, colors, and atmosphere from the scene. "
+                f"The second image shows the EXACT location, environment, architecture, and setting that must be used. "
+                f"Match the lighting, colors, and atmosphere from the second image exactly. "
                 f"PRESERVE the person's face, body proportions, and pose EXACTLY as they are. "
                 f"Do not deform, distort, or change the model's appearance. "
-                f"Only change the background environment. "
+                f"Do not change the background - use the second image's environment as-is. "
                 f"Professional luxury fashion aesthetic with dramatic moody lighting. "
                 f"Professional editorial photography, cinematic quality."
             )
         else:
             scene_prompt = (
-                "Place the person from the first image into the BACKGROUND from the second image. "
-                "Use the second image as the actual background - location, environment, architecture, and setting. "
-                "Match the lighting, colors, and atmosphere from the scene. "
+                "IMPORTANT: Use ONLY the background from the second image. Do NOT create a new background. "
+                "Place the person from the first image into the EXACT background environment from the second image. "
+                "The second image shows the EXACT location, environment, architecture, and setting that must be used. "
+                "Match the lighting, colors, and atmosphere from the second image exactly. "
                 "PRESERVE the person's face, body proportions, and pose EXACTLY as they are. "
                 "Do not deform, distort, or change the model's appearance. "
-                "Only change the background environment. "
+                "Do not change the background - use the second image's environment as-is. "
                 "Professional luxury fashion aesthetic with dramatic moody lighting. "
                 "Professional editorial photography, cinematic quality."
             )
