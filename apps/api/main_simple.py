@@ -645,28 +645,30 @@ async def generate_campaign_images_background(
                             # REAL WORKFLOW: Qwen first, then Vella
                             quality_mode = "standard"
 
-                            # Step 1: Compose model into the scene with shot type using Nano Banana
+                            # TWO-STEP APPROACH: Separate scene composition from product application
+                            
+                            # Step 1: Place model into scene (NO clothing/product)
                             # Stabilize model pose to /static to avoid replicate 404s
                             stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}' using Nano Banana...")
-                            nano_result_url = run_nano_banana_scene_composition(
+                            print(f"🎨 Step 1: Placing model into scene with shot type '{shot_type['name']}' using Nano Banana...")
+                            model_in_scene_url = run_nano_banana_scene_composition(
                                 stable_model,
                                 stable_scene,
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
                             # Nano Banana result is already persisted
-                            print(f"✅ Nano Banana scene composition completed: {nano_result_url[:50]}...")
+                            print(f"✅ Model placed in scene: {model_in_scene_url[:50]}...")
 
-                            # Step 2: Apply Vella try-on on the composed image
-                            print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
+                            # Step 2: Apply product to model (using Vella)
+                            print(f"👔 Step 2: Applying {product.name} to model with Vella 1.5 try-on...")
                             clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
                             # Stabilize garment to /static (PNG with alpha already handled inside run_vella_try_on)
                             stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
-                            vella_result_url = run_vella_try_on(nano_result_url, stable_product, quality_mode, clothing_type)
+                            vella_result_url = run_vella_try_on(model_in_scene_url, stable_product, quality_mode, clothing_type)
                             # Vella result is already persisted in run_vella_try_on
-                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
+                            print(f"✅ Product applied to model: {vella_result_url[:50]}...")
                             
                             # Step 3: Use Vella result directly (final Nano Banana enhancement will be applied)
                             final_result_url = vella_result_url
@@ -975,23 +977,23 @@ async def generate_campaign_images(
                             # Step 1: Compose model into the scene with shot type (persist inputs first)
                             stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            print(f"🎨 Step 1: Composing with shot type '{shot_type['name']}'...")
-                            qwen_result_url = run_nano_banana_scene_composition(
+                            print(f"🎨 Step 1: Placing model into scene with shot type '{shot_type['name']}'...")
+                            model_in_scene_url = run_nano_banana_scene_composition(
                                 stable_model,
                                 stable_scene,
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
                             # Nano Banana result is already persisted in run_nano_banana_scene_composition
-                            print(f"✅ Nano Banana scene composition completed: {qwen_result_url[:50]}...")
+                            print(f"✅ Model placed in scene: {model_in_scene_url[:50]}...")
 
-                            # Step 2: Apply Vella try-on on the composed image
-                            print(f"👔 Step 2: Applying {product.name} with Vella 1.5 try-on...")
+                            # Step 2: Apply product to model (using Vella)
+                            print(f"👔 Step 2: Applying {product.name} to model with Vella 1.5 try-on...")
                             clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
                             stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
-                            vella_result_url = run_vella_try_on(qwen_result_url, stable_product, quality_mode, clothing_type)
+                            vella_result_url = run_vella_try_on(model_in_scene_url, stable_product, quality_mode, clothing_type)
                             # Vella result is already persisted in run_vella_try_on
-                            print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
+                            print(f"✅ Product applied to model: {vella_result_url[:50]}...")
                             
                             # Step 3: Use Vella result directly (final Nano Banana enhancement will be applied)
                             final_result_url = vella_result_url
@@ -2401,18 +2403,21 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
             scene_image_url = upload_to_replicate(filepath)
 
         # Build prompt - use shot_type_prompt if provided, otherwise use default
+        # Step 1: Focus ONLY on placing model into scene (no clothing/product)
         if shot_type_prompt:
             scene_prompt = (
-                f"Place this person into the scene from {scene_image_url}. "
+                f"Place the person from the first image into the background from the second image. "
                 f"{shot_type_prompt} "
                 f"Keep the person's appearance exactly the same. "
-                f"No aesthetic changes."
+                f"Only change the background environment. "
+                f"No clothing or product changes."
             )
         else:
             scene_prompt = (
-                f"Place this person into the scene from {scene_image_url}. "
-                f"Keep the person's appearance exactly the same. "
-                f"No aesthetic changes."
+                "Place the person from the first image into the background from the second image. "
+                "Keep the person's appearance exactly the same. "
+                "Only change the background environment. "
+                "No clothing or product changes."
             )
         
         # Very gentle parameters to preserve input images
@@ -2439,7 +2444,7 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
             print("🔄 Using Nano Banana for scene composition with improved parameters...")
             out = replicate.run("google/nano-banana", input={
                 "prompt": scene_prompt,
-                "image": model_image_url,
+                "image_input": [model_image_url, scene_image_url],
                 "num_inference_steps": num_steps,
                 "guidance_scale": guidance,
                 "strength": strength,
@@ -2476,7 +2481,7 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
             try:
                 safer_out = replicate.run("google/nano-banana", input={
                     "prompt": scene_prompt,
-                    "image": model_image_url,
+                    "image_input": [model_image_url, scene_image_url],
                     "num_inference_steps": 8,
                     "guidance_scale": 1.5,
                     "strength": 0.05,
