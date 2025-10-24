@@ -16,6 +16,14 @@ type CampaignGridProps = {
 export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
   const [campaigns, setCampaigns] = useState<ApiCampaign[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCampaignModal, setShowCampaignModal] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<ApiCampaign | null>(null);
+
+  // Function to open campaign modal
+  const openCampaignModal = (campaign: ApiCampaign) => {
+    setSelectedCampaign(campaign);
+    setShowCampaignModal(true);
+  };
 
   // Function to check campaign status
   const checkCampaignStatus = async (campaignId: string) => {
@@ -142,11 +150,12 @@ export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
             return (
               <div
                 key={campaign.id}
-                className={`bg-gray-800 rounded-2xl p-4 border border-gray-700 ${
+                className={`bg-gray-800 rounded-2xl p-4 border border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors ${
                   campaign.generation_status === "generating"
                     ? "opacity-75"
                     : ""
                 }`}
+                onClick={() => openCampaignModal(campaign)}
               >
                 <div className="aspect-video bg-gray-700 rounded-lg mb-4 flex items-center justify-center relative">
                   {campaign.generation_status === "generating" ? (
@@ -199,6 +208,151 @@ export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Campaign Details Modal */}
+      {showCampaignModal && selectedCampaign && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(9, 10, 12, 0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            overflow: "auto",
+          }}
+          onClick={() => setShowCampaignModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "16px",
+              padding: "32px",
+              maxWidth: "90vw",
+              maxHeight: "90vh",
+              width: "1000px",
+              position: "relative",
+              overflow: "auto",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "24px",
+              }}
+            >
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  color: "#1F2937",
+                }}
+              >
+                {selectedCampaign.name}
+              </h2>
+              <button
+                onClick={() => setShowCampaignModal(false)}
+                style={{
+                  padding: "8px 16px",
+                  backgroundColor: "#6B7280",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#FFFFFF",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                }}
+              >
+                Close
+              </button>
+            </div>
+
+            <div
+              style={{
+                marginBottom: "24px",
+                padding: "16px",
+                backgroundColor: "#F9FAFB",
+                borderRadius: "8px",
+                border: "1px solid #E5E7EB",
+              }}
+            >
+              <p
+                style={{
+                  margin: "0 0 8px 0",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#374151",
+                }}
+              >
+                Status: {selectedCampaign.generation_status}
+              </p>
+              <p
+                style={{
+                  margin: "0",
+                  fontSize: "14px",
+                  color: "#6B7280",
+                }}
+              >
+                Campaign ID: {selectedCampaign.id}
+              </p>
+            </div>
+
+            {selectedCampaign.settings?.generated_images && selectedCampaign.settings.generated_images.length > 0 && (
+              <div>
+                <h3
+                  style={{
+                    margin: "0 0 16px 0",
+                    fontSize: "18px",
+                    fontWeight: "600",
+                    color: "#1F2937",
+                  }}
+                >
+                  Generated Images ({selectedCampaign.settings.generated_images.length})
+                </h3>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                    gap: "16px",
+                  }}
+                >
+                  {selectedCampaign.settings.generated_images.map((image: any, index: number) => (
+                    <div
+                      key={index}
+                      style={{
+                        borderRadius: "8px",
+                        overflow: "hidden",
+                        border: "1px solid #E5E7EB",
+                      }}
+                    >
+                      <img
+                        src={image.image_url}
+                        alt={`Generated image ${index + 1}`}
+                        style={{
+                          width: "100%",
+                          height: "200px",
+                          objectFit: "cover",
+                        }}
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`;
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
