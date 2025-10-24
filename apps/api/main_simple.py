@@ -728,8 +728,8 @@ async def generate_campaign_images_background(
                                     
                                 print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
                                 final_result_url = stabilize_url(to_url(nano_result), f"nb_{shot_type['name']}") if 'stabilize_url' in globals() else to_url(nano_result)
-                                except Exception as e:
-                                    print(f"⚠️ Nano Banana failed, using previous result: {e}")
+                            except Exception as e:
+                                print(f"⚠️ Nano Banana failed, using previous result: {e}")
                                 # Keep the previous result if Nano Banana fails
                             
                             # Normalize and store final URL
