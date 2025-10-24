@@ -2205,52 +2205,52 @@ CAMPAIGN_SHOT_TYPES = [
     {
         "name": "sitting_intro",
         "title": "Sitting Shot (Intro)",
-        "prompt": "Full-body shot of model standing and posing normally"
+        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
     },
     {
         "name": "standing_full",
         "title": "Standing Look (Fit Reveal)",
-        "prompt": "Full-body shot of model standing and posing normally"
+        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
     },
     {
         "name": "upper_closeup",
         "title": "Upper Body Close-Up",
-        "prompt": "Full-body shot of model standing and posing normally"
+        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
     },
     {
         "name": "lower_closeup",
         "title": "Lower Body Close-Up",
-        "prompt": "Full-body shot of model standing and posing normally"
+        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
     },
     {
         "name": "action_dynamic",
         "title": "Action Shot (Movement)",
-        "prompt": "Full-body shot of model standing and posing normally"
+        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
     },
     {
         "name": "interaction_pose",
         "title": "Model Interaction",
-        "prompt": "Full-body shot of model standing and posing normally"
+        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
     },
     {
         "name": "hero_finale",
         "title": "Hero Pose (Campaign Finale)",
-        "prompt": "Full-body shot of model standing and posing normally"
+        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
     },
     {
         "name": "detail_macro",
         "title": "Fabric Detail Macro",
-        "prompt": "Full-body shot of model standing and posing normally"
+        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
     },
     {
         "name": "profile_side",
         "title": "Profile Side View",
-        "prompt": "Full-body shot of model standing and posing normally"
+        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
     },
     {
         "name": "lifestyle_context",
         "title": "Lifestyle Context Shot",
-        "prompt": "Full-body shot of model standing and posing normally"
+        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
     }
 ]
 
@@ -2294,6 +2294,7 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
             scene_prompt = (
                 f"Place the person from the first image into the background from the second image. "
                 f"{shot_type_prompt} "
+                f"IMPORTANT: The person should be wearing only underwear/lingerie, no other clothing. "
                 f"Keep the person's appearance exactly the same. "
                 f"Only change the background environment. "
                 f"No clothing or product changes."
@@ -2301,6 +2302,7 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
         else:
             scene_prompt = (
                 "Place the person from the first image into the background from the second image. "
+                "IMPORTANT: The person should be wearing only underwear/lingerie, no other clothing. "
                 "Keep the person's appearance exactly the same. "
                 "Only change the background environment. "
                 "No clothing or product changes."
