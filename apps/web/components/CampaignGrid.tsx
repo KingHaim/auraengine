@@ -48,6 +48,7 @@ export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
       if (res.ok) {
         const data = await res.json();
         console.log("🔍 CampaignGrid - fetchCampaigns data:", data);
+        console.log("🔍 CampaignGrid - First campaign generated_images:", data[0]?.settings?.generated_images);
         setCampaigns(data);
       }
     } catch (e) {
