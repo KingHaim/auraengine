@@ -2540,7 +2540,7 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
             else:
                 scene_composite_url = str(out)
             
-            print(f"✅ Qwen scene composition completed: {scene_composite_url[:50]}...")
+            print(f"✅ Nano Banana scene composition completed: {scene_composite_url[:50]}...")
             
             # Immediately persist Replicate URLs to avoid 404 errors
             if isinstance(scene_composite_url, str) and scene_composite_url.startswith("https://replicate.delivery/"):
