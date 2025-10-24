@@ -701,7 +701,7 @@ async def generate_campaign_images_background(
                                     nb_input = upload_to_replicate(filepath)
                                 elif final_result_url.startswith("https://replicate.delivery/"):
                                     nb_input = final_result_url
-                                    else:
+                                else:
                                     nb_input = final_result_url
                                     
                                 # Apply Nano Banana img2img for enhanced realism
@@ -723,7 +723,7 @@ async def generate_campaign_images_background(
                                         nano_url = nano_result
                                     elif isinstance(nano_result, list) and len(nano_result) > 0:
                                         nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                                    else:
+                                else:
                                         nano_url = str(nano_result)
                                     
                                     print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
@@ -1025,7 +1025,7 @@ async def generate_campaign_images(
                                     nb_input = upload_to_replicate(filepath)
                                 elif final_result_url.startswith("https://replicate.delivery/"):
                                     nb_input = final_result_url
-                                    else:
+                                else:
                                     nb_input = final_result_url
                                     
                                 # Apply Nano Banana img2img for enhanced realism
@@ -1047,7 +1047,7 @@ async def generate_campaign_images(
                                         nano_url = nano_result
                                     elif isinstance(nano_result, list) and len(nano_result) > 0:
                                         nano_url = nano_result[0] if isinstance(nano_result[0], str) else nano_result[0].url()
-                                    else:
+                                else:
                                         nano_url = str(nano_result)
                                     
                                     print(f"✅ Nano Banana enhancement completed: {nano_url[:50]}...")
