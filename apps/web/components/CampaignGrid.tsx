@@ -131,8 +131,14 @@ export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
           {campaigns.map((campaign) => {
             const thumb =
               campaign.settings?.generated_images?.[0]?.image_url || "";
-            console.log(`🔍 CampaignGrid - Campaign ${campaign.id} thumb:`, thumb);
-            console.log(`🔍 CampaignGrid - Campaign ${campaign.id} generated_images:`, campaign.settings?.generated_images);
+            console.log(
+              `🔍 CampaignGrid - Campaign ${campaign.id} thumb:`,
+              thumb
+            );
+            console.log(
+              `🔍 CampaignGrid - Campaign ${campaign.id} generated_images:`,
+              campaign.settings?.generated_images
+            );
             return (
               <div
                 key={campaign.id}
@@ -156,14 +162,20 @@ export default function CampaignGrid({ refreshTrigger }: CampaignGridProps) {
                       alt={campaign.name}
                       className="w-full h-full object-cover rounded-lg"
                       onError={(e) => {
-                        console.log(`🔍 CampaignGrid - Image load error for ${campaign.id}:`, thumb);
+                        console.log(
+                          `🔍 CampaignGrid - Image load error for ${campaign.id}:`,
+                          thumb
+                        );
                         console.log(`🔍 CampaignGrid - Error event:`, e);
                         (
                           e.currentTarget as HTMLImageElement
                         ).src = `${process.env.NEXT_PUBLIC_API_URL}/static/Julian_model.jpg`;
                       }}
                       onLoad={() => {
-                        console.log(`🔍 CampaignGrid - Image loaded successfully for ${campaign.id}:`, thumb);
+                        console.log(
+                          `🔍 CampaignGrid - Image loaded successfully for ${campaign.id}:`,
+                          thumb
+                        );
                       }}
                     />
                   ) : (

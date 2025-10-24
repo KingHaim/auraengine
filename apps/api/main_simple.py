@@ -711,11 +711,11 @@ async def generate_campaign_images_background(
                                 nano_result = replicate.run(
                                         "google/nano-banana",
                                     input={
-                                    "prompt": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
+                                    "prompt": f"Enhance this professional fashion photography image with subtle realism improvements. Add natural skin texture and realistic fabric details. Improve lighting and shadows for a more professional look. Preserve the model's appearance and pose exactly as they are. Make subtle enhancements to skin tone and fabric texture without changing the overall composition.",
                                         "image": nb_input,
-                                        "num_inference_steps": 28,
-                                        "guidance_scale": 5.5,
-                                    "strength": 0.4  # Higher strength for more dramatic realism enhancement
+                                        "num_inference_steps": 25,
+                                        "guidance_scale": 4.5,
+                                    "strength": 0.25  # Lower strength to preserve model appearance
                                     }
                                 )
                                 
@@ -1037,11 +1037,11 @@ async def generate_campaign_images(
                                 nano_result = replicate.run(
                                         "google/nano-banana",
                                     input={
-                                    "prompt": f"Transform this into a hyper-realistic professional fashion photography image. Enhance skin texture with natural pores, subtle imperfections, and realistic skin tones. Improve fabric details with visible weave patterns, realistic folds, and material texture. Add professional studio lighting with soft shadows and natural highlights. Make the model look like a real person with authentic facial features and natural expressions. Ensure the clothing looks like real fabric with proper drape and movement. Create a photorealistic image that could be mistaken for a professional fashion photograph.",
+                                    "prompt": f"Enhance this professional fashion photography image with subtle realism improvements. Add natural skin texture and realistic fabric details. Improve lighting and shadows for a more professional look. Preserve the model's appearance and pose exactly as they are. Make subtle enhancements to skin tone and fabric texture without changing the overall composition.",
                                         "image": nb_input,
-                                        "num_inference_steps": 28,
-                                        "guidance_scale": 5.5,
-                                    "strength": 0.4  # Higher strength for more dramatic realism enhancement
+                                        "num_inference_steps": 25,
+                                        "guidance_scale": 4.5,
+                                    "strength": 0.25  # Lower strength to preserve model appearance
                                     }
                                 )
                                 
@@ -2490,7 +2490,9 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
                 f"{shot_type_prompt} "
                 f"Use the second image as the actual background - location, environment, architecture, and setting. "
                 f"Match the lighting, colors, and atmosphere from the scene. "
-                f"Keep the person's face and pose exactly the same. "
+                f"PRESERVE the person's face, body proportions, and pose EXACTLY as they are. "
+                f"Do not deform, distort, or change the model's appearance. "
+                f"Only change the background environment. "
                 f"Professional luxury fashion aesthetic with dramatic moody lighting. "
                 f"Professional editorial photography, cinematic quality."
             )
@@ -2499,29 +2501,31 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
                 "Place the person from the first image into the BACKGROUND from the second image. "
                 "Use the second image as the actual background - location, environment, architecture, and setting. "
                 "Match the lighting, colors, and atmosphere from the scene. "
-                "Keep the person's face and pose exactly the same. "
+                "PRESERVE the person's face, body proportions, and pose EXACTLY as they are. "
+                "Do not deform, distort, or change the model's appearance. "
+                "Only change the background environment. "
                 "Professional luxury fashion aesthetic with dramatic moody lighting. "
                 "Professional editorial photography, cinematic quality."
             )
         
-        # Stronger parameters to force scene usage
+        # Gentler parameters to preserve model appearance
         if quality_mode == "high":
-            num_steps = 40        # High quality
-            guidance = 6.0        # Strong guidance but scene-preserving
-            strength = 0.55       # High strength but preserve scene better
-            print("🎨 Using HIGH QUALITY mode (scene-preserving luxury)")
+            num_steps = 35        # High quality
+            guidance = 5.5        # Moderate guidance to preserve model
+            strength = 0.35       # Lower strength to preserve model better
+            print("🎨 Using HIGH QUALITY mode (model-preserving luxury)")
         else:  # standard
-            num_steps = 35        # Moderate quality
-            guidance = 5.0        # Moderate guidance to preserve scene
-            strength = 0.45       # Moderate strength to preserve scene better
-            print("⚡ Using STANDARD mode (scene-preserving luxury)")
+            num_steps = 30        # Moderate quality
+            guidance = 4.5        # Lower guidance to preserve model
+            strength = 0.25       # Lower strength to preserve model better
+            print("⚡ Using STANDARD mode (model-preserving luxury)")
 
-        # Special handling for Sitting Shot: moderate increase for better integration
+        # Special handling for Sitting Shot: gentle increase for better integration
         if shot_type_prompt and ("sitting" in shot_type_prompt.lower()):
-            num_steps = max(num_steps, 40)  # Reduced from 52
-            guidance = max(guidance, 6.0)   # Reduced from 8.2
-            strength = max(strength, 0.55)  # Reduced from 0.78
-            print("🪑 Sitting Shot detected → moderate boost for better scene integration")
+            num_steps = max(num_steps, 35)  # Reduced from 40
+            guidance = max(guidance, 5.0)   # Reduced from 6.0
+            strength = max(strength, 0.30)  # Reduced from 0.55
+            print("🪑 Sitting Shot detected → gentle boost for better scene integration")
         
         # Use Nano Banana for scene composition
         try:
