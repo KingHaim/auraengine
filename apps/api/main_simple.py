@@ -2294,40 +2294,32 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
             scene_prompt = (
                 f"Place the person from the first image into the background from the second image. "
                 f"{shot_type_prompt} "
-                f"IMPORTANT: The person should be wearing only underwear/lingerie, no other clothing. "
-                f"Keep the person's facial features and body proportions exactly the same. "
-                f"Make the person pose naturally and appropriately for the scene environment. "
-                f"Do NOT copy the original pose - create a natural pose that fits the scene. "
-                f"Only change the background environment and pose. "
-                f"No clothing or product changes."
+                f"Keep the person's appearance the same. "
+                f"Only change the background."
             )
         else:
             scene_prompt = (
                 "Place the person from the first image into the background from the second image. "
-                "IMPORTANT: The person should be wearing only underwear/lingerie, no other clothing. "
-                "Keep the person's facial features and body proportions exactly the same. "
-                "Make the person pose naturally and appropriately for the scene environment. "
-                "Do NOT copy the original pose - create a natural pose that fits the scene. "
-                "Only change the background environment and pose. "
-                "No clothing or product changes."
+                "Keep the person's appearance the same. "
+                "Only change the background."
             )
         
-        # Conservative parameters to ensure Nano Banana works while allowing some pose variation
+        # Ultra-conservative parameters to ensure Nano Banana actually works
         if quality_mode == "high":
-            num_steps = 20        # Lower steps to preserve input
-            guidance = 3.0        # Conservative guidance to ensure generation
-            strength = 0.18       # Slightly higher than before but still conservative
-            print("🎨 Using HIGH QUALITY mode (natural posing)")
+            num_steps = 12        # Very low steps to ensure generation
+            guidance = 2.0        # Very low guidance to ensure generation
+            strength = 0.08       # Very low strength to ensure generation
+            print("🎨 Using HIGH QUALITY mode (ultra-conservative)")
         else:  # standard
-            num_steps = 15        # Lower steps to preserve input
-            guidance = 2.8        # Conservative guidance to ensure generation
-            strength = 0.15       # Slightly higher than before but still conservative
-            print("⚡ Using STANDARD mode (natural posing)")
+            num_steps = 10        # Very low steps to ensure generation
+            guidance = 1.8        # Very low guidance to ensure generation
+            strength = 0.06       # Very low strength to ensure generation
+            print("⚡ Using STANDARD mode (ultra-conservative)")
 
         # Special handling for Sitting Shot: minimal increase for better integration
         if shot_type_prompt and ("sitting" in shot_type_prompt.lower()):
-            num_steps = max(num_steps, 20)  # Minimal increase
-            guidance = max(guidance, 3.0)   # Minimal increase
+            num_steps = max(num_steps, 12)  # Minimal increase
+            guidance = max(guidance, 2.2)   # Minimal increase
             strength = max(strength, 0.15)  # Minimal increase
             print("🪑 Sitting Shot detected → minimal boost for better scene integration")
         
