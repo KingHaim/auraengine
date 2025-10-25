@@ -1819,17 +1819,17 @@ export default function CampaignsPage() {
                       </span>
                       {(campaign.generation_status === "generating" ||
                         generatingCampaignId === campaign.id) && (
-                        <span
-                          style={{
+                      <span
+                        style={{
                             display: "flex",
                             alignItems: "center",
                             gap: "4px",
                             color: "#d42f48",
-                            fontWeight: "500",
-                          }}
-                        >
+                          fontWeight: "500",
+                        }}
+                      >
                           ⏳ Generando...
-                        </span>
+                      </span>
                       )}
                       {campaign.generation_status === "failed" && (
                         <span
@@ -1956,14 +1956,14 @@ export default function CampaignsPage() {
                     <img
                       src="/beating.gif"
                       alt="Generating..."
-                      style={{
+                    style={{
                         width: "150px",
                         height: "150px",
                         objectFit: "contain",
                       }}
                     />
                     <div
-                      style={{
+                    style={{
                         color: "#FFFFFF",
                         fontSize: "18px",
                         fontWeight: "600",
@@ -1973,20 +1973,20 @@ export default function CampaignsPage() {
                       Generating Campaign...
                     </div>
                     <div
-                      style={{
+                    style={{
                         color: "#E5E7EB",
-                        fontSize: "14px",
+                      fontSize: "14px",
                         textAlign: "center",
                         maxWidth: "200px",
-                      }}
+                    }}
                     >
                       Creating your campaign with AI models
-                    </div>
-                  </div>
+                </div>
+              </div>
                 )}
                 {/* History/Previous Generations - Top Left */}
-                <div
-                  style={{
+              <div
+                style={{
                     position: "absolute",
                     top: "20px",
                     left: "20px",
@@ -2021,13 +2021,13 @@ export default function CampaignsPage() {
                       <div
                         key={index}
                         onClick={() => setCurrentDisplayedImage(imageUrl)}
-                        style={{
+                    style={{
                           width: "60px",
                           height: "60px",
                           backgroundImage: `url(${imageUrl})`,
                           backgroundSize: "cover",
                           backgroundPosition: "center",
-                          borderRadius: "8px",
+                      borderRadius: "8px",
                           cursor: "pointer",
                           border:
                             currentDisplayedImage === imageUrl
@@ -2039,7 +2039,7 @@ export default function CampaignsPage() {
                       >
                         {currentDisplayedImage === imageUrl && (
                           <div
-                            style={{
+                        style={{
                               position: "absolute",
                               top: "4px",
                               right: "4px",
@@ -2047,8 +2047,8 @@ export default function CampaignsPage() {
                               height: "16px",
                               backgroundColor: "#d42f48",
                               borderRadius: "50%",
-                              display: "flex",
-                              alignItems: "center",
+                          display: "flex",
+                          alignItems: "center",
                               justifyContent: "center",
                               fontSize: "10px",
                               color: "#FFFFFF",
@@ -2077,7 +2077,7 @@ export default function CampaignsPage() {
                         }}
                       />
                       <div
-                        style={{
+                          style={{
                           width: "60px",
                           height: "60px",
                           backgroundColor: "#454545",
@@ -2092,7 +2092,7 @@ export default function CampaignsPage() {
                       />
                     </>
                   )}
-                </div>
+                          </div>
 
                 {/* Main Image Display - Takes whole left side */}
                 <div
@@ -2144,10 +2144,10 @@ export default function CampaignsPage() {
                           }}
                         />
                         Generating...
-                      </div>
+                          </div>
                     )}
-                </div>
-              </div>
+                        </div>
+                      </div>
 
               {/* Right Panel - Control Panel (60% width) */}
               <div
@@ -2228,7 +2228,7 @@ export default function CampaignsPage() {
                   >
                     {scenes.length === 0 ? (
                       <div
-                        style={{
+                          style={{
                           color: "#9CA3AF",
                           fontSize: "14px",
                           padding: "20px",
@@ -2263,7 +2263,7 @@ export default function CampaignsPage() {
                             }}
                           >
                             <div
-                              style={{
+                                  style={{
                                 position: "absolute",
                                 bottom: "0",
                                 left: "0",
@@ -2272,14 +2272,14 @@ export default function CampaignsPage() {
                                 color: "#FFFFFF",
                                 padding: "4px 8px",
                                 fontSize: "12px",
-                                fontWeight: "500",
-                              }}
-                            >
+                                    fontWeight: "500",
+                                  }}
+                                >
                               {scene.name}
                             </div>
                             {selectedScenes.includes(scene.id) && (
                               <div
-                                style={{
+                              style={{
                                   position: "absolute",
                                   top: "6px",
                                   right: "6px",
@@ -2290,7 +2290,7 @@ export default function CampaignsPage() {
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "center",
-                                  fontSize: "12px",
+                                fontSize: "12px",
                                   color: "#FFFFFF",
                                   fontWeight: "bold",
                                 }}
@@ -2303,12 +2303,12 @@ export default function CampaignsPage() {
                       })
                     )}
                   </div>
-                </div>
+                        </div>
 
                 {/* MODELS Section */}
                 <div style={{ marginBottom: "16px" }}>
                   <h3
-                    style={{
+                              style={{
                       fontSize: "14px",
                       fontWeight: "600",
                       color: "#FFFFFF",
@@ -2319,16 +2319,16 @@ export default function CampaignsPage() {
                   >
                     MODELS
                   </h3>
-                  <div
-                    style={{
-                      display: "flex",
+                              <div
+                                style={{
+                                  display: "flex",
                       gap: "12px",
                       flexWrap: "wrap",
-                    }}
-                  >
+                                }}
+                              >
                     {selectedModel ? (
-                      <div
-                        style={{
+                                <div
+                                  style={{
                           width: "80px",
                           height: "80px",
                           backgroundColor: "#4B5563",
@@ -2346,15 +2346,15 @@ export default function CampaignsPage() {
                         onClick={() => setShowModelSelectionModal(true)}
                       >
                         <div
-                          style={{
+                                    style={{
                             position: "absolute",
                             top: "4px",
                             right: "4px",
                             backgroundColor: "rgba(9, 10, 12, 0.7)",
                             color: "#FFFFFF",
                             padding: "2px 4px",
-                            borderRadius: "4px",
-                            fontSize: "10px",
+                                      borderRadius: "4px",
+                                      fontSize: "10px",
                             fontWeight: "500",
                           }}
                         >
@@ -2363,7 +2363,7 @@ export default function CampaignsPage() {
                       </div>
                     ) : (
                       <div
-                        style={{
+                                    style={{
                           width: "80px",
                           height: "80px",
                           backgroundColor: "#4B5563",
@@ -2372,17 +2372,17 @@ export default function CampaignsPage() {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          cursor: "pointer",
+                                      cursor: "pointer",
                           color: "#FFFFFF",
                           fontSize: "12px",
                           textAlign: "center",
-                        }}
+                                    }}
                         onClick={() => setShowModelSelectionModal(true)}
-                      >
+                                  >
                         + Model
-                      </div>
+                                </div>
                     )}
-                  </div>
+                              </div>
                 </div>
 
                 {/* PRODUCTS Section */}
@@ -2399,8 +2399,8 @@ export default function CampaignsPage() {
                   >
                     PRODUCTS
                   </h3>
-                  <div
-                    style={{
+                              <div
+                                style={{
                       display: "flex",
                       gap: "12px",
                       flexWrap: "wrap",
@@ -2411,41 +2411,41 @@ export default function CampaignsPage() {
                         const product = products.find(
                           (p) => p.id === productId
                         );
-                        return (
-                          <div
+                                    return (
+                                      <div
                             key={productId}
-                            style={{
+                                        style={{
                               width: "120px",
                               height: "80px",
                               backgroundColor: "#4B5563",
                               borderRadius: "8px",
                               backgroundImage: `url(${product?.image_url})`,
-                              backgroundSize: "cover",
-                              backgroundPosition: "center",
-                              cursor: "pointer",
+                                          backgroundSize: "cover",
+                                          backgroundPosition: "center",
+                                          cursor: "pointer",
                               border: "2px solid #d42f48",
-                              position: "relative",
+                                          position: "relative",
                             }}
                             onClick={() => setShowProductSelectionModal(true)}
-                          >
-                            <div
-                              style={{
-                                position: "absolute",
+                                      >
+                                        <div
+                                          style={{
+                                            position: "absolute",
                                 top: "4px",
                                 right: "4px",
                                 backgroundColor: "rgba(9, 10, 12, 0.7)",
                                 color: "#FFFFFF",
-                                padding: "2px 4px",
+                                            padding: "2px 4px",
                                 borderRadius: "4px",
-                                fontSize: "10px",
-                                fontWeight: "500",
-                              }}
-                            >
+                                            fontSize: "10px",
+                                            fontWeight: "500",
+                                          }}
+                                        >
                               ✓
-                            </div>
-                            <div
-                              style={{
-                                position: "absolute",
+                                        </div>
+                                          <div
+                                            style={{
+                                              position: "absolute",
                                 bottom: "0",
                                 left: "0",
                                 right: "0",
@@ -2453,13 +2453,13 @@ export default function CampaignsPage() {
                                 color: "#FFFFFF",
                                 padding: "4px 8px",
                                 fontSize: "12px",
-                                fontWeight: "500",
-                              }}
-                            >
+                                              fontWeight: "500",
+                                            }}
+                                          >
                               {product?.name}
-                            </div>
-                          </div>
-                        );
+                                          </div>
+                                      </div>
+                                    );
                       })
                     ) : (
                       <div
@@ -2483,9 +2483,9 @@ export default function CampaignsPage() {
                         </div>
                         <div style={{ fontSize: "12px", fontWeight: "500" }}>
                           ADD PRODUCT
-                        </div>
-                      </div>
-                    )}
+                              </div>
+                            </div>
+                          )}
                   </div>
                 </div>
 
@@ -2515,7 +2515,7 @@ export default function CampaignsPage() {
 
                 {/* REGENERATE Button */}
                 <div
-                  style={{
+                        style={{
                     marginTop: "auto",
                     paddingTop: "16px",
                   }}
@@ -2572,10 +2572,10 @@ export default function CampaignsPage() {
                         selectedScenes.length === 0
                           ? "not-allowed"
                           : "pointer",
-                      display: "flex",
-                      alignItems: "center",
+                          display: "flex",
+                          alignItems: "center",
                       justifyContent: "center",
-                      gap: "8px",
+                          gap: "8px",
                       transition: "all 0.2s",
                       opacity:
                         isCreating ||
@@ -2606,30 +2606,30 @@ export default function CampaignsPage() {
                       ? "Complete Selection"
                       : "REGENERATE"}
                     <div
-                      style={{
+                          style={{
                         display: "flex",
                         alignItems: "center",
                         gap: "4px",
                         backgroundColor: "rgba(255, 255, 255, 0.2)",
                         padding: "3px 6px",
-                        borderRadius: "4px",
+                            borderRadius: "4px",
                         fontSize: "12px",
                       }}
                     >
                       <span>🪙</span>
                       <span>5</span>
-                    </div>
+                          </div>
                   </button>
-                </div>
-              </div>
-            </div>
-          </div>
+                          </div>
+                        </div>
+                      </div>
+                  </div>
         )}
 
         {/* Model Selection Modal */}
         {showModelSelectionModal && (
-          <div
-            style={{
+                  <div
+                    style={{
               position: "fixed",
               top: 0,
               left: 0,
@@ -2721,7 +2721,7 @@ export default function CampaignsPage() {
                       <div
                         style={{
                           color: "#9CA3AF",
-                          fontSize: "14px",
+                        fontSize: "14px",
                         }}
                       >
                         {model.poses?.length || 0} poses available
@@ -2759,21 +2759,21 @@ export default function CampaignsPage() {
               >
                 Close
               </button>
-            </div>
-          </div>
-        )}
+                    </div>
+                  </div>
+                )}
 
         {/* Product Selection Modal */}
         {showProductSelectionModal && (
-          <div
-            style={{
+              <div
+                style={{
               position: "fixed",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
               backgroundColor: "rgba(9, 10, 12, 0.8)",
-              display: "flex",
+                  display: "flex",
               alignItems: "center",
               justifyContent: "center",
               zIndex: 2000,
@@ -2834,11 +2834,11 @@ export default function CampaignsPage() {
                     <img
                       src={product.image_url}
                       alt={product.name}
-                      style={{
+                  style={{
                         width: "60px",
                         height: "60px",
                         objectFit: "cover",
-                        borderRadius: "8px",
+                    borderRadius: "8px",
                       }}
                     />
                     <div style={{ flex: 1 }}>
@@ -2855,7 +2855,7 @@ export default function CampaignsPage() {
                       <div
                         style={{
                           color: "#9CA3AF",
-                          fontSize: "14px",
+                    fontSize: "14px",
                         }}
                       >
                         {product.packshots.length} packshots
@@ -2875,23 +2875,23 @@ export default function CampaignsPage() {
                 ))}
               </div>
 
-              <button
+                <button
                 onClick={() => setShowProductSelectionModal(false)}
-                style={{
+                  style={{
                   width: "100%",
                   padding: "12px",
                   backgroundColor: "#6B7280",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#FFFFFF",
-                  fontSize: "14px",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#FFFFFF",
+                    fontSize: "14px",
                   fontWeight: "500",
                   cursor: "pointer",
                   marginTop: "20px",
-                }}
-              >
+                  }}
+                >
                 Close
-              </button>
+                </button>
             </div>
           </div>
         )}
@@ -2935,16 +2935,16 @@ export default function CampaignsPage() {
                   marginBottom: "24px",
                 }}
               >
-                <h2
-                  style={{
-                    margin: 0,
+                  <h2
+                    style={{
+                      margin: 0,
                     fontSize: "20px",
-                    fontWeight: "600",
-                    color: "#1F2937",
-                  }}
-                >
-                  {selectedCampaign.name}
-                </h2>
+                      fontWeight: "600",
+                      color: "#1F2937",
+                    }}
+                  >
+                    {selectedCampaign.name}
+                  </h2>
                 <button
                   onClick={() => generateMoreImages(selectedCampaign)}
                   disabled={generatingMore}
@@ -5602,16 +5602,16 @@ export default function CampaignsPage() {
                       marginBottom: "8px",
                     }}
                   >
-                    <label
-                      style={{
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        color: "#374151",
+                  <label
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      color: "#374151",
                         margin: "0",
-                      }}
-                    >
-                      Select Images for Video Generation
-                    </label>
+                    }}
+                  >
+                    Select Images for Video Generation
+                  </label>
                     <div style={{ display: "flex", gap: "8px" }}>
                       <button
                         onClick={() => {
@@ -5766,14 +5766,14 @@ export default function CampaignsPage() {
                         display: "flex",
                         flexDirection: "column",
                         gap: "4px",
-                      }}
-                    >
-                      <span style={{ fontSize: "12px", color: "#6B7280" }}>
-                        {selectedImagesForVideo.size} of{" "}
-                        {selectedCampaignForBulkVideo.settings?.generated_images
-                          ?.length || 0}{" "}
-                        selected
-                      </span>
+                    }}
+                  >
+                    <span style={{ fontSize: "12px", color: "#6B7280" }}>
+                      {selectedImagesForVideo.size} of{" "}
+                      {selectedCampaignForBulkVideo.settings?.generated_images
+                        ?.length || 0}{" "}
+                      selected
+                    </span>
                       <span style={{ fontSize: "11px", color: "#9CA3AF" }}>
                         💡 Tip: Select 3-5 shots for TikTok, or all 10 for a
                         complete CapCut sequence
