@@ -256,7 +256,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           background:
             "linear-gradient(180deg, #090a0c 0%, #090a0c 60%, #1a1a1a 80%, #8b1a2a 100%)",
           borderRight: "1px solid #1F2630",
-          padding: "32px 16px",
+          padding: "32px 12px",
           display: "flex",
           flexDirection: "column",
           position: "fixed",
