@@ -4760,12 +4760,12 @@ export default function CampaignsPage() {
           >
             <div
               style={{
-                backgroundColor: "#1F2937",
+                backgroundColor: "white",
                 borderRadius: "16px",
                 padding: "32px",
-                maxWidth: "90vw",
-                maxHeight: "90vh",
-                width: "1000px",
+                maxWidth: "95vw",
+                maxHeight: "95vh",
+                width: "1200px",
                 position: "relative",
                 overflow: "auto",
               }}
@@ -4777,14 +4777,16 @@ export default function CampaignsPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  marginBottom: "24px",
+                  marginBottom: "32px",
+                  paddingBottom: "24px",
+                  borderBottom: "2px solid #E5E7EB",
                 }}
               >
                 <h2
                   style={{
                     margin: 0,
-                    fontSize: "20px",
-                    fontWeight: "600",
+                    fontSize: "28px",
+                    fontWeight: "700",
                     color: "#1F2937",
                   }}
                 >
@@ -4793,13 +4795,22 @@ export default function CampaignsPage() {
                 <button
                   onClick={() => setShowCampaignProfileModal(false)}
                   style={{
-                    padding: "8px",
+                    padding: "12px",
                     backgroundColor: "transparent",
                     border: "none",
                     borderRadius: "8px",
                     color: "#6B7280",
-                    fontSize: "20px",
+                    fontSize: "24px",
                     cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#F3F4F6";
+                    e.currentTarget.style.color = "#374151";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "#6B7280";
                   }}
                 >
                   ✕
@@ -4839,14 +4850,11 @@ export default function CampaignsPage() {
                       style={{
                         display: "grid",
                         gridTemplateColumns:
-                          "repeat(auto-fill, minmax(200px, 1fr))",
-                        gap: "16px",
-                        maxHeight: "400px",
+                          "repeat(auto-fill, minmax(280px, 1fr))",
+                        gap: "24px",
+                        maxHeight: "70vh",
                         overflowY: "auto",
                         padding: "8px",
-                        border: "1px solid #E5E7EB",
-                        borderRadius: "12px",
-                        backgroundColor: "#F9FAFB",
                       }}
                     >
                       {selectedCampaignForProfile.settings.generated_images.map(
@@ -4855,23 +4863,26 @@ export default function CampaignsPage() {
                             key={index}
                             style={{
                               aspectRatio: "1",
-                              borderRadius: "8px",
+                              borderRadius: "12px",
                               overflow: "hidden",
                               backgroundColor: "#FFFFFF",
-                              border: "1px solid #E5E7EB",
+                              border: "2px solid #E5E7EB",
                               position: "relative",
                               cursor: "pointer",
-                              transition:
-                                "transform 0.2s ease, box-shadow 0.2s ease",
+                              transition: "all 0.3s ease",
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = "scale(1.02)";
+                              e.currentTarget.style.transform = "translateY(-4px)";
                               e.currentTarget.style.boxShadow =
-                                "0 4px 12px rgba(0,0,0,0.15)";
+                                "0 8px 25px rgba(0,0,0,0.15)";
+                              e.currentTarget.style.borderColor = "#d42f48";
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = "scale(1)";
-                              e.currentTarget.style.boxShadow = "none";
+                              e.currentTarget.style.transform = "translateY(0)";
+                              e.currentTarget.style.boxShadow =
+                                "0 4px 12px rgba(0,0,0,0.08)";
+                              e.currentTarget.style.borderColor = "#E5E7EB";
                             }}
                           >
                             {/* Delete Button */}
@@ -4885,18 +4896,19 @@ export default function CampaignsPage() {
                               }}
                               style={{
                                 position: "absolute",
-                                top: "8px",
-                                right: "8px",
+                                top: "12px",
+                                right: "12px",
                                 zIndex: 10,
                                 backgroundColor: "rgba(239, 68, 68, 0.9)",
                                 border: "none",
-                                borderRadius: "6px",
+                                borderRadius: "8px",
                                 color: "#FFFFFF",
-                                padding: "6px 10px",
-                                fontSize: "12px",
+                                padding: "8px 12px",
+                                fontSize: "14px",
                                 fontWeight: "600",
                                 cursor: "pointer",
                                 transition: "all 0.2s ease",
+                                backdropFilter: "blur(4px)",
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor =
@@ -5053,142 +5065,6 @@ export default function CampaignsPage() {
                     </p>
                   </div>
                 )}
-
-                {/* Campaign Information */}
-                <div
-                  style={{
-                    backgroundColor: "#F9FAFB",
-                    padding: "20px",
-                    borderRadius: "8px",
-                    border: "1px solid #E5E7EB",
-                  }}
-                >
-                  <h3
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "600",
-                      color: "#1F2937",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    Campaign Information
-                  </h3>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "12px",
-                    }}
-                  >
-                    <div>
-                      <span
-                        style={{
-                          fontSize: "14px",
-                          fontWeight: "500",
-                          color: "#374151",
-                        }}
-                      >
-                        Name:
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "14px",
-                          color: "#6B7280",
-                          marginLeft: "8px",
-                        }}
-                      >
-                        {selectedCampaignForProfile.name}
-                      </span>
-                    </div>
-                    {selectedCampaignForProfile.description && (
-                      <div>
-                        <span
-                          style={{
-                            fontSize: "14px",
-                            fontWeight: "500",
-                            color: "#374151",
-                          }}
-                        >
-                          Description:
-                        </span>
-                        <p
-                          style={{
-                            fontSize: "14px",
-                            color: "#6B7280",
-                            margin: "4px 0 0 0",
-                            lineHeight: 1.4,
-                          }}
-                        >
-                          {selectedCampaignForProfile.description}
-                        </p>
-                      </div>
-                    )}
-                    <div>
-                      <span
-                        style={{
-                          fontSize: "14px",
-                          fontWeight: "500",
-                          color: "#374151",
-                        }}
-                      >
-                        Status:
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "14px",
-                          color: "#6B7280",
-                          marginLeft: "8px",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {selectedCampaignForProfile.status}
-                      </span>
-                    </div>
-                    <div>
-                      <span
-                        style={{
-                          fontSize: "14px",
-                          fontWeight: "500",
-                          color: "#374151",
-                        }}
-                      >
-                        Generated Images:
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "14px",
-                          color: "#6B7280",
-                          marginLeft: "8px",
-                        }}
-                      >
-                        {selectedCampaignForProfile.settings?.generated_images
-                          ?.length || 0}
-                      </span>
-                    </div>
-                    <div>
-                      <span
-                        style={{
-                          fontSize: "14px",
-                          fontWeight: "500",
-                          color: "#374151",
-                        }}
-                      >
-                        Generated Videos:
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "14px",
-                          color: "#6B7280",
-                          marginLeft: "8px",
-                        }}
-                      >
-                        {selectedCampaignForProfile.settings?.generated_images?.filter(
-                          (img: any) => img.video_url
-                        )?.length || 0}
-                      </span>
-                    </div>
-                  </div>
-                </div>
 
                 {/* Action Buttons */}
                 <div
