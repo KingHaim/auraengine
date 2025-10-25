@@ -2292,18 +2292,18 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
         # Step 1: Focus ONLY on placing model into scene (no clothing/product)
         if shot_type_prompt:
             scene_prompt = (
-                f"Place the person from the first image into the background from the second image. "
+                f"Place this person into the scene and make her interact naturally with the environment. "
                 f"{shot_type_prompt} "
-                f"Keep the person's facial features and body proportions the same. "
-                f"Adapt the person's pose to fit naturally in the scene. "
-                f"Only change the background and pose."
+                f"Keep the person's facial features and body proportions exactly the same. "
+                f"Make her pose and interact with objects, furniture, or elements in the scene. "
+                f"Only change the background and pose to show natural scene interaction."
             )
         else:
             scene_prompt = (
-                "Place the person from the first image into the background from the second image. "
-                "Keep the person's facial features and body proportions the same. "
-                "Adapt the person's pose to fit naturally in the scene. "
-                "Only change the background and pose."
+                "Place this person into the scene and make her interact naturally with the environment. "
+                "Keep the person's facial features and body proportions exactly the same. "
+                "Make her pose and interact with objects, furniture, or elements in the scene. "
+                "Only change the background and pose to show natural scene interaction."
             )
         
         # Conservative parameters that work but allow pose adaptation
