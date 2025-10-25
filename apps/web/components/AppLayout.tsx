@@ -5,7 +5,7 @@ import Link from "next/link";
 import AuthModal from "./AuthModal";
 import { useState, useEffect, useRef } from "react";
 
-const SIDEBAR_WIDTH = 260; // px
+const SIDEBAR_WIDTH = 280; // px
 
 interface AppLayoutProps {
   children: React.ReactNode;
