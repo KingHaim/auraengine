@@ -2295,30 +2295,34 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
                 f"Place the person from the first image into the background from the second image. "
                 f"{shot_type_prompt} "
                 f"IMPORTANT: The person should be wearing only underwear/lingerie, no other clothing. "
-                f"Keep the person's appearance exactly the same. "
-                f"Only change the background environment. "
+                f"Keep the person's facial features and body proportions exactly the same. "
+                f"Make the person pose naturally and appropriately for the scene environment. "
+                f"Do NOT copy the original pose - create a natural pose that fits the scene. "
+                f"Only change the background environment and pose. "
                 f"No clothing or product changes."
             )
         else:
             scene_prompt = (
                 "Place the person from the first image into the background from the second image. "
                 "IMPORTANT: The person should be wearing only underwear/lingerie, no other clothing. "
-                "Keep the person's appearance exactly the same. "
-                "Only change the background environment. "
+                "Keep the person's facial features and body proportions exactly the same. "
+                "Make the person pose naturally and appropriately for the scene environment. "
+                "Do NOT copy the original pose - create a natural pose that fits the scene. "
+                "Only change the background environment and pose. "
                 "No clothing or product changes."
             )
         
-        # Very gentle parameters to preserve input images
+        # Parameters to preserve model appearance while allowing natural posing
         if quality_mode == "high":
             num_steps = 20        # Lower steps to preserve input
-            guidance = 3.0        # Much lower guidance to preserve model
-            strength = 0.15       # Very low strength to preserve model
-            print("🎨 Using HIGH QUALITY mode (input-preserving luxury)")
+            guidance = 3.5        # Slightly higher guidance for better scene integration
+            strength = 0.25       # Higher strength to allow natural posing
+            print("🎨 Using HIGH QUALITY mode (natural posing)")
         else:  # standard
             num_steps = 15        # Lower steps to preserve input
-            guidance = 2.5        # Much lower guidance to preserve model
-            strength = 0.10       # Very low strength to preserve model
-            print("⚡ Using STANDARD mode (input-preserving luxury)")
+            guidance = 3.0        # Slightly higher guidance for better scene integration
+            strength = 0.2        # Higher strength to allow natural posing
+            print("⚡ Using STANDARD mode (natural posing)")
 
         # Special handling for Sitting Shot: minimal increase for better integration
         if shot_type_prompt and ("sitting" in shot_type_prompt.lower()):
