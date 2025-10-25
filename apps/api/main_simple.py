@@ -2292,48 +2292,40 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
         # Step 1: Focus ONLY on placing model into scene (no clothing/product)
         if shot_type_prompt:
             scene_prompt = (
-                f"Seamlessly integrate the person from the first image into the background from the second image. "
+                f"Place the person from the first image into the background from the second image. "
                 f"{shot_type_prompt} "
-                f"IMPORTANT: The person should be wearing only underwear/lingerie, no other clothing. "
-                f"CRITICAL LIGHTING INTEGRATION: Match the lighting conditions of the background scene exactly. "
-                f"Create realistic shadows that match the scene's light source direction and intensity. "
-                f"Adjust the person's lighting to match the ambient lighting of the environment. "
-                f"Ensure the person appears naturally lit and integrated, not like a cutout. "
-                f"Maintain the person's facial features and body proportions exactly. "
-                f"Professional fashion photography with realistic lighting and shadows. "
-                f"No clothing or product changes."
+                f"The person should be wearing only underwear. "
+                f"Match the lighting and create realistic shadows. "
+                f"Keep the person's appearance the same. "
+                f"Professional photography quality."
             )
         else:
             scene_prompt = (
-                "Seamlessly integrate the person from the first image into the background from the second image. "
-                "IMPORTANT: The person should be wearing only underwear/lingerie, no other clothing. "
-                "CRITICAL LIGHTING INTEGRATION: Match the lighting conditions of the background scene exactly. "
-                "Create realistic shadows that match the scene's light source direction and intensity. "
-                "Adjust the person's lighting to match the ambient lighting of the environment. "
-                "Ensure the person appears naturally lit and integrated, not like a cutout. "
-                "Maintain the person's facial features and body proportions exactly. "
-                "Professional fashion photography with realistic lighting and shadows. "
-                "No clothing or product changes."
+                "Place the person from the first image into the background from the second image. "
+                "The person should be wearing only underwear. "
+                "Match the lighting and create realistic shadows. "
+                "Keep the person's appearance the same. "
+                "Professional photography quality."
             )
         
-        # Parameters optimized for lighting integration while preserving model
+        # Conservative parameters for reliable scene composition
         if quality_mode == "high":
-            num_steps = 25        # More steps for better lighting integration
-            guidance = 4.0        # Higher guidance for better lighting matching
-            strength = 0.25       # Higher strength for lighting integration
-            print("🎨 Using HIGH QUALITY mode (lighting-integrated luxury)")
+            num_steps = 15        # Conservative steps for reliability
+            guidance = 2.5        # Conservative guidance
+            strength = 0.15       # Conservative strength
+            print("🎨 Using HIGH QUALITY mode (reliable scene composition)")
         else:  # standard
-            num_steps = 20        # More steps for better lighting integration
-            guidance = 3.5        # Higher guidance for better lighting matching
-            strength = 0.20       # Higher strength for lighting integration
-            print("⚡ Using STANDARD mode (lighting-integrated luxury)")
+            num_steps = 12        # Conservative steps for reliability
+            guidance = 2.0        # Conservative guidance
+            strength = 0.12       # Conservative strength
+            print("⚡ Using STANDARD mode (reliable scene composition)")
 
-        # Special handling for Sitting Shot: boost for better integration
+        # Special handling for Sitting Shot: minimal boost
         if shot_type_prompt and ("sitting" in shot_type_prompt.lower()):
-            num_steps = max(num_steps, 25)  # More steps for sitting integration
-            guidance = max(guidance, 4.0)   # Higher guidance for sitting
-            strength = max(strength, 0.25)  # Higher strength for sitting
-            print("🪑 Sitting Shot detected → enhanced lighting integration")
+            num_steps = max(num_steps, 15)  # Minimal increase
+            guidance = max(guidance, 2.5)   # Minimal increase
+            strength = max(strength, 0.15)  # Minimal increase
+            print("🪑 Sitting Shot detected → minimal boost for reliability")
         
         # Use Nano Banana for scene composition
         try:
@@ -2375,12 +2367,13 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
             print(f"🔍 DEBUG: Scene URL: {scene_image_url[:100]}...")
             print(f"🔍 DEBUG: Prompt: {scene_prompt[:200]}...")
             try:
+                # Even more conservative retry parameters
                 safer_out = replicate.run("google/nano-banana", input={
-                    "prompt": scene_prompt,
+                    "prompt": "Place the person from the first image into the background from the second image. Keep the person's appearance the same.",
                     "image_input": [model_image_url, scene_image_url],
-                    "num_inference_steps": 8,
-                    "guidance_scale": 1.5,
-                    "strength": 0.05,
+                    "num_inference_steps": 6,
+                    "guidance_scale": 1.2,
+                    "strength": 0.03,
                     "seed": None
                 })
                 if hasattr(safer_out, 'url'):
