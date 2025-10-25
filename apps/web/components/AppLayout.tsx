@@ -283,10 +283,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
         {/* Logo */}
         <div
           style={{
-            textAlign: "center",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
             marginBottom: "40px",
             position: "relative",
             zIndex: 1,
+            width: "100%",
           }}
         >
           <img
@@ -297,7 +300,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
               height: "150px",
               objectFit: "contain",
               display: "block",
-              margin: "0 auto",
             }}
           />
         </div>
