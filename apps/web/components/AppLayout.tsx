@@ -5,7 +5,7 @@ import Link from "next/link";
 import AuthModal from "./AuthModal";
 import { useState, useEffect, useRef } from "react";
 
-const SIDEBAR_WIDTH = 200; // px
+const SIDEBAR_WIDTH = 240; // px
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -296,8 +296,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
             src="/logo.png"
             alt="Logo"
             style={{
-              width: "150px",
-              height: "150px",
+              width: "180px",
+              height: "180px",
               objectFit: "contain",
               display: "block",
             }}

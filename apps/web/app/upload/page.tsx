@@ -103,7 +103,7 @@ export default function UploadPage() {
       {/* Sidebar */}
       <div
         style={{
-          width: "200px",
+          width: "240px",
           background:
             "linear-gradient(90deg, #0B0F12 0%, #0E131A 45%, #121826 100%)",
           borderRight: "1px solid #1F2630",

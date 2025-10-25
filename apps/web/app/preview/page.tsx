@@ -104,7 +104,7 @@ export default function PreviewPage() {
       {/* Sidebar */}
       <div
         style={{
-          width: "200px",
+          width: "240px",
           background:
             "linear-gradient(90deg, #0B0F12 0%, #0E131A 45%, #121826 100%)",
           borderRight: "1px solid #1F2630",
@@ -339,13 +339,13 @@ export default function PreviewPage() {
             style={{
               display: "flex",
               gap: "24px",
-              height: "calc(100vh - 200px)",
+              height: "calc(100vh - 240px)",
             }}
           >
             {/* Thumbnail Grid */}
             <div
               style={{
-                width: "200px",
+                width: "240px",
                 display: "flex",
                 flexDirection: "column",
                 gap: "12px",
