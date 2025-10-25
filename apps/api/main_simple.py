@@ -2312,16 +2312,16 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
                 "No clothing or product changes."
             )
         
-        # Parameters to preserve model appearance while allowing natural posing
+        # Conservative parameters to ensure Nano Banana works while allowing some pose variation
         if quality_mode == "high":
             num_steps = 20        # Lower steps to preserve input
-            guidance = 3.5        # Slightly higher guidance for better scene integration
-            strength = 0.25       # Higher strength to allow natural posing
+            guidance = 3.0        # Conservative guidance to ensure generation
+            strength = 0.18       # Slightly higher than before but still conservative
             print("🎨 Using HIGH QUALITY mode (natural posing)")
         else:  # standard
             num_steps = 15        # Lower steps to preserve input
-            guidance = 3.0        # Slightly higher guidance for better scene integration
-            strength = 0.2        # Higher strength to allow natural posing
+            guidance = 2.8        # Conservative guidance to ensure generation
+            strength = 0.15       # Slightly higher than before but still conservative
             print("⚡ Using STANDARD mode (natural posing)")
 
         # Special handling for Sitting Shot: minimal increase for better integration
