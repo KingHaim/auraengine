@@ -5,6 +5,11 @@ import { AuthProvider } from "../contexts/AuthContext";
 export const metadata: Metadata = {
   title: "Aura Engine - AI Mockup Generator",
   description: "AI-powered creative tool for designers and product creators",
+  icons: {
+    icon: "/heart.png",
+    shortcut: "/heart.png",
+    apple: "/heart.png",
+  },
 };
 
 export default function RootLayout({
