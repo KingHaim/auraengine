@@ -19,7 +19,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="relative w-60 shrink-0 text-gray-300">
+    <div className="relative w-64 shrink-0 text-gray-300">
       <div className="absolute inset-0 bg-gradient-to-b from-[#0B0F12] via-[#0E131A] to-[#121826]"></div>
       <div className="absolute inset-0 opacity-50 bg-[radial-gradient(600px_200px_at_20%_20%,rgba(34,211,238,0.15),transparent),radial-gradient(500px_200px_at_80%_70%,rgba(139,92,246,0.12),transparent)]"></div>
       <aside className="relative h-full flex flex-col px-6 pt-8 pb-6 border-r border-[#1F2630]">

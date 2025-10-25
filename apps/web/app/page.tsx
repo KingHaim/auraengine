@@ -69,7 +69,7 @@ export default function Home() {
       {/* Sidebar */}
       <div
         style={{
-          width: "240px",
+          width: "260px",
           background:
             "linear-gradient(90deg, #0B0F12 0%, #0E131A 45%, #121826 100%)",
           borderRight: "1px solid #1F2630",
