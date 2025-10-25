@@ -4760,7 +4760,7 @@ export default function CampaignsPage() {
           >
             <div
               style={{
-                backgroundColor: "white",
+                backgroundColor: "#1F2937",
                 borderRadius: "16px",
                 padding: "32px",
                 maxWidth: "90vw",
