@@ -2294,27 +2294,29 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
             scene_prompt = (
                 f"Place the person from the first image into the background from the second image. "
                 f"{shot_type_prompt} "
-                f"Keep the person's appearance the same. "
-                f"Only change the background."
+                f"Keep the person's facial features and body proportions the same. "
+                f"Adapt the person's pose to fit naturally in the scene. "
+                f"Only change the background and pose."
             )
         else:
             scene_prompt = (
                 "Place the person from the first image into the background from the second image. "
-                "Keep the person's appearance the same. "
-                "Only change the background."
+                "Keep the person's facial features and body proportions the same. "
+                "Adapt the person's pose to fit naturally in the scene. "
+                "Only change the background and pose."
             )
         
-        # Ultra-conservative parameters to ensure Nano Banana actually works
+        # Conservative parameters that work but allow pose adaptation
         if quality_mode == "high":
-            num_steps = 12        # Very low steps to ensure generation
-            guidance = 2.0        # Very low guidance to ensure generation
-            strength = 0.08       # Very low strength to ensure generation
-            print("🎨 Using HIGH QUALITY mode (ultra-conservative)")
+            num_steps = 15        # Moderate steps for quality
+            guidance = 2.5        # Moderate guidance for scene integration
+            strength = 0.15       # Higher strength to allow pose changes
+            print("🎨 Using HIGH QUALITY mode (pose adaptation)")
         else:  # standard
-            num_steps = 10        # Very low steps to ensure generation
-            guidance = 1.8        # Very low guidance to ensure generation
-            strength = 0.06       # Very low strength to ensure generation
-            print("⚡ Using STANDARD mode (ultra-conservative)")
+            num_steps = 12        # Moderate steps for quality
+            guidance = 2.2        # Moderate guidance for scene integration
+            strength = 0.12       # Higher strength to allow pose changes
+            print("⚡ Using STANDARD mode (pose adaptation)")
 
         # Special handling for Sitting Shot: minimal increase for better integration
         if shot_type_prompt and ("sitting" in shot_type_prompt.lower()):
