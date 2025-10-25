@@ -293,8 +293,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
             src="/logo.png"
             alt="Logo"
             style={{
-              width: "200px",
-              height: "200px",
+              width: "160px",
+              height: "160px",
               objectFit: "contain",
               display: "block",
               margin: "0 auto",
