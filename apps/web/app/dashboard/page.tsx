@@ -526,8 +526,9 @@ export default function Dashboard() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-                gap: "20px",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: "16px",
+                maxWidth: "800px",
               }}
             >
               {campaigns.map((campaign) => (
@@ -554,7 +555,7 @@ export default function Dashboard() {
                 >
                   <div
                     style={{
-                      aspectRatio: "16/9",
+                      aspectRatio: "4/3",
                       position: "relative",
                       backgroundColor: "#F3F4F6",
                     }}
@@ -585,13 +586,13 @@ export default function Dashboard() {
                       </div>
                     )}
                   </div>
-                  <div style={{ padding: "16px" }}>
+                  <div style={{ padding: "12px" }}>
                     <h4
                       style={{
-                        fontSize: "16px",
+                        fontSize: "14px",
                         fontWeight: "600",
                         color: "#1F2937",
-                        marginBottom: "8px",
+                        marginBottom: "6px",
                       }}
                     >
                       {campaign.name}
