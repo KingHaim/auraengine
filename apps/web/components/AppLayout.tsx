@@ -34,6 +34,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
+      console.log('Screen width:', window.innerWidth, 'Is mobile:', mobile);
       setIsMobile(mobile);
       if (!mobile) {
         setSidebarOpen(false);
@@ -309,7 +310,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
               objectFit: "contain",
             }}
           />
-          <div style={{ width: "40px" }} />
+          <div style={{ 
+            width: "40px", 
+            fontSize: "12px", 
+            color: "#d42f48",
+            textAlign: "center"
+          }}>
+            MOBILE
+          </div>
         </div>
       )}
 

@@ -48,6 +48,22 @@ body {
     height: 240px !important;
     width: 100% !important;
   }
+  
+  /* Force mobile layout */
+  [style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Mobile sidebar adjustments */
+  [style*="paddingLeft: 280px"] {
+    padding-left: 0px !important;
+  }
+  
+  /* Mobile main content */
+  main {
+    margin-top: 60px !important;
+    padding: 16px !important;
+  }
 }
 
 /* smooth cards */
