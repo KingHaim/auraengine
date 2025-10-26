@@ -710,6 +710,20 @@ export default function AppLayout({ children }: AppLayoutProps) {
             boxSizing: "border-box",
           }}
         >
+          {/* Mobile Debug Info */}
+          {isMobile && (
+            <div style={{
+              backgroundColor: "#d42f48",
+              color: "white",
+              padding: "8px",
+              marginBottom: "16px",
+              borderRadius: "8px",
+              fontSize: "14px",
+              textAlign: "center"
+            }}>
+              📱 MOBILE MODE ACTIVE - Screen Width: {typeof window !== 'undefined' ? window.innerWidth : 'N/A'}px
+            </div>
+          )}
           {children}
         </main>
       </div>

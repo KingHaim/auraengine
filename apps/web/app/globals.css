@@ -64,6 +64,28 @@ body {
     margin-top: 60px !important;
     padding: 16px !important;
   }
+  
+  /* Force single column on all grids */
+  div[style*="grid"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Mobile-specific overrides */
+  .mobile-override {
+    padding-left: 0 !important;
+    margin-top: 60px !important;
+  }
+}
+
+/* Additional mobile breakpoints */
+@media (max-width: 480px) {
+  .campaign-card {
+    height: 200px !important;
+  }
+  
+  main {
+    padding: 12px !important;
+  }
 }
 
 /* smooth cards */
