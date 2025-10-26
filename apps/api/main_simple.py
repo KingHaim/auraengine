@@ -612,7 +612,11 @@ async def generate_campaign_images_background(
         except Exception:
             shots_to_generate_count = 1
 
-        shot_types_to_generate = CAMPAIGN_SHOT_TYPES[:shots_to_generate_count]
+        # Randomize shot types for variety
+        import random
+        available_shots = CAMPAIGN_SHOT_TYPES.copy()
+        random.shuffle(available_shots)
+        shot_types_to_generate = available_shots[:shots_to_generate_count]
 
         # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
         for product in products:
@@ -664,7 +668,7 @@ async def generate_campaign_images_background(
                             )
                             # Qwen result is already persisted
                             print(f"✅ Qwen triple composition completed: {final_result_url[:50]}...")
-                            
+
                             # Define clothing type for result structure (needed for compatibility)
                             clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
                             
@@ -901,8 +905,11 @@ async def generate_campaign_images(
                     print(f"🎬 Processing campaign flow: {product.name} + {model.name} + {scene.name}")
                     print(f"📸 Generating {number_of_images} images for this campaign...")
                     
-                    # Generate only the requested number of images
-                    shot_types_to_generate = CAMPAIGN_SHOT_TYPES[:number_of_images]
+                    # Generate only the requested number of images - RANDOMIZED
+                    import random
+                    available_shots = CAMPAIGN_SHOT_TYPES.copy()
+                    random.shuffle(available_shots)
+                    shot_types_to_generate = available_shots[:number_of_images]
                     for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
                         try:
                             print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
@@ -929,7 +936,7 @@ async def generate_campaign_images(
                             )
                             # Qwen result is already persisted
                             print(f"✅ Qwen triple composition completed: {final_result_url[:50]}...")
-                            
+
                             # Define clothing type for result structure (needed for compatibility)
                             clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
                             
@@ -2118,11 +2125,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             for attempt in range(max_retries):
                 try:
                     print(f"🎭 Vella attempt {attempt + 1}/{max_retries}...")
-                    out = replicate.run("omnious/vella-1.5", input=vella_input)
+            out = replicate.run("omnious/vella-1.5", input=vella_input)
                     print(f"✅ Vella API call succeeded on attempt {attempt + 1}!")
-                    print(f"🎭 Vella API response type: {type(out)}")
-                    if hasattr(out, '__dict__'):
-                        print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
+            print(f"🎭 Vella API response type: {type(out)}")
+            if hasattr(out, '__dict__'):
+                print(f"🎭 Vella response attributes: {list(out.__dict__.keys())}")
                     break  # Success, exit retry loop
                 except Exception as e:
                     print(f"⚠️ Vella attempt {attempt + 1} failed: {e}")
@@ -2188,17 +2195,17 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # Enhanced integration prompt with shot type
+        # Enhanced integration prompt with shot type - STRONG SCENE INTEGRATION
         if shot_type_prompt:
-            scene_prompt = f"Create a cohesive fashion photograph: Take the person from the first image, dress them with the {product_name} from the second image, then integrate them into a setting inspired by the mood and atmosphere of the third image. {shot_type_prompt}. The person should adapt to match the lighting, color grading, and visual style of the scene environment. Create a natural, believable composition where everything flows together. Preserve the person's face and pose but adjust their appearance to fit harmoniously. Professional luxury fashion aesthetic."
+            scene_prompt = f"CRITICAL: Create a seamless fashion photograph by COMPLETELY integrating the person from the first image into the EXACT environment and setting from the third image. Dress the person with the {product_name} from the second image. {shot_type_prompt}. The person MUST be placed directly into the third image's environment - use the exact background, lighting, atmosphere, and visual style from the third image. The person should appear as if they were photographed in that exact location. Match the lighting direction, shadows, color temperature, and mood perfectly. The background from the third image should be completely preserved and the person should look naturally placed within it. Professional fashion photography with perfect scene integration."
         else:
-            scene_prompt = f"Create a cohesive fashion photograph: Take the person from the first image, dress them with the {product_name} from the second image, then integrate them into a setting inspired by the mood and atmosphere of the third image. The person should adapt to match the lighting, color grading, and visual style of the scene environment. Create a natural, believable composition where everything flows together. Preserve the person's face and pose but adjust their appearance to fit harmoniously. Professional luxury fashion aesthetic."
+            scene_prompt = f"CRITICAL: Create a seamless fashion photograph by COMPLETELY integrating the person from the first image into the EXACT environment and setting from the third image. Dress the person with the {product_name} from the second image. The person MUST be placed directly into the third image's environment - use the exact background, lighting, atmosphere, and visual style from the third image. The person should appear as if they were photographed in that exact location. Match the lighting direction, shadows, color temperature, and mood perfectly. The background from the third image should be completely preserved and the person should look naturally placed within it. Professional fashion photography with perfect scene integration."
         
-        # Strong integration parameters (like hjk)
-        num_steps = 38
-        guidance = 4.2  # Moderate guidance for balance
-        strength = 0.52  # Strong integration while preserving identity
-        print("⚡ Using Qwen for strong scene integration (like campaign hjk)")
+        # Strong integration parameters - INCREASED FOR BETTER SCENE INTEGRATION
+        num_steps = 45  # More steps for better quality
+        guidance = 5.0  # Higher guidance for stronger scene integration
+        strength = 0.65  # Higher strength for better scene integration
+        print("⚡ Using Qwen for STRONG scene integration with increased parameters")
         
         # Use Qwen with 3 images
         try:
