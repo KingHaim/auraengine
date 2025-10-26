@@ -38,10 +38,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
         setSidebarOpen(false);
       }
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Search functionality
@@ -338,7 +338,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
           flexDirection: "column",
           position: "fixed",
           top: 0,
-          left: isMobile ? (sidebarOpen ? "0" : `-${MOBILE_SIDEBAR_WIDTH}px`) : "0",
+          left: isMobile
+            ? sidebarOpen
+              ? "0"
+              : `-${MOBILE_SIDEBAR_WIDTH}px`
+            : "0",
           height: "100vh",
           zIndex: isMobile ? 1000 : 0,
           transition: "left 0.3s ease",
