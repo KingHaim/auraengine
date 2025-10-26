@@ -602,23 +602,6 @@ export default function ProductsPage() {
                       }
                     }}
                   />
-                  {product.packshots && product.packshots.length > 0 && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "12px",
-                        right: "12px",
-                        backgroundColor: "rgba(139, 92, 246, 0.9)",
-                        color: "white",
-                        padding: "4px 8px",
-                        borderRadius: "12px",
-                        fontSize: "12px",
-                        fontWeight: "500",
-                      }}
-                    >
-                      📸 {product.packshots.length} packshots
-                    </div>
-                  )}
                 </div>
                 <div style={{ padding: "16px" }}>
                   <h3
@@ -1312,7 +1295,7 @@ export default function ProductsPage() {
               >
                 ✏️ Edit Product
               </button>
-              
+
               <button
                 onClick={() => {
                   setShowPackshotsModal(false);
@@ -1820,7 +1803,6 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
-
     </AppLayout>
   );
 }
