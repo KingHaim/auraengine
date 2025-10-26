@@ -54,6 +54,32 @@ else:
     print("⚠️ Cloudinary not configured - using local storage fallback")
     print(f"   Missing: CLOUD_NAME={bool(CLOUDINARY_CLOUD_NAME)}, API_KEY={bool(CLOUDINARY_API_KEY)}, API_SECRET={bool(CLOUDINARY_API_SECRET)}")
 
+def convert_localhost_video_urls(settings: dict) -> dict:
+    """Convert localhost video URLs to Cloudinary URLs on-the-fly"""
+    if not settings or not isinstance(settings, dict):
+        return settings
+    
+    generated_images = settings.get("generated_images", [])
+    if not generated_images:
+        return settings
+    
+    updated = False
+    for img_data in generated_images:
+        video_url = img_data.get("video_url")
+        if video_url and "localhost:8000" in video_url:
+            print(f"🔄 Converting localhost video URL: {video_url[:50]}...")
+            try:
+                # Upload to Cloudinary
+                new_url = upload_to_cloudinary(video_url, "kling_videos")
+                if new_url != video_url:
+                    img_data["video_url"] = new_url
+                    updated = True
+                    print(f"✅ Converted to Cloudinary: {new_url[:50]}...")
+            except Exception as e:
+                print(f"⚠️ Failed to convert video URL: {e}")
+    
+    return settings
+
 # Helper functions for URL generation
 def get_base_url():
     """Get the base URL for the API"""
@@ -570,6 +596,10 @@ async def get_campaigns(
                 # Ensure scene_generation_status exists, default to "idle" if missing
                 if not hasattr(campaign, 'scene_generation_status') or campaign.scene_generation_status is None:
                     campaign.scene_generation_status = "idle"
+                
+                # Convert localhost video URLs to Cloudinary URLs
+                if campaign.settings:
+                    campaign.settings = convert_localhost_video_urls(campaign.settings)
                 
                 result.append(CampaignResponse.model_validate(campaign))
             except Exception as validation_error:
