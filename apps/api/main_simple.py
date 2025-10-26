@@ -1901,9 +1901,10 @@ def upload_pil_to_cloudinary(img: Image.Image, folder: str = "auraengine") -> st
 
 def upload_to_cloudinary(url: str, folder: str = "auraengine") -> str:
     """
-    Upload an image to Cloudinary and return the public URL.
+    Upload an image or video to Cloudinary and return the public URL.
     Supports:
     - data:image/* base64
+    - data:video/* base64
     - http(s) URLs (replicate.delivery, etc.)
     - local file paths
     Falls back to returning the original url on failure.
@@ -1939,15 +1940,20 @@ def upload_to_cloudinary(url: str, folder: str = "auraengine") -> str:
         # Handle http(s) URL
         if isinstance(url, str) and (url.startswith("http://") or url.startswith("https://")):
             try:
+                # Detect if it's a video file
+                is_video = any(url.lower().endswith(ext) for ext in ['.mp4', '.webm', '.mov', '.avi', '.mkv']) or 'video' in url.lower()
+                
+                resource_type = "video" if is_video else "image"
+                
                 # Upload directly from URL to Cloudinary
                 result = cloudinary.uploader.upload(
                     url,
                     folder=folder,
                     public_id=f"{folder}_{uuid.uuid4().hex}",
-                    resource_type="image"
+                    resource_type=resource_type
                 )
                 cloudinary_url = result['secure_url']
-                print(f"✅ Uploaded URL to Cloudinary: {cloudinary_url[:50]}...")
+                print(f"✅ Uploaded {resource_type} URL to Cloudinary: {cloudinary_url[:50]}...")
                 return cloudinary_url
             except Exception as e:
                 print(f"❌ Failed to upload URL to Cloudinary: {e}")
