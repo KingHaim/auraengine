@@ -48,7 +48,8 @@ export default function ProductsPage() {
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showProductActionModal, setShowProductActionModal] = useState(false);
-  const [selectedProductForActions, setSelectedProductForActions] = useState<Product | null>(null);
+  const [selectedProductForActions, setSelectedProductForActions] =
+    useState<Product | null>(null);
 
   // Function to fetch products from API
   const fetchProducts = async () => {
@@ -1762,7 +1763,7 @@ export default function ProductsPage() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 1000,
+            zIndex: 9999,
           }}
           onClick={() => {
             setShowProductActionModal(false);
@@ -1825,6 +1826,16 @@ export default function ProductsPage() {
                 {selectedProductForActions.name}
               </h2>
               
+              <p
+                style={{
+                  fontSize: "14px",
+                  color: "#6B7280",
+                  marginBottom: "20px",
+                }}
+              >
+                Choose an action for this product
+              </p>
+
               <div
                 style={{
                   width: "200px",
@@ -1836,7 +1847,10 @@ export default function ProductsPage() {
                 }}
               >
                 <img
-                  src={selectedProductForActions.packshot_front_url || selectedProductForActions.image_url}
+                  src={
+                    selectedProductForActions.packshot_front_url ||
+                    selectedProductForActions.image_url
+                  }
                   alt={selectedProductForActions.name}
                   style={{
                     width: "100%",
@@ -1852,6 +1866,10 @@ export default function ProductsPage() {
                   display: "flex",
                   gap: "16px",
                   justifyContent: "center",
+                  marginTop: "24px",
+                  padding: "20px",
+                  backgroundColor: "#F9FAFB",
+                  borderRadius: "12px",
                 }}
               >
                 <button
@@ -1885,7 +1903,7 @@ export default function ProductsPage() {
                 >
                   ✏️ Edit Product
                 </button>
-                
+
                 <button
                   onClick={() => {
                     setShowProductActionModal(false);
