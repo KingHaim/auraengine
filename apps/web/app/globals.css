@@ -83,6 +83,18 @@ body {
   .desktop-sidebar {
     display: none !important;
   }
+  
+  /* Auth modal mobile */
+  .auth-modal {
+    padding: 16px !important;
+  }
+  
+  .auth-modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 20px !important;
+    margin: 0 !important;
+  }
 }
 
 /* Extra small screens */
@@ -93,6 +105,10 @@ body {
   
   main {
     padding: 12px !important;
+  }
+  
+  .auth-modal-content {
+    padding: 16px !important;
   }
 }
 

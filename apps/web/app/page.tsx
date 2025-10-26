@@ -7,6 +7,18 @@ export default function Home() {
   const { user, logout, loading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Redirect to dashboard if user is logged in
   useEffect(() => {
@@ -57,6 +69,7 @@ export default function Home() {
 
   return (
     <div
+      className="app-container"
       style={{
         display: "flex",
         height: "100vh",
@@ -66,15 +79,53 @@ export default function Home() {
           "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
       }}
     >
+      {/* Mobile Header */}
+      {isMobile && (
+        <div
+          className="mobile-header"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "60px",
+            backgroundColor: "#090a0c",
+            borderBottom: "1px solid #1F2630",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "0 16px",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              backgroundColor: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "20px",
+            }}
+          >
+            ✶
+          </div>
+        </div>
+      )}
+
       {/* Sidebar */}
       <div
+        className="desktop-sidebar"
         style={{
-          width: "280px",
+          width: isMobile ? "0px" : "280px",
           background:
             "linear-gradient(90deg, #0B0F12 0%, #0E131A 45%, #121826 100%)",
           borderRight: "1px solid #1F2630",
           padding: "32px 24px",
-          display: "flex",
+          display: isMobile ? "none" : "flex",
           flexDirection: "column",
           position: "relative",
         }}
@@ -269,12 +320,20 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <div 
+        className="mobile-override"
+        style={{ 
+          flex: 1, 
+          display: "flex", 
+          flexDirection: "column",
+          marginTop: isMobile ? "60px" : "0px",
+        }}
+      >
         {/* Topbar */}
         <header
           style={{
-            padding: "24px 32px",
-            height: "72px",
+            padding: isMobile ? "16px" : "24px 32px",
+            height: isMobile ? "60px" : "72px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -391,7 +450,15 @@ export default function Home() {
         </header>
 
         {/* Main Content */}
-        <main style={{ padding: "32px", flex: 1, backgroundColor: "#FFFFFF" }}>
+        <main 
+          className="mobile-override"
+          style={{ 
+            padding: isMobile ? "16px" : "32px", 
+            flex: 1, 
+            backgroundColor: "#FFFFFF",
+            marginTop: isMobile ? "0px" : "0px",
+          }}
+        >
           <div
             style={{
               display: "flex",

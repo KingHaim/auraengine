@@ -42,6 +42,7 @@ export default function AuthModal({ isOpen, onClose, mode }: AuthModalProps) {
 
   return (
     <div
+      className="auth-modal"
       style={{
         position: "fixed",
         top: 0,
@@ -53,16 +54,20 @@ export default function AuthModal({ isOpen, onClose, mode }: AuthModalProps) {
         alignItems: "center",
         justifyContent: "center",
         zIndex: 1000,
+        padding: "16px",
       }}
     >
       <div
+        className="auth-modal-content"
         style={{
           backgroundColor: "#171C23",
           borderRadius: "16px",
-          padding: "32px",
-          width: "400px",
-          maxWidth: "90vw",
+          padding: "24px",
+          width: "100%",
+          maxWidth: "400px",
           border: "1px solid #242B35",
+          maxHeight: "90vh",
+          overflowY: "auto",
         }}
       >
         <div
