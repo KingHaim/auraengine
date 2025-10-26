@@ -20,9 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/heart.png?v=2" type="image/png" />
-        <link rel="shortcut icon" href="/heart.png?v=2" type="image/png" />
-        <link rel="apple-touch-icon" href="/heart.png?v=2" />
+        <link rel="icon" href="/heart.png?v=3" type="image/png" />
+        <link rel="shortcut icon" href="/heart.png?v=3" type="image/png" />
+        <link rel="apple-touch-icon" href="/heart.png?v=3" />
       </head>
       <body>
         <AuthProvider>{children}</AuthProvider>
