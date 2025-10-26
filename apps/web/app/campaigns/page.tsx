@@ -5115,7 +5115,7 @@ export default function CampaignsPage() {
                   style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr",
-                    gap: "12px",
+                    gap: "8px",
                   }}
                 >
                   {/* Generate More Images Button */}
@@ -5130,18 +5130,18 @@ export default function CampaignsPage() {
                       setShowParameterModal(true);
                     }}
                     style={{
-                      padding: "12px 16px",
+                      padding: "8px 12px",
                       backgroundColor: "#d42f48",
                       border: "none",
-                      borderRadius: "8px",
+                      borderRadius: "6px",
                       color: "#FFFFFF",
-                      fontSize: "14px",
-                      fontWeight: "600",
+                      fontSize: "13px",
+                      fontWeight: "500",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: "8px",
+                      gap: "6px",
                       transition: "all 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
@@ -5151,7 +5151,7 @@ export default function CampaignsPage() {
                       e.currentTarget.style.backgroundColor = "#d42f48";
                     }}
                   >
-                    ➕ Generate More Images
+                    ➕ Generate More
                   </button>
 
                   {/* Generate Videos Button */}
@@ -5168,25 +5168,25 @@ export default function CampaignsPage() {
                       setShowBulkVideoModal(true);
                     }}
                     style={{
-                      padding: "12px 16px",
-                      backgroundColor: "#10B981",
+                      padding: "8px 12px",
+                      backgroundColor: "#d42f48",
                       border: "none",
-                      borderRadius: "8px",
+                      borderRadius: "6px",
                       color: "#FFFFFF",
-                      fontSize: "14px",
-                      fontWeight: "600",
+                      fontSize: "13px",
+                      fontWeight: "500",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: "8px",
+                      gap: "6px",
                       transition: "all 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#059669";
+                      e.currentTarget.style.backgroundColor = "#b91c1c";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#10B981";
+                      e.currentTarget.style.backgroundColor = "#d42f48";
                     }}
                   >
                     🎬 Generate Videos
@@ -5199,21 +5199,30 @@ export default function CampaignsPage() {
                       editCampaign(selectedCampaignForProfile, e);
                     }}
                     style={{
-                      padding: "12px 16px",
+                      padding: "8px 12px",
                       backgroundColor: "transparent",
-                      border: "1px solid #D1D5DB",
-                      borderRadius: "8px",
+                      border: "1px solid #E5E7EB",
+                      borderRadius: "6px",
                       color: "#6B7280",
-                      fontSize: "14px",
+                      fontSize: "13px",
                       fontWeight: "500",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: "8px",
+                      gap: "6px",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#F9FAFB";
+                      e.currentTarget.style.borderColor = "#D1D5DB";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                      e.currentTarget.style.borderColor = "#E5E7EB";
                     }}
                   >
-                    ✏️ Edit Campaign
+                    ✏️ Edit
                   </button>
 
                   {/* Delete Campaign Button */}
@@ -5223,21 +5232,30 @@ export default function CampaignsPage() {
                       deleteCampaign(selectedCampaignForProfile.id, e);
                     }}
                     style={{
-                      padding: "12px 16px",
+                      padding: "8px 12px",
                       backgroundColor: "transparent",
                       border: "1px solid #EF4444",
-                      borderRadius: "8px",
+                      borderRadius: "6px",
                       color: "#EF4444",
-                      fontSize: "14px",
+                      fontSize: "13px",
                       fontWeight: "500",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: "8px",
+                      gap: "6px",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#FEF2F2";
+                      e.currentTarget.style.borderColor = "#DC2626";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                      e.currentTarget.style.borderColor = "#EF4444";
                     }}
                   >
-                    🗑️ Delete Campaign
+                    🗑️ Delete
                   </button>
                 </div>
               </div>
@@ -5634,22 +5652,22 @@ export default function CampaignsPage() {
                       margin: 0,
                       fontSize: "28px",
                       fontWeight: "700",
-                      color: "#1F2937",
+                  color: "#1F2937",
                       display: "flex",
                       alignItems: "center",
                       gap: "12px",
-                    }}
-                  >
+                }}
+              >
                     🎬 Generate Videos
                   </h2>
-                  <p
-                    style={{
+              <p
+                style={{
                       fontSize: "16px",
-                      color: "#6B7280",
+                  color: "#6B7280",
                       margin: "8px 0 0 0",
-                      lineHeight: 1.5,
-                    }}
-                  >
+                  lineHeight: 1.5,
+                }}
+              >
                     Transform your campaign images into engaging videos for social media
                   </p>
                 </div>
@@ -5694,19 +5712,19 @@ export default function CampaignsPage() {
                       transition: "all 0.2s ease",
                     }}
                   >
-                    <label
-                      style={{
-                        display: "flex",
+                  <label
+                    style={{
+                      display: "flex",
                         alignItems: "flex-start",
                         gap: "16px",
-                        cursor: "pointer",
+                      cursor: "pointer",
                         margin: 0,
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={veoDirectMode}
-                        onChange={(e) => setVeoDirectMode(e.target.checked)}
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={veoDirectMode}
+                      onChange={(e) => setVeoDirectMode(e.target.checked)}
                         style={{ 
                           margin: 0,
                           marginTop: "2px",
@@ -5714,9 +5732,9 @@ export default function CampaignsPage() {
                         }}
                       />
                       <div style={{ flex: 1 }}>
-                        <div
-                          style={{
-                            fontWeight: "600",
+                      <div
+                        style={{
+                          fontWeight: "600",
                             fontSize: "16px",
                             color: veoDirectMode ? "#0EA5E9" : "#374151",
                             marginBottom: "8px",
@@ -5738,19 +5756,19 @@ export default function CampaignsPage() {
                           >
                             EXPERIMENTAL
                           </span>
-                        </div>
-                        <div
-                          style={{
+                      </div>
+                      <div
+                        style={{
                             fontSize: "14px",
-                            color: "#6B7280",
+                          color: "#6B7280",
                             lineHeight: 1.5,
-                          }}
-                        >
+                        }}
+                      >
                           Generate videos directly from model + product + scene without needing existing images. 
                           Perfect for creating original video content from scratch.
-                        </div>
                       </div>
-                    </label>
+                    </div>
+                  </label>
                   </div>
                 </div>
               )}
@@ -5779,7 +5797,7 @@ export default function CampaignsPage() {
                       </h3>
                       <p
                         style={{
-                          fontSize: "14px",
+                      fontSize: "14px",
                           color: "#6B7280",
                           margin: 0,
                         }}
@@ -5827,7 +5845,7 @@ export default function CampaignsPage() {
                         style={{
                           padding: "8px 16px",
                           backgroundColor: "#F3F4F6",
-                          color: "#374151",
+                      color: "#374151",
                           border: "1px solid #D1D5DB",
                           borderRadius: "8px",
                           fontSize: "12px",
@@ -5987,11 +6005,11 @@ export default function CampaignsPage() {
                           color: "#1F2937",
                         }}
                       >
-                        {selectedImagesForVideo.size} of{" "}
-                        {selectedCampaignForBulkVideo.settings?.generated_images
-                          ?.length || 0}{" "}
+                      {selectedImagesForVideo.size} of{" "}
+                      {selectedCampaignForBulkVideo.settings?.generated_images
+                        ?.length || 0}{" "}
                         images selected
-                      </span>
+                    </span>
                       <span 
                         style={{ 
                           fontSize: "12px", 
@@ -6170,15 +6188,15 @@ export default function CampaignsPage() {
                       <span style={{ fontSize: "20px" }}>
                         {getVideoModelInfo(bulkVideoModel).icon}
                       </span>
-                      <div>
+                    <div>
                         <div style={{ 
                           fontWeight: "600", 
                           fontSize: "16px",
                           color: "#1F2937",
                           marginBottom: "2px",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
                         }}>
                           {getVideoModelInfo(bulkVideoModel).name}
                           <span
@@ -6193,11 +6211,11 @@ export default function CampaignsPage() {
                           >
                             {getVideoModelInfo(bulkVideoModel).badge}
                           </span>
-                        </div>
+                      </div>
                         <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
                           {getVideoModelInfo(bulkVideoModel).pricing}
-                        </div>
                       </div>
+                    </div>
                     </div>
                     <span style={{ 
                       fontSize: "16px", 
@@ -6212,7 +6230,7 @@ export default function CampaignsPage() {
                   {/* Dropdown Options */}
                   {showVideoModelDropdown && (
                     <div
-                      style={{
+                    style={{
                         position: "absolute",
                         top: "100%",
                         left: 0,
@@ -6265,9 +6283,9 @@ export default function CampaignsPage() {
                               fontSize: "16px",
                               color: "#1F2937",
                               marginBottom: "4px",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
                             }}>
                               {getVideoModelInfo(model).name}
                               <span
@@ -6282,13 +6300,13 @@ export default function CampaignsPage() {
                               >
                                 {getVideoModelInfo(model).badge}
                               </span>
-                            </div>
+                      </div>
                             <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "4px" }}>
                               {getVideoModelInfo(model).description}
-                            </div>
+                      </div>
                             <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
                               {getVideoModelInfo(model).pricing}
-                            </div>
+                    </div>
                           </div>
                           {bulkVideoModel === model && (
                             <span style={{ 
