@@ -47,6 +47,8 @@ export default function ProductsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showProductActionsModal, setShowProductActionsModal] = useState(false);
+  const [selectedProductForActions, setSelectedProductForActions] = useState<Product | null>(null);
 
   // Function to fetch products from API
   const fetchProducts = async () => {
@@ -272,6 +274,16 @@ export default function ProductsPage() {
   const handleDeleteProduct = (product: Product) => {
     setDeletingProduct(product);
     setShowDeleteConfirm(true);
+  };
+
+  const handleProductHover = (product: Product) => {
+    setSelectedProductForActions(product);
+    setShowProductActionsModal(true);
+  };
+
+  const handleProductHoverLeave = () => {
+    setShowProductActionsModal(false);
+    setSelectedProductForActions(null);
   };
 
   const confirmDeleteProduct = async () => {
@@ -573,6 +585,8 @@ export default function ProductsPage() {
                       setShowPackshotsModal(true);
                     }
                   }}
+                  onMouseEnter={() => handleProductHover(product)}
+                  onMouseLeave={handleProductHoverLeave}
                 >
                   <img
                     src={product.packshot_front_url || product.image_url}
@@ -619,22 +633,11 @@ export default function ProductsPage() {
                       fontSize: "16px",
                       fontWeight: "600",
                       color: "#1F2937",
-                      marginBottom: "4px",
+                      marginBottom: "8px",
                     }}
                   >
                     {product.name}
                   </h3>
-                  {product.description && (
-                    <p
-                      style={{
-                        fontSize: "14px",
-                        color: "#6B7280",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      {product.description}
-                    </p>
-                  )}
                   {product.packshots && product.packshots.length > 0 && (
                     <div
                       style={{
@@ -662,7 +665,6 @@ export default function ProductsPage() {
                       flexWrap: "wrap",
                       gap: "8px",
                       alignItems: "center",
-                      marginTop: "8px",
                     }}
                   >
                     {product.category && (
@@ -722,59 +724,156 @@ export default function ProductsPage() {
                       </div>
                     )}
                   </div>
-
-                  {/* Action Buttons */}
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "8px",
-                      marginTop: "12px",
-                      justifyContent: "flex-end",
-                    }}
-                  >
-                    <button
-                      onClick={() => handleEditProduct(product)}
-                      style={{
-                        padding: "6px 12px",
-                        backgroundColor: "#d42f48",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "6px",
-                        fontSize: "12px",
-                        fontWeight: "500",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
-                      }}
-                    >
-                      ✏️ Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProduct(product)}
-                      style={{
-                        padding: "6px 12px",
-                        backgroundColor: "#EF4444",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "6px",
-                        fontSize: "12px",
-                        fontWeight: "500",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
-                      }}
-                    >
-                      🗑️ Delete
-                    </button>
-                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Product Actions Modal */}
+      {showProductActionsModal && selectedProductForActions && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(9, 10, 12, 0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={() => {
+            setShowProductActionsModal(false);
+            setSelectedProductForActions(null);
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "16px",
+              padding: "32px",
+              maxWidth: "400px",
+              width: "90%",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              style={{
+                fontSize: "20px",
+                fontWeight: "600",
+                marginBottom: "16px",
+                color: "#1F2937",
+                textAlign: "center",
+              }}
+            >
+              {selectedProductForActions.name}
+            </h3>
+            
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+              }}
+            >
+              <button
+                onClick={() => {
+                  handleEditProduct(selectedProductForActions);
+                  setShowProductActionsModal(false);
+                  setSelectedProductForActions(null);
+                }}
+                style={{
+                  padding: "12px 20px",
+                  backgroundColor: "#d42f48",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  transition: "background-color 0.2s ease",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#b0263c")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#d42f48")
+                }
+              >
+                ✏️ Edit Product
+              </button>
+              
+              <button
+                onClick={() => {
+                  handleDeleteProduct(selectedProductForActions);
+                  setShowProductActionsModal(false);
+                  setSelectedProductForActions(null);
+                }}
+                style={{
+                  padding: "12px 20px",
+                  backgroundColor: "#EF4444",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  transition: "background-color 0.2s ease",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#DC2626")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#EF4444")
+                }
+              >
+                🗑️ Delete Product
+              </button>
+              
+              <button
+                onClick={() => {
+                  setShowProductActionsModal(false);
+                  setSelectedProductForActions(null);
+                }}
+                style={{
+                  padding: "12px 20px",
+                  backgroundColor: "transparent",
+                  color: "#6B7280",
+                  border: "1px solid #D1D5DB",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#F3F4F6";
+                  e.currentTarget.style.color = "#374151";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.color = "#6B7280";
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Upload Modal */}
       {showUploadModal && (
