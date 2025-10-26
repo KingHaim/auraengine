@@ -642,41 +642,32 @@ async def generate_campaign_images_background(
                             print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
                             print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for {product.name} + {model.name} + {scene.name}")
                             
-                            # REAL WORKFLOW: Qwen first, then Vella
+                            # REAL WORKFLOW: Qwen Triple Composition (Model + Product + Scene all in one)
                             quality_mode = "standard"
 
-                            # TWO-STEP APPROACH: Separate scene composition from product application
+                            # ONE-STEP APPROACH: Qwen handles everything in a single call
                             
-                            # Step 1: Place model into scene (NO clothing/product)
-                            # Stabilize model pose to /static to avoid replicate 404s
+                            # Step 1: Qwen Triple Composition (Model + Product + Scene all in one)
+                            # Stabilize inputs to /static to avoid replicate 404s
                             stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            print(f"🎨 Step 1: Placing model into scene with shot type '{shot_type['name']}' using Nano Banana...")
-                            model_in_scene_url = run_nano_banana_scene_composition(
+                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
+                            
+                            print(f"🎬 Step 1: Qwen triple composition - Model + {product.name} + Scene...")
+                            final_result_url = run_qwen_triple_composition(
                                 stable_model,
+                                stable_product,
                                 stable_scene,
+                                product.name,
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
-                            # Nano Banana result is already persisted
-                            print(f"✅ Model placed in scene: {model_in_scene_url[:50]}...")
-
-                            # Step 2: Apply product to model (using Vella)
-                            print(f"👔 Step 2: Applying {product.name} to model with Vella 1.5 try-on...")
-                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
-                            # Stabilize garment to /static (PNG with alpha already handled inside run_vella_try_on)
-                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
-                            vella_result_url = run_vella_try_on(model_in_scene_url, stable_product, quality_mode, clothing_type)
-                            # Vella result is already persisted in run_vella_try_on
-                            print(f"✅ Product applied to model: {vella_result_url[:50]}...")
+                            # Qwen result is already persisted
+                            print(f"✅ Qwen triple composition completed: {final_result_url[:50]}...")
                             
-                            # Step 3: Use Vella result as final result (clean two-step workflow)
-                            final_result_url = vella_result_url
-                            print(f"✅ Two-step workflow completed: Model placed in scene + Product applied")
+                            # Step 2: REMOVED - Qwen handles everything in one step
                             
-                            # Step 4: REMOVED - Clean two-step workflow (Step 1: Model→Scene, Step 2: Product→Model)
-                            
-                            # Step 5: REMOVED - Clean two-step workflow (Step 1: Model→Scene, Step 2: Product→Model)
+                            # Step 3: REMOVED - Qwen handles everything in one step
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
@@ -913,37 +904,32 @@ async def generate_campaign_images(
                         try:
                             print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
                             
-                            # REAL WORKFLOW: Qwen first, then Vella
+                            # REAL WORKFLOW: Qwen Triple Composition (Model + Product + Scene all in one)
                             quality_mode = "standard"
 
-                            # Step 1: Compose model into the scene with shot type (persist inputs first)
+                            # ONE-STEP APPROACH: Qwen handles everything in a single call
+
+                            # Step 1: Qwen Triple Composition (Model + Product + Scene all in one)
+                            # Stabilize inputs to /static to avoid replicate 404s
                             stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            print(f"🎨 Step 1: Placing model into scene with shot type '{shot_type['name']}'...")
-                            model_in_scene_url = run_nano_banana_scene_composition(
+                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
+                            
+                            print(f"🎬 Step 1: Qwen triple composition - Model + {product.name} + Scene...")
+                            final_result_url = run_qwen_triple_composition(
                                 stable_model,
+                                stable_product,
                                 stable_scene,
+                                product.name,
                                 quality_mode,
                                 shot_type_prompt=shot_type['prompt']
                             )
-                            # Nano Banana result is already persisted in run_nano_banana_scene_composition
-                            print(f"✅ Model placed in scene: {model_in_scene_url[:50]}...")
-
-                            # Step 2: Apply product to model (using Vella)
-                            print(f"👔 Step 2: Applying {product.name} to model with Vella 1.5 try-on...")
-                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
-                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
-                            vella_result_url = run_vella_try_on(model_in_scene_url, stable_product, quality_mode, clothing_type)
-                            # Vella result is already persisted in run_vella_try_on
-                            print(f"✅ Product applied to model: {vella_result_url[:50]}...")
+                            # Qwen result is already persisted
+                            print(f"✅ Qwen triple composition completed: {final_result_url[:50]}...")
                             
-                            # Step 3: Use Vella result as final result (clean two-step workflow)
-                            final_result_url = vella_result_url
-                            print(f"✅ Two-step workflow completed: Model placed in scene + Product applied")
+                            # Step 2: REMOVED - Qwen handles everything in one step
                             
-                            # Step 4: REMOVED - Clean two-step workflow (Step 1: Model→Scene, Step 2: Product→Model)
-                            
-                            # Step 5: REMOVED - Clean two-step workflow (Step 1: Model→Scene, Step 2: Product→Model)
+                            # Step 3: REMOVED - Qwen handles everything in one step
                             
                             # Normalize and store final URL
                             print(f"💾 Normalizing final result URL...")
@@ -2175,7 +2161,7 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
         print("↩️ Returning previous composed image instead of placeholder")
         return model_image_url
 
-def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard") -> str:
+def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:
     """ONE-STEP: Model + Product + Scene all in one Qwen call"""
     try:
         print(f"🎬 Running Qwen triple composition...")
@@ -2196,8 +2182,11 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # Strong integration prompt - like campaign hjk
-        scene_prompt = f"Create a cohesive fashion photograph: Take the person from the first image, dress them with the {product_name} from the second image, then integrate them into a setting inspired by the mood and atmosphere of the third image. The person should adapt to match the lighting, color grading, and visual style of the scene environment. Create a natural, believable composition where everything flows together. Preserve the person's face and pose but adjust their appearance to fit harmoniously. Professional luxury fashion aesthetic."
+        # Enhanced integration prompt with shot type
+        if shot_type_prompt:
+            scene_prompt = f"Create a cohesive fashion photograph: Take the person from the first image, dress them with the {product_name} from the second image, then integrate them into a setting inspired by the mood and atmosphere of the third image. {shot_type_prompt}. The person should adapt to match the lighting, color grading, and visual style of the scene environment. Create a natural, believable composition where everything flows together. Preserve the person's face and pose but adjust their appearance to fit harmoniously. Professional luxury fashion aesthetic."
+        else:
+            scene_prompt = f"Create a cohesive fashion photograph: Take the person from the first image, dress them with the {product_name} from the second image, then integrate them into a setting inspired by the mood and atmosphere of the third image. The person should adapt to match the lighting, color grading, and visual style of the scene environment. Create a natural, believable composition where everything flows together. Preserve the person's face and pose but adjust their appearance to fit harmoniously. Professional luxury fashion aesthetic."
         
         # Strong integration parameters (like hjk)
         num_steps = 38
@@ -2250,52 +2239,52 @@ CAMPAIGN_SHOT_TYPES = [
     {
         "name": "sitting_intro",
         "title": "Sitting Shot (Intro)",
-        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
+        "prompt": "Professional fashion photography, model sitting elegantly, confident pose, looking at camera, natural lighting"
     },
     {
         "name": "standing_full",
         "title": "Standing Look (Fit Reveal)",
-        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
+        "prompt": "Full-body fashion shot, model standing confidently, hands on hips, showcasing the outfit, professional studio lighting"
     },
     {
         "name": "upper_closeup",
         "title": "Upper Body Close-Up",
-        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
+        "prompt": "Upper body fashion shot, model posing naturally, focus on garment details, professional portrait lighting"
     },
     {
         "name": "lower_closeup",
         "title": "Lower Body Close-Up",
-        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
+        "prompt": "Lower body fashion shot, model showcasing bottom wear, confident stance, professional fashion photography"
     },
     {
         "name": "action_dynamic",
         "title": "Action Shot (Movement)",
-        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
+        "prompt": "Dynamic fashion shot, model in motion, walking pose, natural movement, lifestyle photography style"
     },
     {
         "name": "interaction_pose",
         "title": "Model Interaction",
-        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
+        "prompt": "Interactive fashion pose, model engaging with environment, natural gestures, lifestyle context"
     },
     {
         "name": "hero_finale",
         "title": "Hero Pose (Campaign Finale)",
-        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
+        "prompt": "Hero fashion shot, model in commanding pose, strong presence, dramatic lighting, campaign finale style"
     },
     {
         "name": "detail_macro",
         "title": "Fabric Detail Macro",
-        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
+        "prompt": "Detail-focused fashion shot, highlighting fabric texture and garment construction, macro photography style"
     },
     {
         "name": "profile_side",
         "title": "Profile Side View",
-        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
+        "prompt": "Profile fashion shot, model in side view, elegant silhouette, showcasing garment shape and fit"
     },
     {
         "name": "lifestyle_context",
         "title": "Lifestyle Context Shot",
-        "prompt": "Full-body shot of model wearing only underwear, standing and posing normally"
+        "prompt": "Lifestyle fashion photography, model in natural setting, contextual environment, authentic lifestyle feel"
     }
 ]
 
