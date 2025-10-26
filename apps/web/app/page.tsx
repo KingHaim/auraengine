@@ -14,10 +14,10 @@ export default function Home() {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Redirect to dashboard if user is logged in
@@ -45,22 +45,16 @@ export default function Home() {
         }}
       >
         <div style={{ textAlign: "center" }}>
-          <div
+          <img
+            src="/logo.png"
+            alt="Aura Engine Logo"
             style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              backgroundColor: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              width: "60px",
+              height: "60px",
+              objectFit: "contain",
               margin: "0 auto 12px",
-              fontSize: "20px",
             }}
-          >
-            ✶
-          </div>
+          />
           <div style={{ fontSize: "14px", color: "#9BA3AF" }}>Loading...</div>
         </div>
       </div>
@@ -98,21 +92,15 @@ export default function Home() {
             zIndex: 1000,
           }}
         >
-          <div
+          <img
+            src="/logo.png"
+            alt="Aura Engine Logo"
             style={{
               width: "40px",
               height: "40px",
-              borderRadius: "50%",
-              backgroundColor: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "20px",
+              objectFit: "contain",
             }}
-          >
-            ✶
-          </div>
+          />
         </div>
       )}
 
@@ -147,41 +135,24 @@ export default function Home() {
         {/* Logo */}
         <div
           style={{
-            textAlign: "center",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
             marginBottom: "40px",
             position: "relative",
             zIndex: 1,
+            width: "100%",
           }}
         >
-          <div
+          <img
+            src="/logo.png"
+            alt="Aura Engine Logo"
             style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              backgroundColor: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              margin: "0 auto 12px",
-              fontSize: "20px",
+              width: "180px",
+              height: "180px",
+              objectFit: "contain",
             }}
-          >
-            ✶
-          </div>
-          <div
-            style={{
-              fontSize: "12px",
-              fontWeight: "600",
-              letterSpacing: "0.25em",
-              color: "#E6E8EB",
-              lineHeight: "1.2",
-            }}
-          >
-            AURA
-            <br />
-            ENGINE
-          </div>
+          />
         </div>
 
         {/* Navigation */}
@@ -320,11 +291,11 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <div 
+      <div
         className="mobile-override"
-        style={{ 
-          flex: 1, 
-          display: "flex", 
+        style={{
+          flex: 1,
+          display: "flex",
           flexDirection: "column",
           marginTop: isMobile ? "60px" : "0px",
         }}
@@ -450,11 +421,11 @@ export default function Home() {
         </header>
 
         {/* Main Content */}
-        <main 
+        <main
           className="mobile-override"
-          style={{ 
-            padding: isMobile ? "16px" : "32px", 
-            flex: 1, 
+          style={{
+            padding: isMobile ? "16px" : "32px",
+            flex: 1,
             backgroundColor: "#FFFFFF",
             marginTop: isMobile ? "0px" : "0px",
           }}
