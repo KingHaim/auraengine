@@ -102,6 +102,13 @@ export default function CampaignsPage() {
   const [forceLoaded, setForceLoaded] = useState(false);
   const [generatingCampaignId, setGeneratingCampaignId] = useState<string | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [editForm, setEditForm] = useState({ name: "", description: "" });
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const handleCreateCampaign = async () => {
     if (!newCampaignName.trim() || !token) return;
@@ -132,6 +139,82 @@ export default function CampaignsPage() {
       alert("Failed to create campaign. Please try again.");
     } finally {
       setCreatingCampaign(false);
+    }
+  };
+
+  const handleDeleteCampaign = async (campaignId: string) => {
+    if (!token) {
+      alert("Please log in to delete campaigns");
+      return;
+    }
+
+    if (!confirm("Are you sure you want to delete this campaign?")) {
+      return;
+    }
+
+    setIsDeleting(campaignId);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        setCampaigns(campaigns.filter((c) => c.id !== campaignId));
+      } else {
+        throw new Error("Failed to delete campaign");
+      }
+    } catch (error) {
+      console.error("Error deleting campaign:", error);
+      alert("Failed to delete campaign. Please try again.");
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  const handleUpdateCampaign = async () => {
+    if (!editingCampaign || !token) {
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${editingCampaign.id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: editForm.name,
+            description: editForm.description,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const updatedCampaign = await response.json();
+        setCampaigns(
+          campaigns.map((c) => (c.id === editingCampaign.id ? updatedCampaign : c))
+        );
+        setShowEditModal(false);
+        setEditingCampaign(null);
+        setEditForm({ name: "", description: "" });
+      } else {
+        throw new Error("Failed to update campaign");
+      }
+    } catch (error) {
+      console.error("Error updating campaign:", error);
+      alert("Failed to update campaign. Please try again.");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -520,19 +603,44 @@ export default function CampaignsPage() {
                   >
                     {campaign.name}
                   </h3>
-                  <div style={{ display: "flex", gap: "8px" }}>
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                    <button
+                      onClick={() => {
+                        setSelectedCampaign(campaign);
+                        setShowGenerateModal(true);
+                      }}
+                      style={{
+                        padding: "6px 10px",
+                        backgroundColor: "#10B981",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        fontSize: "11px",
+                        fontWeight: "500",
+                        cursor: "pointer",
+                        transition: "background-color 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#059669";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#10B981";
+                      }}
+                    >
+                      📸 Add Pictures
+                    </button>
                     <button
                       onClick={() => {
                         setSelectedCampaignForBulkVideo(campaign);
                         setShowBulkVideoModal(true);
                       }}
                       style={{
-                        padding: "6px 12px",
+                        padding: "6px 10px",
                         backgroundColor: "#d42f48",
                         color: "white",
                         border: "none",
                         borderRadius: "6px",
-                        fontSize: "12px",
+                        fontSize: "11px",
                         fontWeight: "500",
                         cursor: "pointer",
                         transition: "background-color 0.2s ease",
@@ -548,28 +656,56 @@ export default function CampaignsPage() {
                     </button>
                     <button
                       onClick={() => {
-                        setSelectedCampaignForProfile(campaign);
-                        setShowCampaignProfileModal(true);
+                        setEditingCampaign(campaign);
+                        setEditForm({ name: campaign.name, description: campaign.description || "" });
+                        setShowEditModal(true);
                       }}
                       style={{
-                        padding: "6px 12px",
-                        backgroundColor: "#6B7280",
+                        padding: "6px 10px",
+                        backgroundColor: "#3B82F6",
                         color: "white",
                         border: "none",
                         borderRadius: "6px",
-                        fontSize: "12px",
+                        fontSize: "11px",
                         fontWeight: "500",
                         cursor: "pointer",
                         transition: "background-color 0.2s ease",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#4B5563";
+                        e.currentTarget.style.backgroundColor = "#2563EB";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "#6B7280";
+                        e.currentTarget.style.backgroundColor = "#3B82F6";
                       }}
                     >
-                      👁️ View
+                      ✏️ Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCampaign(campaign.id)}
+                      disabled={isDeleting === campaign.id}
+                      style={{
+                        padding: "6px 10px",
+                        backgroundColor: isDeleting === campaign.id ? "#9CA3AF" : "#EF4444",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        fontSize: "11px",
+                        fontWeight: "500",
+                        cursor: isDeleting === campaign.id ? "not-allowed" : "pointer",
+                        transition: "background-color 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (isDeleting !== campaign.id) {
+                          e.currentTarget.style.backgroundColor = "#DC2626";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (isDeleting !== campaign.id) {
+                          e.currentTarget.style.backgroundColor = "#EF4444";
+                        }
+                      }}
+                    >
+                      {isDeleting === campaign.id ? "⏳" : "🗑️ Delete"}
                     </button>
                   </div>
                 </div>
@@ -704,6 +840,170 @@ export default function CampaignsPage() {
               >
                 {creatingCampaign ? "Creating..." : "Create Campaign"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Campaign Modal */}
+      {showEditModal && editingCampaign && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "20px",
+          }}
+          onClick={() => setShowEditModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "16px",
+              maxWidth: "500px",
+              width: "100%",
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: "24px 24px 16px 24px",
+                borderBottom: "1px solid #E5E7EB",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: "24px",
+                  fontWeight: "600",
+                  color: "#1F2937",
+                  margin: 0,
+                }}
+              >
+                Edit Campaign
+              </h2>
+              <button
+                onClick={() => setShowEditModal(false)}
+                style={{
+                  padding: "8px",
+                  backgroundColor: "transparent",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#6B7280",
+                  fontSize: "20px",
+                  cursor: "pointer",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div style={{ padding: "24px" }}>
+              <div style={{ marginBottom: "20px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Campaign Name
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    border: "1px solid #D1D5DB",
+                    borderRadius: "8px",
+                    fontSize: "16px",
+                    backgroundColor: "#F9FAFB",
+                  }}
+                  placeholder="Enter campaign name"
+                />
+              </div>
+
+              <div style={{ marginBottom: "24px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Description (Optional)
+                </label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    border: "1px solid #D1D5DB",
+                    borderRadius: "8px",
+                    fontSize: "16px",
+                    backgroundColor: "#F9FAFB",
+                    minHeight: "100px",
+                    resize: "vertical",
+                  }}
+                  placeholder="Enter campaign description"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  style={{
+                    flex: 1,
+                    padding: "12px 24px",
+                    backgroundColor: "transparent",
+                    border: "1px solid #D1D5DB",
+                    borderRadius: "8px",
+                    color: "#6B7280",
+                    fontSize: "16px",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateCampaign}
+                  disabled={isUpdating || !editForm.name.trim()}
+                  style={{
+                    flex: 1,
+                    padding: "12px 24px",
+                    backgroundColor: isUpdating || !editForm.name.trim() ? "#D1D5DB" : "#3B82F6",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "white",
+                    fontSize: "16px",
+                    fontWeight: "500",
+                    cursor: isUpdating || !editForm.name.trim() ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {isUpdating ? "Updating..." : "Update Campaign"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
