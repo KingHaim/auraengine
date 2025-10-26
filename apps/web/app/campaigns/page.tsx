@@ -161,6 +161,48 @@ export default function CampaignsPage() {
   const [bulkVideoModel, setBulkVideoModel] = useState("wan");
   const [bulkVideoDuration, setBulkVideoDuration] = useState("5s");
   const [generatingBulkVideos, setGeneratingBulkVideos] = useState(false);
+  // Helper function to get video model information
+  const getVideoModelInfo = (model: string) => {
+    const models = {
+      wan: {
+        name: "Wan 2.2 I2V Fast",
+        icon: "⚡",
+        badge: "FAST",
+        badgeColor: "#DCFCE7",
+        badgeTextColor: "#166534",
+        description: "Quick and efficient video generation",
+        pricing: "480p (1 credit) • 720p (2 credits)"
+      },
+      seedance: {
+        name: "Seedance 1 Pro",
+        icon: "🎭",
+        badge: "PRO",
+        badgeColor: "#FEF3C7",
+        badgeTextColor: "#D97706",
+        description: "High-quality video generation with multiple duration options",
+        pricing: "480p/1080p • 5s/10s • 2-6 credits"
+      },
+      veo: {
+        name: "Google Veo 3.1",
+        icon: "⭐",
+        badge: "PREMIUM",
+        badgeColor: "#F0F9FF",
+        badgeTextColor: "#0EA5E9",
+        description: "Premium AI video generation with advanced capabilities",
+        pricing: "480p/720p/1080p • 5s/10s • 3-8 credits"
+      },
+      kling: {
+        name: "Kling 2.5 Turbo Pro",
+        icon: "⚡",
+        badge: "PRO",
+        badgeColor: "#FEF3C7",
+        badgeTextColor: "#D97706",
+        description: "Professional-grade video generation with turbo speed",
+        pricing: "480p/720p/1080p • 5s/10s • 2-6 credits"
+      }
+    };
+    return models[model as keyof typeof models];
+  };
   const [selectedCampaigns, setSelectedCampaigns] = useState<Set<string>>(
     new Set()
   );
@@ -5511,7 +5553,10 @@ export default function CampaignsPage() {
               zIndex: 1000,
               overflow: "auto",
             }}
-            onClick={() => setShowBulkVideoModal(false)}
+            onClick={() => {
+              setShowBulkVideoModal(false);
+              setShowVideoModelDropdown(false);
+            }}
           >
             <div
               style={{
@@ -5530,7 +5575,10 @@ export default function CampaignsPage() {
             >
               {/* Close Button */}
               <button
-                onClick={() => setShowBulkVideoModal(false)}
+                onClick={() => {
+                  setShowBulkVideoModal(false);
+                  setShowVideoModelDropdown(false);
+                }}
                 style={{
                   position: "absolute",
                   top: "20px",
@@ -6073,222 +6121,175 @@ export default function CampaignsPage() {
                   style={{
                     fontSize: "14px",
                     color: "#6B7280",
-                    margin: "0 0 20px 0",
+                    margin: "0 0 16px 0",
                   }}
                 >
                   Choose the AI model for video generation
                 </p>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                  }}
-                >
-                  <label
+                
+                {/* Dropdown Button */}
+                <div style={{ position: "relative" }}>
+                  <button
+                    onClick={() => setShowVideoModelDropdown(!showVideoModelDropdown)}
                     style={{
+                      width: "100%",
+                      padding: "16px 20px",
+                      border: "2px solid #E5E7EB",
+                      borderRadius: "12px",
+                      backgroundColor: "#FFFFFF",
+                      cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
-                      gap: "16px",
-                      padding: "16px 20px",
-                      border:
-                        bulkVideoModel === "wan"
-                          ? "2px solid #d42f48"
-                          : "2px solid #E5E7EB",
-                      borderRadius: "12px",
-                      cursor: "pointer",
-                      backgroundColor:
-                        bulkVideoModel === "wan" ? "#FEF2F2" : "#FFFFFF",
+                      justifyContent: "space-between",
                       transition: "all 0.2s ease",
+                      textAlign: "left",
                     }}
                     onMouseEnter={(e) => {
-                      if (bulkVideoModel !== "wan") {
-                        e.currentTarget.style.borderColor = "#d42f48";
-                        e.currentTarget.style.backgroundColor = "#FEF2F2";
-                      }
+                      e.currentTarget.style.borderColor = "#d42f48";
+                      e.currentTarget.style.backgroundColor = "#FEF2F2";
                     }}
                     onMouseLeave={(e) => {
-                      if (bulkVideoModel !== "wan") {
-                        e.currentTarget.style.borderColor = "#E5E7EB";
-                        e.currentTarget.style.backgroundColor = "#FFFFFF";
-                      }
+                      e.currentTarget.style.borderColor = "#E5E7EB";
+                      e.currentTarget.style.backgroundColor = "#FFFFFF";
                     }}
                   >
-                    <input
-                      type="radio"
-                      name="bulkVideoModel"
-                      value="wan"
-                      checked={bulkVideoModel === "wan"}
-                      onChange={(e) => setBulkVideoModel(e.target.value)}
-                      style={{ margin: 0, transform: "scale(1.2)" }}
-                    />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ 
-                        fontWeight: "600", 
-                        fontSize: "16px",
-                        color: "#1F2937",
-                        marginBottom: "4px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}>
-                        ⚡ Wan 2.2 I2V Fast
-                        <span
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <span style={{ fontSize: "20px" }}>
+                        {getVideoModelInfo(bulkVideoModel).icon}
+                      </span>
+                      <div>
+                        <div style={{ 
+                          fontWeight: "600", 
+                          fontSize: "16px",
+                          color: "#1F2937",
+                          marginBottom: "2px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}>
+                          {getVideoModelInfo(bulkVideoModel).name}
+                          <span
+                            style={{
+                              backgroundColor: getVideoModelInfo(bulkVideoModel).badgeColor,
+                              color: getVideoModelInfo(bulkVideoModel).badgeTextColor,
+                              padding: "2px 8px",
+                              borderRadius: "12px",
+                              fontSize: "11px",
+                              fontWeight: "500",
+                            }}
+                          >
+                            {getVideoModelInfo(bulkVideoModel).badge}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
+                          {getVideoModelInfo(bulkVideoModel).pricing}
+                        </div>
+                      </div>
+                    </div>
+                    <span style={{ 
+                      fontSize: "16px", 
+                      color: "#6B7280",
+                      transform: showVideoModelDropdown ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.2s ease",
+                    }}>
+                      ▼
+                    </span>
+                  </button>
+
+                  {/* Dropdown Options */}
+                  {showVideoModelDropdown && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "100%",
+                        left: 0,
+                        right: 0,
+                        backgroundColor: "#FFFFFF",
+                        border: "2px solid #E5E7EB",
+                        borderRadius: "12px",
+                        boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+                        zIndex: 1000,
+                        marginTop: "4px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {["wan", "seedance", "veo", "kling"].map((model) => (
+                        <button
+                          key={model}
+                          onClick={() => {
+                            setBulkVideoModel(model);
+                            setShowVideoModelDropdown(false);
+                          }}
                           style={{
-                            backgroundColor: "#DCFCE7",
-                            color: "#166534",
-                            padding: "2px 8px",
-                            borderRadius: "12px",
-                            fontSize: "11px",
-                            fontWeight: "500",
+                            width: "100%",
+                            padding: "16px 20px",
+                            border: "none",
+                            backgroundColor: bulkVideoModel === model ? "#FEF2F2" : "transparent",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px",
+                            transition: "background-color 0.2s ease",
+                            textAlign: "left",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (bulkVideoModel !== model) {
+                              e.currentTarget.style.backgroundColor = "#F9FAFB";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (bulkVideoModel !== model) {
+                              e.currentTarget.style.backgroundColor = "transparent";
+                            }
                           }}
                         >
-                          FAST
-                        </span>
-                      </div>
-                      <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "4px" }}>
-                        Quick and efficient video generation
-                      </div>
-                      <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
-                        480p (1 credit) • 720p (2 credits)
-                      </div>
+                          <span style={{ fontSize: "20px" }}>
+                            {getVideoModelInfo(model).icon}
+                          </span>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ 
+                              fontWeight: "600", 
+                              fontSize: "16px",
+                              color: "#1F2937",
+                              marginBottom: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                            }}>
+                              {getVideoModelInfo(model).name}
+                              <span
+                                style={{
+                                  backgroundColor: getVideoModelInfo(model).badgeColor,
+                                  color: getVideoModelInfo(model).badgeTextColor,
+                                  padding: "2px 8px",
+                                  borderRadius: "12px",
+                                  fontSize: "11px",
+                                  fontWeight: "500",
+                                }}
+                              >
+                                {getVideoModelInfo(model).badge}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "4px" }}>
+                              {getVideoModelInfo(model).description}
+                            </div>
+                            <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
+                              {getVideoModelInfo(model).pricing}
+                            </div>
+                          </div>
+                          {bulkVideoModel === model && (
+                            <span style={{ 
+                              fontSize: "16px", 
+                              color: "#d42f48",
+                              fontWeight: "bold",
+                            }}>
+                              ✓
+                            </span>
+                          )}
+                        </button>
+                      ))}
                     </div>
-                  </label>
-                  <label
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "16px",
-                      padding: "16px 20px",
-                      border:
-                        bulkVideoModel === "seedance"
-                          ? "2px solid #d42f48"
-                          : "2px solid #E5E7EB",
-                      borderRadius: "12px",
-                      cursor: "pointer",
-                      backgroundColor:
-                        bulkVideoModel === "seedance" ? "#FEF2F2" : "#FFFFFF",
-                      transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (bulkVideoModel !== "seedance") {
-                        e.currentTarget.style.borderColor = "#d42f48";
-                        e.currentTarget.style.backgroundColor = "#FEF2F2";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (bulkVideoModel !== "seedance") {
-                        e.currentTarget.style.borderColor = "#E5E7EB";
-                        e.currentTarget.style.backgroundColor = "#FFFFFF";
-                      }
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="bulkVideoModel"
-                      value="seedance"
-                      checked={bulkVideoModel === "seedance"}
-                      onChange={(e) => setBulkVideoModel(e.target.value)}
-                      style={{ margin: 0, transform: "scale(1.2)" }}
-                    />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ 
-                        fontWeight: "600", 
-                        fontSize: "16px",
-                        color: "#1F2937",
-                        marginBottom: "4px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}>
-                        🎭 Seedance 1 Pro
-                        <span
-                          style={{
-                            backgroundColor: "#FEF3C7",
-                            color: "#D97706",
-                            padding: "2px 8px",
-                            borderRadius: "12px",
-                            fontSize: "11px",
-                            fontWeight: "500",
-                          }}
-                        >
-                          PRO
-                        </span>
-                      </div>
-                      <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "4px" }}>
-                        High-quality video generation with multiple duration options
-                      </div>
-                      <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
-                        480p/1080p • 5s/10s • 2-6 credits
-                      </div>
-                    </div>
-                  </label>
-                  <label
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      padding: "10px 14px",
-                      border:
-                        bulkVideoModel === "veo"
-                          ? "2px solid #d42f48"
-                          : "1px solid #D1D5DB",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      backgroundColor:
-                        bulkVideoModel === "veo" ? "#F3F4F6" : "white",
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="bulkVideoModel"
-                      value="veo"
-                      checked={bulkVideoModel === "veo"}
-                      onChange={(e) => setBulkVideoModel(e.target.value)}
-                      style={{ margin: 0 }}
-                    />
-                    <div>
-                      <div style={{ fontWeight: "500", fontSize: "14px" }}>
-                        Google Veo 3.1 ⭐ Premium
-                      </div>
-                      <div style={{ fontSize: "12px", color: "#6B7280" }}>
-                        480p/720p/1080p • 5s/10s • 3-8 credits
-                      </div>
-                    </div>
-                  </label>
-                  <label
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      padding: "10px 14px",
-                      border:
-                        bulkVideoModel === "kling"
-                          ? "2px solid #d42f48"
-                          : "1px solid #D1D5DB",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      backgroundColor:
-                        bulkVideoModel === "kling" ? "#F3F4F6" : "white",
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="bulkVideoModel"
-                      value="kling"
-                      checked={bulkVideoModel === "kling"}
-                      onChange={(e) => setBulkVideoModel(e.target.value)}
-                      style={{ margin: 0 }}
-                    />
-                    <div>
-                      <div style={{ fontWeight: "500", fontSize: "14px" }}>
-                        Kling 2.5 Turbo Pro ⚡ Pro
-                      </div>
-                      <div style={{ fontSize: "12px", color: "#6B7280" }}>
-                        480p/720p/1080p • 5s/10s • 2-6 credits
-                      </div>
-                    </div>
-                  </label>
+                  )}
                 </div>
               </div>
 
