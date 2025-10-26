@@ -665,6 +665,9 @@ async def generate_campaign_images_background(
                             # Qwen result is already persisted
                             print(f"✅ Qwen triple composition completed: {final_result_url[:50]}...")
                             
+                            # Define clothing type for result structure (needed for compatibility)
+                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
+                            
                             # Step 2: REMOVED - Qwen handles everything in one step
                             
                             # Step 3: REMOVED - Qwen handles everything in one step
@@ -926,6 +929,9 @@ async def generate_campaign_images(
                             )
                             # Qwen result is already persisted
                             print(f"✅ Qwen triple composition completed: {final_result_url[:50]}...")
+                            
+                            # Define clothing type for result structure (needed for compatibility)
+                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
                             
                             # Step 2: REMOVED - Qwen handles everything in one step
                             
