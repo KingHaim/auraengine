@@ -1004,6 +1004,51 @@ async def generate_campaign_images(
         print(f"❌ Campaign generation failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.put("/campaigns/{campaign_id}")
+async def update_campaign(
+    campaign_id: str,
+    request: dict,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update campaign name and description"""
+    try:
+        # Get the campaign
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        # Update campaign fields
+        if "name" in request:
+            campaign.name = request["name"]
+        if "description" in request:
+            campaign.description = request["description"]
+        
+        # Commit changes
+        db.commit()
+        db.refresh(campaign)
+        
+        print(f"✅ Updated campaign: {campaign.name}")
+        
+        return {
+            "id": campaign.id,
+            "name": campaign.name,
+            "description": campaign.description,
+            "status": campaign.status,
+            "created_at": campaign.created_at,
+            "updated_at": campaign.updated_at,
+            "settings": campaign.settings
+        }
+        
+    except Exception as e:
+        db.rollback()
+        print(f"❌ Failed to update campaign: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.delete("/campaigns/{campaign_id}")
 async def delete_campaign(
     campaign_id: str,
