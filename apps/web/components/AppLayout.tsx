@@ -6,6 +6,7 @@ import AuthModal from "./AuthModal";
 import { useState, useEffect, useRef } from "react";
 
 const SIDEBAR_WIDTH = 280; // px
+const MOBILE_SIDEBAR_WIDTH = 260; // px
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -26,6 +27,22 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const router = useRouter();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [isMobile, setIsMobile] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(false);
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Search functionality
   const [searchQuery, setSearchQuery] = useState("");
@@ -244,26 +261,87 @@ export default function AppLayout({ children }: AppLayoutProps) {
         fontFamily:
           "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
         minHeight: "100vh",
-        paddingLeft: `${SIDEBAR_WIDTH}px`,
+        paddingLeft: isMobile ? "0px" : `${SIDEBAR_WIDTH}px`,
         position: "relative",
         zIndex: 1,
       }}
     >
+      {/* Mobile Header */}
+      {isMobile && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "60px",
+            backgroundColor: "#090a0c",
+            borderBottom: "1px solid #1F2630",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 16px",
+            zIndex: 1000,
+          }}
+        >
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            style={{
+              backgroundColor: "transparent",
+              border: "none",
+              color: "#E6E8EB",
+              fontSize: "20px",
+              cursor: "pointer",
+              padding: "8px",
+            }}
+          >
+            ☰
+          </button>
+          <img
+            src="/logo.png"
+            alt="Logo"
+            style={{
+              width: "40px",
+              height: "40px",
+              objectFit: "contain",
+            }}
+          />
+          <div style={{ width: "40px" }} />
+        </div>
+      )}
+
+      {/* Mobile Overlay */}
+      {isMobile && sidebarOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: 999,
+          }}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div
         style={{
-          width: `${SIDEBAR_WIDTH}px`,
+          width: isMobile ? `${MOBILE_SIDEBAR_WIDTH}px` : `${SIDEBAR_WIDTH}px`,
           background:
             "linear-gradient(180deg, #090a0c 0%, #090a0c 60%, #1a1a1a 80%, #8b1a2a 100%)",
           borderRight: "1px solid #1F2630",
-          padding: "32px 12px",
+          padding: isMobile ? "20px 12px" : "32px 12px",
           display: "flex",
           flexDirection: "column",
           position: "fixed",
           top: 0,
-          left: 0,
+          left: isMobile ? (sidebarOpen ? "0" : `-${MOBILE_SIDEBAR_WIDTH}px`) : "0",
           height: "100vh",
-          zIndex: 0,
+          zIndex: isMobile ? 1000 : 0,
+          transition: "left 0.3s ease",
         }}
       >
         {/* Radial glow overlay */}
@@ -286,7 +364,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            marginBottom: "40px",
+            marginBottom: isMobile ? "20px" : "40px",
             position: "relative",
             zIndex: 1,
             width: "100%",
@@ -296,8 +374,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
             src="/logo.png"
             alt="Logo"
             style={{
-              width: "180px",
-              height: "180px",
+              width: isMobile ? "120px" : "180px",
+              height: isMobile ? "120px" : "180px",
               objectFit: "contain",
               display: "block",
             }}
@@ -313,10 +391,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => {
+                    if (isMobile) {
+                      setSidebarOpen(false);
+                    }
+                  }}
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    height: "44px",
+                    height: isMobile ? "48px" : "44px",
                     padding: "12px",
                     borderRadius: "10px",
                     backgroundColor: isActive
@@ -324,9 +407,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
                       : "transparent",
                     color: isActive ? "#FFFFFF" : "#C7CDD6",
                     textDecoration: "none",
-                    fontSize: "12px",
+                    fontSize: isMobile ? "14px" : "12px",
                     fontWeight: isActive ? "600" : "500",
-                    letterSpacing: "0.18em",
+                    letterSpacing: isMobile ? "0.1em" : "0.18em",
                     marginBottom: "4px",
                     transition: "all 0.2s",
                   }}
@@ -602,9 +685,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
         {/* Main Content */}
         <main
           style={{
-            padding: "32px",
+            padding: isMobile ? "16px" : "32px",
             backgroundColor: "#FFFFFF",
-            minHeight: "calc(100vh - 72px)",
+            minHeight: isMobile ? "calc(100vh - 60px)" : "calc(100vh - 72px)",
+            marginTop: isMobile ? "60px" : "0px",
           }}
         >
           {children}
