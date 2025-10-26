@@ -5564,14 +5564,16 @@ export default function CampaignsPage() {
               style={{
                 backgroundColor: "white",
                 borderRadius: "20px",
-                padding: "40px",
+                padding: "min(40px, 5vw)",
                 maxWidth: "95vw",
-                maxHeight: "95vh",
-                width: "800px",
+                maxHeight: "90vh",
+                width: "min(800px, 95vw)",
                 position: "relative",
-                overflow: "auto",
+                overflow: "visible",
                 boxShadow: "0 25px 80px rgba(0,0,0,0.4)",
                 margin: "20px",
+                display: "flex",
+                flexDirection: "column",
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -5606,17 +5608,26 @@ export default function CampaignsPage() {
               >
                 ✕
               </button>
-              {/* Modal Header */}
+              
+              {/* Scrollable Content Container */}
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "32px",
-                  paddingBottom: "24px",
-                  borderBottom: "2px solid #E5E7EB",
+                  flex: 1,
+                  overflowY: "auto",
+                  paddingRight: "8px",
                 }}
               >
+                {/* Modal Header */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "32px",
+                    paddingBottom: "24px",
+                    borderBottom: "2px solid #E5E7EB",
+                  }}
+                >
                 <div>
                   <h2
                     style={{
@@ -6527,12 +6538,16 @@ export default function CampaignsPage() {
                 </div>
               )}
 
+              </div> {/* End of scrollable content container */}
+
               {/* Action Buttons */}
               <div
                 style={{
                   display: "flex",
                   gap: "12px",
                   marginTop: "24px",
+                  paddingTop: "24px",
+                  borderTop: "2px solid #E5E7EB",
                 }}
               >
                 <button
