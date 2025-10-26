@@ -1361,16 +1361,6 @@ export default function CampaignsPage() {
 
   return (
     <AppLayout>
-      <style>{`
-        @keyframes spin {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
       <div
         style={{
           padding: "0",
@@ -1715,7 +1705,6 @@ export default function CampaignsPage() {
                             border: "2px solid #ffffff",
                             borderTop: "2px solid transparent",
                             borderRadius: "50%",
-                            animation: "spin 1s linear infinite",
                             marginBottom: "8px",
                           }}
                         />
@@ -2158,7 +2147,6 @@ export default function CampaignsPage() {
                             border: "2px solid #FFFFFF",
                             borderTop: "2px solid transparent",
                             borderRadius: "50%",
-                            animation: "spin 1s linear infinite",
                           }}
                         />
                         Generating...
@@ -3282,7 +3270,6 @@ export default function CampaignsPage() {
                                           border: "2px solid #ffffff",
                                           borderTop: "2px solid transparent",
                                           borderRadius: "50%",
-                                          animation: "spin 1s linear infinite",
                                         }}
                                       />
                                       Generating...
@@ -3370,7 +3357,6 @@ export default function CampaignsPage() {
                             border: "2px solid #FFFFFF",
                             borderTop: "2px solid transparent",
                             borderRadius: "50%",
-                            animation: "spin 1s linear infinite",
                           }}
                         />
                         Generating...
@@ -6803,7 +6789,6 @@ export default function CampaignsPage() {
                           border: "2px solid #FFFFFF",
                           borderTop: "2px solid transparent",
                           borderRadius: "50%",
-                          animation: "spin 1s linear infinite",
                         }}
                       />
                       Generating Videos...
@@ -6819,27 +6804,9 @@ export default function CampaignsPage() {
           </div>
         )}
 
-        {/* CSS for loading animation */}
-        <style jsx>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
-
         {/* Tweak Image Modal */}
         {showTweakModal && (
           <>
-            <style jsx>{`
-              @keyframes spin {
-                0% {
-                  transform: rotate(0deg);
-                }
-                100% {
-                  transform: rotate(360deg);
-                }
-              }
-            `}</style>
             <div
               style={{
                 position: "fixed",
@@ -6899,7 +6866,6 @@ export default function CampaignsPage() {
                           border: "4px solid #F3F4F6",
                           borderTop: "4px solid #d42f48",
                           borderRadius: "50%",
-                          animation: "spin 1s linear infinite",
                           margin: "0 auto 16px",
                         }}
                       />
