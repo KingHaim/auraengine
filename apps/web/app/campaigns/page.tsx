@@ -1600,15 +1600,20 @@ export default function CampaignsPage() {
             </div>
           ) : (
             <div
+              className="campaign-grid"
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "16px",
+                gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+                gap: "12px",
+                width: "100%",
+                maxWidth: "100%",
+                boxSizing: "border-box",
               }}
             >
               {campaigns.map((campaign) => (
                 <div
                   key={campaign.id}
+                  className="campaign-card"
                   style={{
                     borderRadius: "16px",
                     overflow: "hidden",
@@ -1626,7 +1631,10 @@ export default function CampaignsPage() {
                       : "0 2px 8px rgba(0,0,0,0.08)",
                     display: "flex",
                     flexDirection: "column",
-                    height: "280px",
+                    height: "260px",
+                    width: "100%",
+                    maxWidth: "100%",
+                    boxSizing: "border-box",
                   }}
                   onClick={(e) => {
                     if (selectMode) {

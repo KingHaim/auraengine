@@ -33,8 +33,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
   // Check if mobile on mount and resize
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) {
         setSidebarOpen(false);
       }
     };
@@ -264,6 +265,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
         paddingLeft: isMobile ? "0px" : `${SIDEBAR_WIDTH}px`,
         position: "relative",
         zIndex: 1,
+        width: "100%",
+        overflowX: "hidden",
       }}
     >
       {/* Mobile Header */}
@@ -693,6 +696,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
             backgroundColor: "#FFFFFF",
             minHeight: isMobile ? "calc(100vh - 60px)" : "calc(100vh - 72px)",
             marginTop: isMobile ? "60px" : "0px",
+            width: "100%",
+            maxWidth: "100%",
+            overflowX: "hidden",
+            boxSizing: "border-box",
           }}
         >
           {children}

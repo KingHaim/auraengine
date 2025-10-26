@@ -19,6 +19,37 @@ body {
   color: #e6e8eb;
 }
 
+/* Mobile responsiveness */
+@media (max-width: 767px) {
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Ensure proper touch targets */
+  button, a, input, textarea, select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent horizontal scroll */
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Mobile grid adjustments */
+  .campaign-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  
+  /* Mobile card adjustments */
+  .campaign-card {
+    height: 240px !important;
+    width: 100% !important;
+  }
+}
+
 /* smooth cards */
 .card {
   background: #171c23;
