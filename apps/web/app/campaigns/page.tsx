@@ -161,6 +161,8 @@ export default function CampaignsPage() {
   const [bulkVideoModel, setBulkVideoModel] = useState("wan");
   const [bulkVideoDuration, setBulkVideoDuration] = useState("5s");
   const [generatingBulkVideos, setGeneratingBulkVideos] = useState(false);
+  const [showVideoModelDropdown, setShowVideoModelDropdown] = useState(false);
+  
   // Helper function to get video model information
   const getVideoModelInfo = (model: string) => {
     const models = {
