@@ -551,8 +551,10 @@ export default function ProductsPage() {
                   position: "relative",
                 }}
                 onClick={() => {
-                  setSelectedProductForActions(product);
-                  setShowProductActionModal(true);
+                  if (product.packshots && product.packshots.length > 0) {
+                    setSelectedProductForPackshots(product);
+                    setShowPackshotsModal(true);
+                  }
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "translateY(-2px)";
@@ -1819,5 +1821,6 @@ export default function ProductsPage() {
         </div>
       )}
 
+    </AppLayout>
   );
 }
