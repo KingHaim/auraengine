@@ -34,7 +34,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
-      console.log('Screen width:', window.innerWidth, 'Is mobile:', mobile);
+      console.log("Screen width:", window.innerWidth, "Is mobile:", mobile);
       setIsMobile(mobile);
       if (!mobile) {
         setSidebarOpen(false);
@@ -257,6 +257,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div
+      className="app-container"
       style={{
         backgroundColor: "#0E1115",
         color: "#E6E8EB",
@@ -271,23 +272,23 @@ export default function AppLayout({ children }: AppLayoutProps) {
       }}
     >
       {/* Mobile Header */}
-      {isMobile && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "60px",
-            backgroundColor: "#090a0c",
-            borderBottom: "1px solid #1F2630",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 16px",
-            zIndex: 1000,
-          }}
-        >
+      <div
+        className="mobile-header"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "60px",
+          backgroundColor: "#090a0c",
+          borderBottom: "1px solid #1F2630",
+          display: isMobile ? "flex" : "none",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 16px",
+          zIndex: 1000,
+        }}
+      >
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             style={{
@@ -310,12 +311,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
               objectFit: "contain",
             }}
           />
-          <div style={{ 
-            width: "40px", 
-            fontSize: "12px", 
-            color: "#d42f48",
-            textAlign: "center"
-          }}>
+          <div
+            style={{
+              width: "40px",
+              fontSize: "12px",
+              color: "#d42f48",
+              textAlign: "center",
+            }}
+          >
             MOBILE
           </div>
         </div>
@@ -712,16 +715,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
         >
           {/* Mobile Debug Info */}
           {isMobile && (
-            <div style={{
-              backgroundColor: "#d42f48",
-              color: "white",
-              padding: "8px",
-              marginBottom: "16px",
-              borderRadius: "8px",
-              fontSize: "14px",
-              textAlign: "center"
-            }}>
-              📱 MOBILE MODE ACTIVE - Screen Width: {typeof window !== 'undefined' ? window.innerWidth : 'N/A'}px
+            <div
+              style={{
+                backgroundColor: "#d42f48",
+                color: "white",
+                padding: "8px",
+                marginBottom: "16px",
+                borderRadius: "8px",
+                fontSize: "14px",
+                textAlign: "center",
+              }}
+            >
+              📱 MOBILE MODE ACTIVE - Screen Width:{" "}
+              {typeof window !== "undefined" ? window.innerWidth : "N/A"}px
             </div>
           )}
           {children}

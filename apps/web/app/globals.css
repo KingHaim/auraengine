@@ -19,65 +19,73 @@ body {
   color: #e6e8eb;
 }
 
-/* Mobile responsiveness */
-@media (max-width: 767px) {
+/* Mobile responsiveness - Force mobile layout */
+@media (max-width: 768px) {
+  /* Reset all layouts to mobile */
   body {
-    overflow-x: hidden;
+    overflow-x: hidden !important;
   }
   
-  /* Ensure proper touch targets */
-  button, a, input, textarea, select {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  /* Prevent horizontal scroll */
-  * {
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-  
-  /* Mobile grid adjustments */
-  .campaign-grid {
+  /* Force single column everywhere */
+  div[style*="grid-template-columns"] {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
   
-  /* Mobile card adjustments */
-  .campaign-card {
-    height: 240px !important;
-    width: 100% !important;
-  }
-  
-  /* Force mobile layout */
-  [style*="grid-template-columns"] {
-    grid-template-columns: 1fr !important;
-  }
-  
-  /* Mobile sidebar adjustments */
-  [style*="paddingLeft: 280px"] {
+  /* Force mobile padding */
+  div[style*="paddingLeft: 280px"] {
     padding-left: 0px !important;
   }
   
-  /* Mobile main content */
+  /* Force mobile main content */
   main {
     margin-top: 60px !important;
     padding: 16px !important;
   }
   
-  /* Force single column on all grids */
-  div[style*="grid"] {
-    grid-template-columns: 1fr !important;
+  /* Campaign cards mobile */
+  .campaign-card {
+    height: 240px !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
   
-  /* Mobile-specific overrides */
-  .mobile-override {
-    padding-left: 0 !important;
-    margin-top: 60px !important;
+  /* Campaign grid mobile */
+  .campaign-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+  
+  /* Touch targets */
+  button, a, input, textarea, select {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  /* Prevent overflow */
+  * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* App container mobile */
+  .app-container {
+    padding-left: 0px !important;
+  }
+  
+  /* Force mobile header */
+  .mobile-header {
+    display: flex !important;
+  }
+  
+  /* Hide desktop sidebar on mobile */
+  .desktop-sidebar {
+    display: none !important;
   }
 }
 
-/* Additional mobile breakpoints */
+/* Extra small screens */
 @media (max-width: 480px) {
   .campaign-card {
     height: 200px !important;
