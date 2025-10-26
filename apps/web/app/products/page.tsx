@@ -619,98 +619,11 @@ export default function ProductsPage() {
                       fontSize: "16px",
                       fontWeight: "600",
                       color: "#1F2937",
-                      marginBottom: "8px",
+                      marginBottom: "16px",
                     }}
                   >
                     {product.name}
                   </h3>
-                  {product.packshots && product.packshots.length > 0 && (
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
-                        color: "#d42f48",
-                        fontSize: "12px",
-                        fontWeight: "500",
-                        marginBottom: "12px",
-                      }}
-                    >
-                      <span>📸</span>
-                      <span>
-                        {product.packshots.length} packshots generated
-                      </span>
-                      <span style={{ color: "#6B7280", fontSize: "10px" }}>
-                        • Click image to view
-                      </span>
-                    </div>
-                  )}
-                  <div
-                    style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: "8px",
-                      alignItems: "center",
-                      marginTop: "8px",
-                    }}
-                  >
-                    {product.category && (
-                      <div
-                        style={{
-                          display: "inline-block",
-                          backgroundColor: "#F3F4F6",
-                          color: "#374151",
-                          padding: "4px 8px",
-                          borderRadius: "6px",
-                          fontSize: "12px",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {product.category}
-                      </div>
-                    )}
-                    {product.tags && product.tags.length > 0 && (
-                      <div
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: "4px",
-                        }}
-                      >
-                        {product.tags
-                          .slice(0, 3)
-                          .map((tag: string, index: number) => (
-                            <span
-                              key={index}
-                              style={{
-                                backgroundColor: "#d42f48",
-                                color: "white",
-                                padding: "2px 6px",
-                                borderRadius: "12px",
-                                fontSize: "10px",
-                                fontWeight: "500",
-                              }}
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        {product.tags.length > 3 && (
-                          <span
-                            style={{
-                              backgroundColor: "#E5E7EB",
-                              color: "#6B7280",
-                              padding: "2px 6px",
-                              borderRadius: "12px",
-                              fontSize: "10px",
-                              fontWeight: "500",
-                            }}
-                          >
-                            +{product.tags.length - 3} more
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
 
                   {/* Action Buttons */}
                   <div
