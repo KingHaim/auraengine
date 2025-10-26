@@ -572,14 +572,6 @@ export default function ProductsPage() {
                     aspectRatio: "2/3",
                     position: "relative",
                     backgroundColor: "#F3F4F6",
-                    cursor: "pointer",
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent card click
-                    if (product.packshots && product.packshots.length > 0) {
-                      setSelectedProductForPackshots(product);
-                      setShowPackshotsModal(true);
-                    }
                   }}
                 >
                   <img
@@ -1825,7 +1817,7 @@ export default function ProductsPage() {
               >
                 {selectedProductForActions.name}
               </h2>
-              
+
               <p
                 style={{
                   fontSize: "14px",
@@ -1872,6 +1864,41 @@ export default function ProductsPage() {
                   borderRadius: "12px",
                 }}
               >
+                {selectedProductForActions.packshots && selectedProductForActions.packshots.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setShowProductActionModal(false);
+                      setSelectedProductForActions(null);
+                      setSelectedProductForPackshots(selectedProductForActions);
+                      setShowPackshotsModal(true);
+                    }}
+                    style={{
+                      padding: "12px 24px",
+                      backgroundColor: "#8B5CF6",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "12px",
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#7C3AED";
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "#8B5CF6";
+                      e.currentTarget.style.transform = "translateY(0)";
+                    }}
+                  >
+                    📸 View Packshots
+                  </button>
+                )}
+                
                 <button
                   onClick={() => {
                     setShowProductActionModal(false);
