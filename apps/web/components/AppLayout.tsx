@@ -289,40 +289,39 @@ export default function AppLayout({ children }: AppLayoutProps) {
           zIndex: 1000,
         }}
       >
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            style={{
-              backgroundColor: "transparent",
-              border: "none",
-              color: "#E6E8EB",
-              fontSize: "20px",
-              cursor: "pointer",
-              padding: "8px",
-            }}
-          >
-            ☰
-          </button>
-          <img
-            src="/logo.png"
-            alt="Logo"
-            style={{
-              width: "40px",
-              height: "40px",
-              objectFit: "contain",
-            }}
-          />
-          <div
-            style={{
-              width: "40px",
-              fontSize: "12px",
-              color: "#d42f48",
-              textAlign: "center",
-            }}
-          >
-            MOBILE
-          </div>
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          style={{
+            backgroundColor: "transparent",
+            border: "none",
+            color: "#E6E8EB",
+            fontSize: "20px",
+            cursor: "pointer",
+            padding: "8px",
+          }}
+        >
+          ☰
+        </button>
+        <img
+          src="/logo.png"
+          alt="Logo"
+          style={{
+            width: "40px",
+            height: "40px",
+            objectFit: "contain",
+          }}
+        />
+        <div
+          style={{
+            width: "40px",
+            fontSize: "12px",
+            color: "#d42f48",
+            textAlign: "center",
+          }}
+        >
+          MOBILE
         </div>
-      )}
+      </div>
 
       {/* Mobile Overlay */}
       {isMobile && sidebarOpen && (
