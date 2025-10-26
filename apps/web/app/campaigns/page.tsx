@@ -5517,6 +5517,7 @@ export default function CampaignsPage() {
               style={{
                 backgroundColor: "white",
                 borderRadius: "20px",
+                padding: "40px",
                 maxWidth: "95vw",
                 maxHeight: "95vh",
                 width: "800px",
@@ -5527,14 +5528,43 @@ export default function CampaignsPage() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Close Button */}
+              <button
+                onClick={() => setShowBulkVideoModal(false)}
+                style={{
+                  position: "absolute",
+                  top: "20px",
+                  right: "20px",
+                  padding: "12px",
+                  backgroundColor: "transparent",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#6B7280",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  zIndex: 10,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#F3F4F6";
+                  e.currentTarget.style.color = "#374151";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.color = "#6B7280";
+                }}
+              >
+                ✕
+              </button>
               {/* Modal Header */}
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  padding: "32px 32px 24px 32px",
-                  borderBottom: "2px solid #F3F4F6",
+                  marginBottom: "32px",
+                  paddingBottom: "24px",
+                  borderBottom: "2px solid #E5E7EB",
                 }}
               >
                 <div>
@@ -5553,57 +5583,54 @@ export default function CampaignsPage() {
                   </h2>
                   <p
                     style={{
-                      margin: "8px 0 0 0",
                       fontSize: "16px",
                       color: "#6B7280",
+                      margin: "8px 0 0 0",
                       lineHeight: 1.5,
                     }}
                   >
-                    Create stunning videos from your campaign images
+                    Transform your campaign images into engaging videos for social media
                   </p>
                 </div>
-                <button
-                  onClick={() => setShowBulkVideoModal(false)}
+                <div
                   style={{
-                    padding: "12px",
-                    backgroundColor: "transparent",
-                    border: "none",
+                    backgroundColor: "#F3F4F6",
+                    padding: "12px 16px",
                     borderRadius: "12px",
-                    color: "#6B7280",
-                    fontSize: "24px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#F3F4F6";
-                    e.currentTarget.style.color = "#374151";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "#6B7280";
+                    textAlign: "center",
                   }}
                 >
-                  ✕
-                </button>
-              </div>
-
-              {/* Modal Content */}
-              <div
-                style={{
-                  padding: "32px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "32px",
-                }}
-              >
-                {/* Veo Direct Mode Toggle */}
-                {bulkVideoModel === "veo" && (
                   <div
                     style={{
-                      backgroundColor: "#F8FAFC",
-                      border: "2px solid #E2E8F0",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#374151",
+                    }}
+                  >
+                    {selectedCampaignForBulkVideo.name}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "#6B7280",
+                      marginTop: "4px",
+                    }}
+                  >
+                    {selectedCampaignForBulkVideo.settings?.generated_images?.length || 0} images
+                  </div>
+                </div>
+              </div>
+
+              {/* Veo Direct Mode Toggle */}
+              {bulkVideoModel === "veo" && (
+                <div style={{ marginBottom: "32px" }}>
+                  <div
+                    style={{
+                      backgroundColor: veoDirectMode ? "#F0F9FF" : "#F9FAFB",
+                      border: `2px solid ${veoDirectMode ? "#0EA5E9" : "#E5E7EB"}`,
                       borderRadius: "16px",
                       padding: "20px",
+                      transition: "all 0.2s ease",
                     }}
                   >
                     <label
@@ -5612,6 +5639,7 @@ export default function CampaignsPage() {
                         alignItems: "flex-start",
                         gap: "16px",
                         cursor: "pointer",
+                        margin: 0,
                       }}
                     >
                       <input
@@ -5624,16 +5652,16 @@ export default function CampaignsPage() {
                           transform: "scale(1.2)",
                         }}
                       />
-                      <div>
+                      <div style={{ flex: 1 }}>
                         <div
                           style={{
                             fontWeight: "600",
                             fontSize: "16px",
-                            color: "#1E40AF",
+                            color: veoDirectMode ? "#0EA5E9" : "#374151",
+                            marginBottom: "8px",
                             display: "flex",
                             alignItems: "center",
                             gap: "8px",
-                            marginBottom: "8px",
                           }}
                         >
                           ⭐ Veo Direct Mode
@@ -5641,9 +5669,9 @@ export default function CampaignsPage() {
                             style={{
                               backgroundColor: "#FEF3C7",
                               color: "#D97706",
-                              fontSize: "11px",
                               padding: "2px 8px",
                               borderRadius: "12px",
+                              fontSize: "11px",
                               fontWeight: "500",
                             }}
                           >
@@ -5653,462 +5681,506 @@ export default function CampaignsPage() {
                         <div
                           style={{
                             fontSize: "14px",
-                            color: "#64748B",
+                            color: "#6B7280",
                             lineHeight: 1.5,
                           }}
                         >
-                          Generate videos directly from model + product + scene without needing pre-generated images. 
-                          Perfect for creating unique video content from scratch.
+                          Generate videos directly from model + product + scene without needing existing images. 
+                          Perfect for creating original video content from scratch.
                         </div>
                       </div>
                     </label>
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* Image Selection (only if NOT in Veo Direct Mode) */}
-                {!veoDirectMode && (
-                  <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "16px",
-                      }}
-                    >
+              {/* Image Selection (only if NOT in Veo Direct Mode) */}
+              {!veoDirectMode && (
+                <div style={{ marginBottom: "32px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <div>
                       <h3
                         style={{
                           fontSize: "18px",
                           fontWeight: "600",
                           color: "#1F2937",
+                          margin: "0 0 4px 0",
+                        }}
+                      >
+                        Select Images for Video Generation
+                      </h3>
+                      <p
+                        style={{
+                          fontSize: "14px",
+                          color: "#6B7280",
                           margin: 0,
                         }}
                       >
-                        📸 Select Images for Video Generation
-                      </h3>
-                      <div style={{ display: "flex", gap: "8px" }}>
-                        <button
-                          onClick={() => {
-                            const allIndices = new Set(
-                              Array.from(
-                                {
-                                  length:
-                                    selectedCampaignForBulkVideo.settings
-                                      ?.generated_images?.length || 0,
-                                },
-                                (_, i) => i
-                              )
-                            );
-                            setSelectedImagesForVideo(allIndices);
-                          }}
-                          style={{
-                            padding: "8px 16px",
-                            backgroundColor: "#F3F4F6",
-                            border: "1px solid #D1D5DB",
-                            borderRadius: "8px",
-                            fontSize: "12px",
-                            fontWeight: "500",
-                            cursor: "pointer",
-                            color: "#374151",
-                            transition: "all 0.2s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#E5E7EB";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "#F3F4F6";
-                          }}
-                        >
-                          Select All
-                        </button>
-                        <button
-                          onClick={() => setSelectedImagesForVideo(new Set())}
-                          style={{
-                            padding: "8px 16px",
-                            backgroundColor: "#F3F4F6",
-                            border: "1px solid #D1D5DB",
-                            borderRadius: "8px",
-                            fontSize: "12px",
-                            fontWeight: "500",
-                            cursor: "pointer",
-                            color: "#374151",
-                            transition: "all 0.2s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#E5E7EB";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "#F3F4F6";
-                          }}
-                        >
-                          Clear All
-                        </button>
-                      </div>
+                        Choose which shots to transform into videos
+                      </p>
                     </div>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
-                        gap: "12px",
-                        maxHeight: "300px",
-                        overflowY: "auto",
-                        padding: "16px",
-                        border: "2px solid #E5E7EB",
-                        borderRadius: "16px",
-                        backgroundColor: "#FAFAFA",
-                      }}
-                    >
-                      {selectedCampaignForBulkVideo.settings?.generated_images?.map(
-                        (img: any, idx: number) => (
-                          <div
-                            key={idx}
-                            onClick={() => {
-                              setSelectedImagesForVideo((prev) => {
-                                const newSet = new Set(prev);
-                                if (newSet.has(idx)) {
-                                  newSet.delete(idx);
-                                } else {
-                                  newSet.add(idx);
-                                }
-                                return newSet;
-                              });
-                            }}
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        onClick={() => {
+                          const allIndices = new Set(
+                            Array.from(
+                              {
+                                length:
+                                  selectedCampaignForBulkVideo.settings
+                                    ?.generated_images?.length || 0,
+                              },
+                              (_, i) => i
+                            )
+                          );
+                          setSelectedImagesForVideo(allIndices);
+                        }}
+                        style={{
+                          padding: "8px 16px",
+                          backgroundColor: "#d42f48",
+                          color: "#FFFFFF",
+                          border: "none",
+                          borderRadius: "8px",
+                          fontSize: "12px",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.backgroundColor = "#b0263c")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor = "#d42f48")
+                        }
+                      >
+                        Select All
+                      </button>
+                      <button
+                        onClick={() => setSelectedImagesForVideo(new Set())}
+                        style={{
+                          padding: "8px 16px",
+                          backgroundColor: "#F3F4F6",
+                          color: "#374151",
+                          border: "1px solid #D1D5DB",
+                          borderRadius: "8px",
+                          fontSize: "12px",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#E5E7EB";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "#F3F4F6";
+                        }}
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+                      gap: "16px",
+                      maxHeight: "300px",
+                      overflowY: "auto",
+                      padding: "20px",
+                      border: "2px solid #E5E7EB",
+                      borderRadius: "16px",
+                      backgroundColor: "#FAFAFA",
+                    }}
+                  >
+                    {selectedCampaignForBulkVideo.settings?.generated_images?.map(
+                      (img: any, idx: number) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setSelectedImagesForVideo((prev) => {
+                              const newSet = new Set(prev);
+                              if (newSet.has(idx)) {
+                                newSet.delete(idx);
+                              } else {
+                                newSet.add(idx);
+                              }
+                              return newSet;
+                            });
+                          }}
+                          style={{
+                            position: "relative",
+                            cursor: "pointer",
+                            border: selectedImagesForVideo.has(idx)
+                              ? "3px solid #d42f48"
+                              : "2px solid #E5E7EB",
+                            borderRadius: "12px",
+                            overflow: "hidden",
+                            aspectRatio: "1",
+                            transition: "all 0.3s ease",
+                            backgroundColor: "#FFFFFF",
+                            boxShadow: selectedImagesForVideo.has(idx)
+                              ? "0 8px 25px rgba(212, 47, 72, 0.3)"
+                              : "0 2px 8px rgba(0,0,0,0.1)",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateY(-4px)";
+                            e.currentTarget.style.boxShadow = selectedImagesForVideo.has(idx)
+                              ? "0 12px 35px rgba(212, 47, 72, 0.4)"
+                              : "0 8px 25px rgba(0,0,0,0.15)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.boxShadow = selectedImagesForVideo.has(idx)
+                              ? "0 8px 25px rgba(212, 47, 72, 0.3)"
+                              : "0 2px 8px rgba(0,0,0,0.1)";
+                          }}
+                        >
+                          <img
+                            src={img.image_url}
+                            alt={`Image ${idx + 1}`}
                             style={{
-                              position: "relative",
-                              cursor: "pointer",
-                              border: selectedImagesForVideo.has(idx)
-                                ? "3px solid #d42f48"
-                                : "2px solid #E5E7EB",
-                              borderRadius: "12px",
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              opacity: selectedImagesForVideo.has(idx) ? 1 : 0.7,
+                              transition: "opacity 0.2s ease",
+                            }}
+                          />
+                          {/* Shot type label */}
+                          <div
+                            style={{
+                              position: "absolute",
+                              bottom: "8px",
+                              left: "8px",
+                              right: "8px",
+                              backgroundColor: "rgba(9, 10, 12, 0.8)",
+                              color: "#FFFFFF",
+                              borderRadius: "8px",
+                              padding: "6px 8px",
+                              fontSize: "11px",
+                              fontWeight: "600",
+                              textAlign: "center",
                               overflow: "hidden",
-                              aspectRatio: "1",
-                              transition: "all 0.2s ease",
-                              transform: selectedImagesForVideo.has(idx) ? "scale(1.02)" : "scale(1)",
-                              boxShadow: selectedImagesForVideo.has(idx) 
-                                ? "0 8px 25px rgba(212, 47, 72, 0.3)" 
-                                : "0 2px 8px rgba(0,0,0,0.1)",
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!selectedImagesForVideo.has(idx)) {
-                                e.currentTarget.style.transform = "scale(1.05)";
-                                e.currentTarget.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!selectedImagesForVideo.has(idx)) {
-                                e.currentTarget.style.transform = "scale(1)";
-                                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
-                              }
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              backdropFilter: "blur(4px)",
                             }}
                           >
-                            <img
-                              src={img.image_url}
-                              alt={`Image ${idx + 1}`}
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                                opacity: selectedImagesForVideo.has(idx) ? 1 : 0.7,
-                              }}
-                            />
-                            {/* Shot type label */}
+                            {img.shot_type || `Shot ${idx + 1}`}
+                          </div>
+                          {selectedImagesForVideo.has(idx) && (
                             <div
                               style={{
                                 position: "absolute",
-                                bottom: "6px",
-                                left: "6px",
-                                right: "6px",
-                                backgroundColor: "rgba(0, 0, 0, 0.8)",
+                                top: "8px",
+                                right: "8px",
+                                backgroundColor: "#d42f48",
                                 color: "#FFFFFF",
-                                borderRadius: "8px",
-                                padding: "4px 8px",
-                                fontSize: "11px",
-                                fontWeight: "600",
-                                textAlign: "center",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                backdropFilter: "blur(4px)",
+                                borderRadius: "50%",
+                                width: "28px",
+                                height: "28px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "14px",
+                                fontWeight: "bold",
+                                boxShadow: "0 2px 8px rgba(212, 47, 72, 0.4)",
                               }}
                             >
-                              {img.shot_type || `Shot ${idx + 1}`}
+                              ✓
                             </div>
-                            {selectedImagesForVideo.has(idx) && (
-                              <div
-                                style={{
-                                  position: "absolute",
-                                  top: "6px",
-                                  right: "6px",
-                                  backgroundColor: "#d42f48",
-                                  color: "#FFFFFF",
-                                  borderRadius: "50%",
-                                  width: "28px",
-                                  height: "28px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  fontSize: "14px",
-                                  fontWeight: "bold",
-                                  boxShadow: "0 2px 8px rgba(212, 47, 72, 0.4)",
-                                }}
-                              >
-                                ✓
-                              </div>
-                            )}
-                          </div>
-                        )
-                      )}
-                    </div>
+                          )}
+                        </div>
+                      )
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      marginTop: "16px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "16px 20px",
+                      backgroundColor: "#F8FAFC",
+                      borderRadius: "12px",
+                      border: "1px solid #E2E8F0",
+                    }}
+                  >
                     <div
                       style={{
-                        marginTop: "16px",
                         display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "16px",
-                        backgroundColor: "#F8FAFC",
-                        borderRadius: "12px",
-                        border: "1px solid #E2E8F0",
+                        flexDirection: "column",
+                        gap: "4px",
                       }}
                     >
-                      <div
-                        style={{
+                      <span 
+                        style={{ 
+                          fontSize: "14px", 
+                          fontWeight: "600",
+                          color: "#1F2937",
+                        }}
+                      >
+                        {selectedImagesForVideo.size} of{" "}
+                        {selectedCampaignForBulkVideo.settings?.generated_images
+                          ?.length || 0}{" "}
+                        images selected
+                      </span>
+                      <span 
+                        style={{ 
+                          fontSize: "12px", 
+                          color: "#6B7280",
                           display: "flex",
-                          flexDirection: "column",
+                          alignItems: "center",
                           gap: "4px",
                         }}
                       >
-                        <span 
-                          style={{ 
-                            fontSize: "14px", 
-                            fontWeight: "600",
-                            color: "#1F2937",
-                          }}
-                        >
-                          {selectedImagesForVideo.size} of{" "}
-                          {selectedCampaignForBulkVideo.settings?.generated_images
-                            ?.length || 0}{" "}
-                          images selected
-                        </span>
-                        <span 
-                          style={{ 
-                            fontSize: "12px", 
-                            color: "#6B7280",
-                            lineHeight: 1.4,
-                          }}
-                        >
-                          💡 Tip: Select 3-5 shots for TikTok, or all {selectedCampaignForBulkVideo.settings?.generated_images?.length || 0} for a complete CapCut sequence
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", gap: "8px" }}>
-                        <button
-                          onClick={() => {
-                            const allIndices = new Set(
-                              Array.from(
-                                {
-                                  length:
-                                    selectedCampaignForBulkVideo.settings
-                                      ?.generated_images?.length || 0,
-                                },
-                                (_, i) => i
-                              )
-                            );
-                            setSelectedImagesForVideo(allIndices);
-                          }}
-                          style={{
-                            padding: "8px 16px",
-                            backgroundColor: "#d42f48",
-                            color: "#FFFFFF",
-                            border: "none",
-                            borderRadius: "8px",
-                            fontSize: "12px",
-                            fontWeight: "600",
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#b0263c";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "#d42f48";
-                          }}
-                        >
-                          Select All
-                        </button>
-                        <button
-                          onClick={() => setSelectedImagesForVideo(new Set())}
-                          style={{
-                            padding: "8px 16px",
-                            backgroundColor: "#EF4444",
-                            color: "#FFFFFF",
-                            border: "none",
-                            borderRadius: "8px",
-                            fontSize: "12px",
-                            fontWeight: "600",
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#DC2626";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "#EF4444";
-                          }}
-                        >
-                          Clear
-                        </button>
-                      </div>
+                        💡 Tip: Select 3-5 shots for TikTok, or all 10 for a complete CapCut sequence
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        onClick={() => {
+                          const allIndices = new Set(
+                            Array.from(
+                              {
+                                length:
+                                  selectedCampaignForBulkVideo.settings
+                                    ?.generated_images?.length || 0,
+                              },
+                              (_, i) => i
+                            )
+                          );
+                          setSelectedImagesForVideo(allIndices);
+                        }}
+                        style={{
+                          padding: "6px 12px",
+                          backgroundColor: "#d42f48",
+                          color: "#FFFFFF",
+                          border: "none",
+                          borderRadius: "6px",
+                          fontSize: "11px",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.backgroundColor = "#b0263c")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor = "#d42f48")
+                        }
+                      >
+                        Select All
+                      </button>
+                      <button
+                        onClick={() => setSelectedImagesForVideo(new Set())}
+                        style={{
+                          padding: "6px 12px",
+                          backgroundColor: "#EF4444",
+                          color: "#FFFFFF",
+                          border: "none",
+                          borderRadius: "6px",
+                          fontSize: "11px",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.backgroundColor = "#DC2626")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor = "#EF4444")
+                        }
+                      >
+                        Clear
+                      </button>
                     </div>
                   </div>
-                )}
-
-                {/* Custom Prompt Section */}
-                <div>
-                  <h3
-                    style={{
-                      fontSize: "18px",
-                      fontWeight: "600",
-                      color: "#1F2937",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    ✍️ Custom Prompt (Optional)
-                  </h3>
-                  <textarea
-                    value={bulkVideoCustomPrompt}
-                    onChange={(e) => setBulkVideoCustomPrompt(e.target.value)}
-                    placeholder={
-                      veoDirectMode
-                        ? "Describe the video scene... (e.g., 'model walking in a luxury setting, dramatic lighting, cinematic camera movement')"
-                        : "Add custom instructions for video generation... (e.g., 'smooth camera movement, professional fashion, slow motion')"
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "16px",
-                      borderRadius: "12px",
-                      border: "2px solid #E5E7EB",
-                      fontSize: "14px",
-                      resize: "vertical",
-                      minHeight: "100px",
-                      fontFamily: "inherit",
-                      backgroundColor: "#FAFAFA",
-                      transition: "all 0.2s ease",
-                    }}
-                    onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#d42f48";
-                      e.currentTarget.style.backgroundColor = "#FFFFFF";
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#E5E7EB";
-                      e.currentTarget.style.backgroundColor = "#FAFAFA";
-                    }}
-                  />
-                  <p
-                    style={{
-                      fontSize: "12px",
-                      color: "#6B7280",
-                      marginTop: "8px",
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    💡 Leave empty to use default video generation settings
-                  </p>
                 </div>
+              )}
 
-                {/* Video Model Selection */}
-                <div>
-                  <h3
-                    style={{
-                      fontSize: "18px",
-                      fontWeight: "600",
-                      color: "#1F2937",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    🎥 Video Model
-                  </h3>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "12px",
-                    }}
-                  >
-                    <label
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "16px",
-                        padding: "16px 20px",
-                        border:
-                          bulkVideoModel === "wan"
-                            ? "2px solid #d42f48"
-                            : "2px solid #E5E7EB",
-                        borderRadius: "16px",
-                        cursor: "pointer",
-                        backgroundColor:
-                          bulkVideoModel === "wan" ? "#FEF2F2" : "#FFFFFF",
-                        transition: "all 0.2s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (bulkVideoModel !== "wan") {
-                          e.currentTarget.style.borderColor = "#D1D5DB";
-                          e.currentTarget.style.backgroundColor = "#F9FAFB";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (bulkVideoModel !== "wan") {
-                          e.currentTarget.style.borderColor = "#E5E7EB";
-                          e.currentTarget.style.backgroundColor = "#FFFFFF";
-                        }
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        name="bulkVideoModel"
-                        value="wan"
-                        checked={bulkVideoModel === "wan"}
-                        onChange={(e) => setBulkVideoModel(e.target.value)}
-                        style={{ margin: 0, transform: "scale(1.2)" }}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ 
-                          fontWeight: "600", 
-                          fontSize: "16px",
-                          color: "#1F2937",
-                          marginBottom: "4px",
-                        }}>
-                          ⚡ Wan 2.2 I2V Fast
-                        </div>
-                        <div style={{ 
-                          fontSize: "14px", 
-                          color: "#6B7280",
-                          marginBottom: "4px",
-                        }}>
-                          Fast image-to-video generation
-                        </div>
-                        <div style={{ 
-                          fontSize: "12px", 
-                          color: "#9CA3AF",
-                        }}>
-                          480p (1 credit) • 720p (2 credits)
-                        </div>
-                      </div>
-                    </label>
+              {/* Optional Custom Prompt */}
+              <div style={{ marginBottom: "32px" }}>
+                <h3
+                  style={{
+                    fontSize: "18px",
+                    fontWeight: "600",
+                    color: "#1F2937",
+                    margin: "0 0 8px 0",
+                  }}
+                >
+                  Custom Prompt (Optional)
+                </h3>
+                <p
+                  style={{
+                    fontSize: "14px",
+                    color: "#6B7280",
+                    margin: "0 0 16px 0",
+                  }}
+                >
+                  Add specific instructions for video generation
+                </p>
+                <textarea
+                  value={bulkVideoCustomPrompt}
+                  onChange={(e) => setBulkVideoCustomPrompt(e.target.value)}
+                  placeholder={
+                    veoDirectMode
+                      ? "Describe the video scene... (e.g., 'model walking in a luxury setting, dramatic lighting')"
+                      : "e.g., smooth camera movement, professional fashion, cinematic lighting..."
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "16px",
+                    borderRadius: "12px",
+                    border: "2px solid #E5E7EB",
+                    fontSize: "14px",
+                    resize: "vertical",
+                    minHeight: "100px",
+                    fontFamily: "inherit",
+                    backgroundColor: "#FAFAFA",
+                    transition: "border-color 0.2s ease",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = "#d42f48";
+                    e.currentTarget.style.backgroundColor = "#FFFFFF";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "#E5E7EB";
+                    e.currentTarget.style.backgroundColor = "#FAFAFA";
+                  }}
+                />
+              </div>
+
+              {/* Video Model Selection */}
+              <div style={{ marginBottom: "32px" }}>
+                <h3
+                  style={{
+                    fontSize: "18px",
+                    fontWeight: "600",
+                    color: "#1F2937",
+                    margin: "0 0 8px 0",
+                  }}
+                >
+                  Video Model
+                </h3>
+                <p
+                  style={{
+                    fontSize: "14px",
+                    color: "#6B7280",
+                    margin: "0 0 20px 0",
+                  }}
+                >
+                  Choose the AI model for video generation
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                  }}
+                >
                   <label
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "8px",
-                      padding: "10px 14px",
+                      gap: "16px",
+                      padding: "16px 20px",
+                      border:
+                        bulkVideoModel === "wan"
+                          ? "2px solid #d42f48"
+                          : "2px solid #E5E7EB",
+                      borderRadius: "12px",
+                      cursor: "pointer",
+                      backgroundColor:
+                        bulkVideoModel === "wan" ? "#FEF2F2" : "#FFFFFF",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (bulkVideoModel !== "wan") {
+                        e.currentTarget.style.borderColor = "#d42f48";
+                        e.currentTarget.style.backgroundColor = "#FEF2F2";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (bulkVideoModel !== "wan") {
+                        e.currentTarget.style.borderColor = "#E5E7EB";
+                        e.currentTarget.style.backgroundColor = "#FFFFFF";
+                      }
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="bulkVideoModel"
+                      value="wan"
+                      checked={bulkVideoModel === "wan"}
+                      onChange={(e) => setBulkVideoModel(e.target.value)}
+                      style={{ margin: 0, transform: "scale(1.2)" }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ 
+                        fontWeight: "600", 
+                        fontSize: "16px",
+                        color: "#1F2937",
+                        marginBottom: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}>
+                        ⚡ Wan 2.2 I2V Fast
+                        <span
+                          style={{
+                            backgroundColor: "#DCFCE7",
+                            color: "#166534",
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            fontSize: "11px",
+                            fontWeight: "500",
+                          }}
+                        >
+                          FAST
+                        </span>
+                      </div>
+                      <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "4px" }}>
+                        Quick and efficient video generation
+                      </div>
+                      <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
+                        480p (1 credit) • 720p (2 credits)
+                      </div>
+                    </div>
+                  </label>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "16px",
+                      padding: "16px 20px",
                       border:
                         bulkVideoModel === "seedance"
                           ? "2px solid #d42f48"
-                          : "1px solid #D1D5DB",
-                      borderRadius: "8px",
+                          : "2px solid #E5E7EB",
+                      borderRadius: "12px",
                       cursor: "pointer",
                       backgroundColor:
-                        bulkVideoModel === "seedance" ? "#F3F4F6" : "white",
+                        bulkVideoModel === "seedance" ? "#FEF2F2" : "#FFFFFF",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (bulkVideoModel !== "seedance") {
+                        e.currentTarget.style.borderColor = "#d42f48";
+                        e.currentTarget.style.backgroundColor = "#FEF2F2";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (bulkVideoModel !== "seedance") {
+                        e.currentTarget.style.borderColor = "#E5E7EB";
+                        e.currentTarget.style.backgroundColor = "#FFFFFF";
+                      }
                     }}
                   >
                     <input
@@ -6117,13 +6189,36 @@ export default function CampaignsPage() {
                       value="seedance"
                       checked={bulkVideoModel === "seedance"}
                       onChange={(e) => setBulkVideoModel(e.target.value)}
-                      style={{ margin: 0 }}
+                      style={{ margin: 0, transform: "scale(1.2)" }}
                     />
-                    <div>
-                      <div style={{ fontWeight: "500", fontSize: "14px" }}>
-                        Seedance 1 Pro
+                    <div style={{ flex: 1 }}>
+                      <div style={{ 
+                        fontWeight: "600", 
+                        fontSize: "16px",
+                        color: "#1F2937",
+                        marginBottom: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}>
+                        🎭 Seedance 1 Pro
+                        <span
+                          style={{
+                            backgroundColor: "#FEF3C7",
+                            color: "#D97706",
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            fontSize: "11px",
+                            fontWeight: "500",
+                          }}
+                        >
+                          PRO
+                        </span>
                       </div>
-                      <div style={{ fontSize: "12px", color: "#6B7280" }}>
+                      <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "4px" }}>
+                        High-quality video generation with multiple duration options
+                      </div>
+                      <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
                         480p/1080p • 5s/10s • 2-6 credits
                       </div>
                     </div>
