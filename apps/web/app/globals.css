@@ -117,11 +117,6 @@ body {
     display: grid !important;
   }
   
-  /* Debug: Add red border to products and models grids */
-  div[style*="gridTemplateColumns: repeat(auto-fill, minmax(200px, 1fr))"] {
-    border: 3px solid red !important;
-  }
-  
   /* Products and Models grid mobile - Force 2 columns with multiple selectors */
   div[style*="gridTemplateColumns: repeat(auto-fill, minmax(200px, 1fr))"],
   div[style*="gap: 20px"][style*="display: grid"],
@@ -139,6 +134,21 @@ body {
   
   /* Target by gap value as well */
   div[style*="gap: 20px"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  
+  /* Credits & Billing page grids mobile - Force 2 columns */
+  div[style*="gridTemplateColumns: repeat(auto-fit, minmax(300px, 1fr))"],
+  div[style*="gridTemplateColumns: repeat(auto-fit, minmax(220px, 1fr))"],
+  div[style*="gridTemplateColumns: repeat(auto-fit, minmax(250px, 1fr))"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    display: grid !important;
+  }
+  
+  /* Target credits page by gap values */
+  div[style*="gap: 24px"][style*="display: grid"] {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 12px !important;
   }
@@ -208,6 +218,21 @@ body {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
     display: grid !important;
+  }
+  
+  /* Credits & Billing page grids extra small screens */
+  div[style*="gridTemplateColumns: repeat(auto-fit, minmax(300px, 1fr))"],
+  div[style*="gridTemplateColumns: repeat(auto-fit, minmax(220px, 1fr))"],
+  div[style*="gridTemplateColumns: repeat(auto-fit, minmax(250px, 1fr))"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    display: grid !important;
+  }
+  
+  /* Target credits page by gap values extra small screens */
+  div[style*="gap: 24px"][style*="display: grid"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
   }
   
   main {
