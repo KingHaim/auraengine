@@ -43,10 +43,16 @@ body {
     padding: 16px !important;
   }
   
-  /* Hide search section on mobile */
+  /* Hide entire header/topbar section on mobile */
   header[style*="padding: 8px 12px"],
-  header[style*="height: 50px"] {
+  header[style*="height: 50px"],
+  header[style*="backgroundColor: #11161C"] {
     display: none !important;
+  }
+  
+  /* Remove top margin since header is hidden */
+  div[style*="marginTop: 50px"] {
+    margin-top: 0px !important;
   }
   
   /* Campaign cards mobile */
