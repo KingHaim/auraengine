@@ -50,18 +50,26 @@ body {
     max-width: 100% !important;
   }
   
+  /* Debug: Make sure mobile styles are applied */
+  .campaign-card {
+    border: 2px solid red !important; /* Debug border */
+  }
+  
   /* Hide campaign info section on mobile - keep only image */
-  .campaign-card > div:last-child {
+  .campaign-card > div:last-child,
+  div.campaign-card > div:last-child {
     display: none !important;
   }
   
   /* Show title overlay on mobile */
-  .campaign-title-overlay {
+  .campaign-title-overlay,
+  div.campaign-title-overlay {
     display: block !important;
   }
   
   /* Simplify select button on mobile - make it just an icon */
-  .select-button {
+  .select-button,
+  button.select-button {
     padding: 8px !important;
     font-size: 12px !important;
     background: rgba(255,255,255,0.9) !important;
@@ -75,7 +83,8 @@ body {
     min-width: 32px !important;
   }
   
-  .select-button::after {
+  .select-button::after,
+  button.select-button::after {
     content: "" !important;
   }
   

@@ -1731,7 +1731,8 @@ export default function CampaignsPage() {
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        background: "linear-gradient(transparent, rgba(0,0,0,0.7))",
+                        background:
+                          "linear-gradient(transparent, rgba(0,0,0,0.7))",
                         color: "white",
                         padding: "8px",
                         fontSize: "12px",
