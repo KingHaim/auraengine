@@ -50,6 +50,28 @@ body {
     max-width: 100% !important;
   }
   
+  /* Campaign info mobile - make more discreet */
+  .campaign-card > div:last-child {
+    padding: 8px !important;
+  }
+  
+  .campaign-card h3 {
+    font-size: 12px !important;
+    margin: 0 0 4px 0 !important;
+    line-height: 1.2 !important;
+  }
+  
+  .campaign-card p {
+    font-size: 10px !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+  }
+  
+  .campaign-card > div:last-child > div:last-child {
+    font-size: 10px !important;
+    gap: 8px !important;
+  }
+  
   /* Campaign grid mobile - Force 2 columns */
   .campaign-grid,
   div.campaign-grid {
@@ -110,6 +132,26 @@ body {
 @media (max-width: 480px) {
   .campaign-card {
     aspect-ratio: 1 !important;
+  }
+  
+  /* Even more discreet text on very small screens */
+  .campaign-card > div:last-child {
+    padding: 4px !important;
+  }
+  
+  .campaign-card h3 {
+    font-size: 10px !important;
+    margin: 0 0 2px 0 !important;
+  }
+  
+  .campaign-card p {
+    font-size: 8px !important;
+    display: none !important; /* Hide description on very small screens */
+  }
+  
+  .campaign-card > div:last-child > div:last-child {
+    font-size: 8px !important;
+    gap: 4px !important;
   }
   
   .campaign-grid,
