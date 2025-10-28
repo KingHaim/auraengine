@@ -311,16 +311,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             objectFit: "contain",
           }}
         />
-        <div
-          style={{
-            width: "40px",
-            fontSize: "12px",
-            color: "#d42f48",
-            textAlign: "center",
-          }}
-        >
-          MOBILE
-        </div>
+        <div style={{ width: "40px" }} /> {/* Spacer for alignment */}
       </div>
 
       {/* Mobile Overlay */}
@@ -350,13 +341,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
           display: "flex",
           flexDirection: "column",
           position: "fixed",
-          top: 0,
+          top: isMobile ? "60px" : "0",
           left: isMobile
             ? sidebarOpen
               ? "0"
               : `-${MOBILE_SIDEBAR_WIDTH}px`
             : "0",
-          height: "100vh",
+          height: isMobile ? "calc(100vh - 60px)" : "100vh",
           zIndex: isMobile ? 1000 : 0,
           transition: "left 0.3s ease",
         }}
