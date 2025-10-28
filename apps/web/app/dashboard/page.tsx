@@ -30,6 +30,14 @@ export default function Dashboard() {
     totalScenes: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -313,194 +321,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div
-          style={{
-            backgroundColor: "#F8FAFC",
-            borderRadius: "12px",
-            padding: "24px",
-            marginBottom: "32px",
-            border: "1px solid #E2E8F0",
-          }}
-        >
-          <h3
-            style={{
-              fontSize: "18px",
-              fontWeight: "600",
-              color: "#1E293B",
-              marginBottom: "16px",
-            }}
-          >
-            Quick Actions
-          </h3>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: "16px",
-            }}
-          >
-            <a
-              href="/campaigns"
-              style={{
-                display: "block",
-                padding: "16px",
-                backgroundColor: "#FFFFFF",
-                borderRadius: "8px",
-                border: "1px solid #E5E7EB",
-                textDecoration: "none",
-                transition: "all 0.2s",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "24px",
-                  marginBottom: "8px",
-                }}
-              >
-                🎯
-              </div>
-              <div
-                style={{
-                  fontSize: "14px",
-                  fontWeight: "600",
-                  color: "#1F2937",
-                  marginBottom: "4px",
-                }}
-              >
-                Create Campaign
-              </div>
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "#6B7280",
-                }}
-              >
-                Start a new campaign
-              </div>
-            </a>
-
-            <a
-              href="/products"
-              style={{
-                display: "block",
-                padding: "16px",
-                backgroundColor: "#FFFFFF",
-                borderRadius: "8px",
-                border: "1px solid #E5E7EB",
-                textDecoration: "none",
-                transition: "all 0.2s",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "24px",
-                  marginBottom: "8px",
-                }}
-              >
-                📦
-              </div>
-              <div
-                style={{
-                  fontSize: "14px",
-                  fontWeight: "600",
-                  color: "#1F2937",
-                  marginBottom: "4px",
-                }}
-              >
-                Add Products
-              </div>
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "#6B7280",
-                }}
-              >
-                Upload new items
-              </div>
-            </a>
-
-            <a
-              href="/models"
-              style={{
-                display: "block",
-                padding: "16px",
-                backgroundColor: "#FFFFFF",
-                borderRadius: "8px",
-                border: "1px solid #E5E7EB",
-                textDecoration: "none",
-                transition: "all 0.2s",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "24px",
-                  marginBottom: "8px",
-                }}
-              >
-                👤
-              </div>
-              <div
-                style={{
-                  fontSize: "14px",
-                  fontWeight: "600",
-                  color: "#1F2937",
-                  marginBottom: "4px",
-                }}
-              >
-                Manage Models
-              </div>
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "#6B7280",
-                }}
-              >
-                Upload model photos
-              </div>
-            </a>
-
-            <a
-              href="/scenes"
-              style={{
-                display: "block",
-                padding: "16px",
-                backgroundColor: "#FFFFFF",
-                borderRadius: "8px",
-                border: "1px solid #E5E7EB",
-                textDecoration: "none",
-                transition: "all 0.2s",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "24px",
-                  marginBottom: "8px",
-                }}
-              >
-                🏞️
-              </div>
-              <div
-                style={{
-                  fontSize: "14px",
-                  fontWeight: "600",
-                  color: "#1F2937",
-                  marginBottom: "4px",
-                }}
-              >
-                Add Scenes
-              </div>
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "#6B7280",
-                }}
-              >
-                Upload backgrounds
-              </div>
-            </a>
-          </div>
-        </div>
 
         {/* Recent Campaigns */}
         <div>
@@ -537,10 +357,14 @@ export default function Dashboard() {
           {campaigns.length > 0 ? (
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                display: isMobile ? "flex" : "grid",
+                gridTemplateColumns: isMobile ? "none" : "repeat(auto-fit, minmax(200px, 1fr))",
+                overflowX: isMobile ? "auto" : "visible",
                 gap: "16px",
                 maxWidth: "800px",
+                scrollbarWidth: "thin",
+                scrollbarColor: "#cbd5e1 transparent",
+                WebkitOverflowScrolling: "touch",
               }}
             >
               {campaigns.map((campaign) => (
@@ -554,6 +378,8 @@ export default function Dashboard() {
                     overflow: "hidden",
                     transition: "all 0.2s",
                     cursor: "pointer",
+                    minWidth: isMobile ? "200px" : "auto",
+                    flexShrink: 0,
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "translateY(-2px)";
