@@ -279,13 +279,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
           top: 0,
           left: 0,
           right: 0,
-          height: "60px",
+          height: "50px",
           backgroundColor: "#090a0c",
           borderBottom: "1px solid #1F2630",
           display: isMobile ? "flex" : "none",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 16px",
+          padding: "0 12px",
           zIndex: 1000,
         }}
       >
@@ -303,11 +303,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
           ☰
         </button>
         <img
-          src="/logo.png"
+          src="/heart.png"
           alt="Logo"
           style={{
-            width: "40px",
-            height: "40px",
+            width: "32px",
+            height: "32px",
             objectFit: "contain",
           }}
         />
@@ -341,13 +341,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
           display: "flex",
           flexDirection: "column",
           position: "fixed",
-          top: isMobile ? "60px" : "0",
+          top: isMobile ? "50px" : "0",
           left: isMobile
             ? sidebarOpen
               ? "0"
               : `-${MOBILE_SIDEBAR_WIDTH}px`
             : "0",
-          height: isMobile ? "calc(100vh - 60px)" : "100vh",
+          height: isMobile ? "calc(100vh - 50px)" : "100vh",
           zIndex: isMobile ? 1000 : 0,
           transition: "left 0.3s ease",
         }}
@@ -482,14 +482,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
           flexDirection: "column",
           position: "relative",
           zIndex: 1,
-          marginTop: isMobile ? "60px" : "0",
+          marginTop: isMobile ? "50px" : "0",
         }}
       >
         {/* Topbar */}
         <header
           style={{
-            padding: isMobile ? "16px" : "24px 32px",
-            height: isMobile ? "60px" : "72px",
+            padding: isMobile ? "8px 12px" : "24px 32px",
+            height: isMobile ? "50px" : "72px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -502,11 +502,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <div
               style={{
                 position: "absolute",
-                left: "12px",
+                left: isMobile ? "10px" : "12px",
                 top: "50%",
                 transform: "translateY(-50%)",
                 color: "rgba(255,255,255,0.7)",
-                fontSize: "18px",
+                fontSize: isMobile ? "16px" : "18px",
                 zIndex: 1,
               }}
             >
@@ -515,7 +515,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search for a project or a product…"
+              placeholder={isMobile ? "Search…" : "Search for a project or a product…"}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -526,14 +526,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
               }}
               style={{
                 width: "100%",
-                height: "44px",
+                height: isMobile ? "36px" : "44px",
                 backgroundColor: "#161B22",
                 border: "1px solid #202632",
-                borderRadius: "12px",
-                paddingLeft: "44px",
-                paddingRight: "16px",
+                borderRadius: isMobile ? "8px" : "12px",
+                paddingLeft: "36px",
+                paddingRight: "12px",
                 color: "#E6E8EB",
-                fontSize: "14px",
+                fontSize: isMobile ? "14px" : "14px",
                 outline: "none",
               }}
             />
@@ -646,34 +646,36 @@ export default function AppLayout({ children }: AppLayoutProps) {
               </div>
             </div>
           ) : user ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              <div style={{ textAlign: "right" }}>
-                <div
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    color: "#E6E8EB",
-                  }}
-                >
-                  {user.full_name || user.email}
+            <div style={{ display: "flex", alignItems: "center", gap: isMobile ? "8px" : "16px" }}>
+              {!isMobile && (
+                <div style={{ textAlign: "right" }}>
+                  <div
+                    style={{
+                      fontSize: isMobile ? "12px" : "14px",
+                      fontWeight: "500",
+                      color: "#E6E8EB",
+                    }}
+                  >
+                    {user.full_name || user.email}
+                  </div>
+                  <div style={{ fontSize: isMobile ? "11px" : "12px", color: "#9BA3AF" }}>
+                    {user.credits} credits
+                  </div>
                 </div>
-                <div style={{ fontSize: "12px", color: "#9BA3AF" }}>
-                  {user.credits} credits
-                </div>
-              </div>
+              )}
               <button
                 onClick={logout}
                 style={{
-                  padding: "8px 16px",
+                  padding: isMobile ? "6px 12px" : "8px 16px",
                   backgroundColor: "transparent",
                   border: "1px solid #242B35",
-                  borderRadius: "8px",
+                  borderRadius: isMobile ? "6px" : "8px",
                   color: "#C7CDD6",
-                  fontSize: "14px",
+                  fontSize: isMobile ? "12px" : "14px",
                   cursor: "pointer",
                 }}
               >
-                Logout
+                {isMobile ? "Out" : "Logout"}
               </button>
             </div>
           ) : (
