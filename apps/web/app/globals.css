@@ -43,6 +43,17 @@ body {
     padding: 16px !important;
   }
   
+  /* Hide header section on mobile - more specific targeting */
+  div[style*="padding: 32px"] > div:first-child,
+  div[style*="display: flex"][style*="justifyContent: space-between"][style*="marginBottom: 32px"] {
+    display: none !important;
+  }
+  
+  /* Reduce main content padding on mobile */
+  div[style*="padding: 32px"] {
+    padding: 16px !important;
+  }
+  
   /* Campaign cards mobile */
   .campaign-card {
     aspect-ratio: 1 !important;
