@@ -50,11 +50,6 @@ body {
     max-width: 100% !important;
   }
   
-  /* Debug: Make sure mobile styles are applied */
-  .campaign-card {
-    border: 2px solid red !important; /* Debug border */
-  }
-  
   /* Hide campaign info section on mobile - target the second div */
   .campaign-card > div:nth-child(2),
   div.campaign-card > div:nth-child(2) {
