@@ -604,15 +604,6 @@ export default function ModelsPage() {
             >
               Model Library
             </h1>
-            <p
-              style={{
-                fontSize: "14px",
-                color: "#64748B",
-                margin: "4px 0 0 0",
-              }}
-            >
-              {user?.email || "No user"}
-            </p>
           </div>
           <div style={{ display: "flex", gap: "12px" }}>
             <button
@@ -633,17 +624,30 @@ export default function ModelsPage() {
             <button
               onClick={() => setShowUploadModal(true)}
               style={{
-                padding: "12px 24px",
+                width: "48px",
+                height: "48px",
                 backgroundColor: "#d42f48",
                 border: "none",
-                borderRadius: "8px",
+                borderRadius: "50%",
                 color: "#FFFFFF",
-                fontSize: "14px",
+                fontSize: "24px",
                 fontWeight: "500",
                 cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.05)";
+                e.currentTarget.style.backgroundColor = "#b0263c";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.style.backgroundColor = "#d42f48";
               }}
             >
-              + Add Model
+              +
             </button>
           </div>
         </div>
@@ -708,8 +712,9 @@ export default function ModelsPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              gap: "24px",
+              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+              gap: "20px",
+              alignItems: "start",
             }}
           >
             {models.map((model) => (

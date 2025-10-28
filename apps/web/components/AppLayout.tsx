@@ -515,7 +515,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder={isMobile ? "Search…" : "Search for a project or a product…"}
+              placeholder={
+                isMobile ? "Search…" : "Search for a project or a product…"
+              }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -646,7 +648,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
               </div>
             </div>
           ) : user ? (
-            <div style={{ display: "flex", alignItems: "center", gap: isMobile ? "8px" : "16px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: isMobile ? "8px" : "16px",
+              }}
+            >
               {!isMobile && (
                 <div style={{ textAlign: "right" }}>
                   <div
@@ -658,7 +666,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   >
                     {user.full_name || user.email}
                   </div>
-                  <div style={{ fontSize: isMobile ? "11px" : "12px", color: "#9BA3AF" }}>
+                  <div
+                    style={{
+                      fontSize: isMobile ? "11px" : "12px",
+                      color: "#9BA3AF",
+                    }}
+                  >
                     {user.credits} credits
                   </div>
                 </div>

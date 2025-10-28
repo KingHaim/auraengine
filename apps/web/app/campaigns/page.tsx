@@ -1517,17 +1517,30 @@ export default function CampaignsPage() {
                   console.log("Set showCreateModal to true");
                 }}
                 style={{
-                  padding: "12px 24px",
+                  width: "48px",
+                  height: "48px",
                   backgroundColor: "#d42f48",
                   border: "none",
-                  borderRadius: "8px",
+                  borderRadius: "50%",
                   color: "#FFFFFF",
-                  fontSize: "14px",
+                  fontSize: "24px",
                   fontWeight: "500",
                   cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.05)";
+                  e.currentTarget.style.backgroundColor = "#b0263c";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.backgroundColor = "#d42f48";
                 }}
               >
-                + Create Campaign
+                +
               </button>
             </div>
           </div>
@@ -1594,11 +1607,12 @@ export default function CampaignsPage() {
               className="campaign-grid"
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-                gap: "12px",
+                gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                gap: "20px",
                 width: "100%",
                 maxWidth: "100%",
                 boxSizing: "border-box",
+                alignItems: "start",
               }}
             >
               {campaigns.map((campaign) => (
@@ -1863,17 +1877,17 @@ export default function CampaignsPage() {
                       </span>
                       {(campaign.generation_status === "generating" ||
                         generatingCampaignId === campaign.id) && (
-                      <span
-                        style={{
+                        <span
+                          style={{
                             display: "flex",
                             alignItems: "center",
                             gap: "4px",
                             color: "#d42f48",
-                          fontWeight: "500",
-                        }}
-                      >
+                            fontWeight: "500",
+                          }}
+                        >
                           ⏳ Generando...
-                      </span>
+                        </span>
                       )}
                       {campaign.generation_status === "failed" && (
                         <span
@@ -2000,14 +2014,14 @@ export default function CampaignsPage() {
                     <img
                       src="/beating.gif"
                       alt="Generating..."
-                    style={{
+                      style={{
                         width: "150px",
                         height: "150px",
                         objectFit: "contain",
                       }}
                     />
                     <div
-                    style={{
+                      style={{
                         color: "#FFFFFF",
                         fontSize: "18px",
                         fontWeight: "600",
@@ -2017,20 +2031,20 @@ export default function CampaignsPage() {
                       Generating Campaign...
                     </div>
                     <div
-                    style={{
+                      style={{
                         color: "#E5E7EB",
-                      fontSize: "14px",
+                        fontSize: "14px",
                         textAlign: "center",
                         maxWidth: "200px",
-                    }}
+                      }}
                     >
                       Creating your campaign with AI models
-                </div>
-              </div>
+                    </div>
+                  </div>
                 )}
                 {/* History/Previous Generations - Top Left */}
-              <div
-                style={{
+                <div
+                  style={{
                     position: "absolute",
                     top: "20px",
                     left: "20px",
@@ -2065,13 +2079,13 @@ export default function CampaignsPage() {
                       <div
                         key={index}
                         onClick={() => setCurrentDisplayedImage(imageUrl)}
-                    style={{
+                        style={{
                           width: "60px",
                           height: "60px",
                           backgroundImage: `url(${imageUrl})`,
                           backgroundSize: "cover",
                           backgroundPosition: "center",
-                      borderRadius: "8px",
+                          borderRadius: "8px",
                           cursor: "pointer",
                           border:
                             currentDisplayedImage === imageUrl
@@ -2083,7 +2097,7 @@ export default function CampaignsPage() {
                       >
                         {currentDisplayedImage === imageUrl && (
                           <div
-                        style={{
+                            style={{
                               position: "absolute",
                               top: "4px",
                               right: "4px",
@@ -2091,8 +2105,8 @@ export default function CampaignsPage() {
                               height: "16px",
                               backgroundColor: "#d42f48",
                               borderRadius: "50%",
-                          display: "flex",
-                          alignItems: "center",
+                              display: "flex",
+                              alignItems: "center",
                               justifyContent: "center",
                               fontSize: "10px",
                               color: "#FFFFFF",
@@ -2121,7 +2135,7 @@ export default function CampaignsPage() {
                         }}
                       />
                       <div
-                          style={{
+                        style={{
                           width: "60px",
                           height: "60px",
                           backgroundColor: "#454545",
@@ -2136,7 +2150,7 @@ export default function CampaignsPage() {
                       />
                     </>
                   )}
-                          </div>
+                </div>
 
                 {/* Main Image Display - Takes whole left side */}
                 <div
@@ -2188,10 +2202,10 @@ export default function CampaignsPage() {
                           }}
                         />
                         Generating...
-                          </div>
-                    )}
-                        </div>
                       </div>
+                    )}
+                </div>
+              </div>
 
               {/* Right Panel - Control Panel (60% width) */}
               <div
@@ -2272,7 +2286,7 @@ export default function CampaignsPage() {
                   >
                     {scenes.length === 0 ? (
                       <div
-                          style={{
+                        style={{
                           color: "#9CA3AF",
                           fontSize: "14px",
                           padding: "20px",
@@ -2307,7 +2321,7 @@ export default function CampaignsPage() {
                             }}
                           >
                             <div
-                                  style={{
+                              style={{
                                 position: "absolute",
                                 bottom: "0",
                                 left: "0",
@@ -2316,14 +2330,14 @@ export default function CampaignsPage() {
                                 color: "#FFFFFF",
                                 padding: "4px 8px",
                                 fontSize: "12px",
-                                    fontWeight: "500",
-                                  }}
-                                >
+                                fontWeight: "500",
+                              }}
+                            >
                               {scene.name}
                             </div>
                             {selectedScenes.includes(scene.id) && (
                               <div
-                              style={{
+                                style={{
                                   position: "absolute",
                                   top: "6px",
                                   right: "6px",
@@ -2334,7 +2348,7 @@ export default function CampaignsPage() {
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "center",
-                                fontSize: "12px",
+                                  fontSize: "12px",
                                   color: "#FFFFFF",
                                   fontWeight: "bold",
                                 }}
@@ -2347,12 +2361,12 @@ export default function CampaignsPage() {
                       })
                     )}
                   </div>
-                        </div>
+                </div>
 
                 {/* MODELS Section */}
                 <div style={{ marginBottom: "16px" }}>
                   <h3
-                              style={{
+                    style={{
                       fontSize: "14px",
                       fontWeight: "600",
                       color: "#FFFFFF",
@@ -2363,16 +2377,16 @@ export default function CampaignsPage() {
                   >
                     MODELS
                   </h3>
-                              <div
-                                style={{
-                                  display: "flex",
+                  <div
+                    style={{
+                      display: "flex",
                       gap: "12px",
                       flexWrap: "wrap",
-                                }}
-                              >
+                    }}
+                  >
                     {selectedModel ? (
-                                <div
-                                  style={{
+                      <div
+                        style={{
                           width: "80px",
                           height: "80px",
                           backgroundColor: "#4B5563",
@@ -2390,15 +2404,15 @@ export default function CampaignsPage() {
                         onClick={() => setShowModelSelectionModal(true)}
                       >
                         <div
-                                    style={{
+                          style={{
                             position: "absolute",
                             top: "4px",
                             right: "4px",
                             backgroundColor: "rgba(9, 10, 12, 0.7)",
                             color: "#FFFFFF",
                             padding: "2px 4px",
-                                      borderRadius: "4px",
-                                      fontSize: "10px",
+                            borderRadius: "4px",
+                            fontSize: "10px",
                             fontWeight: "500",
                           }}
                         >
@@ -2407,7 +2421,7 @@ export default function CampaignsPage() {
                       </div>
                     ) : (
                       <div
-                                    style={{
+                        style={{
                           width: "80px",
                           height: "80px",
                           backgroundColor: "#4B5563",
@@ -2416,17 +2430,17 @@ export default function CampaignsPage() {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                                      cursor: "pointer",
+                          cursor: "pointer",
                           color: "#FFFFFF",
                           fontSize: "12px",
                           textAlign: "center",
-                                    }}
+                        }}
                         onClick={() => setShowModelSelectionModal(true)}
-                                  >
+                      >
                         + Model
-                                </div>
+                      </div>
                     )}
-                              </div>
+                  </div>
                 </div>
 
                 {/* PRODUCTS Section */}
@@ -2443,8 +2457,8 @@ export default function CampaignsPage() {
                   >
                     PRODUCTS
                   </h3>
-                              <div
-                                style={{
+                  <div
+                    style={{
                       display: "flex",
                       gap: "12px",
                       flexWrap: "wrap",
@@ -2455,41 +2469,41 @@ export default function CampaignsPage() {
                         const product = products.find(
                           (p) => p.id === productId
                         );
-                                    return (
-                                      <div
+                        return (
+                          <div
                             key={productId}
-                                        style={{
+                            style={{
                               width: "120px",
                               height: "80px",
                               backgroundColor: "#4B5563",
                               borderRadius: "8px",
                               backgroundImage: `url(${product?.image_url})`,
-                                          backgroundSize: "cover",
-                                          backgroundPosition: "center",
-                                          cursor: "pointer",
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                              cursor: "pointer",
                               border: "2px solid #d42f48",
-                                          position: "relative",
+                              position: "relative",
                             }}
                             onClick={() => setShowProductSelectionModal(true)}
-                                      >
-                                        <div
-                                          style={{
-                                            position: "absolute",
+                          >
+                            <div
+                              style={{
+                                position: "absolute",
                                 top: "4px",
                                 right: "4px",
                                 backgroundColor: "rgba(9, 10, 12, 0.7)",
                                 color: "#FFFFFF",
-                                            padding: "2px 4px",
+                                padding: "2px 4px",
                                 borderRadius: "4px",
-                                            fontSize: "10px",
-                                            fontWeight: "500",
-                                          }}
-                                        >
+                                fontSize: "10px",
+                                fontWeight: "500",
+                              }}
+                            >
                               ✓
-                                        </div>
-                                          <div
-                                            style={{
-                                              position: "absolute",
+                            </div>
+                            <div
+                              style={{
+                                position: "absolute",
                                 bottom: "0",
                                 left: "0",
                                 right: "0",
@@ -2497,13 +2511,13 @@ export default function CampaignsPage() {
                                 color: "#FFFFFF",
                                 padding: "4px 8px",
                                 fontSize: "12px",
-                                              fontWeight: "500",
-                                            }}
-                                          >
+                                fontWeight: "500",
+                              }}
+                            >
                               {product?.name}
-                                          </div>
-                                      </div>
-                                    );
+                            </div>
+                          </div>
+                        );
                       })
                     ) : (
                       <div
@@ -2527,9 +2541,9 @@ export default function CampaignsPage() {
                         </div>
                         <div style={{ fontSize: "12px", fontWeight: "500" }}>
                           ADD PRODUCT
-                              </div>
-                            </div>
-                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -2559,7 +2573,7 @@ export default function CampaignsPage() {
 
                 {/* REGENERATE Button */}
                 <div
-                        style={{
+                  style={{
                     marginTop: "auto",
                     paddingTop: "16px",
                   }}
@@ -2616,10 +2630,10 @@ export default function CampaignsPage() {
                         selectedScenes.length === 0
                           ? "not-allowed"
                           : "pointer",
-                          display: "flex",
-                          alignItems: "center",
+                      display: "flex",
+                      alignItems: "center",
                       justifyContent: "center",
-                          gap: "8px",
+                      gap: "8px",
                       transition: "all 0.2s",
                       opacity:
                         isCreating ||
@@ -2650,30 +2664,30 @@ export default function CampaignsPage() {
                       ? "Complete Selection"
                       : "REGENERATE"}
                     <div
-                          style={{
+                      style={{
                         display: "flex",
                         alignItems: "center",
                         gap: "4px",
                         backgroundColor: "rgba(255, 255, 255, 0.2)",
                         padding: "3px 6px",
-                            borderRadius: "4px",
+                        borderRadius: "4px",
                         fontSize: "12px",
                       }}
                     >
                       <span>🪙</span>
                       <span>5</span>
-                          </div>
+                    </div>
                   </button>
-                          </div>
-                        </div>
-                      </div>
-                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Model Selection Modal */}
         {showModelSelectionModal && (
-                  <div
-                    style={{
+          <div
+            style={{
               position: "fixed",
               top: 0,
               left: 0,
@@ -2765,7 +2779,7 @@ export default function CampaignsPage() {
                       <div
                         style={{
                           color: "#9CA3AF",
-                        fontSize: "14px",
+                          fontSize: "14px",
                         }}
                       >
                         {model.poses?.length || 0} poses available
@@ -2803,21 +2817,21 @@ export default function CampaignsPage() {
               >
                 Close
               </button>
-                    </div>
-                  </div>
-                )}
+            </div>
+          </div>
+        )}
 
         {/* Product Selection Modal */}
         {showProductSelectionModal && (
-              <div
-                style={{
+          <div
+            style={{
               position: "fixed",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
               backgroundColor: "rgba(9, 10, 12, 0.8)",
-                  display: "flex",
+              display: "flex",
               alignItems: "center",
               justifyContent: "center",
               zIndex: 2000,
@@ -2878,11 +2892,11 @@ export default function CampaignsPage() {
                     <img
                       src={product.image_url}
                       alt={product.name}
-                  style={{
+                      style={{
                         width: "60px",
                         height: "60px",
                         objectFit: "cover",
-                    borderRadius: "8px",
+                        borderRadius: "8px",
                       }}
                     />
                     <div style={{ flex: 1 }}>
@@ -2899,7 +2913,7 @@ export default function CampaignsPage() {
                       <div
                         style={{
                           color: "#9CA3AF",
-                    fontSize: "14px",
+                          fontSize: "14px",
                         }}
                       >
                         {product.packshots.length} packshots
@@ -2919,23 +2933,23 @@ export default function CampaignsPage() {
                 ))}
               </div>
 
-                <button
+              <button
                 onClick={() => setShowProductSelectionModal(false)}
-                  style={{
+                style={{
                   width: "100%",
                   padding: "12px",
                   backgroundColor: "#6B7280",
-                    border: "none",
-                    borderRadius: "8px",
-                    color: "#FFFFFF",
-                    fontSize: "14px",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#FFFFFF",
+                  fontSize: "14px",
                   fontWeight: "500",
                   cursor: "pointer",
                   marginTop: "20px",
-                  }}
-                >
+                }}
+              >
                 Close
-                </button>
+              </button>
             </div>
           </div>
         )}
@@ -2979,16 +2993,16 @@ export default function CampaignsPage() {
                   marginBottom: "24px",
                 }}
               >
-                  <h2
-                    style={{
-                      margin: 0,
+                <h2
+                  style={{
+                    margin: 0,
                     fontSize: "20px",
-                      fontWeight: "600",
-                      color: "#1F2937",
-                    }}
-                  >
-                    {selectedCampaign.name}
-                  </h2>
+                    fontWeight: "600",
+                    color: "#1F2937",
+                  }}
+                >
+                  {selectedCampaign.name}
+                </h2>
                 <button
                   onClick={() => generateMoreImages(selectedCampaign)}
                   disabled={generatingMore}
@@ -5652,22 +5666,22 @@ export default function CampaignsPage() {
                         margin: 0,
                         fontSize: "28px",
                         fontWeight: "700",
-                  color: "#1F2937",
+                        color: "#1F2937",
                         display: "flex",
                         alignItems: "center",
                         gap: "12px",
-                }}
-              >
+                      }}
+                    >
                       🎬 Generate Videos
                     </h2>
-              <p
-                style={{
+                    <p
+                      style={{
                         fontSize: "16px",
-                  color: "#6B7280",
+                        color: "#6B7280",
                         margin: "8px 0 0 0",
-                  lineHeight: 1.5,
-                }}
-              >
+                        lineHeight: 1.5,
+                      }}
+                    >
                       Transform your campaign images into engaging videos for
                       social media
                     </p>
@@ -5696,15 +5710,15 @@ export default function CampaignsPage() {
                         marginTop: "4px",
                       }}
                     >
-                {selectedCampaignForBulkVideo.settings?.generated_images
-                  ?.length || 0}{" "}
+                      {selectedCampaignForBulkVideo.settings?.generated_images
+                        ?.length || 0}{" "}
                       images
                     </div>
                   </div>
                 </div>
 
-              {/* Veo Direct Mode Toggle */}
-              {bulkVideoModel === "veo" && (
+                {/* Veo Direct Mode Toggle */}
+                {bulkVideoModel === "veo" && (
                   <div style={{ marginBottom: "32px" }}>
                     <div
                       style={{
@@ -5717,19 +5731,19 @@ export default function CampaignsPage() {
                         transition: "all 0.2s ease",
                       }}
                     >
-                  <label
-                    style={{
-                      display: "flex",
+                      <label
+                        style={{
+                          display: "flex",
                           alignItems: "flex-start",
                           gap: "16px",
-                      cursor: "pointer",
+                          cursor: "pointer",
                           margin: 0,
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={veoDirectMode}
-                      onChange={(e) => setVeoDirectMode(e.target.checked)}
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={veoDirectMode}
+                          onChange={(e) => setVeoDirectMode(e.target.checked)}
                           style={{
                             margin: 0,
                             marginTop: "2px",
@@ -5737,9 +5751,9 @@ export default function CampaignsPage() {
                           }}
                         />
                         <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          fontWeight: "600",
+                          <div
+                            style={{
+                              fontWeight: "600",
                               fontSize: "16px",
                               color: veoDirectMode ? "#0EA5E9" : "#374151",
                               marginBottom: "8px",
@@ -5761,29 +5775,29 @@ export default function CampaignsPage() {
                             >
                               EXPERIMENTAL
                             </span>
-                      </div>
-                      <div
-                        style={{
+                          </div>
+                          <div
+                            style={{
                               fontSize: "14px",
-                          color: "#6B7280",
+                              color: "#6B7280",
                               lineHeight: 1.5,
-                        }}
-                      >
+                            }}
+                          >
                             Generate videos directly from model + product +
                             scene without needing existing images. Perfect for
                             creating original video content from scratch.
-                      </div>
+                          </div>
+                        </div>
+                      </label>
                     </div>
-                  </label>
-                    </div>
-                </div>
-              )}
+                  </div>
+                )}
 
-              {/* Image Selection (only if NOT in Veo Direct Mode) */}
-              {!veoDirectMode && (
+                {/* Image Selection (only if NOT in Veo Direct Mode) */}
+                {!veoDirectMode && (
                   <div style={{ marginBottom: "32px" }}>
                     <div
-                    style={{
+                      style={{
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
@@ -5803,7 +5817,7 @@ export default function CampaignsPage() {
                         </h3>
                         <p
                           style={{
-                      fontSize: "14px",
+                            fontSize: "14px",
                             color: "#6B7280",
                             margin: 0,
                           }}
@@ -5851,7 +5865,7 @@ export default function CampaignsPage() {
                           style={{
                             padding: "8px 16px",
                             backgroundColor: "#F3F4F6",
-                      color: "#374151",
+                            color: "#374151",
                             border: "1px solid #D1D5DB",
                             borderRadius: "8px",
                             fontSize: "12px",
@@ -5870,44 +5884,44 @@ export default function CampaignsPage() {
                         </button>
                       </div>
                     </div>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns:
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
                           "repeat(auto-fill, minmax(120px, 1fr))",
                         gap: "16px",
                         maxHeight: "300px",
-                      overflowY: "auto",
+                        overflowY: "auto",
                         padding: "20px",
                         border: "2px solid #E5E7EB",
                         borderRadius: "16px",
                         backgroundColor: "#FAFAFA",
-                    }}
-                  >
-                    {selectedCampaignForBulkVideo.settings?.generated_images?.map(
-                      (img: any, idx: number) => (
-                        <div
-                          key={idx}
-                          onClick={() => {
-                            setSelectedImagesForVideo((prev) => {
-                              const newSet = new Set(prev);
-                              if (newSet.has(idx)) {
-                                newSet.delete(idx);
-                              } else {
-                                newSet.add(idx);
-                              }
-                              return newSet;
-                            });
-                          }}
-                          style={{
-                            position: "relative",
-                            cursor: "pointer",
-                            border: selectedImagesForVideo.has(idx)
+                      }}
+                    >
+                      {selectedCampaignForBulkVideo.settings?.generated_images?.map(
+                        (img: any, idx: number) => (
+                          <div
+                            key={idx}
+                            onClick={() => {
+                              setSelectedImagesForVideo((prev) => {
+                                const newSet = new Set(prev);
+                                if (newSet.has(idx)) {
+                                  newSet.delete(idx);
+                                } else {
+                                  newSet.add(idx);
+                                }
+                                return newSet;
+                              });
+                            }}
+                            style={{
+                              position: "relative",
+                              cursor: "pointer",
+                              border: selectedImagesForVideo.has(idx)
                                 ? "3px solid #d42f48"
-                              : "2px solid #E5E7EB",
+                                : "2px solid #E5E7EB",
                               borderRadius: "12px",
-                            overflow: "hidden",
-                            aspectRatio: "1",
+                              overflow: "hidden",
+                              aspectRatio: "1",
                               transition: "all 0.3s ease",
                               backgroundColor: "#FFFFFF",
                               boxShadow: selectedImagesForVideo.has(idx)
@@ -5928,17 +5942,17 @@ export default function CampaignsPage() {
                                 selectedImagesForVideo.has(idx)
                                   ? "0 8px 25px rgba(212, 47, 72, 0.3)"
                                   : "0 2px 8px rgba(0,0,0,0.1)";
-                          }}
-                        >
-                          <img
-                            src={img.image_url}
-                            alt={`Image ${idx + 1}`}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              opacity: selectedImagesForVideo.has(idx)
-                                ? 1
+                            }}
+                          >
+                            <img
+                              src={img.image_url}
+                              alt={`Image ${idx + 1}`}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                                opacity: selectedImagesForVideo.has(idx)
+                                  ? 1
                                   : 0.7,
                                 transition: "opacity 0.2s ease",
                               }}
@@ -5965,38 +5979,38 @@ export default function CampaignsPage() {
                             >
                               {img.shot_type || `Shot ${idx + 1}`}
                             </div>
-                          {selectedImagesForVideo.has(idx) && (
-                            <div
-                              style={{
-                                position: "absolute",
+                            {selectedImagesForVideo.has(idx) && (
+                              <div
+                                style={{
+                                  position: "absolute",
                                   top: "8px",
                                   right: "8px",
                                   backgroundColor: "#d42f48",
-                                color: "#FFFFFF",
-                                borderRadius: "50%",
+                                  color: "#FFFFFF",
+                                  borderRadius: "50%",
                                   width: "28px",
                                   height: "28px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
                                   fontSize: "14px",
-                                fontWeight: "bold",
+                                  fontWeight: "bold",
                                   boxShadow: "0 2px 8px rgba(212, 47, 72, 0.4)",
-                              }}
-                            >
-                              ✓
-                            </div>
-                          )}
-                        </div>
-                      )
-                    )}
-                  </div>
-                  <div
-                    style={{
+                                }}
+                              >
+                                ✓
+                              </div>
+                            )}
+                          </div>
+                        )
+                      )}
+                    </div>
+                    <div
+                      style={{
                         marginTop: "16px",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
                         padding: "16px 20px",
                         backgroundColor: "#F8FAFC",
                         borderRadius: "12px",
@@ -6017,11 +6031,11 @@ export default function CampaignsPage() {
                             color: "#1F2937",
                           }}
                         >
-                      {selectedImagesForVideo.size} of{" "}
+                          {selectedImagesForVideo.size} of{" "}
                           {selectedCampaignForBulkVideo.settings
                             ?.generated_images?.length || 0}{" "}
                           images selected
-                    </span>
+                        </span>
                         <span
                           style={{
                             fontSize: "12px",
@@ -6035,30 +6049,30 @@ export default function CampaignsPage() {
                           complete CapCut sequence
                         </span>
                       </div>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button
-                        onClick={() => {
-                          const allIndices = new Set(
-                            Array.from(
-                              {
-                                length:
-                                  selectedCampaignForBulkVideo.settings
-                                    ?.generated_images?.length || 0,
-                              },
-                              (_, i) => i
-                            )
-                          );
-                          setSelectedImagesForVideo(allIndices);
-                        }}
-                        style={{
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button
+                          onClick={() => {
+                            const allIndices = new Set(
+                              Array.from(
+                                {
+                                  length:
+                                    selectedCampaignForBulkVideo.settings
+                                      ?.generated_images?.length || 0,
+                                },
+                                (_, i) => i
+                              )
+                            );
+                            setSelectedImagesForVideo(allIndices);
+                          }}
+                          style={{
                             padding: "6px 12px",
                             backgroundColor: "#d42f48",
-                          color: "#FFFFFF",
-                          border: "none",
+                            color: "#FFFFFF",
+                            border: "none",
                             borderRadius: "6px",
-                          fontSize: "11px",
+                            fontSize: "11px",
                             fontWeight: "600",
-                          cursor: "pointer",
+                            cursor: "pointer",
                             transition: "all 0.2s ease",
                           }}
                           onMouseEnter={(e) =>
@@ -6067,20 +6081,20 @@ export default function CampaignsPage() {
                           onMouseLeave={(e) =>
                             (e.currentTarget.style.backgroundColor = "#d42f48")
                           }
-                      >
-                        Select All
-                      </button>
-                      <button
-                        onClick={() => setSelectedImagesForVideo(new Set())}
-                        style={{
+                        >
+                          Select All
+                        </button>
+                        <button
+                          onClick={() => setSelectedImagesForVideo(new Set())}
+                          style={{
                             padding: "6px 12px",
-                          backgroundColor: "#EF4444",
-                          color: "#FFFFFF",
-                          border: "none",
+                            backgroundColor: "#EF4444",
+                            color: "#FFFFFF",
+                            border: "none",
                             borderRadius: "6px",
-                          fontSize: "11px",
+                            fontSize: "11px",
                             fontWeight: "600",
-                          cursor: "pointer",
+                            cursor: "pointer",
                             transition: "all 0.2s ease",
                           }}
                           onMouseEnter={(e) =>
@@ -6089,25 +6103,25 @@ export default function CampaignsPage() {
                           onMouseLeave={(e) =>
                             (e.currentTarget.style.backgroundColor = "#EF4444")
                           }
-                      >
-                        Clear
-                      </button>
+                        >
+                          Clear
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Optional Custom Prompt */}
+                {/* Optional Custom Prompt */}
                 <div style={{ marginBottom: "32px" }}>
                   <h3
-                  style={{
+                    style={{
                       fontSize: "18px",
                       fontWeight: "600",
                       color: "#1F2937",
                       margin: "0 0 8px 0",
-                  }}
-                >
-                  Custom Prompt (Optional)
+                    }}
+                  >
+                    Custom Prompt (Optional)
                   </h3>
                   <p
                     style={{
@@ -6118,23 +6132,23 @@ export default function CampaignsPage() {
                   >
                     Add specific instructions for video generation
                   </p>
-                <textarea
-                  value={bulkVideoCustomPrompt}
-                  onChange={(e) => setBulkVideoCustomPrompt(e.target.value)}
-                  placeholder={
-                    veoDirectMode
-                      ? "Describe the video scene... (e.g., 'model walking in a luxury setting, dramatic lighting')"
+                  <textarea
+                    value={bulkVideoCustomPrompt}
+                    onChange={(e) => setBulkVideoCustomPrompt(e.target.value)}
+                    placeholder={
+                      veoDirectMode
+                        ? "Describe the video scene... (e.g., 'model walking in a luxury setting, dramatic lighting')"
                         : "e.g., smooth camera movement, professional fashion, cinematic lighting..."
-                  }
-                  style={{
-                    width: "100%",
+                    }
+                    style={{
+                      width: "100%",
                       padding: "16px",
                       borderRadius: "12px",
                       border: "2px solid #E5E7EB",
-                    fontSize: "14px",
-                    resize: "vertical",
+                      fontSize: "14px",
+                      resize: "vertical",
                       minHeight: "100px",
-                    fontFamily: "inherit",
+                      fontFamily: "inherit",
                       backgroundColor: "#FAFAFA",
                       transition: "border-color 0.2s ease",
                     }}
@@ -6145,24 +6159,24 @@ export default function CampaignsPage() {
                     onBlur={(e) => {
                       e.currentTarget.style.borderColor = "#E5E7EB";
                       e.currentTarget.style.backgroundColor = "#FAFAFA";
-                  }}
-                />
-              </div>
+                    }}
+                  />
+                </div>
 
-              {/* Video Model Selection */}
+                {/* Video Model Selection */}
                 <div style={{ marginBottom: "32px" }}>
                   <h3
-                  style={{
+                    style={{
                       fontSize: "18px",
                       fontWeight: "600",
                       color: "#1F2937",
                       margin: "0 0 8px 0",
-                  }}
-                >
-                  Video Model
+                    }}
+                  >
+                    Video Model
                   </h3>
                   <p
-                  style={{
+                    style={{
                       fontSize: "14px",
                       color: "#6B7280",
                       margin: "0 0 16px 0",
@@ -6184,7 +6198,7 @@ export default function CampaignsPage() {
                         borderRadius: "12px",
                         backgroundColor: "#FFFFFF",
                         cursor: "pointer",
-                    display: "flex",
+                        display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
                         transition: "all 0.2s ease",
@@ -6200,31 +6214,31 @@ export default function CampaignsPage() {
                       }}
                     >
                       <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
                           gap: "12px",
                         }}
                       >
                         <span style={{ fontSize: "20px" }}>
                           {getVideoModelInfo(bulkVideoModel).icon}
                         </span>
-                    <div>
+                        <div>
                           <div
-                    style={{
+                            style={{
                               fontWeight: "600",
                               fontSize: "16px",
                               color: "#1F2937",
                               marginBottom: "2px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
                             }}
                           >
                             {getVideoModelInfo(bulkVideoModel).name}
                             <span
                               style={{
-                      backgroundColor:
+                                backgroundColor:
                                   getVideoModelInfo(bulkVideoModel).badgeColor,
                                 color:
                                   getVideoModelInfo(bulkVideoModel)
@@ -6237,14 +6251,14 @@ export default function CampaignsPage() {
                             >
                               {getVideoModelInfo(bulkVideoModel).badge}
                             </span>
-                      </div>
+                          </div>
                           <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
                             {getVideoModelInfo(bulkVideoModel).pricing}
-                      </div>
-                    </div>
+                          </div>
+                        </div>
                       </div>
                       <span
-                    style={{
+                        style={{
                           fontSize: "16px",
                           color: "#6B7280",
                           transform: showVideoModelDropdown
@@ -6319,15 +6333,15 @@ export default function CampaignsPage() {
                                   fontSize: "16px",
                                   color: "#1F2937",
                                   marginBottom: "4px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px",
                                 }}
                               >
                                 {getVideoModelInfo(model).name}
                                 <span
                                   style={{
-                      backgroundColor:
+                                    backgroundColor:
                                       getVideoModelInfo(model).badgeColor,
                                     color:
                                       getVideoModelInfo(model).badgeTextColor,
@@ -6339,7 +6353,7 @@ export default function CampaignsPage() {
                                 >
                                   {getVideoModelInfo(model).badge}
                                 </span>
-                      </div>
+                              </div>
                               <div
                                 style={{
                                   fontSize: "13px",
@@ -6348,12 +6362,12 @@ export default function CampaignsPage() {
                                 }}
                               >
                                 {getVideoModelInfo(model).description}
-                      </div>
+                              </div>
                               <div
                                 style={{ fontSize: "12px", color: "#9CA3AF" }}
                               >
                                 {getVideoModelInfo(model).pricing}
-                    </div>
+                              </div>
                             </div>
                             {bulkVideoModel === model && (
                               <span
@@ -6370,171 +6384,10 @@ export default function CampaignsPage() {
                         ))}
                       </div>
                     )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Video Quality Selection */}
-              <div style={{ marginBottom: "20px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    marginBottom: "12px",
-                    color: "#374151",
-                  }}
-                >
-                  Video Quality
-                </label>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                  }}
-                >
-                  <label
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      padding: "10px 14px",
-                      border:
-                        bulkVideoQuality === "480p"
-                            ? "2px solid #d42f48"
-                          : "1px solid #D1D5DB",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      backgroundColor:
-                        bulkVideoQuality === "480p" ? "#F3F4F6" : "white",
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="bulkVideoQuality"
-                      value="480p"
-                      checked={bulkVideoQuality === "480p"}
-                      onChange={(e) => setBulkVideoQuality(e.target.value)}
-                      style={{ margin: 0 }}
-                    />
-                    <div>
-                      <div style={{ fontWeight: "500", fontSize: "14px" }}>
-                        480p
-                      </div>
-                      <div style={{ fontSize: "11px", color: "#6B7280" }}>
-                        {bulkVideoModel === "seedance"
-                            ? `${
-                                bulkVideoDuration === "10s" ? "3" : "2"
-                              } credits`
-                            : bulkVideoModel === "kling"
-                            ? `${
-                                bulkVideoDuration === "10s" ? "3" : "2"
-                              } credits`
-                          : bulkVideoModel === "veo"
-                            ? `${
-                                bulkVideoDuration === "10s" ? "4" : "3"
-                              } credits`
-                          : "1 credit"}
-                      </div>
-                    </div>
-                  </label>
-                  <label
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      padding: "10px 14px",
-                      border:
-                        bulkVideoQuality === "720p"
-                            ? "2px solid #d42f48"
-                          : "1px solid #D1D5DB",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      backgroundColor:
-                        bulkVideoQuality === "720p" ? "#F3F4F6" : "white",
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="bulkVideoQuality"
-                      value="720p"
-                      checked={bulkVideoQuality === "720p"}
-                      onChange={(e) => setBulkVideoQuality(e.target.value)}
-                      style={{ margin: 0 }}
-                    />
-                    <div>
-                      <div style={{ fontWeight: "500", fontSize: "14px" }}>
-                        720p
-                      </div>
-                      <div style={{ fontSize: "11px", color: "#6B7280" }}>
-                          {bulkVideoModel === "kling"
-                            ? `${
-                                bulkVideoDuration === "10s" ? "4" : "3"
-                              } credits`
-                            : bulkVideoModel === "veo"
-                            ? `${
-                                bulkVideoDuration === "10s" ? "6" : "4"
-                              } credits`
-                          : "2 credits"}
-                      </div>
-                    </div>
-                  </label>
-                  {(bulkVideoModel === "seedance" ||
-                      bulkVideoModel === "kling" ||
-                    bulkVideoModel === "veo") && (
-                    <label
-                      style={{
-                        flex: 1,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        padding: "10px 14px",
-                        border:
-                          bulkVideoQuality === "1080p"
-                              ? "2px solid #d42f48"
-                            : "1px solid #D1D5DB",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        backgroundColor:
-                          bulkVideoQuality === "1080p" ? "#F3F4F6" : "white",
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        name="bulkVideoQuality"
-                        value="1080p"
-                        checked={bulkVideoQuality === "1080p"}
-                        onChange={(e) => setBulkVideoQuality(e.target.value)}
-                        style={{ margin: 0 }}
-                      />
-                      <div>
-                        <div style={{ fontWeight: "500", fontSize: "14px" }}>
-                          1080p
-                        </div>
-                        <div style={{ fontSize: "11px", color: "#6B7280" }}>
-                            {bulkVideoModel === "kling"
-                              ? `${
-                                  bulkVideoDuration === "10s" ? "6" : "4"
-                                } credits`
-                              : bulkVideoModel === "veo"
-                            ? `${
-                                bulkVideoDuration === "10s" ? "8" : "5"
-                              } credits`
-                            : `${
-                                bulkVideoDuration === "10s" ? "6" : "4"
-                              } credits`}
-                        </div>
-                      </div>
-                    </label>
-                  )}
-                </div>
-              </div>
-
-                {/* Video Duration Selection (for Seedance, Kling & Veo) */}
-                {(bulkVideoModel === "seedance" ||
-                  bulkVideoModel === "kling" ||
-                  bulkVideoModel === "veo") && (
+                {/* Video Quality Selection */}
                 <div style={{ marginBottom: "20px" }}>
                   <label
                     style={{
@@ -6545,7 +6398,7 @@ export default function CampaignsPage() {
                       color: "#374151",
                     }}
                   >
-                    Video Duration
+                    Video Quality
                   </label>
                   <div
                     style={{
@@ -6558,28 +6411,45 @@ export default function CampaignsPage() {
                         flex: 1,
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center",
+                        gap: "8px",
                         padding: "10px 14px",
                         border:
-                          bulkVideoDuration === "5s"
-                              ? "2px solid #d42f48"
+                          bulkVideoQuality === "480p"
+                            ? "2px solid #d42f48"
                             : "1px solid #D1D5DB",
                         borderRadius: "8px",
                         cursor: "pointer",
                         backgroundColor:
-                          bulkVideoDuration === "5s" ? "#F3F4F6" : "white",
+                          bulkVideoQuality === "480p" ? "#F3F4F6" : "white",
                       }}
                     >
                       <input
                         type="radio"
-                        name="bulkVideoDuration"
-                        value="5s"
-                        checked={bulkVideoDuration === "5s"}
-                        onChange={(e) => setBulkVideoDuration(e.target.value)}
-                        style={{ marginRight: "8px" }}
+                        name="bulkVideoQuality"
+                        value="480p"
+                        checked={bulkVideoQuality === "480p"}
+                        onChange={(e) => setBulkVideoQuality(e.target.value)}
+                        style={{ margin: 0 }}
                       />
-                      <div style={{ fontWeight: "500", fontSize: "14px" }}>
-                        5 seconds
+                      <div>
+                        <div style={{ fontWeight: "500", fontSize: "14px" }}>
+                          480p
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#6B7280" }}>
+                          {bulkVideoModel === "seedance"
+                            ? `${
+                                bulkVideoDuration === "10s" ? "3" : "2"
+                              } credits`
+                            : bulkVideoModel === "kling"
+                            ? `${
+                                bulkVideoDuration === "10s" ? "3" : "2"
+                              } credits`
+                            : bulkVideoModel === "veo"
+                            ? `${
+                                bulkVideoDuration === "10s" ? "4" : "3"
+                              } credits`
+                            : "1 credit"}
+                        </div>
                       </div>
                     </label>
                     <label
@@ -6587,33 +6457,177 @@ export default function CampaignsPage() {
                         flex: 1,
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center",
+                        gap: "8px",
                         padding: "10px 14px",
                         border:
-                          bulkVideoDuration === "10s"
-                              ? "2px solid #d42f48"
+                          bulkVideoQuality === "720p"
+                            ? "2px solid #d42f48"
                             : "1px solid #D1D5DB",
                         borderRadius: "8px",
                         cursor: "pointer",
                         backgroundColor:
-                          bulkVideoDuration === "10s" ? "#F3F4F6" : "white",
+                          bulkVideoQuality === "720p" ? "#F3F4F6" : "white",
                       }}
                     >
                       <input
                         type="radio"
-                        name="bulkVideoDuration"
-                        value="10s"
-                        checked={bulkVideoDuration === "10s"}
-                        onChange={(e) => setBulkVideoDuration(e.target.value)}
-                        style={{ marginRight: "8px" }}
+                        name="bulkVideoQuality"
+                        value="720p"
+                        checked={bulkVideoQuality === "720p"}
+                        onChange={(e) => setBulkVideoQuality(e.target.value)}
+                        style={{ margin: 0 }}
                       />
-                      <div style={{ fontWeight: "500", fontSize: "14px" }}>
-                        10 seconds
+                      <div>
+                        <div style={{ fontWeight: "500", fontSize: "14px" }}>
+                          720p
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#6B7280" }}>
+                          {bulkVideoModel === "kling"
+                            ? `${
+                                bulkVideoDuration === "10s" ? "4" : "3"
+                              } credits`
+                            : bulkVideoModel === "veo"
+                            ? `${
+                                bulkVideoDuration === "10s" ? "6" : "4"
+                              } credits`
+                            : "2 credits"}
+                        </div>
                       </div>
                     </label>
+                    {(bulkVideoModel === "seedance" ||
+                      bulkVideoModel === "kling" ||
+                      bulkVideoModel === "veo") && (
+                      <label
+                        style={{
+                          flex: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          padding: "10px 14px",
+                          border:
+                            bulkVideoQuality === "1080p"
+                              ? "2px solid #d42f48"
+                              : "1px solid #D1D5DB",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          backgroundColor:
+                            bulkVideoQuality === "1080p" ? "#F3F4F6" : "white",
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name="bulkVideoQuality"
+                          value="1080p"
+                          checked={bulkVideoQuality === "1080p"}
+                          onChange={(e) => setBulkVideoQuality(e.target.value)}
+                          style={{ margin: 0 }}
+                        />
+                        <div>
+                          <div style={{ fontWeight: "500", fontSize: "14px" }}>
+                            1080p
+                          </div>
+                          <div style={{ fontSize: "11px", color: "#6B7280" }}>
+                            {bulkVideoModel === "kling"
+                              ? `${
+                                  bulkVideoDuration === "10s" ? "6" : "4"
+                                } credits`
+                              : bulkVideoModel === "veo"
+                              ? `${
+                                  bulkVideoDuration === "10s" ? "8" : "5"
+                                } credits`
+                              : `${
+                                  bulkVideoDuration === "10s" ? "6" : "4"
+                                } credits`}
+                          </div>
+                        </div>
+                      </label>
+                    )}
                   </div>
                 </div>
-              )}
+
+                {/* Video Duration Selection (for Seedance, Kling & Veo) */}
+                {(bulkVideoModel === "seedance" ||
+                  bulkVideoModel === "kling" ||
+                  bulkVideoModel === "veo") && (
+                  <div style={{ marginBottom: "20px" }}>
+                    <label
+                      style={{
+                        display: "block",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        marginBottom: "12px",
+                        color: "#374151",
+                      }}
+                    >
+                      Video Duration
+                    </label>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "10px",
+                      }}
+                    >
+                      <label
+                        style={{
+                          flex: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "10px 14px",
+                          border:
+                            bulkVideoDuration === "5s"
+                              ? "2px solid #d42f48"
+                              : "1px solid #D1D5DB",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          backgroundColor:
+                            bulkVideoDuration === "5s" ? "#F3F4F6" : "white",
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name="bulkVideoDuration"
+                          value="5s"
+                          checked={bulkVideoDuration === "5s"}
+                          onChange={(e) => setBulkVideoDuration(e.target.value)}
+                          style={{ marginRight: "8px" }}
+                        />
+                        <div style={{ fontWeight: "500", fontSize: "14px" }}>
+                          5 seconds
+                        </div>
+                      </label>
+                      <label
+                        style={{
+                          flex: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "10px 14px",
+                          border:
+                            bulkVideoDuration === "10s"
+                              ? "2px solid #d42f48"
+                              : "1px solid #D1D5DB",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          backgroundColor:
+                            bulkVideoDuration === "10s" ? "#F3F4F6" : "white",
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name="bulkVideoDuration"
+                          value="10s"
+                          checked={bulkVideoDuration === "10s"}
+                          onChange={(e) => setBulkVideoDuration(e.target.value)}
+                          style={{ marginRight: "8px" }}
+                        />
+                        <div style={{ fontWeight: "500", fontSize: "14px" }}>
+                          10 seconds
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>{" "}
               {/* End of scrollable content container */}
               {/* Action Buttons */}
