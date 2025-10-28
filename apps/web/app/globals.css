@@ -26,8 +26,8 @@ body {
     overflow-x: hidden !important;
   }
   
-  /* Force single column everywhere */
-  div[style*="grid-template-columns"] {
+  /* Force single column everywhere except campaign grid */
+  div[style*="grid-template-columns"]:not(.campaign-grid) {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
@@ -50,11 +50,20 @@ body {
     max-width: 100% !important;
   }
   
-  /* Campaign grid mobile */
-  .campaign-grid {
+  /* Campaign grid mobile - Force 2 columns */
+  .campaign-grid,
+  div.campaign-grid {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 12px !important;
     width: 100% !important;
+    display: grid !important;
+  }
+  
+  /* Additional specificity for campaigns page */
+  div[class*="campaign-grid"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    display: grid !important;
   }
   
   /* Touch targets */
@@ -103,8 +112,12 @@ body {
     aspect-ratio: 1 !important;
   }
   
-  .campaign-grid {
+  .campaign-grid,
+  div.campaign-grid,
+  div[class*="campaign-grid"] {
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
+    display: grid !important;
   }
   
   main {
