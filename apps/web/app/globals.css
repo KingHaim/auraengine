@@ -55,9 +55,9 @@ body {
     border: 2px solid red !important; /* Debug border */
   }
   
-  /* Hide campaign info section on mobile - keep only image */
-  .campaign-card > div:last-child,
-  div.campaign-card > div:last-child {
+  /* Hide campaign info section on mobile - target the second div */
+  .campaign-card > div:nth-child(2),
+  div.campaign-card > div:nth-child(2) {
     display: none !important;
   }
   
