@@ -716,7 +716,7 @@ export default function ModelsPage() {
               <div
                 key={model.id}
                 style={{
-                  aspectRatio: "2/3",
+                  aspectRatio: "1",
                   borderRadius: "12px",
                   overflow: "hidden",
                   transition: "all 0.3s ease",
@@ -2271,7 +2271,7 @@ export default function ModelsPage() {
                     >
                       <div
                         style={{
-                          aspectRatio: "2/3",
+                          aspectRatio: "1",
                           position: "relative",
                           backgroundColor: "#F3F4F6",
                         }}
@@ -2414,7 +2414,7 @@ export default function ModelsPage() {
                 <div
                   key={index}
                   style={{
-                    aspectRatio: "2/3",
+                    aspectRatio: "1",
                     borderRadius: "12px",
                     overflow: "hidden",
                     backgroundColor: "#F3F4F6",
@@ -2843,7 +2843,7 @@ export default function ModelsPage() {
               >
                 <div
                   style={{
-                    aspectRatio: "2/3",
+                    aspectRatio: "1",
                     borderRadius: "12px",
                     overflow: "hidden",
                     backgroundColor: "#F3F4F6",
@@ -3098,7 +3098,7 @@ export default function ModelsPage() {
                           <div
                             key={index}
                             style={{
-                              aspectRatio: "2/3",
+                              aspectRatio: "1",
                               borderRadius: "8px",
                               overflow: "hidden",
                               backgroundColor: "#F3F4F6",

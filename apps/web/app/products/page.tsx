@@ -568,7 +568,7 @@ export default function ProductsPage() {
               >
                 <div
                   style={{
-                    aspectRatio: "2/3",
+                    aspectRatio: "1",
                     position: "relative",
                     backgroundColor: "#F3F4F6",
                     cursor: "pointer",
@@ -1216,7 +1216,7 @@ export default function ProductsPage() {
                     >
                       <div
                         style={{
-                          aspectRatio: "2/3",
+                          aspectRatio: "1",
                           position: "relative",
                           backgroundColor: "#F3F4F6",
                         }}

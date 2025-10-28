@@ -70,8 +70,9 @@ export default function Dashboard() {
         ]);
 
         // Set campaigns for display (recent 3, sorted by most recent first)
-        const sortedCampaigns = campaignsData.sort((a: Campaign, b: Campaign) => 
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        const sortedCampaigns = campaignsData.sort(
+          (a: Campaign, b: Campaign) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         setCampaigns(sortedCampaigns.slice(0, 3));
 
@@ -397,7 +398,7 @@ export default function Dashboard() {
                 >
                   <div
                     style={{
-                      aspectRatio: "4/3",
+                      aspectRatio: "1",
                       position: "relative",
                       backgroundColor: "#F3F4F6",
                     }}
