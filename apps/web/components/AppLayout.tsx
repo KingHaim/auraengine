@@ -420,6 +420,29 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     letterSpacing: isMobile ? "0.1em" : "0.18em",
                     marginBottom: "4px",
                     transition: "all 0.2s",
+                    cursor: "pointer",
+                    userSelect: "none",
+                    WebkitTapHighlightColor: "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.05)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }
+                  }}
+                  onTouchStart={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)";
+                    }
+                  }}
+                  onTouchEnd={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }
                   }}
                 >
                   {item.label}
