@@ -43,53 +43,20 @@ body {
     padding: 16px !important;
   }
   
-  /* Debug: Add red border to all headers to see what's still there */
-  header {
-    border: 3px solid red !important;
-  }
-  
-  /* Hide the mobile header that's fixed at the top */
-  .mobile-header,
-  div[style*="position: fixed"][style*="top: 0"][style*="height: 50px"] {
-    display: none !important;
-  }
-  
-  /* Hide entire header/topbar section on mobile */
+  /* Hide search header section on mobile (keep mobile header for navigation) */
   header[style*="padding: 8px 12px"],
   header[style*="height: 50px"],
   header[style*="backgroundColor: #11161C"] {
     display: none !important;
   }
   
-  /* Remove top margin since header is hidden */
-  div[style*="marginTop: 50px"] {
-    margin-top: 0px !important;
-  }
-  
-  /* Also try hiding any element with the black background color */
-  div[style*="backgroundColor: #11161C"],
-  *[style*="backgroundColor: #11161C"] {
-    display: none !important;
-  }
-  
-  /* Hide the main content container that has margin-top */
+  /* Remove top margin from main content container */
   div[style*="marginTop: 50px"][style*="flex: 1"] {
     margin-top: 0px !important;
   }
   
-  /* Force body and html to have no top spacing on mobile */
-  body {
-    margin-top: 0px !important;
-    padding-top: 0px !important;
-  }
-  
-  html {
-    margin-top: 0px !important;
-    padding-top: 0px !important;
-  }
-  
-  /* Hide any top-level containers that might have black backgrounds */
-  .app-container {
+  /* Ensure main content starts right after mobile header */
+  main {
     margin-top: 0px !important;
     padding-top: 0px !important;
   }
