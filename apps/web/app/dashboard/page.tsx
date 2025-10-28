@@ -35,8 +35,8 @@ export default function Dashboard() {
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   useEffect(() => {
@@ -69,8 +69,11 @@ export default function Dashboard() {
           scenesRes.ok ? scenesRes.json() : [],
         ]);
 
-        // Set campaigns for display (recent 3)
-        setCampaigns(campaignsData.slice(0, 3));
+        // Set campaigns for display (recent 3, sorted by most recent first)
+        const sortedCampaigns = campaignsData.sort((a: Campaign, b: Campaign) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        setCampaigns(sortedCampaigns.slice(0, 3));
 
         // Set stats with actual data
         setStats({
@@ -321,7 +324,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-
         {/* Recent Campaigns */}
         <div>
           <div
@@ -358,7 +360,9 @@ export default function Dashboard() {
             <div
               style={{
                 display: isMobile ? "flex" : "grid",
-                gridTemplateColumns: isMobile ? "none" : "repeat(auto-fit, minmax(200px, 1fr))",
+                gridTemplateColumns: isMobile
+                  ? "none"
+                  : "repeat(auto-fit, minmax(200px, 1fr))",
                 overflowX: isMobile ? "auto" : "visible",
                 gap: "16px",
                 maxWidth: "800px",

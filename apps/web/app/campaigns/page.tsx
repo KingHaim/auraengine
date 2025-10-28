@@ -1426,15 +1426,6 @@ export default function CampaignsPage() {
               >
                 Campaigns
               </h1>
-              <p
-                style={{
-                  fontSize: "14px",
-                  color: "#64748B",
-                  margin: "4px 0 0 0",
-                }}
-              >
-                {user?.email || "No user"}
-              </p>
             </div>
             <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
               {selectMode && (
