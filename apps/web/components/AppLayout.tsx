@@ -426,7 +426,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.05)";
+                      e.currentTarget.style.backgroundColor =
+                        "rgba(255,255,255,0.05)";
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -436,7 +437,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   }}
                   onTouchStart={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)";
+                      e.currentTarget.style.backgroundColor =
+                        "rgba(255,255,255,0.1)";
                     }
                   }}
                   onTouchEnd={(e) => {
@@ -480,13 +482,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
           flexDirection: "column",
           position: "relative",
           zIndex: 1,
+          marginTop: isMobile ? "60px" : "0",
         }}
       >
         {/* Topbar */}
         <header
           style={{
-            padding: "24px 32px",
-            height: "72px",
+            padding: isMobile ? "16px" : "24px 32px",
+            height: isMobile ? "60px" : "72px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -726,23 +729,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
             boxSizing: "border-box",
           }}
         >
-          {/* Mobile Debug Info */}
-          {isMobile && (
-            <div
-              style={{
-                backgroundColor: "#d42f48",
-                color: "white",
-                padding: "8px",
-                marginBottom: "16px",
-                borderRadius: "8px",
-                fontSize: "14px",
-                textAlign: "center",
-              }}
-            >
-              📱 MOBILE MODE ACTIVE - Screen Width:{" "}
-              {typeof window !== "undefined" ? window.innerWidth : "N/A"}px
-            </div>
-          )}
           {children}
         </main>
       </div>
