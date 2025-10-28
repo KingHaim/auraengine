@@ -1607,13 +1607,12 @@ export default function CampaignsPage() {
               className="campaign-grid"
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-                gap: "16px",
+                gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                gap: "12px",
                 width: "100%",
                 maxWidth: "100%",
                 boxSizing: "border-box",
                 alignItems: "start",
-                paddingBottom: "32px",
               }}
             >
               {campaigns.map((campaign) => (
@@ -1637,10 +1636,10 @@ export default function CampaignsPage() {
                       : "0 2px 8px rgba(0,0,0,0.08)",
                     display: "flex",
                     flexDirection: "column",
-                    aspectRatio: "1",
                     width: "100%",
                     maxWidth: "100%",
                     boxSizing: "border-box",
+                    aspectRatio: "1",
                   }}
                   onClick={(e) => {
                     if (selectMode) {
@@ -1718,7 +1717,7 @@ export default function CampaignsPage() {
                   <div
                     style={{
                       width: "100%",
-                      flex: "1",
+                      aspectRatio: "1",
                       position: "relative",
                       overflow: "hidden",
                       backgroundColor: "#F3F4F6",
@@ -1805,43 +1804,105 @@ export default function CampaignsPage() {
                   {/* Campaign Info */}
                   <div
                     style={{
-                      padding: "8px 12px",
-                      backgroundColor: "#FFFFFF",
-                      borderTop: "1px solid #F3F4F6",
-                      flex: "0 0 auto",
+                      padding: "20px",
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
                     }}
                   >
-                    <h3
-                      style={{
-                        fontSize: "14px",
-                        fontWeight: "600",
-                        color: "#1F2937",
-                        margin: "0 0 4px 0",
-                        lineHeight: 1.3,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {campaign.name}
-                    </h3>
-                    {campaign.description && (
-                      <p
+                    <div>
+                      <h3
                         style={{
-                          fontSize: "12px",
-                          color: "#6B7280",
-                          margin: 0,
+                          fontSize: "18px",
+                          fontWeight: "600",
+                          color: "#1F2937",
+                          margin: "0 0 8px 0",
                           lineHeight: 1.3,
                           overflow: "hidden",
                           textOverflow: "ellipsis",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
+                          whiteSpace: "nowrap",
                         }}
                       >
-                        {campaign.description}
-                      </p>
-                    )}
+                        {campaign.name}
+                      </h3>
+                      {campaign.description && (
+                        <p
+                          style={{
+                            fontSize: "13px",
+                            color: "#6B7280",
+                            margin: 0,
+                            lineHeight: 1.4,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                          }}
+                        >
+                          {campaign.description}
+                        </p>
+                      )}
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "16px",
+                        fontSize: "12px",
+                        color: "#6B7280",
+                        marginTop: "12px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                        }}
+                      >
+                        🖼️ {campaign.settings?.generated_images?.length || 0}
+                      </span>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                        }}
+                      >
+                        🎬{" "}
+                        {campaign.settings?.generated_images?.filter(
+                          (img: any) => img.video_url
+                        )?.length || 0}
+                      </span>
+                      {(campaign.generation_status === "generating" ||
+                        generatingCampaignId === campaign.id) && (
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            color: "#d42f48",
+                            fontWeight: "500",
+                          }}
+                        >
+                          ⏳ Generando...
+                        </span>
+                      )}
+                      {campaign.generation_status === "failed" && (
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            color: "#EF4444",
+                            fontWeight: "500",
+                          }}
+                        >
+                          ❌ Error
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Hover Overlay */}

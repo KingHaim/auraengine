@@ -45,14 +45,14 @@ body {
   
   /* Campaign cards mobile */
   .campaign-card {
-    height: 240px !important;
+    aspect-ratio: 1 !important;
     width: 100% !important;
     max-width: 100% !important;
   }
   
   /* Campaign grid mobile */
   .campaign-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 12px !important;
     width: 100% !important;
   }
@@ -100,7 +100,11 @@ body {
 /* Extra small screens */
 @media (max-width: 480px) {
   .campaign-card {
-    height: 200px !important;
+    aspect-ratio: 1 !important;
+  }
+  
+  .campaign-grid {
+    gap: 8px !important;
   }
   
   main {
