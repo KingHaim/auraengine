@@ -111,13 +111,17 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats Grid - Horizontal Scrollable */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "20px",
+            display: "flex",
+            overflowX: "auto",
+            gap: "16px",
             marginBottom: "32px",
+            paddingBottom: "8px",
+            scrollbarWidth: "thin",
+            scrollbarColor: "#cbd5e1 transparent",
+            WebkitOverflowScrolling: "touch",
           }}
         >
           <div
@@ -126,6 +130,8 @@ export default function Dashboard() {
               borderRadius: "12px",
               padding: "24px",
               border: "1px solid #E2E8F0",
+              minWidth: "200px",
+              flexShrink: 0,
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -171,6 +177,8 @@ export default function Dashboard() {
               borderRadius: "12px",
               padding: "24px",
               border: "1px solid #E2E8F0",
+              minWidth: "200px",
+              flexShrink: 0,
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -216,6 +224,8 @@ export default function Dashboard() {
               borderRadius: "12px",
               padding: "24px",
               border: "1px solid #E2E8F0",
+              minWidth: "200px",
+              flexShrink: 0,
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -261,6 +271,8 @@ export default function Dashboard() {
               borderRadius: "12px",
               padding: "24px",
               border: "1px solid #E2E8F0",
+              minWidth: "200px",
+              flexShrink: 0,
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>

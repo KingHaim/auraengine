@@ -46,8 +46,8 @@ export default function Home() {
       >
         <div style={{ textAlign: "center" }}>
           <img
-            src="/logo.png"
-            alt="Aura Engine Logo"
+            src="/beating.gif"
+            alt="Loading"
             style={{
               width: "60px",
               height: "60px",
