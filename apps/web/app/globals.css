@@ -117,6 +117,13 @@ body {
     display: grid !important;
   }
   
+  /* Products and Models grid mobile - Force 2 columns */
+  div[style*="gridTemplateColumns: repeat(auto-fill, minmax(200px, 1fr))"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    display: grid !important;
+  }
+  
   /* Touch targets */
   button, a, input, textarea, select {
     min-height: 44px !important;
@@ -172,6 +179,13 @@ body {
   .campaign-grid,
   div.campaign-grid,
   div[class*="campaign-grid"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    display: grid !important;
+  }
+  
+  /* Products and Models grid extra small screens */
+  div[style*="gridTemplateColumns: repeat(auto-fill, minmax(200px, 1fr))"] {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
     display: grid !important;
