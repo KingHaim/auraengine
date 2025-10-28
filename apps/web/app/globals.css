@@ -50,26 +50,33 @@ body {
     max-width: 100% !important;
   }
   
-  /* Campaign info mobile - make more discreet */
+  /* Hide campaign info section on mobile - keep only image */
   .campaign-card > div:last-child {
+    display: none !important;
+  }
+  
+  /* Show title overlay on mobile */
+  .campaign-title-overlay {
+    display: block !important;
+  }
+  
+  /* Simplify select button on mobile - make it just an icon */
+  .select-button {
     padding: 8px !important;
-  }
-  
-  .campaign-card h3 {
     font-size: 12px !important;
-    margin: 0 0 4px 0 !important;
-    line-height: 1.2 !important;
+    background: rgba(255,255,255,0.9) !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 32px !important;
   }
   
-  .campaign-card p {
-    font-size: 10px !important;
-    margin: 0 !important;
-    line-height: 1.2 !important;
-  }
-  
-  .campaign-card > div:last-child > div:last-child {
-    font-size: 10px !important;
-    gap: 8px !important;
+  .select-button::after {
+    content: "" !important;
   }
   
   /* Campaign grid mobile - Force 2 columns */
@@ -134,24 +141,10 @@ body {
     aspect-ratio: 1 !important;
   }
   
-  /* Even more discreet text on very small screens */
-  .campaign-card > div:last-child {
-    padding: 4px !important;
-  }
-  
-  .campaign-card h3 {
+  /* Even smaller title overlay on very small screens */
+  .campaign-title-overlay {
     font-size: 10px !important;
-    margin: 0 0 2px 0 !important;
-  }
-  
-  .campaign-card p {
-    font-size: 8px !important;
-    display: none !important; /* Hide description on very small screens */
-  }
-  
-  .campaign-card > div:last-child > div:last-child {
-    font-size: 8px !important;
-    gap: 4px !important;
+    padding: 6px !important;
   }
   
   .campaign-grid,

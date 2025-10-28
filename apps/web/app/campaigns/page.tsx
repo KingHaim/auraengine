@@ -1500,6 +1500,7 @@ export default function CampaignsPage() {
                     fontWeight: "500",
                     cursor: "pointer",
                   }}
+                  className="select-button"
                 >
                   ☑️ Select
                 </button>
@@ -1723,6 +1724,26 @@ export default function CampaignsPage() {
                       backgroundColor: "#F3F4F6",
                     }}
                   >
+                    {/* Semi-transparent title overlay for mobile */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        background: "linear-gradient(transparent, rgba(0,0,0,0.7))",
+                        color: "white",
+                        padding: "8px",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        textAlign: "center",
+                        zIndex: 1,
+                        display: "none", // Hidden by default, shown via CSS on mobile
+                      }}
+                      className="campaign-title-overlay"
+                    >
+                      {campaign.name}
+                    </div>
                     {(() => {
                       const isGenerating =
                         campaign.generation_status === "generating" ||
