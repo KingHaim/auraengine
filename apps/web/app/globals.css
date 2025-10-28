@@ -43,6 +43,11 @@ body {
     padding: 16px !important;
   }
   
+  /* Debug: Add red border to all headers to see what's still there */
+  header {
+    border: 3px solid red !important;
+  }
+  
   /* Hide entire header/topbar section on mobile */
   header[style*="padding: 8px 12px"],
   header[style*="height: 50px"],
@@ -52,6 +57,17 @@ body {
   
   /* Remove top margin since header is hidden */
   div[style*="marginTop: 50px"] {
+    margin-top: 0px !important;
+  }
+  
+  /* Also try hiding any element with the black background color */
+  div[style*="backgroundColor: #11161C"],
+  *[style*="backgroundColor: #11161C"] {
+    display: none !important;
+  }
+  
+  /* Hide the main content container that has margin-top */
+  div[style*="marginTop: 50px"][style*="flex: 1"] {
     margin-top: 0px !important;
   }
   
