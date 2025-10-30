@@ -2971,11 +2971,11 @@ export default function CampaignsPage() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(9, 10, 12, 0.8)",
+              backgroundColor: "rgba(9, 10, 12, 0.9)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              zIndex: 2000,
+              zIndex: 3000,
             }}
             onClick={() => setShowProductSelectionModal(false)}
           >
@@ -3029,22 +3029,24 @@ export default function CampaignsPage() {
                       alignItems: "center",
                       gap: "12px",
                       padding: "12px",
-                      backgroundColor: productSelectionMode === "image"
-                        ? selectedProductForImage === product.id
+                      backgroundColor:
+                        productSelectionMode === "image"
+                          ? selectedProductForImage === product.id
+                            ? "#374151"
+                            : "#4B5563"
+                          : selectedProducts.includes(product.id)
                           ? "#374151"
-                          : "#4B5563"
-                        : selectedProducts.includes(product.id)
-                        ? "#374151"
-                        : "#4B5563",
+                          : "#4B5563",
                       borderRadius: "8px",
                       cursor: "pointer",
-                      border: productSelectionMode === "image"
-                        ? selectedProductForImage === product.id
+                      border:
+                        productSelectionMode === "image"
+                          ? selectedProductForImage === product.id
+                            ? "2px solid #d42f48"
+                            : "1px solid #6B7280"
+                          : selectedProducts.includes(product.id)
                           ? "2px solid #d42f48"
-                          : "1px solid #6B7280"
-                        : selectedProducts.includes(product.id)
-                        ? "2px solid #d42f48"
-                        : "1px solid #6B7280",
+                          : "1px solid #6B7280",
                       transition: "all 0.2s",
                     }}
                   >
@@ -3111,7 +3113,9 @@ export default function CampaignsPage() {
                   style={{
                     width: "100%",
                     padding: "12px",
-                    backgroundColor: addingProductToImage ? "#6B7280" : "#F59E0B",
+                    backgroundColor: addingProductToImage
+                      ? "#6B7280"
+                      : "#F59E0B",
                     border: "none",
                     borderRadius: "8px",
                     color: "#FFFFFF",
@@ -3122,7 +3126,9 @@ export default function CampaignsPage() {
                     opacity: addingProductToImage ? 0.6 : 1,
                   }}
                 >
-                  {addingProductToImage ? "Adding Product..." : "➕ Add Product to Image"}
+                  {addingProductToImage
+                    ? "Adding Product..."
+                    : "➕ Add Product to Image"}
                 </button>
               )}
               <button
@@ -3143,7 +3149,10 @@ export default function CampaignsPage() {
                   fontSize: "14px",
                   fontWeight: "500",
                   cursor: "pointer",
-                  marginTop: productSelectionMode === "image" && selectedProductForImage ? "12px" : "20px",
+                  marginTop:
+                    productSelectionMode === "image" && selectedProductForImage
+                      ? "12px"
+                      : "20px",
                 }}
               >
                 {productSelectionMode === "image" ? "Cancel" : "Close"}
