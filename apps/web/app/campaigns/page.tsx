@@ -73,6 +73,17 @@ interface Campaign {
 
 export default function CampaignsPage() {
   const { user, token, loading } = useAuth();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Inject spinner CSS
   useEffect(() => {
@@ -1972,7 +1983,7 @@ export default function CampaignsPage() {
           <div
             style={{
               position: "fixed",
-              top: 0,
+              top: isMobile ? "50px" : 0,
               left: 0,
               right: 0,
               bottom: 0,
@@ -1980,38 +1991,66 @@ export default function CampaignsPage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              zIndex: 1000,
+              zIndex: 1001,
               overflow: "auto",
+              paddingTop: isMobile ? "0px" : "0px",
             }}
             onClick={() => setShowCreateModal(false)}
           >
             <div
               style={{
                 backgroundColor: "#1F2937",
-                borderRadius: "16px",
-                maxWidth: "95vw",
-                maxHeight: "95vh",
-                width: "min(1400px, 95vw)",
-                height: "min(800px, 95vh)",
+                borderRadius: isMobile ? "0px" : "16px",
+                maxWidth: "100vw",
+                maxHeight: isMobile ? "100vh" : "95vh",
+                width: isMobile ? "100%" : "min(1400px, 95vw)",
+                height: isMobile ? "100%" : "min(800px, 95vh)",
                 position: "relative",
                 overflow: "hidden",
                 display: "flex",
-                flexDirection: "row",
+                flexDirection: isMobile ? "column" : "row",
               }}
               onClick={(e) => {
                 e.stopPropagation();
                 closeModelDropdown();
               }}
             >
+              {/* Mobile Close Button */}
+              {isMobile && (
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  style={{
+                    position: "absolute",
+                    top: "16px",
+                    right: "16px",
+                    width: "40px",
+                    height: "40px",
+                    backgroundColor: "rgba(0, 0, 0, 0.7)",
+                    border: "none",
+                    borderRadius: "50%",
+                    color: "#FFFFFF",
+                    fontSize: "24px",
+                    cursor: "pointer",
+                    zIndex: 100,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  ×
+                </button>
+              )}
+
               {/* Left Panel - Visual Display (40% width) */}
               <div
                 style={{
-                  width: "40%",
-                  height: "100%",
+                  width: isMobile ? "100%" : "40%",
+                  height: isMobile ? "200px" : "100%",
                   backgroundColor: "#111827",
                   position: "relative",
                   display: "flex",
                   flexDirection: "column",
+                  order: isMobile ? -1 : 0,
                 }}
               >
                 {/* Generation Overlay */}
@@ -2232,14 +2271,15 @@ export default function CampaignsPage() {
               {/* Right Panel - Control Panel (60% width) */}
               <div
                 style={{
-                  width: "60%",
+                  width: isMobile ? "100%" : "60%",
                   height: "100%",
                   backgroundColor: "#454545",
-                  padding: "20px",
+                  padding: isMobile ? "16px" : "20px",
                   display: "flex",
                   flexDirection: "column",
                   overflowY: "auto",
                   boxSizing: "border-box",
+                  paddingTop: isMobile ? "60px" : "20px",
                 }}
               >
                 {/* Campaign Name Input */}
