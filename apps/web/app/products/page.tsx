@@ -109,6 +109,13 @@ export default function ProductsPage() {
       return;
     }
 
+    // Validate clothing type is selected
+    if (!newProduct.clothingType) {
+      alert("Please select a Product Type before uploading");
+      setIsUploading(false);
+      return;
+    }
+
     setIsUploading(true);
     try {
       const formData = new FormData();
@@ -118,6 +125,8 @@ export default function ProductsPage() {
       formData.append("clothing_type", newProduct.clothingType);
       formData.append("tags", selectedTags.join(","));
       formData.append("product_image", newProduct.image);
+      
+      console.log("📦 Uploading product with clothing_type:", newProduct.clothingType);
 
       // Add packshot files if provided
       if (newProduct.packshotFront) {
