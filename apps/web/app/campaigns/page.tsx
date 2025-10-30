@@ -356,7 +356,7 @@ export default function CampaignsPage() {
             clothing_type: product.clothing_type,
             clothingType: product.clothingType,
             category: product.category,
-            all_keys: Object.keys(product)
+            all_keys: Object.keys(product),
           });
         });
         setProducts(productsData);
