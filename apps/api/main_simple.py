@@ -2501,7 +2501,8 @@ def run_nano_banana_scene_composition(model_image_url: str, scene_image_url: str
 
 def run_qwen_packshot_front_back(
     product_image_url: str,
-    user_mods: str
+    user_mods: str,
+    clothing_type: str = ""
 ) -> List[str]:
     """Generate front and back packshots using Qwen"""
     try:
@@ -2527,7 +2528,8 @@ def run_qwen_packshot_front_back(
 
         # Step 2: Generate front packshot
         print("Generating front packshot...")
-        front_prompt = f"Ultra-clean studio packshot of the uploaded product, front view. Even softbox lighting on a white seamless background. Soft contact shadow. No props, no text, no watermark. Crisp edges, accurate colors. {user_mods}, product photography, professional lighting, studio setup, high quality, detailed"
+        clothing_type_instruction = f" Generate only the {clothing_type}, isolating it from any other clothing items in the image." if clothing_type else ""
+        front_prompt = f"Ultra-clean studio packshot of the uploaded product, front view. Even softbox lighting on a white seamless background. Soft contact shadow. No props, no text, no watermark. Crisp edges, accurate colors.{clothing_type_instruction} {user_mods}, product photography, professional lighting, studio setup, high quality, detailed"
         
         try:
             front_out = replicate.run("qwen/qwen-image-edit-plus", input={
@@ -2558,7 +2560,8 @@ def run_qwen_packshot_front_back(
 
         # Step 3: Generate back packshot
         print("Generating back packshot...")
-        back_prompt = f"Ultra-clean studio packshot of the uploaded product, back view. Even softbox lighting on a white seamless background. Soft contact shadow. No props, no text, no watermark. Crisp edges, accurate colors. {user_mods}, product photography, professional lighting, studio setup, high quality, detailed"
+        clothing_type_instruction = f" Generate only the {clothing_type}, isolating it from any other clothing items in the image." if clothing_type else ""
+        back_prompt = f"Ultra-clean studio packshot of the uploaded product, back view. Even softbox lighting on a white seamless background. Soft contact shadow. No props, no text, no watermark. Crisp edges, accurate colors.{clothing_type_instruction} {user_mods}, product photography, professional lighting, studio setup, high quality, detailed"
         
         try:
             back_out = replicate.run("qwen/qwen-image-edit-plus", input={
@@ -2602,6 +2605,7 @@ async def upload_product(
     name: str = Form(...),
     description: str = Form(""),
     category: str = Form(""),
+    clothing_type: str = Form(""),
     tags: str = Form(""),
     product_image: UploadFile = File(...),
     packshot_front: UploadFile = File(None),
@@ -2670,9 +2674,13 @@ async def upload_product(
         # Generate missing packshots using Replicate
         if not packshot_front_url or not packshot_back_url:
             print(f"Generating packshots for product: {name}")
+            # Include clothing_type in user_mods for packshot prompt
+            clothing_type_mod = f"isolate only the {clothing_type}" if clothing_type else ""
+            user_mods = f"professional product photography, clean background, studio lighting{', ' + clothing_type_mod if clothing_type_mod else ''}"
             generated_packshots = run_qwen_packshot_front_back(
                 product_image_url=image_url,
-                user_mods="professional product photography, clean background, studio lighting"
+                user_mods=user_mods,
+                clothing_type=clothing_type
             )
             
             if not packshot_front_url and len(generated_packshots) > 0:
@@ -2698,6 +2706,7 @@ async def upload_product(
             name=name,
             description=description,
             category=category,
+            clothing_type=clothing_type,
             tags=tags.split(",") if tags else [],
             image_url=image_url,
             packshot_front_url=packshot_front_url,
@@ -2793,9 +2802,13 @@ async def reroll_packshots(
         
         # Generate new packshots
         print(f"Re-generating packshots for product: {product.name}")
+        clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else ""
+        clothing_type_mod = f"isolate only the {clothing_type}" if clothing_type else ""
+        user_mods = f"professional product photography, clean background, studio lighting{', ' + clothing_type_mod if clothing_type_mod else ''}"
         new_packshots = run_qwen_packshot_front_back(
             product_image_url=product.image_url,
-            user_mods="professional product photography, clean background, studio lighting"
+            user_mods=user_mods,
+            clothing_type=clothing_type
         )
         
         # Update product with new packshots

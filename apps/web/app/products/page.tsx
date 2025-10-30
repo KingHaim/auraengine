@@ -28,6 +28,7 @@ export default function ProductsPage() {
     name: "",
     description: "",
     category: "",
+    clothingType: "",
     tags: "",
     image: null as File | null,
     packshotFront: null as File | null,
@@ -114,6 +115,7 @@ export default function ProductsPage() {
       formData.append("name", newProduct.name);
       formData.append("description", newProduct.description);
       formData.append("category", newProduct.category);
+      formData.append("clothing_type", newProduct.clothingType);
       formData.append("tags", selectedTags.join(","));
       formData.append("product_image", newProduct.image);
 
@@ -164,6 +166,7 @@ export default function ProductsPage() {
           name: "",
           description: "",
           category: "",
+          clothingType: "",
           tags: "",
           image: null,
           packshotFront: null,
@@ -781,6 +784,46 @@ export default function ProductsPage() {
                     {cat.label}
                   </option>
                 ))}
+              </select>
+            </div>
+
+            <div style={{ marginBottom: "16px" }}>
+              <label
+                style={{
+                  display: "block",
+                  color: "#374151",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  marginBottom: "8px",
+                }}
+              >
+                Product Type *
+              </label>
+              <select
+                value={newProduct.clothingType}
+                onChange={(e) =>
+                  setNewProduct({ ...newProduct, clothingType: e.target.value })
+                }
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  border: "1px solid #D1D5DB",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  backgroundColor: "#FFFFFF",
+                }}
+              >
+                <option value="">Select product type</option>
+                <option value="tshirt">T-Shirt</option>
+                <option value="sweater">Sweater</option>
+                <option value="hoodie">Hoodie</option>
+                <option value="jacket">Jacket</option>
+                <option value="pants">Pants</option>
+                <option value="shorts">Shorts</option>
+                <option value="dress">Dress</option>
+                <option value="shoes">Shoes</option>
+                <option value="accessories">Accessories</option>
+                <option value="other">Other</option>
               </select>
             </div>
 
