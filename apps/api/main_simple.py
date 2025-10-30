@@ -2171,12 +2171,14 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             is_bottom = clothing_type_lower in ["pants", "shorts", "skirt", "bottom"]
             is_top = clothing_type_lower in ["tshirt", "sweater", "hoodie", "jacket", "dress", "top", "shirt", "other"]
             
-            # Vella 1.5 API structure: it supports both top_image and bottom_image parameters
-            # However, if bottom_image doesn't work, we'll try garment_image as an alternative
+            # Vella 1.5 API: Based on API documentation, it may only support top_image and garment_image
+            # Let's try using garment_image for bottoms with category hint, or try bottom_image if supported
             if is_bottom:
-                # Try bottom_image first (standard Vella 1.5 parameter for bottoms)
-                vella_input["bottom_image"] = garment_url
-                print(f"👖 Using bottom_image parameter for {clothing_type}")
+                # Try garment_image with category parameter first (most likely to work)
+                vella_input["garment_image"] = garment_url
+                # Add category hint to help Vella understand it's a bottom garment
+                vella_input["garment_category"] = "bottom"
+                print(f"👖 Using garment_image with category='bottom' for {clothing_type}")
                 print(f"🔍 Bottom garment URL: {garment_url[:80]}...")
             elif is_top:
                 vella_input["top_image"] = garment_url
@@ -2213,13 +2215,13 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 except Exception as e:
                     print(f"⚠️ Vella attempt {attempt + 1} failed: {e}")
                     print(f"🔍 Error details: {type(e).__name__}: {str(e)}")
-                    # If bottom_image parameter was rejected, try garment_image as fallback
-                    if "bottom_image" in vella_input and ("not supported" in str(e).lower() or "invalid" in str(e).lower() or "unexpected" in str(e).lower()):
-                        print(f"🔄 bottom_image parameter rejected, trying garment_image fallback...")
-                        vella_input.pop("bottom_image", None)
-                        vella_input["garment_image"] = garment_url
-                        vella_input["garment_category"] = "bottom"
-                        print(f"👖 Retrying with garment_image and category 'bottom'")
+                    # If garment_image or garment_category was rejected, try top_image as last resort
+                    if "garment_image" in vella_input and ("not supported" in str(e).lower() or "invalid" in str(e).lower() or "unexpected" in str(e).lower()):
+                        print(f"🔄 garment_image parameter rejected, trying top_image fallback...")
+                        vella_input.pop("garment_image", None)
+                        vella_input.pop("garment_category", None)
+                        vella_input["top_image"] = garment_url
+                        print(f"⚠️ Retrying with top_image (may not work correctly for bottoms)")
                         continue  # Retry with new parameters
                     if attempt < max_retries - 1:
                         wait_time = (attempt + 1) * 10  # Exponential backoff: 10s, 20s, 30s
