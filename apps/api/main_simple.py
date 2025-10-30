@@ -2158,18 +2158,9 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             # However, if bottom_image doesn't work, we'll try garment_image as an alternative
             if is_bottom:
                 # Try bottom_image first (standard Vella 1.5 parameter for bottoms)
-                # If this doesn't work in practice, we may need to check Vella API documentation
-                # or use garment_image as an alternative
-                try:
-                    vella_input["bottom_image"] = garment_url
-                    print(f"👖 Using bottom_image parameter for {clothing_type}")
-                except Exception as e:
-                    # Fallback: try garment_image if bottom_image isn't supported
-                    print(f"⚠️ bottom_image not accepted, trying garment_image: {e}")
-                    vella_input.pop("bottom_image", None)
-                    vella_input["garment_image"] = garment_url
-                    vella_input["garment_category"] = "bottom"
-                    print(f"👖 Using garment_image with category 'bottom' for {clothing_type}")
+                vella_input["bottom_image"] = garment_url
+                print(f"👖 Using bottom_image parameter for {clothing_type}")
+                print(f"🔍 Bottom garment URL: {garment_url[:80]}...")
             elif is_top:
                 vella_input["top_image"] = garment_url
                 print(f"👕 Using top_image parameter for {clothing_type}")
@@ -2194,6 +2185,8 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             for attempt in range(max_retries):
                 try:
                     print(f"🎭 Vella attempt {attempt + 1}/{max_retries}...")
+                    print(f"🔍 Vella input keys before API call: {list(vella_input.keys())}")
+                    print(f"🔍 Vella input values (truncated): model_image={str(vella_input.get('model_image', ''))[:50]}..., garment_key={'bottom_image' if 'bottom_image' in vella_input else 'top_image' if 'top_image' in vella_input else 'unknown'}")
                     out = replicate.run("omnious/vella-1.5", input=vella_input)
                     print(f"✅ Vella API call succeeded on attempt {attempt + 1}!")
                     print(f"🎭 Vella API response type: {type(out)}")
@@ -2202,6 +2195,15 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                     break  # Success, exit retry loop
                 except Exception as e:
                     print(f"⚠️ Vella attempt {attempt + 1} failed: {e}")
+                    print(f"🔍 Error details: {type(e).__name__}: {str(e)}")
+                    # If bottom_image parameter was rejected, try garment_image as fallback
+                    if "bottom_image" in vella_input and ("not supported" in str(e).lower() or "invalid" in str(e).lower() or "unexpected" in str(e).lower()):
+                        print(f"🔄 bottom_image parameter rejected, trying garment_image fallback...")
+                        vella_input.pop("bottom_image", None)
+                        vella_input["garment_image"] = garment_url
+                        vella_input["garment_category"] = "bottom"
+                        print(f"👖 Retrying with garment_image and category 'bottom'")
+                        continue  # Retry with new parameters
                     if attempt < max_retries - 1:
                         wait_time = (attempt + 1) * 10  # Exponential backoff: 10s, 20s, 30s
                         print(f"⏳ Waiting {wait_time}s before retry...")
