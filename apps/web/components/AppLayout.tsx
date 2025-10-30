@@ -379,8 +379,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
           }}
         >
           <img
-            src="/heart.png"
-            alt="Beating Heart Logo"
+            src="/logo.png"
+            alt="Logo"
             style={{
               width: isMobile ? "120px" : "180px",
               height: isMobile ? "120px" : "180px",

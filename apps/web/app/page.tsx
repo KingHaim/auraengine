@@ -93,7 +93,7 @@ export default function Home() {
           }}
         >
           <img
-            src="/heart.png"
+            src="/logo.png"
             alt="Beating Heart Logo"
             style={{
               width: "40px",
@@ -145,7 +145,7 @@ export default function Home() {
           }}
         >
           <img
-            src="/heart.png"
+            src="/logo.png"
             alt="Beating Heart Logo"
             style={{
               width: "180px",
@@ -440,22 +440,16 @@ export default function Home() {
               textAlign: "center",
             }}
           >
-            <div
+            <img
+              src="/heart.png"
+              alt="Beating Heart Logo"
               style={{
                 width: "80px",
                 height: "80px",
-                borderRadius: "50%",
-                backgroundColor: "rgba(139, 92, 246, 0.1)",
-                border: "2px solid rgba(139, 92, 246, 0.2)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                objectFit: "contain",
                 marginBottom: "24px",
-                fontSize: "32px",
               }}
-            >
-              ✶
-            </div>
+            />
             <h1
               style={{
                 fontSize: "32px",
