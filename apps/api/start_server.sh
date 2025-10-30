@@ -1,7 +1,7 @@
 #!/bin/bash
-# Start the stable Aura Engine API server
+# Start the API server
 
-echo "🚀 Starting Aura Engine API Server..."
+echo "🚀 Starting API Server..."
 
 # Kill any existing uvicorn processes
 pkill -f uvicorn

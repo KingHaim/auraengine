@@ -3,7 +3,7 @@
 # Railway Database Setup Script
 # This script will create all required database tables
 
-echo "🚀 Aura Engine Database Setup"
+echo "🚀 Database Setup"
 echo "=============================="
 
 # Check if railway CLI is available

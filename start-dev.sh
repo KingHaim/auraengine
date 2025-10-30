@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Aura Engine Development Startup Script
+# Development Startup Script
 
-echo "🚀 Starting Aura Engine Development Environment..."
+echo "🚀 Starting Development Environment..."
 
 # Check if Node.js is installed
 if ! command -v node &> /dev/null; then
@@ -54,7 +54,7 @@ cd /Users/haimganancia/Desktop/auraengine/apps/web && npm run dev &
 FRONTEND_PID=$!
 
 echo ""
-echo "🎉 Aura Engine is running!"
+echo "🎉 App is running!"
 echo "   Frontend: http://localhost:3000"
 echo "   Backend:  http://localhost:8000"
 echo ""

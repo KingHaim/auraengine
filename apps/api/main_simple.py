@@ -163,7 +163,7 @@ class PaymentConfirmRequest(BaseModel):
     payment_intent_id: str
 
 # Initialize FastAPI app
-app = FastAPI(title="Aura Engine API", version="1.0.0")
+app = FastAPI(title="Aura API", version="1.0.0")
 
 # Create database tables on startup
 @app.on_event("startup")
@@ -210,11 +210,11 @@ def get_db():
 # ---------- API Endpoints ----------
 @app.get("/")
 async def root():
-    return {"message": "Aura Engine API"}
+    return {"message": "Aura API"}
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy", "message": "Aura Engine API is running"}
+    return {"status": "healthy", "message": "Aura API is running"}
 
 # Simple test endpoint
 @app.get("/test")

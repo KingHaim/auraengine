@@ -3,7 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "../contexts/AuthContext";
 
 export const metadata: Metadata = {
-  title: "Aura Engine - AI Mockup Generator",
+  title: "Aura - AI Mockup Generator",
   description:
     "AI-powered creative tool for designers and product creators - Mobile Optimized",
   icons: {

@@ -1,4 +1,4 @@
-# 🚀 Aura Engine Deployment Guide
+# 🚀 Aura Deployment Guide
 
 ## Option 1: Cloud Deployment (Recommended)
 
@@ -7,7 +7,7 @@
 1. Go to [railway.app](https://railway.app)
 2. Sign up/login with GitHub
 3. Click "New Project" → "Deploy from GitHub repo"
-4. Select your `auraengine` repository
+4. Select your repository
 5. Railway will detect `railway.json` and use Dockerfile
 6. Add PostgreSQL database:
    - Click "New" → "Database" → "Add PostgreSQL"
@@ -18,14 +18,14 @@
    - `STRIPE_PUBLISHABLE_KEY` = Your Stripe publishable key
    - `STRIPE_SECRET_KEY` = Your Stripe secret key
 8. Click "Deploy"
-9. Copy your Railway backend URL (e.g., `https://auraengine-production.up.railway.app`)
+9. Copy your Railway backend URL
 
 ### Frontend (Vercel)
 
 1. Go to [vercel.com](https://vercel.com)
 2. Sign up/login with GitHub
 3. Click "New Project"
-4. Import your `auraengine` repository
+4. Import your repository
 5. Set root directory to `apps/web`
 6. Set environment variables:
    - `NEXT_PUBLIC_API_URL` = `https://your-railway-backend-url.railway.app` (from step 9 above)

@@ -18,7 +18,7 @@ All necessary files have been configured:
 
 1. **Go to Railway**: https://railway.app
 2. **New Project** → "Deploy from GitHub repo"
-3. **Select**: `auraengine` repository
+3. **Select**: your repository
 4. **Add PostgreSQL**:
    - Click "New" → "Database" → "Add PostgreSQL"
    - Railway auto-sets `DATABASE_URL`
@@ -30,12 +30,12 @@ All necessary files have been configured:
    STRIPE_SECRET_KEY=your_stripe_secret_key_here
    ```
 6. **Deploy** and wait for build
-7. **Copy Backend URL**: e.g., `https://auraengine-production.up.railway.app`
+7. **Copy Backend URL**
 
 ### Step 2: Frontend on Vercel (5 min)
 
 1. **Go to Vercel**: https://vercel.com
-2. **New Project** → Import `auraengine`
+2. **New Project** → Import your repository
 3. **Root Directory**: `apps/web`
 4. **Framework Preset**: Next.js (auto-detected)
 5. **Set Environment Variables**:
@@ -96,7 +96,7 @@ All necessary files have been configured:
 
 ## 🎉 You're Done!
 
-Your Aura Engine is now live! 🚀
+Your app is now live! 🚀
 
 **Next Steps**:
 

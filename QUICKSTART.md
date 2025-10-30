@@ -1,4 +1,4 @@
-# 🚀 Aura Engine - Quick Start Guide
+# 🚀 Aura - Quick Start Guide
 
 ## What You've Built
 

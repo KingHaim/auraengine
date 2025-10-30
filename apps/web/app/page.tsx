@@ -94,7 +94,7 @@ export default function Home() {
         >
           <img
             src="/logo.png"
-            alt="Aura Engine Logo"
+            alt="Aura Logo"
             style={{
               width: "40px",
               height: "40px",
@@ -146,7 +146,7 @@ export default function Home() {
         >
           <img
             src="/logo.png"
-            alt="Aura Engine Logo"
+            alt="Aura Logo"
             style={{
               width: "180px",
               height: "180px",
@@ -465,7 +465,7 @@ export default function Home() {
                 lineHeight: "1.2",
               }}
             >
-              Welcome to Aura Engine
+              Welcome to Aura
             </h1>
             <p
               style={{
