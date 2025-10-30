@@ -17,7 +17,10 @@ interface Product {
   description?: string;
   image_url: string;
   packshots: string[];
+  packshot_front_url?: string;
+  packshot_back_url?: string;
   category?: string;
+  clothing_type?: string;  // Important: clothing_type field
   tags: string[];
   created_at: string;
   updated_at?: string;
@@ -832,19 +835,28 @@ export default function CampaignsPage() {
       return;
     }
 
-    // Get clothing_type from product, with fallback detection from product name
-    let clothingType = (product as any).clothing_type || "";
+    // Get clothing_type from product - check both snake_case and camelCase
+    let clothingType = product.clothing_type || (product as any).clothingType || "";
+    
+    console.log("🔍 Raw clothing_type from product:", product.clothing_type);
+    console.log("🔍 Raw clothingType from product:", (product as any).clothingType);
     
     // If clothing_type is missing or wrong, try to detect from product name
     if (!clothingType || clothingType === "top") {
       const productNameLower = (product.name || "").toLowerCase();
-      if (productNameLower.includes("pant") || productNameLower.includes("bottom")) {
+      if (
+        productNameLower.includes("pant") ||
+        productNameLower.includes("bottom")
+      ) {
         clothingType = "pants";
       } else if (productNameLower.includes("short")) {
         clothingType = "shorts";
       } else if (productNameLower.includes("skirt")) {
         clothingType = "skirt";
-      } else if (productNameLower.includes("shirt") || productNameLower.includes("tshirt")) {
+      } else if (
+        productNameLower.includes("shirt") ||
+        productNameLower.includes("tshirt")
+      ) {
         clothingType = "tshirt";
       } else if (productNameLower.includes("sweater")) {
         clothingType = "sweater";
@@ -854,8 +866,13 @@ export default function CampaignsPage() {
         clothingType = "top"; // Default fallback
       }
     }
-    
-    console.log("👕 Adding product to image - Product:", product.name, "Clothing Type:", clothingType);
+
+    console.log(
+      "👕 Adding product to image - Product:",
+      product.name,
+      "Clothing Type:",
+      clothingType
+    );
     console.log("🔍 Product data:", product);
 
     setAddingProductToImage(true);
