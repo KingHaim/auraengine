@@ -832,13 +832,31 @@ export default function CampaignsPage() {
       return;
     }
 
-    const clothingType = (product as any).clothing_type || "top";
-    console.log(
-      "👕 Adding product to image - Product:",
-      product.name,
-      "Clothing Type:",
-      clothingType
-    );
+    // Get clothing_type from product, with fallback detection from product name
+    let clothingType = (product as any).clothing_type || "";
+    
+    // If clothing_type is missing or wrong, try to detect from product name
+    if (!clothingType || clothingType === "top") {
+      const productNameLower = (product.name || "").toLowerCase();
+      if (productNameLower.includes("pant") || productNameLower.includes("bottom")) {
+        clothingType = "pants";
+      } else if (productNameLower.includes("short")) {
+        clothingType = "shorts";
+      } else if (productNameLower.includes("skirt")) {
+        clothingType = "skirt";
+      } else if (productNameLower.includes("shirt") || productNameLower.includes("tshirt")) {
+        clothingType = "tshirt";
+      } else if (productNameLower.includes("sweater")) {
+        clothingType = "sweater";
+      } else if (productNameLower.includes("jacket")) {
+        clothingType = "jacket";
+      } else if (!clothingType) {
+        clothingType = "top"; // Default fallback
+      }
+    }
+    
+    console.log("👕 Adding product to image - Product:", product.name, "Clothing Type:", clothingType);
+    console.log("🔍 Product data:", product);
 
     setAddingProductToImage(true);
     setShowProductSelectionModal(false);
