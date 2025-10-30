@@ -226,6 +226,9 @@ export default function CampaignsPage() {
   const [tweaking, setTweaking] = useState(false);
   const [currentImageForTweak, setCurrentImageForTweak] = useState<string>("");
   const [reapplyingClothes, setReapplyingClothes] = useState(false);
+  const [addingProductToImage, setAddingProductToImage] = useState(false);
+  const [selectedProductForImage, setSelectedProductForImage] = useState<string | null>(null);
+  const [productSelectionMode, setProductSelectionMode] = useState<"campaign" | "image">("campaign");
   const [currentImageMetadata, setCurrentImageMetadata] = useState<any>(null);
   const [selectedImagesForVideo, setSelectedImagesForVideo] = useState<
     Set<number>
@@ -804,6 +807,75 @@ export default function CampaignsPage() {
       alert("❌ Failed to reapply clothes. Please try again.");
     } finally {
       setReapplyingClothes(false);
+    }
+  };
+
+  const addProductToImage = async (productId: string) => {
+    if (!token) {
+      alert("Please log in to add products");
+      return;
+    }
+
+    if (!productId) {
+      alert("❌ Please select a product");
+      return;
+    }
+
+    // Get product to find clothing_type
+    const product = products.find((p) => p.id === productId);
+    if (!product) {
+      alert("❌ Product not found");
+      return;
+    }
+
+    const clothingType = (product as any).clothing_type || "top";
+
+    setAddingProductToImage(true);
+    setShowProductSelectionModal(false);
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/reapply-clothes`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            image_url: currentImageForTweak,
+            product_id: productId,
+            clothing_type: clothingType,
+            campaign_id: selectedCampaignForProfile?.id || null,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // Update the enlarged image with the new result immediately
+        setEnlargedImageUrl(data.reapplied_url);
+        setCurrentImageForTweak(data.reapplied_url);
+
+        // Refresh campaign data to show updated image in the grid
+        await fetchData();
+
+        // Show success message after refresh
+        alert(
+          `✅ Successfully added ${data.product_name} to the image!\n\nThe image has been updated.`
+        );
+      } else {
+        const error = await response.json();
+        alert(`❌ Failed to add product: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error("Error adding product to image:", error);
+      alert("❌ Failed to add product. Please try again.");
+    } finally {
+      setAddingProductToImage(false);
+      setSelectedProductForImage(null);
+      setProductSelectionMode("campaign");
     }
   };
 
@@ -2981,22 +3053,33 @@ export default function CampaignsPage() {
                         {product.packshots.length} packshots
                       </div>
                     </div>
-                    <input
-                      type="checkbox"
-                      checked={selectedProducts.includes(product.id)}
-                      onChange={() => {}}
-                      style={{
-                        width: "20px",
-                        height: "20px",
-                        accentColor: "#d42f48",
-                      }}
-                    />
+                    {productSelectionMode === "campaign" && (
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.includes(product.id)}
+                        onChange={() => {}}
+                        style={{
+                          width: "20px",
+                          height: "20px",
+                          accentColor: "#d42f48",
+                        }}
+                      />
+                    )}
+                    {productSelectionMode === "image" && selectedProductForImage === product.id && (
+                      <div style={{ color: "#d42f48", fontSize: "20px" }}>✓</div>
+                    )}
                   </div>
                 ))}
               </div>
 
               <button
-                onClick={() => setShowProductSelectionModal(false)}
+                onClick={() => {
+                  setShowProductSelectionModal(false);
+                  if (productSelectionMode === "image") {
+                    setSelectedProductForImage(null);
+                    setProductSelectionMode("campaign");
+                  }
+                }}
                 style={{
                   width: "100%",
                   padding: "12px",
@@ -5543,45 +5626,47 @@ export default function CampaignsPage() {
                   ✨ Tweak Image
                 </button>
 
-                {/* Reapply Clothes Button - Always show, will use campaign product_id if needed */}
-                {
-                  <button
-                    onClick={reapplyClothes}
-                    disabled={reapplyingClothes}
-                    style={{
-                      padding: "12px 16px",
-                      backgroundColor: reapplyingClothes
-                        ? "#6B7280"
-                        : "#F59E0B",
-                      border: "none",
-                      borderRadius: "8px",
-                      color: "#FFFFFF",
-                      fontSize: "14px",
-                      fontWeight: "600",
-                      cursor: reapplyingClothes ? "not-allowed" : "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "8px",
-                      transition: "all 0.2s ease",
-                      opacity: reapplyingClothes ? 0.6 : 1,
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!reapplyingClothes) {
-                        e.currentTarget.style.backgroundColor = "#D97706";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!reapplyingClothes) {
-                        e.currentTarget.style.backgroundColor = "#F59E0B";
-                      }
-                    }}
-                  >
-                    {reapplyingClothes
-                      ? "👔 Reapplying..."
-                      : "👔 Reapply Clothes"}
-                  </button>
-                }
+                {/* Add Product Button - Opens product selection to add product to existing image */}
+                <button
+                  onClick={() => {
+                    setProductSelectionMode("image");
+                    setSelectedProductForImage(null);
+                    setShowProductSelectionModal(true);
+                  }}
+                  disabled={addingProductToImage}
+                  style={{
+                    padding: "12px 16px",
+                    backgroundColor: addingProductToImage
+                      ? "#6B7280"
+                      : "#F59E0B",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#FFFFFF",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    cursor: addingProductToImage ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    transition: "all 0.2s ease",
+                    opacity: addingProductToImage ? 0.6 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!addingProductToImage) {
+                      e.currentTarget.style.backgroundColor = "#D97706";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!addingProductToImage) {
+                      e.currentTarget.style.backgroundColor = "#F59E0B";
+                    }
+                  }}
+                >
+                  {addingProductToImage
+                    ? "👔 Adding Product..."
+                    : "➕ Add Product"}
+                </button>
 
                 {/* Info Section */}
                 <div
@@ -5613,21 +5698,19 @@ export default function CampaignsPage() {
                     <strong style={{ color: "#FFFFFF" }}>Tweak:</strong>{" "}
                     AI-powered image editing with custom prompts
                   </p>
-                  {currentImageMetadata?.product_id && (
-                    <p
-                      style={{
-                        color: "#9CA3AF",
-                        fontSize: "12px",
-                        margin: "8px 0 0 0",
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      <strong style={{ color: "#FFFFFF" }}>
-                        Reapply Clothes:
-                      </strong>{" "}
-                      Re-run virtual try-on with the same product
-                    </p>
-                  )}
+                  <p
+                    style={{
+                      color: "#9CA3AF",
+                      fontSize: "12px",
+                      margin: "8px 0 0 0",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    <strong style={{ color: "#FFFFFF" }}>
+                      Add Product:
+                    </strong>{" "}
+                    Add another product onto this image
+                  </p>
                 </div>
               </div>
             </div>
