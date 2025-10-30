@@ -227,8 +227,12 @@ export default function CampaignsPage() {
   const [currentImageForTweak, setCurrentImageForTweak] = useState<string>("");
   const [reapplyingClothes, setReapplyingClothes] = useState(false);
   const [addingProductToImage, setAddingProductToImage] = useState(false);
-  const [selectedProductForImage, setSelectedProductForImage] = useState<string | null>(null);
-  const [productSelectionMode, setProductSelectionMode] = useState<"campaign" | "image">("campaign");
+  const [selectedProductForImage, setSelectedProductForImage] = useState<
+    string | null
+  >(null);
+  const [productSelectionMode, setProductSelectionMode] = useState<
+    "campaign" | "image"
+  >("campaign");
   const [currentImageMetadata, setCurrentImageMetadata] = useState<any>(null);
   const [selectedImagesForVideo, setSelectedImagesForVideo] = useState<
     Set<number>
@@ -2993,7 +2997,7 @@ export default function CampaignsPage() {
                   textAlign: "center",
                 }}
               >
-                Select Products
+                {productSelectionMode === "image" ? "Add Product to Image" : "Select Products"}
               </h3>
 
               <div
@@ -3065,9 +3069,12 @@ export default function CampaignsPage() {
                         }}
                       />
                     )}
-                    {productSelectionMode === "image" && selectedProductForImage === product.id && (
-                      <div style={{ color: "#d42f48", fontSize: "20px" }}>✓</div>
-                    )}
+                    {productSelectionMode === "image" &&
+                      selectedProductForImage === product.id && (
+                        <div style={{ color: "#d42f48", fontSize: "20px" }}>
+                          ✓
+                        </div>
+                      )}
                   </div>
                 ))}
               </div>
@@ -5706,9 +5713,7 @@ export default function CampaignsPage() {
                       lineHeight: 1.5,
                     }}
                   >
-                    <strong style={{ color: "#FFFFFF" }}>
-                      Add Product:
-                    </strong>{" "}
+                    <strong style={{ color: "#FFFFFF" }}>Add Product:</strong>{" "}
                     Add another product onto this image
                   </p>
                 </div>
