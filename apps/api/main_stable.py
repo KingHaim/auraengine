@@ -30,10 +30,24 @@ app = FastAPI(title="Aura API", version="1.0.0")
 async def startup_event():
     create_tables()
 
-# CORS middleware
+# CORS middleware - When allow_credentials=True, we must explicitly list origins
+import os
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
+allowed_origins = (
+    allowed_origins_env.split(",") if allowed_origins_env 
+    else [
+        "https://www.beatingheart.ai",
+        "https://beatingheart.ai",
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+    ]
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
