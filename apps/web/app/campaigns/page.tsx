@@ -2622,7 +2622,10 @@ export default function CampaignsPage() {
                               border: "2px solid #d42f48",
                               position: "relative",
                             }}
-                            onClick={() => setShowProductSelectionModal(true)}
+                            onClick={() => {
+                              setProductSelectionMode("campaign");
+                              setShowProductSelectionModal(true);
+                            }}
                           >
                             <div
                               style={{
@@ -2997,7 +3000,9 @@ export default function CampaignsPage() {
                   textAlign: "center",
                 }}
               >
-                {productSelectionMode === "image" ? "Add Product to Image" : "Select Products"}
+                {productSelectionMode === "image"
+                  ? "Add Product to Image"
+                  : "Select Products"}
               </h3>
 
               <div
