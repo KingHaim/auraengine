@@ -3015,18 +3015,34 @@ export default function CampaignsPage() {
                 {products.map((product) => (
                   <div
                     key={product.id}
-                    onClick={() => toggleSelection(product.id, "products")}
+                    onClick={() => {
+                      if (productSelectionMode === "image") {
+                        // Just select the product, don't apply yet
+                        setSelectedProductForImage(product.id);
+                      } else {
+                        // Campaign mode - toggle selection
+                        toggleSelection(product.id, "products");
+                      }
+                    }}
                     style={{
                       display: "flex",
                       alignItems: "center",
                       gap: "12px",
                       padding: "12px",
-                      backgroundColor: selectedProducts.includes(product.id)
+                      backgroundColor: productSelectionMode === "image"
+                        ? selectedProductForImage === product.id
+                          ? "#374151"
+                          : "#4B5563"
+                        : selectedProducts.includes(product.id)
                         ? "#374151"
                         : "#4B5563",
                       borderRadius: "8px",
                       cursor: "pointer",
-                      border: selectedProducts.includes(product.id)
+                      border: productSelectionMode === "image"
+                        ? selectedProductForImage === product.id
+                          ? "2px solid #d42f48"
+                          : "1px solid #6B7280"
+                        : selectedProducts.includes(product.id)
                         ? "2px solid #d42f48"
                         : "1px solid #6B7280",
                       transition: "all 0.2s",
@@ -3084,6 +3100,31 @@ export default function CampaignsPage() {
                 ))}
               </div>
 
+              {productSelectionMode === "image" && selectedProductForImage && (
+                <button
+                  onClick={() => {
+                    if (selectedProductForImage) {
+                      addProductToImage(selectedProductForImage);
+                    }
+                  }}
+                  disabled={addingProductToImage}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    backgroundColor: addingProductToImage ? "#6B7280" : "#F59E0B",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#FFFFFF",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    cursor: addingProductToImage ? "not-allowed" : "pointer",
+                    marginTop: "20px",
+                    opacity: addingProductToImage ? 0.6 : 1,
+                  }}
+                >
+                  {addingProductToImage ? "Adding Product..." : "➕ Add Product to Image"}
+                </button>
+              )}
               <button
                 onClick={() => {
                   setShowProductSelectionModal(false);
@@ -3102,10 +3143,10 @@ export default function CampaignsPage() {
                   fontSize: "14px",
                   fontWeight: "500",
                   cursor: "pointer",
-                  marginTop: "20px",
+                  marginTop: productSelectionMode === "image" && selectedProductForImage ? "12px" : "20px",
                 }}
               >
-                Close
+                {productSelectionMode === "image" ? "Cancel" : "Close"}
               </button>
             </div>
           </div>
