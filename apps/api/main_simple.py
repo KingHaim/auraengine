@@ -2154,14 +2154,22 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             is_bottom = clothing_type_lower in ["pants", "shorts", "skirt", "bottom"]
             is_top = clothing_type_lower in ["tshirt", "sweater", "hoodie", "jacket", "dress", "top", "shirt", "other"]
             
-            # Vella 1.5 might support both top_image and bottom_image, but if not, 
-            # try using garment_category parameter or use garment_image for bottoms
+            # Vella 1.5 API structure: it supports both top_image and bottom_image parameters
+            # However, if bottom_image doesn't work, we'll try garment_image as an alternative
             if is_bottom:
-                # Try bottom_image first, fallback to garment_image if not supported
-                vella_input["bottom_image"] = garment_url
-                # Also try garment_image as fallback - some Vella versions use this
-                # vella_input["garment_image"] = garment_url
-                print(f"👖 Using bottom_image parameter for {clothing_type}")
+                # Try bottom_image first (standard Vella 1.5 parameter for bottoms)
+                # If this doesn't work in practice, we may need to check Vella API documentation
+                # or use garment_image as an alternative
+                try:
+                    vella_input["bottom_image"] = garment_url
+                    print(f"👖 Using bottom_image parameter for {clothing_type}")
+                except Exception as e:
+                    # Fallback: try garment_image if bottom_image isn't supported
+                    print(f"⚠️ bottom_image not accepted, trying garment_image: {e}")
+                    vella_input.pop("bottom_image", None)
+                    vella_input["garment_image"] = garment_url
+                    vella_input["garment_category"] = "bottom"
+                    print(f"👖 Using garment_image with category 'bottom' for {clothing_type}")
             elif is_top:
                 vella_input["top_image"] = garment_url
                 print(f"👕 Using top_image parameter for {clothing_type}")
