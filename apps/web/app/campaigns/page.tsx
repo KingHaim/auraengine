@@ -20,7 +20,7 @@ interface Product {
   packshot_front_url?: string;
   packshot_back_url?: string;
   category?: string;
-  clothing_type?: string;  // Important: clothing_type field
+  clothing_type?: string; // Important: clothing_type field
   tags: string[];
   created_at: string;
   updated_at?: string;
@@ -349,6 +349,16 @@ export default function CampaignsPage() {
       if (productsRes.ok) {
         const productsData = await productsRes.json();
         console.log("Products data:", productsData);
+        // Log detailed product info, especially clothing_type
+        productsData.forEach((product: any) => {
+          console.log(`🔍 Product "${product.name}":`, {
+            id: product.id,
+            clothing_type: product.clothing_type,
+            clothingType: product.clothingType,
+            category: product.category,
+            all_keys: Object.keys(product)
+          });
+        });
         setProducts(productsData);
       } else {
         console.error(
@@ -836,11 +846,15 @@ export default function CampaignsPage() {
     }
 
     // Get clothing_type from product - check both snake_case and camelCase
-    let clothingType = product.clothing_type || (product as any).clothingType || "";
-    
+    let clothingType =
+      product.clothing_type || (product as any).clothingType || "";
+
     console.log("🔍 Raw clothing_type from product:", product.clothing_type);
-    console.log("🔍 Raw clothingType from product:", (product as any).clothingType);
-    
+    console.log(
+      "🔍 Raw clothingType from product:",
+      (product as any).clothingType
+    );
+
     // If clothing_type is missing or wrong, try to detect from product name
     if (!clothingType || clothingType === "top") {
       const productNameLower = (product.name || "").toLowerCase();
