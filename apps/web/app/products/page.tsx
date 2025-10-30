@@ -206,8 +206,8 @@ export default function ProductsPage() {
     setNewProduct({
       name: product.name,
       description: product.description || "",
-      category: product.category || "",
-      clothingType: product.clothing_type || "",
+      category: product.clothing_type || product.category || "", // Prefer clothing_type, fallback to category
+      clothingType: product.clothing_type || product.category || "", // Prefer clothing_type, fallback to category
       tags: "",
       image: null,
       packshotFront: null,
@@ -763,41 +763,6 @@ export default function ProductsPage() {
                 }}
                 placeholder="Enter product description"
               />
-            </div>
-
-            <div style={{ marginBottom: "16px" }}>
-              <label
-                style={{
-                  display: "block",
-                  color: "#374151",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  marginBottom: "8px",
-                }}
-              >
-                Category *
-              </label>
-              <select
-                value={newProduct.category}
-                onChange={(e) =>
-                  setNewProduct({ ...newProduct, category: e.target.value })
-                }
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  border: "1px solid #D1D5DB",
-                  borderRadius: "8px",
-                  fontSize: "14px",
-                  backgroundColor: "#FFFFFF",
-                }}
-              >
-                <option value="">Select a category</option>
-                {categories?.categories?.map((cat: any) => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <div style={{ marginBottom: "16px" }}>
