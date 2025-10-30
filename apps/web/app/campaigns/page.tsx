@@ -845,15 +845,17 @@ export default function CampaignsPage() {
       return;
     }
 
-    // Get clothing_type from product - check both snake_case and camelCase
+    // Get clothing_type from product - check both snake_case and camelCase, and category as fallback
+    // API returns clothing_type as null but category has the correct value ("pants", "tshirt", etc.)
     let clothingType =
-      product.clothing_type || (product as any).clothingType || "";
+      product.clothing_type || (product as any).clothingType || product.category || "";
 
     console.log("🔍 Raw clothing_type from product:", product.clothing_type);
     console.log(
       "🔍 Raw clothingType from product:",
       (product as any).clothingType
     );
+    console.log("🔍 Raw category from product (using as fallback):", product.category);
 
     // If clothing_type is missing or wrong, try to detect from product name
     if (!clothingType || clothingType === "top") {
