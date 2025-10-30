@@ -1463,12 +1463,12 @@ export default function ProductsPage() {
                   marginBottom: "8px",
                 }}
               >
-                Category *
+                Product Type *
               </label>
               <select
-                value={newProduct.category}
+                value={newProduct.clothingType}
                 onChange={(e) =>
-                  setNewProduct({ ...newProduct, category: e.target.value })
+                  setNewProduct({ ...newProduct, clothingType: e.target.value, category: e.target.value })
                 }
                 style={{
                   width: "100%",
@@ -1479,12 +1479,17 @@ export default function ProductsPage() {
                   backgroundColor: "white",
                 }}
               >
-                <option value="">Select a category</option>
-                {categories?.categories?.map((cat: any) => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </option>
-                ))}
+                <option value="">Select product type</option>
+                <option value="tshirt">T-Shirt</option>
+                <option value="sweater">Sweater</option>
+                <option value="hoodie">Hoodie</option>
+                <option value="jacket">Jacket</option>
+                <option value="pants">Pants</option>
+                <option value="shorts">Shorts</option>
+                <option value="dress">Dress</option>
+                <option value="shoes">Shoes</option>
+                <option value="accessories">Accessories</option>
+                <option value="other">Other</option>
               </select>
             </div>
 
