@@ -264,7 +264,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         fontFamily:
           "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
         minHeight: "100vh",
-        paddingLeft: isMobile ? "0px" : `${SIDEBAR_WIDTH}px`,
+        paddingLeft: (!user || isMobile) ? "0px" : `${SIDEBAR_WIDTH}px`,
         position: "relative",
         zIndex: 1,
         width: "100%",
@@ -272,36 +272,37 @@ export default function AppLayout({ children }: AppLayoutProps) {
       }}
     >
       {/* Mobile Header */}
-      <div
-        className="mobile-header"
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "50px",
-          backgroundColor: "#090a0c",
-          borderBottom: "1px solid #1F2630",
-          display: isMobile ? "flex" : "none",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 12px",
-          zIndex: 1000,
-        }}
-      >
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
+      {user && (
+        <div
+          className="mobile-header"
           style={{
-            backgroundColor: "transparent",
-            border: "none",
-            color: "#E6E8EB",
-            fontSize: "20px",
-            cursor: "pointer",
-            padding: "8px",
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "50px",
+            backgroundColor: "#090a0c",
+            borderBottom: "1px solid #1F2630",
+            display: isMobile ? "flex" : "none",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 12px",
+            zIndex: 1000,
           }}
         >
-          ☰
-        </button>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            style={{
+              backgroundColor: "transparent",
+              border: "none",
+              color: "#E6E8EB",
+              fontSize: "20px",
+              cursor: "pointer",
+              padding: "8px",
+            }}
+          >
+            ☰
+          </button>
         <img
           src="/heart.png"
           alt="Logo"
@@ -311,11 +312,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
             objectFit: "contain",
           }}
         />
-        <div style={{ width: "40px" }} /> {/* Spacer for alignment */}
-      </div>
+          <div style={{ width: "40px" }} /> {/* Spacer for alignment */}
+        </div>
+      )}
 
       {/* Mobile Overlay */}
-      {isMobile && sidebarOpen && (
+      {user && isMobile && sidebarOpen && (
         <div
           style={{
             position: "fixed",
@@ -331,27 +333,28 @@ export default function AppLayout({ children }: AppLayoutProps) {
       )}
 
       {/* Sidebar */}
-      <div
-        style={{
-          width: isMobile ? `${MOBILE_SIDEBAR_WIDTH}px` : `${SIDEBAR_WIDTH}px`,
-          background:
-            "linear-gradient(180deg, #090a0c 0%, #090a0c 60%, #1a1a1a 80%, #8b1a2a 100%)",
-          borderRight: "1px solid #1F2630",
-          padding: isMobile ? "20px 12px" : "32px 12px",
-          display: "flex",
-          flexDirection: "column",
-          position: "fixed",
-          top: isMobile ? "50px" : "0",
-          left: isMobile
-            ? sidebarOpen
-              ? "0"
-              : `-${MOBILE_SIDEBAR_WIDTH}px`
-            : "0",
-          height: isMobile ? "calc(100vh - 50px)" : "100vh",
-          zIndex: isMobile ? 1000 : 0,
-          transition: "left 0.3s ease",
-        }}
-      >
+      {user && (
+        <div
+          style={{
+            width: isMobile ? `${MOBILE_SIDEBAR_WIDTH}px` : `${SIDEBAR_WIDTH}px`,
+            background:
+              "linear-gradient(180deg, #090a0c 0%, #090a0c 60%, #1a1a1a 80%, #8b1a2a 100%)",
+            borderRight: "1px solid #1F2630",
+            padding: isMobile ? "20px 12px" : "32px 12px",
+            display: "flex",
+            flexDirection: "column",
+            position: "fixed",
+            top: isMobile ? "50px" : "0",
+            left: isMobile
+              ? sidebarOpen
+                ? "0"
+                : `-${MOBILE_SIDEBAR_WIDTH}px`
+              : "0",
+            height: isMobile ? "calc(100vh - 50px)" : "100vh",
+            zIndex: isMobile ? 1000 : 0,
+            transition: "left 0.3s ease",
+          }}
+        >
         {/* Radial glow overlay */}
         <div
           style={{
@@ -473,6 +476,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           </div>
         </nav>
       </div>
+      )}
 
       {/* Main Content */}
       <div
@@ -482,7 +486,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           flexDirection: "column",
           position: "relative",
           zIndex: 1,
-          marginTop: isMobile ? "50px" : "0",
+          marginTop: (!user || !isMobile) ? "0" : "50px",
         }}
       >
         {/* Topbar */}
