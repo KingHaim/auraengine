@@ -122,7 +122,7 @@ export default function ProductsPage() {
       const formData = new FormData();
       formData.append("name", newProduct.name);
       formData.append("description", newProduct.description);
-      formData.append("category", newProduct.category);
+      formData.append("category", newProduct.clothingType); // Use clothingType as category too
       formData.append("clothing_type", newProduct.clothingType);
       formData.append("tags", selectedTags.join(","));
       formData.append("product_image", newProduct.image);
@@ -231,7 +231,7 @@ export default function ProductsPage() {
       const formData = new FormData();
       formData.append("name", newProduct.name);
       formData.append("description", newProduct.description);
-      formData.append("category", newProduct.category);
+      formData.append("category", newProduct.clothingType); // Use clothingType as category too
       formData.append("clothing_type", newProduct.clothingType);
       formData.append("tags", selectedTags.join(","));
       if (newProduct.image) {
@@ -1686,6 +1686,7 @@ export default function ProductsPage() {
                     name: "",
                     description: "",
                     category: "",
+                    clothingType: "",
                     tags: "",
                     image: null,
                     packshotFront: null,
