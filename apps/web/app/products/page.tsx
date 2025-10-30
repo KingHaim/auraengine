@@ -14,6 +14,7 @@ interface Product {
   packshot_front_type?: string;
   packshot_back_type?: string;
   category?: string;
+  clothing_type?: string;
   tags: string[];
   created_at: string;
   updated_at?: string;
@@ -206,6 +207,7 @@ export default function ProductsPage() {
       name: product.name,
       description: product.description || "",
       category: product.category || "",
+      clothingType: product.clothing_type || "",
       tags: "",
       image: null,
       packshotFront: null,
@@ -230,6 +232,7 @@ export default function ProductsPage() {
       formData.append("name", newProduct.name);
       formData.append("description", newProduct.description);
       formData.append("category", newProduct.category);
+      formData.append("clothing_type", newProduct.clothingType);
       formData.append("tags", selectedTags.join(","));
       if (newProduct.image) {
         formData.append("product_image", newProduct.image);
@@ -259,6 +262,7 @@ export default function ProductsPage() {
           name: "",
           description: "",
           category: "",
+          clothingType: "",
           tags: "",
           image: null,
           packshotFront: null,
