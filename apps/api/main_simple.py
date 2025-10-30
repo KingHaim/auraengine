@@ -2140,14 +2140,30 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             print(f"   Garment: {garment_url[:80]}...")
             print(f"   Clothing type: {clothing_type}")
             
-            # Build Vella 1.5 input - use top_image as the correct parameter for Vella 1.5
+            # Build Vella 1.5 input - use correct parameter based on clothing type
+            # For tops: top_image, for bottoms: bottom_image
             vella_input = {
                 "model_image": model_image_url,
-                "top_image": garment_url,
                 "num_outputs": num_outputs,
                 "garment_only": True,  # Try to replace existing clothing instead of adding layers
                 "remove_background": False,  # Keep the scene background
             }
+            
+            # Map clothing types to Vella parameters
+            clothing_type_lower = clothing_type.lower() if clothing_type else "top"
+            is_bottom = clothing_type_lower in ["pants", "shorts", "skirt", "bottom"]
+            is_top = clothing_type_lower in ["tshirt", "sweater", "hoodie", "jacket", "dress", "top", "shirt"]
+            
+            if is_bottom:
+                vella_input["bottom_image"] = garment_url
+                print(f"👖 Using bottom_image parameter for {clothing_type}")
+            elif is_top:
+                vella_input["top_image"] = garment_url
+                print(f"👕 Using top_image parameter for {clothing_type}")
+            else:
+                # Default to top_image for unknown types
+                vella_input["top_image"] = garment_url
+                print(f"⚠️ Unknown clothing type '{clothing_type}', defaulting to top_image")
             
             if seed is not None:
                 vella_input["seed"] = seed
