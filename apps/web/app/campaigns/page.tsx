@@ -833,6 +833,7 @@ export default function CampaignsPage() {
     }
 
     const clothingType = (product as any).clothing_type || "top";
+    console.log("👕 Adding product to image - Product:", product.name, "Clothing Type:", clothingType);
 
     setAddingProductToImage(true);
     setShowProductSelectionModal(false);

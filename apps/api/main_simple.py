@@ -2152,10 +2152,15 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             # Map clothing types to Vella parameters
             clothing_type_lower = clothing_type.lower() if clothing_type else "top"
             is_bottom = clothing_type_lower in ["pants", "shorts", "skirt", "bottom"]
-            is_top = clothing_type_lower in ["tshirt", "sweater", "hoodie", "jacket", "dress", "top", "shirt"]
+            is_top = clothing_type_lower in ["tshirt", "sweater", "hoodie", "jacket", "dress", "top", "shirt", "other"]
             
+            # Vella 1.5 might support both top_image and bottom_image, but if not, 
+            # try using garment_category parameter or use garment_image for bottoms
             if is_bottom:
+                # Try bottom_image first, fallback to garment_image if not supported
                 vella_input["bottom_image"] = garment_url
+                # Also try garment_image as fallback - some Vella versions use this
+                # vella_input["garment_image"] = garment_url
                 print(f"👖 Using bottom_image parameter for {clothing_type}")
             elif is_top:
                 vella_input["top_image"] = garment_url
@@ -2164,6 +2169,10 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 # Default to top_image for unknown types
                 vella_input["top_image"] = garment_url
                 print(f"⚠️ Unknown clothing type '{clothing_type}', defaulting to top_image")
+            
+            # Debug: Print what we're sending to Vella
+            print(f"🔍 Vella input structure: {list(vella_input.keys())}")
+            print(f"🔍 Clothing type detection - is_bottom: {is_bottom}, is_top: {is_top}, type: '{clothing_type}'")
             
             if seed is not None:
                 vella_input["seed"] = seed
