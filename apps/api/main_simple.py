@@ -2528,7 +2528,12 @@ def run_qwen_packshot_front_back(
 
         # Step 2: Generate front packshot
         print("Generating front packshot...")
-        clothing_type_instruction = f" Generate only the {clothing_type}, isolating it from any other clothing items in the image." if clothing_type else ""
+        if clothing_type:
+            print(f"👕 Clothing type specified: {clothing_type}")
+            clothing_type_instruction = f" IMPORTANT: Extract and isolate ONLY the {clothing_type} from the image. Remove all other clothing items, accessories, and garments. Show ONLY the {clothing_type} as a standalone product. Do not include any other clothing or outfit pieces."
+        else:
+            clothing_type_instruction = ""
+            print("⚠️ No clothing type specified - generating full outfit")
         front_prompt = f"Ultra-clean studio packshot of the uploaded product, front view. Even softbox lighting on a white seamless background. Soft contact shadow. No props, no text, no watermark. Crisp edges, accurate colors.{clothing_type_instruction} {user_mods}, product photography, professional lighting, studio setup, high quality, detailed"
         
         try:
@@ -2560,7 +2565,10 @@ def run_qwen_packshot_front_back(
 
         # Step 3: Generate back packshot
         print("Generating back packshot...")
-        clothing_type_instruction = f" Generate only the {clothing_type}, isolating it from any other clothing items in the image." if clothing_type else ""
+        if clothing_type:
+            clothing_type_instruction = f" IMPORTANT: Extract and isolate ONLY the {clothing_type} from the image. Remove all other clothing items, accessories, and garments. Show ONLY the {clothing_type} as a standalone product. Do not include any other clothing or outfit pieces."
+        else:
+            clothing_type_instruction = ""
         back_prompt = f"Ultra-clean studio packshot of the uploaded product, back view. Even softbox lighting on a white seamless background. Soft contact shadow. No props, no text, no watermark. Crisp edges, accurate colors.{clothing_type_instruction} {user_mods}, product photography, professional lighting, studio setup, high quality, detailed"
         
         try:
@@ -2617,6 +2625,8 @@ async def upload_product(
 ):
     """Upload a product with automatic packshot generation"""
     try:
+        print(f"📦 Uploading product: {name}")
+        print(f"👕 Clothing type received: '{clothing_type}'")
         # Save product image
         image_filename = f"product_{hash(name + str(datetime.now()))}.{product_image.filename.split('.')[-1]}"
         image_path = os.path.join("uploads", image_filename)
@@ -2674,13 +2684,15 @@ async def upload_product(
         # Generate missing packshots using Replicate
         if not packshot_front_url or not packshot_back_url:
             print(f"Generating packshots for product: {name}")
-            # Include clothing_type in user_mods for packshot prompt
-            clothing_type_mod = f"isolate only the {clothing_type}" if clothing_type else ""
-            user_mods = f"professional product photography, clean background, studio lighting{', ' + clothing_type_mod if clothing_type_mod else ''}"
+            if clothing_type:
+                print(f"👕 Clothing type received: {clothing_type}")
+            else:
+                print("⚠️ WARNING: No clothing_type provided - packshot may include entire outfit")
+            user_mods = "professional product photography, clean background, studio lighting"
             generated_packshots = run_qwen_packshot_front_back(
                 product_image_url=image_url,
                 user_mods=user_mods,
-                clothing_type=clothing_type
+                clothing_type=clothing_type or ""
             )
             
             if not packshot_front_url and len(generated_packshots) > 0:
