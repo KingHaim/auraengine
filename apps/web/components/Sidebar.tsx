@@ -30,9 +30,9 @@ export default function Sidebar() {
               ✶
             </div>
             <div className="mt-3 text-center text-sm font-semibold tracking-widerbrand leading-tight">
-              AURA
+              BEATING
               <br />
-              ENGINE
+              HEART
             </div>
           </div>
         </div>

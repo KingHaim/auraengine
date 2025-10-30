@@ -23,7 +23,7 @@ class LoginRequest(BaseModel):
     password: str
 
 # Initialize FastAPI app
-app = FastAPI(title="Aura API", version="1.0.0")
+app = FastAPI(title="Beating Heart API", version="1.0.0")
 
 # Create database tables on startup
 @app.on_event("startup")
@@ -53,11 +53,11 @@ def get_db():
 # ---------- API Endpoints ----------
 @app.get("/")
 async def root():
-    return {"message": "Aura API"}
+    return {"message": "Beating Heart API"}
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy", "message": "Aura API is running"}
+    return {"status": "healthy", "message": "Beating Heart API is running"}
 
 # ---------- Authentication Endpoints ----------
 @app.post("/auth/register", response_model=Token)

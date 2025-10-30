@@ -93,8 +93,8 @@ export default function Home() {
           }}
         >
           <img
-            src="/logo.png"
-            alt="Aura Logo"
+            src="/heart.png"
+            alt="Beating Heart Logo"
             style={{
               width: "40px",
               height: "40px",
@@ -145,8 +145,8 @@ export default function Home() {
           }}
         >
           <img
-            src="/logo.png"
-            alt="Aura Logo"
+            src="/heart.png"
+            alt="Beating Heart Logo"
             style={{
               width: "180px",
               height: "180px",
@@ -465,7 +465,7 @@ export default function Home() {
                 lineHeight: "1.2",
               }}
             >
-              Welcome to Aura
+              Welcome to Beating Heart
             </h1>
             <p
               style={{

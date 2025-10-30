@@ -1,10 +1,10 @@
-# 🚀 Aura - Quick Start Guide
+# 🚀 Beating Heart - Quick Start Guide
 
 ## What You've Built
 
 A complete AI-powered mockup generation platform with:
 
-- **Frontend**: Next.js 14 with dark theme and AURA-branded sidebar
+- **Frontend**: Next.js 14 with dark theme and Beating Heart-branded sidebar
 - **Backend**: FastAPI with Replicate integration for AI image generation
 - **AI Pipeline**: Background removal + Nano Banana (Gemini Images) generation
 - **Two Modes**: Packshot (studio) and Backshot (lifestyle) generation
@@ -16,7 +16,7 @@ A complete AI-powered mockup generation platform with:
 ✅ **Dual Generation Modes**: Packshot vs Backshot  
 ✅ **Real-time Processing**: Live generation with progress  
 ✅ **Preview & Export**: Download generated variants  
-✅ **Dark UI Theme**: Professional AURA-branded interface  
+✅ **Dark UI Theme**: Professional Beating Heart-branded interface  
 ✅ **Responsive Design**: Works on all devices
 
 ## 🚀 Running the App
@@ -126,4 +126,3 @@ To extend the platform:
 ## 📞 Support
 
 The app is fully functional and ready for development. All core features are implemented according to your specifications!
-

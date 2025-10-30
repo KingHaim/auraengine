@@ -1,4 +1,4 @@
-# 🧠 Aura — AI Mockup Generator
+# 🧠 Beating Heart — AI Mockup Generator
 
 > AI-powered creative tool for designers and product creators.
 > Upload your product and automatically generate **backshots** with realistic models or **packshots** with professional studio lighting.
@@ -143,4 +143,3 @@ curl -X POST "http://localhost:8000/jobs/generate" \
 ## 📄 License
 
 MIT License - see LICENSE file for details.
-
