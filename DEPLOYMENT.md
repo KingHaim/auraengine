@@ -1,4 +1,4 @@
-# 🚀 Beating Heart Deployment Guide
+# 🚀 Aura Deployment Guide
 
 ## Option 1: Cloud Deployment (Recommended)
 

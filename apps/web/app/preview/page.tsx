@@ -162,9 +162,9 @@ export default function PreviewPage() {
               lineHeight: "1.2",
             }}
           >
-            BEATING
+            AURA
             <br />
-            HEART
+            ENGINE
           </div>
         </div>
 

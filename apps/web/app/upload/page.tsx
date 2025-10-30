@@ -161,9 +161,9 @@ export default function UploadPage() {
               lineHeight: "1.2",
             }}
           >
-            BEATING
+            AURA
             <br />
-            HEART
+            ENGINE
           </div>
         </div>
 

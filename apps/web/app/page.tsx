@@ -311,37 +311,40 @@ export default function Home() {
             backgroundColor: "#11161C",
           }}
         >
-          <div
-            style={{ position: "relative", width: "100%", maxWidth: "640px" }}
-          >
+          {user && (
             <div
-              style={{
-                position: "absolute",
-                left: "12px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "rgba(255,255,255,0.7)",
-                fontSize: "18px",
-              }}
+              style={{ position: "relative", width: "100%", maxWidth: "640px" }}
             >
-              🔍
+              <div
+                style={{
+                  position: "absolute",
+                  left: "12px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "rgba(255,255,255,0.7)",
+                  fontSize: "18px",
+                }}
+              >
+                🔍
+              </div>
+              <input
+                type="text"
+                placeholder="Search for a project or a product…"
+                style={{
+                  width: "100%",
+                  height: "44px",
+                  backgroundColor: "#161B22",
+                  border: "1px solid #202632",
+                  borderRadius: "12px",
+                  paddingLeft: "44px",
+                  paddingRight: "16px",
+                  color: "#E6E8EB",
+                  fontSize: "14px",
+                }}
+              />
             </div>
-            <input
-              type="text"
-              placeholder="Search for a project or a product…"
-              style={{
-                width: "100%",
-                height: "44px",
-                backgroundColor: "#161B22",
-                border: "1px solid #202632",
-                borderRadius: "12px",
-                paddingLeft: "44px",
-                paddingRight: "16px",
-                color: "#E6E8EB",
-                fontSize: "14px",
-              }}
-            />
-          </div>
+          )}
+          {!user && <div style={{ flex: 1 }} />}
           {/* Authentication buttons or user info */}
           {loading ? (
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
