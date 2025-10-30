@@ -188,9 +188,26 @@ async def startup_event():
         raise
 
 # CORS middleware - Allow all origins for deployment
+# When allow_credentials=True, we must explicitly list origins (cannot use "*")
+# Get allowed origins from environment or use defaults
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
+allowed_origins = (
+    allowed_origins_env.split(",") if allowed_origins_env 
+    else [
+        "https://www.beatingheart.ai",
+        "https://beatingheart.ai",
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+    ]
+)
+
+print(f"🌐 CORS allowed origins: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for deployment (can be restricted later)
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
