@@ -1768,31 +1768,68 @@ def rembg_cutout(photo_url: str) -> Image.Image:
             else:
                 print(f"⚠️ Local file not found: {filepath}")
         
-        # For external URLs (Cloudinary packshots), download and use rembg
-        import requests
-        from io import BytesIO
-        print(f"📥 Downloading image from: {photo_url[:80]}...")
-        response = requests.get(photo_url, timeout=10)
-        response.raise_for_status()
-        img_bytes = BytesIO(response.content)
-        
-        # Actually use rembg API to remove background
-        print("🔄 Calling rembg API for external URL...")
-        out = replicate.run("cjwbw/rembg", input={"image": img_bytes})
-        if hasattr(out, 'url'):
-            result_url = out.url()
-        elif isinstance(out, str):
-            result_url = out
-        else:
-            result_url = str(out)
-        
-        # Download the result
-        print(f"📥 Downloading rembg result from: {result_url[:80]}...")
-        result_response = requests.get(result_url, timeout=10)
-        result_response.raise_for_status()
-        result_img = Image.open(BytesIO(result_response.content)).convert("RGBA")
-        print(f"✅ Background removed successfully, result size: {result_img.size}")
-        return result_img
+        # For external URLs (Cloudinary packshots), use the URL directly with rembg
+        # Replicate can accept URLs directly, which is more reliable than BytesIO
+        print("🔄 Calling rembg API for external URL (using URL directly)...")
+        try:
+            # Use the URL directly - Replicate can fetch from URLs
+            out = replicate.run("cjwbw/rembg", input={"image": photo_url})
+            if hasattr(out, 'url'):
+                result_url = out.url()
+            elif isinstance(out, str):
+                result_url = out
+            else:
+                result_url = str(out)
+            
+            # Download the result
+            print(f"📥 Downloading rembg result from: {result_url[:80]}...")
+            import requests
+            from io import BytesIO
+            result_response = requests.get(result_url, timeout=10)
+            result_response.raise_for_status()
+            result_img = Image.open(BytesIO(result_response.content)).convert("RGBA")
+            print(f"✅ Background removed successfully, result size: {result_img.size}")
+            return result_img
+        except Exception as rembg_error:
+            # If URL doesn't work, try downloading and using file
+            print(f"⚠️ rembg with URL failed, trying with file: {rembg_error}")
+            import requests
+            from io import BytesIO
+            print(f"📥 Downloading image from: {photo_url[:80]}...")
+            response = requests.get(photo_url, timeout=10)
+            response.raise_for_status()
+            
+            # Save to temporary file and use that
+            import tempfile
+            import os
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.webp') as tmp_file:
+                tmp_file.write(response.content)
+                tmp_file_path = tmp_file.name
+            
+            try:
+                # Use file path
+                with open(tmp_file_path, 'rb') as f:
+                    out = replicate.run("cjwbw/rembg", input={"image": f})
+                if hasattr(out, 'url'):
+                    result_url = out.url()
+                elif isinstance(out, str):
+                    result_url = out
+                else:
+                    result_url = str(out)
+                
+                # Download the result
+                print(f"📥 Downloading rembg result from: {result_url[:80]}...")
+                result_response = requests.get(result_url, timeout=10)
+                result_response.raise_for_status()
+                result_img = Image.open(BytesIO(result_response.content)).convert("RGBA")
+                print(f"✅ Background removed successfully (file method), result size: {result_img.size}")
+                return result_img
+            finally:
+                # Clean up temp file
+                try:
+                    os.unlink(tmp_file_path)
+                except:
+                    pass
         
     except Exception as e:
         print(f"❌ Background removal failed: {e}")
