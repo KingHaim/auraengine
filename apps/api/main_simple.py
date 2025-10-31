@@ -3435,31 +3435,54 @@ async def reapply_clothes(
             raise HTTPException(status_code=404, detail="Product not found")
         
         # Use product packshot (front view preferred)
-        # Prioritize packshot URLs over image_url to ensure we use isolated product images
-        # Also check packshots array if packshot_front_url/packshot_back_url are None
+        # Prioritize packshots array over packshot URLs to ensure we use the generated packshots
+        # Generated packshots are usually better isolated than manually uploaded ones
         product_image = None
         
-        # First try explicit packshot URLs
-        if product.packshot_front_url:
+        # Get packshots array (ensure it's a list)
+        packshots_list = []
+        if hasattr(product, 'packshots') and product.packshots:
+            # Handle both list and JSON string
+            if isinstance(product.packshots, str):
+                try:
+                    import json
+                    packshots_list = json.loads(product.packshots)
+                except:
+                    packshots_list = []
+            elif isinstance(product.packshots, list):
+                packshots_list = product.packshots
+            else:
+                packshots_list = []
+        
+        # Strategy: Prioritize packshots array first (generated packshots are usually better)
+        if packshots_list and len(packshots_list) > 0:
+            # Use first packshot URL from array (usually front)
+            product_image = packshots_list[0]
+            print(f"📦 Using packshot from packshots array (first packshot): {product_image[:80]}...")
+            print(f"📦 Total packshots in array: {len(packshots_list)}")
+            if len(packshots_list) > 1:
+                print(f"📦 Alternative packshots available: {[p[:50] + '...' for p in packshots_list[1:]]}")
+        # Fall back to explicit packshot URLs
+        elif product.packshot_front_url:
             product_image = product.packshot_front_url
+            print(f"📦 Using packshot_front_url: {product_image[:80]}...")
         elif product.packshot_back_url:
             product_image = product.packshot_back_url
-        # If packshot URLs are None, check packshots array
-        elif hasattr(product, 'packshots') and product.packshots and len(product.packshots) > 0:
-            # Use first packshot URL from array (usually front)
-            product_image = product.packshots[0]
-            print(f"📦 Using packshot from packshots array: {product_image[:80]}...")
+            print(f"📦 Using packshot_back_url: {product_image[:80]}...")
         # Only use image_url as last resort (it might be the original upload with full outfit)
         else:
             product_image = product.image_url
             print(f"⚠️ No packshots available, using image_url (may contain full outfit)")
+            print(f"⚠️ WARNING: image_url may contain the whole outfit, not just the product!")
         
         print(f"🔍 Product image selection for '{product.name}':")
         print(f"   packshot_front_url: {product.packshot_front_url}")
         print(f"   packshot_back_url: {product.packshot_back_url}")
-        print(f"   packshots array: {getattr(product, 'packshots', None)}")
+        print(f"   packshots array (raw): {getattr(product, 'packshots', None)}")
+        print(f"   packshots array (parsed): {packshots_list}")
         print(f"   image_url: {product.image_url[:80] if product.image_url else None}...")
         print(f"   ✅ Selected product_image: {product_image[:80] if product_image else None}...")
+        print(f"   🔍 Final product_image URL length: {len(product_image) if product_image else 0}")
         
         # Get clothing type from product or use provided
         # Also check category field as fallback since API returns clothing_type as null
