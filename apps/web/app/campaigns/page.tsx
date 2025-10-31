@@ -5652,6 +5652,7 @@ export default function CampaignsPage() {
               alignItems: "center",
               justifyContent: "center",
               zIndex: 2000,
+              overflow: "visible",
             }}
             onClick={() => setShowEnlargedImage(false)}
           >
@@ -5663,6 +5664,7 @@ export default function CampaignsPage() {
                 display: "flex",
                 gap: "24px",
                 alignItems: "center",
+                overflow: "visible",
               }}
               onClick={(e) => e.stopPropagation()}
             >
