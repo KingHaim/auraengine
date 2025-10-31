@@ -5770,6 +5770,15 @@ export default function CampaignsPage() {
                     position: "relative",
                     overflow: "visible",
                   }}
+                  onMouseLeave={() => {
+                    // Delay clearing tooltip to prevent flickering
+                    setTimeout(() => {
+                      setShowDownloadTooltip(false);
+                      setShowTweakTooltip(false);
+                      setShowAddProductTooltip(false);
+                      setActiveTooltip(null);
+                    }, 100);
+                  }}
                 >
                   {/* Download Button */}
                   <div
@@ -5791,8 +5800,7 @@ export default function CampaignsPage() {
                     onMouseLeave={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1)";
-                      setShowDownloadTooltip(false);
-                      setActiveTooltip(null);
+                      // Don't clear tooltip here - let parent handle it
                     }}
                   >
                     <button
@@ -5843,14 +5851,14 @@ export default function CampaignsPage() {
                       setShowTweakTooltip(true);
                       setActiveTooltip({
                         title: "Tweak",
-                        description: "AI-powered image editing with custom prompts",
+                        description:
+                          "AI-powered image editing with custom prompts",
                       });
                     }}
                     onMouseLeave={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1)";
-                      setShowTweakTooltip(false);
-                      setActiveTooltip(null);
+                      // Don't clear tooltip here - let parent handle it
                     }}
                   >
                     <button
@@ -5904,8 +5912,7 @@ export default function CampaignsPage() {
                     onMouseLeave={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1)";
-                      setShowAddProductTooltip(false);
-                      setActiveTooltip(null);
+                      // Don't clear tooltip here - let parent handle it
                     }}
                   >
                     <button
@@ -5948,44 +5955,66 @@ export default function CampaignsPage() {
                   </div>
                 </div>
 
-                {/* Tooltip Display Container */}
-                {activeTooltip && (
-                  <div
-                    style={{
-                      marginTop: "16px",
-                      padding: "12px 16px",
-                      backgroundColor: "rgba(0, 0, 0, 0.6)",
-                      borderRadius: "8px",
-                      textAlign: "center",
-                      minHeight: "60px",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
-                    }}
-                  >
+                {/* Tooltip Display Container - Positioned lower where text used to be */}
+                <div
+                  style={{
+                    marginTop: "auto",
+                    paddingTop: "24px",
+                    minHeight: "80px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {activeTooltip ? (
                     <div
                       style={{
-                        fontWeight: "600",
-                        marginBottom: "6px",
-                        fontSize: "14px",
-                        color: "#FFFFFF",
+                        padding: "12px 16px",
+                        backgroundColor: "rgba(0, 0, 0, 0.6)",
+                        borderRadius: "8px",
+                        textAlign: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        width: "100%",
                       }}
                     >
-                      {activeTooltip.title}
+                      <div
+                        style={{
+                          fontWeight: "600",
+                          marginBottom: "6px",
+                          fontSize: "14px",
+                          color: "#FFFFFF",
+                        }}
+                      >
+                        {activeTooltip.title}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "rgba(255, 255, 255, 0.8)",
+                          lineHeight: "1.4",
+                        }}
+                      >
+                        {activeTooltip.description}
+                      </div>
                     </div>
+                  ) : (
                     <div
                       style={{
+                        padding: "12px 16px",
+                        textAlign: "center",
+                        color: "rgba(255, 255, 255, 0.4)",
                         fontSize: "12px",
-                        color: "rgba(255, 255, 255, 0.8)",
-                        lineHeight: "1.4",
+                        fontStyle: "italic",
                       }}
                     >
-                      {activeTooltip.description}
+                      Hover over an action to see details
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </div>
