@@ -3367,14 +3367,31 @@ async def reapply_clothes(
             raise HTTPException(status_code=404, detail="Product not found")
         
         # Use product packshot (front view preferred)
-        # For bottoms, we might need packshot_back_url if available
-        product_image = product.packshot_front_url or product.packshot_back_url or product.image_url
+        # Prioritize packshot URLs over image_url to ensure we use isolated product images
+        # Also check packshots array if packshot_front_url/packshot_back_url are None
+        product_image = None
+        
+        # First try explicit packshot URLs
+        if product.packshot_front_url:
+            product_image = product.packshot_front_url
+        elif product.packshot_back_url:
+            product_image = product.packshot_back_url
+        # If packshot URLs are None, check packshots array
+        elif hasattr(product, 'packshots') and product.packshots and len(product.packshots) > 0:
+            # Use first packshot URL from array (usually front)
+            product_image = product.packshots[0]
+            print(f"📦 Using packshot from packshots array: {product_image[:80]}...")
+        # Only use image_url as last resort (it might be the original upload with full outfit)
+        else:
+            product_image = product.image_url
+            print(f"⚠️ No packshots available, using image_url (may contain full outfit)")
         
         print(f"🔍 Product image selection for '{product.name}':")
         print(f"   packshot_front_url: {product.packshot_front_url}")
         print(f"   packshot_back_url: {product.packshot_back_url}")
-        print(f"   image_url: {product.image_url}")
-        print(f"   Selected product_image: {product_image}")
+        print(f"   packshots array: {getattr(product, 'packshots', None)}")
+        print(f"   image_url: {product.image_url[:80] if product.image_url else None}...")
+        print(f"   ✅ Selected product_image: {product_image[:80] if product_image else None}...")
         
         # Get clothing type from product or use provided
         # Also check category field as fallback since API returns clothing_type as null
