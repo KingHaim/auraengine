@@ -2217,25 +2217,42 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 print(f"⚠️ WEBP→PNG convert failed: {e} — using original URL")
 
         # Garment: ensure alpha; prefer URL; convert to data URL only if local /static and URL attempt fails
-        # For packshots, we should always process them to ensure clean background removal
-        # Packshots might have backgrounds that need to be removed for Vella to work correctly
+        # For packshots, check if they already have transparency before trying to remove background
+        # WEBP packshots from Cloudinary often already have transparent backgrounds
         try:
             # Check if it's likely a packshot (Cloudinary URL with packshot in name)
             is_packshot = "packshot" in product_image_url.lower() or "cloudinary" in product_image_url.lower()
             
-            if has_alpha(product_image_url) and not is_packshot:
+            # For packshots, check if they might already have transparency (WEBP supports it)
+            # Skip rembg for WEBP packshots to avoid API errors - they're usually already clean
+            is_webp_packshot = is_packshot and (product_image_url.lower().endswith(".webp") or ".webp" in product_image_url.lower())
+            
+            if is_webp_packshot:
+                # WEBP packshots from Cloudinary packshot generation are usually already isolated
+                # Try to use them directly, but still verify if possible
+                print("🧵 Using WEBP packshot directly (usually already has transparent background)")
+                garment_url = product_image_url
+                print(f"🧵 Garment URL: {garment_url[:80]}...")
+            elif has_alpha(product_image_url) and not is_packshot:
                 # Only skip processing if it already has alpha AND it's not a packshot
                 garment_url = product_image_url
                 print("🧵 Garment already has alpha, using as-is")
             else:
                 print("🪄 Processing garment image (removing background)...")
                 print(f"   Input: {product_image_url[:80]}...")
-                cut = rembg_cutout(product_image_url)
-                print(f"✅ Background removal complete, image size: {cut.size}")
-                cut = postprocess_cutout(cut)
-                print(f"✅ Post-processing complete, final size: {cut.size}")
-                garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
-                print(f"🧵 Garment cutout saved: {garment_url[:80]}...")
+                try:
+                    cut = rembg_cutout(product_image_url)
+                    print(f"✅ Background removal complete, image size: {cut.size}")
+                    cut = postprocess_cutout(cut)
+                    print(f"✅ Post-processing complete, final size: {cut.size}")
+                    garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
+                    print(f"🧵 Garment cutout saved: {garment_url[:80]}...")
+                except Exception as rembg_error:
+                    print(f"⚠️ Background removal failed: {rembg_error}")
+                    print(f"⚠️ Using original packshot image (may have background)")
+                    # For packshots, even if rembg fails, use the original - it's usually already isolated
+                    garment_url = product_image_url
+                    print(f"🧵 Garment URL (fallback): {garment_url[:80]}...")
                 print(f"🔍 Final garment URL being sent to Vella: {garment_url}")
         except Exception as e:
             print(f"⚠️ Garment processing failed: {e}")
