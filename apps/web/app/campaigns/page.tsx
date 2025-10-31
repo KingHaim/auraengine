@@ -5840,18 +5840,17 @@ export default function CampaignsPage() {
                     onMouseEnter={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1.1)";
-                      console.log(
-                        "Hovering tweak button, setting tooltip to true"
-                      );
                       setShowTweakTooltip(true);
+                      setActiveTooltip({
+                        title: "Tweak",
+                        description: "AI-powered image editing with custom prompts",
+                      });
                     }}
                     onMouseLeave={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1)";
-                      console.log(
-                        "Leaving tweak button, setting tooltip to false"
-                      );
                       setShowTweakTooltip(false);
+                      setActiveTooltip(null);
                     }}
                   >
                     <button
