@@ -2247,8 +2247,20 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                     png_buffer.seek(0)
                     
                     # Upload PNG version to Cloudinary
-                    png_url = upload_pil_to_cloudinary(Image.open(png_buffer), "garment_png")
+                    # Verify image properties before uploading
+                    png_img = Image.open(png_buffer)
+                    print(f"🔍 PNG image properties:")
+                    print(f"   Size: {png_img.size}")
+                    print(f"   Mode: {png_img.mode}")
+                    print(f"   Has transparency: {png_img.mode in ('RGBA', 'LA')}")
+                    
+                    # Check if image has reasonable size (packshots should be isolated products)
+                    if png_img.size[0] < 100 or png_img.size[1] < 100:
+                        print(f"⚠️ WARNING: Packshot image is very small ({png_img.size}), might not be valid")
+                    
+                    png_url = upload_pil_to_cloudinary(png_img, "garment_png")
                     print(f"✅ Converted WEBP to PNG: {png_url[:80]}...")
+                    print(f"🔍 Final PNG garment URL for Vella: {png_url}")
                     garment_url = png_url
                     print(f"🧵 Garment URL (PNG): {garment_url[:80]}...")
                 except Exception as conv_error:
