@@ -6024,48 +6024,6 @@ export default function CampaignsPage() {
                   </div>
                 </div>
 
-                {/* Info Section */}
-                <div
-                  style={{
-                    borderTop: "1px solid rgba(255,255,255,0.1)",
-                    paddingTop: "16px",
-                    marginTop: "8px",
-                  }}
-                >
-                  <p
-                    style={{
-                      color: "#9CA3AF",
-                      fontSize: "12px",
-                      margin: 0,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    <strong style={{ color: "#FFFFFF" }}>Download:</strong> Save
-                    image to your device
-                  </p>
-                  <p
-                    style={{
-                      color: "#9CA3AF",
-                      fontSize: "12px",
-                      margin: "8px 0 0 0",
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    <strong style={{ color: "#FFFFFF" }}>Tweak:</strong>{" "}
-                    AI-powered image editing with custom prompts
-                  </p>
-                  <p
-                    style={{
-                      color: "#9CA3AF",
-                      fontSize: "12px",
-                      margin: "8px 0 0 0",
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    <strong style={{ color: "#FFFFFF" }}>Add Product:</strong>{" "}
-                    Add another product onto this image
-                  </p>
-                </div>
               </div>
             </div>
           </div>
