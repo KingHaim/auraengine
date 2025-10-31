@@ -1724,36 +1724,89 @@ def has_alpha(url: str) -> bool:
 def rembg_cutout(photo_url: str) -> Image.Image:
     """Use Replicate's rembg to remove background"""
     try:
-        print(f"Removing background for: {photo_url}")
+        print(f"🪄 Removing background for: {photo_url[:80]}...")
         
-        # If this is a data URL, decode and return as RGBA for further processing
+        # If this is a data URL, decode and use rembg
         if photo_url.startswith("data:image"):
             import base64
             from io import BytesIO
             header, b64data = photo_url.split(",", 1)
             img_bytes = base64.b64decode(b64data)
-            return Image.open(BytesIO(img_bytes)).convert("RGBA")
+            # Use rembg API to remove background
+            img_io = BytesIO(img_bytes)
+            print("🔄 Calling rembg API for data URL...")
+            out = replicate.run("cjwbw/rembg", input={"image": img_io})
+            if hasattr(out, 'url'):
+                result_url = out.url()
+            elif isinstance(out, str):
+                result_url = out
+            else:
+                result_url = str(out)
+            # Download the result
+            import requests
+            response = requests.get(result_url)
+            return Image.open(BytesIO(response.content)).convert("RGBA")
 
-        # If it's a local URL, convert to file path
+        # If it's a local URL, convert to file path and use rembg
         if photo_url.startswith(get_base_url() + "/static/"):
             filename = photo_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
             if os.path.exists(filepath):
-                # For now, skip background removal and return original
-                print("Skipping background removal for local file, using original")
-                return Image.open(filepath).convert("RGBA")
+                print(f"🔄 Calling rembg API for local file: {filepath}")
+                with open(filepath, "rb") as f:
+                    out = replicate.run("cjwbw/rembg", input={"image": f})
+                    if hasattr(out, 'url'):
+                        result_url = out.url()
+                    elif isinstance(out, str):
+                        result_url = out
+                    else:
+                        result_url = str(out)
+                    # Download the result
+                    import requests
+                    response = requests.get(result_url)
+                    return Image.open(BytesIO(response.content)).convert("RGBA")
+            else:
+                print(f"⚠️ Local file not found: {filepath}")
         
-        # For external URLs, try to download and process
+        # For external URLs (Cloudinary packshots), download and use rembg
         import requests
         from io import BytesIO
-        response = requests.get(photo_url)
-        img = Image.open(BytesIO(response.content)).convert("RGBA")
-        return img
+        print(f"📥 Downloading image from: {photo_url[:80]}...")
+        response = requests.get(photo_url, timeout=10)
+        response.raise_for_status()
+        img_bytes = BytesIO(response.content)
+        
+        # Actually use rembg API to remove background
+        print("🔄 Calling rembg API for external URL...")
+        out = replicate.run("cjwbw/rembg", input={"image": img_bytes})
+        if hasattr(out, 'url'):
+            result_url = out.url()
+        elif isinstance(out, str):
+            result_url = out
+        else:
+            result_url = str(out)
+        
+        # Download the result
+        print(f"📥 Downloading rembg result from: {result_url[:80]}...")
+        result_response = requests.get(result_url, timeout=10)
+        result_response.raise_for_status()
+        result_img = Image.open(BytesIO(result_response.content)).convert("RGBA")
+        print(f"✅ Background removed successfully, result size: {result_img.size}")
+        return result_img
         
     except Exception as e:
-        print(f"Background removal failed: {e}")
-        # Return a blank RGBA image as fallback
-        return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
+        print(f"❌ Background removal failed: {e}")
+        import traceback
+        traceback.print_exc()
+        # Fallback: try to download and return as-is
+        try:
+            import requests
+            from io import BytesIO
+            response = requests.get(photo_url, timeout=10)
+            return Image.open(BytesIO(response.content)).convert("RGBA")
+        except:
+            # Last resort: return blank image
+            return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
 
 def postprocess_cutout(img_rgba: Image.Image) -> Image.Image:
     """Clean up the cutout image"""
@@ -2127,18 +2180,31 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 print(f"⚠️ WEBP→PNG convert failed: {e} — using original URL")
 
         # Garment: ensure alpha; prefer URL; convert to data URL only if local /static and URL attempt fails
+        # For packshots, we should always process them to ensure clean background removal
+        # Packshots might have backgrounds that need to be removed for Vella to work correctly
         try:
-            if has_alpha(product_image_url):
+            # Check if it's likely a packshot (Cloudinary URL with packshot in name)
+            is_packshot = "packshot" in product_image_url.lower() or "cloudinary" in product_image_url.lower()
+            
+            if has_alpha(product_image_url) and not is_packshot:
+                # Only skip processing if it already has alpha AND it's not a packshot
                 garment_url = product_image_url
-                print("🧵 Garment already has alpha")
+                print("🧵 Garment already has alpha, using as-is")
             else:
-                print("🪄 Removing background from garment...")
+                print("🪄 Processing garment image (removing background)...")
+                print(f"   Input: {product_image_url[:80]}...")
                 cut = rembg_cutout(product_image_url)
+                print(f"✅ Background removal complete, image size: {cut.size}")
                 cut = postprocess_cutout(cut)
+                print(f"✅ Post-processing complete, final size: {cut.size}")
                 garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
-                print(f"🧵 Garment cutout saved: {garment_url}")
+                print(f"🧵 Garment cutout saved: {garment_url[:80]}...")
+                print(f"🔍 Final garment URL being sent to Vella: {garment_url}")
         except Exception as e:
-            print(f"⚠️ Garment processing failed, using original: {e}")
+            print(f"⚠️ Garment processing failed: {e}")
+            import traceback
+            traceback.print_exc()
+            print(f"⚠️ Falling back to original product_image_url")
             garment_url = product_image_url
 
         # Run Vella 1.5 try-on
@@ -2157,6 +2223,8 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             print(f"   Model: {model_image_url[:80]}...")
             print(f"   Garment: {garment_url[:80]}...")
             print(f"   Clothing type: {clothing_type}")
+            print(f"🔍 COMPLETE Vella input - Model URL: {model_image_url}")
+            print(f"🔍 COMPLETE Vella input - Garment URL: {garment_url}")
             
             # Build Vella 1.5 input - use correct parameter based on clothing type
             # For tops: top_image, for bottoms: bottom_image
