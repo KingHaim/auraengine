@@ -5746,125 +5746,253 @@ export default function CampaignsPage() {
                   overflowY: "auto",
                 }}
               >
-                <h3
-                  style={{
-                    color: "#FFFFFF",
-                    fontSize: "18px",
-                    fontWeight: "600",
-                    margin: 0,
-                    marginBottom: "16px",
-                  }}
-                >
-                  Image Actions
-                </h3>
-
                 {/* Action Buttons Container - Same Line */}
                 <div
                   style={{
                     display: "flex",
                     flexDirection: "row",
                     alignItems: "center",
-                    gap: "12px",
+                    gap: "16px",
                     width: "100%",
+                    justifyContent: "center",
                   }}
                 >
                   {/* Download Button */}
-                  <button
-                    onClick={() =>
-                      downloadImage(
-                        enlargedImageUrl,
-                        `campaign-${Date.now()}.jpg`
-                      )
-                    }
+                  <div
                     style={{
-                      padding: "12px",
-                      backgroundColor: "transparent",
-                      border: "none",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "64px",
-                      height: "64px",
-                      flexShrink: 0,
+                      position: "relative",
+                      display: "inline-block",
                     }}
                   >
-                    <img
-                      src="/downloadimage.png"
-                      alt="Download Image"
+                    <button
+                      onClick={() =>
+                        downloadImage(
+                          enlargedImageUrl,
+                          `campaign-${Date.now()}.jpg`
+                        )
+                      }
                       style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
+                        padding: "16px",
+                        backgroundColor: "transparent",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "80px",
+                        height: "80px",
+                        flexShrink: 0,
+                        transition: "transform 0.2s ease",
                       }}
-                    />
-                  </button>
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "scale(1.1)";
+                        const tooltip = e.currentTarget.parentElement?.querySelector(
+                          ".download-tooltip"
+                        ) as HTMLElement;
+                        if (tooltip) tooltip.style.opacity = "1";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "scale(1)";
+                        const tooltip = e.currentTarget.parentElement?.querySelector(
+                          ".download-tooltip"
+                        ) as HTMLElement;
+                        if (tooltip) tooltip.style.opacity = "0";
+                      }}
+                    >
+                      <img
+                        src="/downloadimage.png"
+                        alt="Download Image"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </button>
+                    {/* Hover Tooltip */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: "100%",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        marginBottom: "8px",
+                        padding: "6px 12px",
+                        backgroundColor: "rgba(0, 0, 0, 0.9)",
+                        color: "#FFFFFF",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        borderRadius: "6px",
+                        whiteSpace: "nowrap",
+                        opacity: 0,
+                        pointerEvents: "none",
+                        transition: "opacity 0.2s ease",
+                        zIndex: 1000,
+                      }}
+                      className="download-tooltip"
+                    >
+                      Download Image
+                    </div>
+                  </div>
 
                   {/* Tweak Button */}
-                  <button
-                    onClick={() => setShowTweakModal(true)}
+                  <div
                     style={{
-                      padding: "12px",
-                      backgroundColor: "transparent",
-                      border: "none",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "64px",
-                      height: "64px",
-                      flexShrink: 0,
+                      position: "relative",
+                      display: "inline-block",
                     }}
                   >
-                    <img
-                      src="/tweakimage.png"
-                      alt="Tweak Image"
+                    <button
+                      onClick={() => setShowTweakModal(true)}
                       style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
+                        padding: "16px",
+                        backgroundColor: "transparent",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "80px",
+                        height: "80px",
+                        flexShrink: 0,
+                        transition: "transform 0.2s ease",
                       }}
-                    />
-                  </button>
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "scale(1.1)";
+                        const tooltip = e.currentTarget.parentElement?.querySelector(
+                          ".tweak-tooltip"
+                        ) as HTMLElement;
+                        if (tooltip) tooltip.style.opacity = "1";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "scale(1)";
+                        const tooltip = e.currentTarget.parentElement?.querySelector(
+                          ".tweak-tooltip"
+                        ) as HTMLElement;
+                        if (tooltip) tooltip.style.opacity = "0";
+                      }}
+                    >
+                      <img
+                        src="/tweakimage.png"
+                        alt="Tweak Image"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </button>
+                    {/* Hover Tooltip */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: "100%",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        marginBottom: "8px",
+                        padding: "6px 12px",
+                        backgroundColor: "rgba(0, 0, 0, 0.9)",
+                        color: "#FFFFFF",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        borderRadius: "6px",
+                        whiteSpace: "nowrap",
+                        opacity: 0,
+                        pointerEvents: "none",
+                        transition: "opacity 0.2s ease",
+                        zIndex: 1000,
+                      }}
+                      className="tweak-tooltip"
+                    >
+                      Tweak Image
+                    </div>
+                  </div>
 
                   {/* Add Product Button - Opens product selection to add product to existing image */}
-                  <button
-                    onClick={() => {
-                      if (!addingProductToImage) {
-                        setProductSelectionMode("image");
-                        setSelectedProductForImage(null);
-                        setShowProductSelectionModal(true);
-                      }
-                    }}
-                    disabled={addingProductToImage}
+                  <div
                     style={{
-                      padding: "12px",
-                      backgroundColor: "transparent",
-                      border: "none",
-                      borderRadius: "8px",
-                      cursor: addingProductToImage ? "not-allowed" : "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "64px",
-                      height: "64px",
-                      opacity: addingProductToImage ? 0.6 : 1,
-                      transition: "opacity 0.2s ease",
-                      flexShrink: 0,
+                      position: "relative",
+                      display: "inline-block",
                     }}
                   >
-                    <img
-                      src="/addclothes.png"
-                      alt="Add Product"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
+                    <button
+                      onClick={() => {
+                        if (!addingProductToImage) {
+                          setProductSelectionMode("image");
+                          setSelectedProductForImage(null);
+                          setShowProductSelectionModal(true);
+                        }
                       }}
-                    />
-                  </button>
+                      disabled={addingProductToImage}
+                      style={{
+                        padding: "16px",
+                        backgroundColor: "transparent",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: addingProductToImage ? "not-allowed" : "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "80px",
+                        height: "80px",
+                        opacity: addingProductToImage ? 0.6 : 1,
+                        transition: "opacity 0.2s ease, transform 0.2s ease",
+                        flexShrink: 0,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!addingProductToImage) {
+                          e.currentTarget.style.transform = "scale(1.1)";
+                          const tooltip = e.currentTarget.parentElement?.querySelector(
+                            ".add-product-tooltip"
+                          ) as HTMLElement;
+                          if (tooltip) tooltip.style.opacity = "1";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "scale(1)";
+                        const tooltip = e.currentTarget.parentElement?.querySelector(
+                          ".add-product-tooltip"
+                        ) as HTMLElement;
+                        if (tooltip) tooltip.style.opacity = "0";
+                      }}
+                    >
+                      <img
+                        src="/addclothes.png"
+                        alt="Add Product"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </button>
+                    {/* Hover Tooltip */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: "100%",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        marginBottom: "8px",
+                        padding: "6px 12px",
+                        backgroundColor: "rgba(0, 0, 0, 0.9)",
+                        color: "#FFFFFF",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        borderRadius: "6px",
+                        whiteSpace: "nowrap",
+                        opacity: 0,
+                        pointerEvents: "none",
+                        transition: "opacity 0.2s ease",
+                        zIndex: 1000,
+                      }}
+                      className="add-product-tooltip"
+                    >
+                      Add Product
+                    </div>
+                  </div>
                 </div>
 
                 {/* Info Section */}
