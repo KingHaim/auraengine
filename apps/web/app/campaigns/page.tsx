@@ -5769,7 +5769,10 @@ export default function CampaignsPage() {
                         ".download-tooltip"
                       ) as HTMLElement;
                       if (button) button.style.transform = "scale(1.1)";
-                      if (tooltip) tooltip.style.opacity = "1";
+                      if (tooltip) {
+                        tooltip.style.opacity = "1";
+                        tooltip.style.visibility = "visible";
+                      }
                     }}
                     onMouseLeave={(e) => {
                       const button = e.currentTarget.querySelector("button");
@@ -5777,7 +5780,10 @@ export default function CampaignsPage() {
                         ".download-tooltip"
                       ) as HTMLElement;
                       if (button) button.style.transform = "scale(1)";
-                      if (tooltip) tooltip.style.opacity = "0";
+                      if (tooltip) {
+                        tooltip.style.opacity = "0";
+                        tooltip.style.visibility = "hidden";
+                      }
                     }}
                   >
                     <button
@@ -5788,7 +5794,7 @@ export default function CampaignsPage() {
                         )
                       }
                       style={{
-                        padding: "20px",
+                        padding: "12px",
                         backgroundColor: "transparent",
                         border: "none",
                         borderRadius: "8px",
@@ -5796,8 +5802,8 @@ export default function CampaignsPage() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        width: "120px",
-                        height: "120px",
+                        width: "96px",
+                        height: "96px",
                         flexShrink: 0,
                         transition: "transform 0.2s ease",
                       }}
@@ -5814,12 +5820,13 @@ export default function CampaignsPage() {
                     </button>
                     {/* Hover Tooltip */}
                     <div
+                      className="download-tooltip"
                       style={{
                         position: "absolute",
                         bottom: "100%",
                         left: "50%",
                         transform: "translateX(-50%)",
-                        marginBottom: "12px",
+                        marginBottom: "10px",
                         padding: "10px 14px",
                         backgroundColor: "rgba(0, 0, 0, 0.95)",
                         color: "#FFFFFF",
@@ -5827,15 +5834,16 @@ export default function CampaignsPage() {
                         fontWeight: "500",
                         borderRadius: "8px",
                         opacity: 0,
+                        visibility: "hidden",
                         pointerEvents: "none",
-                        transition: "opacity 0.2s ease",
+                        transition: "opacity 0.2s ease, visibility 0.2s ease",
                         zIndex: 10000,
                         maxWidth: "240px",
                         textAlign: "center",
                         lineHeight: "1.5",
                         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
+                        whiteSpace: "normal",
                       }}
-                      className="download-tooltip"
                     >
                       <div
                         style={{
@@ -5870,7 +5878,10 @@ export default function CampaignsPage() {
                         ".tweak-tooltip"
                       ) as HTMLElement;
                       if (button) button.style.transform = "scale(1.1)";
-                      if (tooltip) tooltip.style.opacity = "1";
+                      if (tooltip) {
+                        tooltip.style.opacity = "1";
+                        tooltip.style.visibility = "visible";
+                      }
                     }}
                     onMouseLeave={(e) => {
                       const button = e.currentTarget.querySelector("button");
@@ -5878,13 +5889,16 @@ export default function CampaignsPage() {
                         ".tweak-tooltip"
                       ) as HTMLElement;
                       if (button) button.style.transform = "scale(1)";
-                      if (tooltip) tooltip.style.opacity = "0";
+                      if (tooltip) {
+                        tooltip.style.opacity = "0";
+                        tooltip.style.visibility = "hidden";
+                      }
                     }}
                   >
                     <button
                       onClick={() => setShowTweakModal(true)}
                       style={{
-                        padding: "20px",
+                        padding: "12px",
                         backgroundColor: "transparent",
                         border: "none",
                         borderRadius: "8px",
@@ -5892,8 +5906,8 @@ export default function CampaignsPage() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        width: "120px",
-                        height: "120px",
+                        width: "96px",
+                        height: "96px",
                         flexShrink: 0,
                         transition: "transform 0.2s ease",
                       }}
@@ -5910,12 +5924,13 @@ export default function CampaignsPage() {
                     </button>
                     {/* Hover Tooltip */}
                     <div
+                      className="tweak-tooltip"
                       style={{
                         position: "absolute",
                         bottom: "100%",
                         left: "50%",
                         transform: "translateX(-50%)",
-                        marginBottom: "12px",
+                        marginBottom: "10px",
                         padding: "10px 14px",
                         backgroundColor: "rgba(0, 0, 0, 0.95)",
                         color: "#FFFFFF",
@@ -5923,15 +5938,16 @@ export default function CampaignsPage() {
                         fontWeight: "500",
                         borderRadius: "8px",
                         opacity: 0,
+                        visibility: "hidden",
                         pointerEvents: "none",
-                        transition: "opacity 0.2s ease",
+                        transition: "opacity 0.2s ease, visibility 0.2s ease",
                         zIndex: 10000,
                         maxWidth: "240px",
                         textAlign: "center",
                         lineHeight: "1.5",
                         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
+                        whiteSpace: "normal",
                       }}
-                      className="tweak-tooltip"
                     >
                       <div
                         style={{
@@ -5967,7 +5983,10 @@ export default function CampaignsPage() {
                           ".add-product-tooltip"
                         ) as HTMLElement;
                         if (button) button.style.transform = "scale(1.1)";
-                        if (tooltip) tooltip.style.opacity = "1";
+                        if (tooltip) {
+                          tooltip.style.opacity = "1";
+                          tooltip.style.visibility = "visible";
+                        }
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -5976,7 +5995,10 @@ export default function CampaignsPage() {
                         ".add-product-tooltip"
                       ) as HTMLElement;
                       if (button) button.style.transform = "scale(1)";
-                      if (tooltip) tooltip.style.opacity = "0";
+                      if (tooltip) {
+                        tooltip.style.opacity = "0";
+                        tooltip.style.visibility = "hidden";
+                      }
                     }}
                   >
                     <button
@@ -5989,7 +6011,7 @@ export default function CampaignsPage() {
                       }}
                       disabled={addingProductToImage}
                       style={{
-                        padding: "20px",
+                        padding: "12px",
                         backgroundColor: "transparent",
                         border: "none",
                         borderRadius: "8px",
@@ -5999,8 +6021,8 @@ export default function CampaignsPage() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        width: "120px",
-                        height: "120px",
+                        width: "96px",
+                        height: "96px",
                         opacity: addingProductToImage ? 0.6 : 1,
                         transition: "opacity 0.2s ease, transform 0.2s ease",
                         flexShrink: 0,
@@ -6018,12 +6040,13 @@ export default function CampaignsPage() {
                     </button>
                     {/* Hover Tooltip */}
                     <div
+                      className="add-product-tooltip"
                       style={{
                         position: "absolute",
                         bottom: "100%",
                         left: "50%",
                         transform: "translateX(-50%)",
-                        marginBottom: "12px",
+                        marginBottom: "10px",
                         padding: "10px 14px",
                         backgroundColor: "rgba(0, 0, 0, 0.95)",
                         color: "#FFFFFF",
@@ -6031,15 +6054,16 @@ export default function CampaignsPage() {
                         fontWeight: "500",
                         borderRadius: "8px",
                         opacity: 0,
+                        visibility: "hidden",
                         pointerEvents: "none",
-                        transition: "opacity 0.2s ease",
+                        transition: "opacity 0.2s ease, visibility 0.2s ease",
                         zIndex: 10000,
                         maxWidth: "240px",
                         textAlign: "center",
                         lineHeight: "1.5",
                         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
+                        whiteSpace: "normal",
                       }}
-                      className="add-product-tooltip"
                     >
                       <div
                         style={{
