@@ -5787,16 +5787,18 @@ export default function CampaignsPage() {
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = "scale(1.1)";
-                        const tooltip = e.currentTarget.parentElement?.querySelector(
-                          ".download-tooltip"
-                        ) as HTMLElement;
+                        const tooltip =
+                          e.currentTarget.parentElement?.querySelector(
+                            ".download-tooltip"
+                          ) as HTMLElement;
                         if (tooltip) tooltip.style.opacity = "1";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = "scale(1)";
-                        const tooltip = e.currentTarget.parentElement?.querySelector(
-                          ".download-tooltip"
-                        ) as HTMLElement;
+                        const tooltip =
+                          e.currentTarget.parentElement?.querySelector(
+                            ".download-tooltip"
+                          ) as HTMLElement;
                         if (tooltip) tooltip.style.opacity = "0";
                       }}
                     >
@@ -5818,21 +5820,28 @@ export default function CampaignsPage() {
                         left: "50%",
                         transform: "translateX(-50%)",
                         marginBottom: "8px",
-                        padding: "6px 12px",
+                        padding: "8px 12px",
                         backgroundColor: "rgba(0, 0, 0, 0.9)",
                         color: "#FFFFFF",
                         fontSize: "12px",
                         fontWeight: "500",
                         borderRadius: "6px",
-                        whiteSpace: "nowrap",
                         opacity: 0,
                         pointerEvents: "none",
                         transition: "opacity 0.2s ease",
                         zIndex: 1000,
+                        maxWidth: "220px",
+                        textAlign: "center",
+                        lineHeight: "1.4",
                       }}
                       className="download-tooltip"
                     >
-                      Download Image
+                      <div style={{ fontWeight: "600", marginBottom: "4px", fontSize: "13px" }}>
+                        Download
+                      </div>
+                      <div style={{ fontSize: "11px", opacity: 0.9, whiteSpace: "normal" }}>
+                        Save image to your device
+                      </div>
                     </div>
                   </div>
 
@@ -5861,16 +5870,18 @@ export default function CampaignsPage() {
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = "scale(1.1)";
-                        const tooltip = e.currentTarget.parentElement?.querySelector(
-                          ".tweak-tooltip"
-                        ) as HTMLElement;
+                        const tooltip =
+                          e.currentTarget.parentElement?.querySelector(
+                            ".tweak-tooltip"
+                          ) as HTMLElement;
                         if (tooltip) tooltip.style.opacity = "1";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = "scale(1)";
-                        const tooltip = e.currentTarget.parentElement?.querySelector(
-                          ".tweak-tooltip"
-                        ) as HTMLElement;
+                        const tooltip =
+                          e.currentTarget.parentElement?.querySelector(
+                            ".tweak-tooltip"
+                          ) as HTMLElement;
                         if (tooltip) tooltip.style.opacity = "0";
                       }}
                     >
@@ -5892,21 +5903,28 @@ export default function CampaignsPage() {
                         left: "50%",
                         transform: "translateX(-50%)",
                         marginBottom: "8px",
-                        padding: "6px 12px",
+                        padding: "8px 12px",
                         backgroundColor: "rgba(0, 0, 0, 0.9)",
                         color: "#FFFFFF",
                         fontSize: "12px",
                         fontWeight: "500",
                         borderRadius: "6px",
-                        whiteSpace: "nowrap",
                         opacity: 0,
                         pointerEvents: "none",
                         transition: "opacity 0.2s ease",
                         zIndex: 1000,
+                        maxWidth: "220px",
+                        textAlign: "center",
+                        lineHeight: "1.4",
                       }}
                       className="tweak-tooltip"
                     >
-                      Tweak Image
+                      <div style={{ fontWeight: "600", marginBottom: "4px", fontSize: "13px" }}>
+                        Tweak
+                      </div>
+                      <div style={{ fontSize: "11px", opacity: 0.9, whiteSpace: "normal" }}>
+                        AI-powered image editing with custom prompts
+                      </div>
                     </div>
                   </div>
 
@@ -5931,7 +5949,9 @@ export default function CampaignsPage() {
                         backgroundColor: "transparent",
                         border: "none",
                         borderRadius: "8px",
-                        cursor: addingProductToImage ? "not-allowed" : "pointer",
+                        cursor: addingProductToImage
+                          ? "not-allowed"
+                          : "pointer",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -5944,17 +5964,19 @@ export default function CampaignsPage() {
                       onMouseEnter={(e) => {
                         if (!addingProductToImage) {
                           e.currentTarget.style.transform = "scale(1.1)";
-                          const tooltip = e.currentTarget.parentElement?.querySelector(
-                            ".add-product-tooltip"
-                          ) as HTMLElement;
+                          const tooltip =
+                            e.currentTarget.parentElement?.querySelector(
+                              ".add-product-tooltip"
+                            ) as HTMLElement;
                           if (tooltip) tooltip.style.opacity = "1";
                         }
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = "scale(1)";
-                        const tooltip = e.currentTarget.parentElement?.querySelector(
-                          ".add-product-tooltip"
-                        ) as HTMLElement;
+                        const tooltip =
+                          e.currentTarget.parentElement?.querySelector(
+                            ".add-product-tooltip"
+                          ) as HTMLElement;
                         if (tooltip) tooltip.style.opacity = "0";
                       }}
                     >
@@ -5976,21 +5998,28 @@ export default function CampaignsPage() {
                         left: "50%",
                         transform: "translateX(-50%)",
                         marginBottom: "8px",
-                        padding: "6px 12px",
+                        padding: "8px 12px",
                         backgroundColor: "rgba(0, 0, 0, 0.9)",
                         color: "#FFFFFF",
                         fontSize: "12px",
                         fontWeight: "500",
                         borderRadius: "6px",
-                        whiteSpace: "nowrap",
                         opacity: 0,
                         pointerEvents: "none",
                         transition: "opacity 0.2s ease",
                         zIndex: 1000,
+                        maxWidth: "220px",
+                        textAlign: "center",
+                        lineHeight: "1.4",
                       }}
                       className="add-product-tooltip"
                     >
-                      Add Product
+                      <div style={{ fontWeight: "600", marginBottom: "4px", fontSize: "13px" }}>
+                        Add Product
+                      </div>
+                      <div style={{ fontSize: "11px", opacity: 0.9, whiteSpace: "normal" }}>
+                        Add another product onto this image
+                      </div>
                     </div>
                   </div>
                 </div>
