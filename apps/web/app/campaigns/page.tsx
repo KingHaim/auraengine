@@ -848,14 +848,20 @@ export default function CampaignsPage() {
     // Get clothing_type from product - check both snake_case and camelCase, and category as fallback
     // API returns clothing_type as null but category has the correct value ("pants", "tshirt", etc.)
     let clothingType =
-      product.clothing_type || (product as any).clothingType || product.category || "";
+      product.clothing_type ||
+      (product as any).clothingType ||
+      product.category ||
+      "";
 
     console.log("🔍 Raw clothing_type from product:", product.clothing_type);
     console.log(
       "🔍 Raw clothingType from product:",
       (product as any).clothingType
     );
-    console.log("🔍 Raw category from product (using as fallback):", product.category);
+    console.log(
+      "🔍 Raw category from product (using as fallback):",
+      product.category
+    );
 
     // If clothing_type is missing or wrong, try to detect from product name
     if (!clothingType || clothingType === "top") {
@@ -891,10 +897,37 @@ export default function CampaignsPage() {
     );
     console.log("🔍 Product data:", product);
 
+    // Validate required fields
+    if (!currentImageForTweak) {
+      console.error("❌ No image selected for adding product");
+      alert("❌ Please select an image first by clicking on it");
+      return;
+    }
+
+    console.log("🔍 API Request details:", {
+      image_url: currentImageForTweak?.substring(0, 80) + "...",
+      product_id: productId,
+      clothing_type: clothingType,
+      campaign_id: selectedCampaignForProfile?.id || null,
+    });
+
     setAddingProductToImage(true);
     setShowProductSelectionModal(false);
 
     try {
+      const requestBody = {
+        image_url: currentImageForTweak,
+        product_id: productId,
+        clothing_type: clothingType,
+        campaign_id: selectedCampaignForProfile?.id || null,
+      };
+      
+      console.log("📤 Making API call to /reapply-clothes:", {
+        url: `${process.env.NEXT_PUBLIC_API_URL}/reapply-clothes`,
+        method: "POST",
+        body: requestBody,
+      });
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/reapply-clothes`,
         {
@@ -903,36 +936,60 @@ export default function CampaignsPage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            image_url: currentImageForTweak,
-            product_id: productId,
-            clothing_type: clothingType,
-            campaign_id: selectedCampaignForProfile?.id || null,
-          }),
+          body: JSON.stringify(requestBody),
         }
       );
 
+      console.log("📥 API Response status:", response.status, response.statusText);
+
       if (response.ok) {
         const data = await response.json();
+        console.log("✅ API Response data:", data);
+        console.log("✅ Reapplied URL:", data.reapplied_url);
 
         // Update the enlarged image with the new result immediately
-        setEnlargedImageUrl(data.reapplied_url);
-        setCurrentImageForTweak(data.reapplied_url);
+        if (data.reapplied_url) {
+          setEnlargedImageUrl(data.reapplied_url);
+          setCurrentImageForTweak(data.reapplied_url);
+          console.log("✅ Updated enlarged image URL");
 
-        // Refresh campaign data to show updated image in the grid
-        await fetchData();
+          // Refresh campaign data to show updated image in the grid
+          await fetchData();
+          console.log("✅ Refreshed campaign data");
 
-        // Show success message after refresh
-        alert(
-          `✅ Successfully added ${data.product_name} to the image!\n\nThe image has been updated.`
-        );
+          // Show success message after refresh
+          alert(
+            `✅ Successfully added ${data.product_name || product.name} to the image!\n\nThe image has been updated.`
+          );
+        } else {
+          console.error("❌ API response missing reapplied_url:", data);
+          alert("❌ API response is missing the updated image URL");
+        }
       } else {
-        const error = await response.json();
-        alert(`❌ Failed to add product: ${error.detail}`);
+        const errorText = await response.text();
+        console.error("❌ API Error Response:", {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText,
+        });
+        let errorDetail = "Unknown error";
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorDetail = errorJson.detail || errorJson.message || errorText;
+        } catch {
+          errorDetail = errorText;
+        }
+        alert(`❌ Failed to add product (${response.status}): ${errorDetail}`);
       }
     } catch (error) {
-      console.error("Error adding product to image:", error);
-      alert("❌ Failed to add product. Please try again.");
+      console.error("❌ Error adding product to image:", error);
+      if (error instanceof Error) {
+        console.error("❌ Error details:", {
+          message: error.message,
+          stack: error.stack,
+        });
+      }
+      alert(`❌ Failed to add product: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setAddingProductToImage(false);
       setSelectedProductForImage(null);
