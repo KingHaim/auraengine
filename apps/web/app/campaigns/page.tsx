@@ -5747,6 +5747,8 @@ export default function CampaignsPage() {
                   gap: "16px",
                   maxHeight: "90vh",
                   overflowY: "auto",
+                  overflowX: "visible",
+                  position: "relative",
                 }}
               >
                 {/* Action Buttons Container - Same Line */}
@@ -5785,7 +5787,7 @@ export default function CampaignsPage() {
                         )
                       }
                       style={{
-                        padding: "8px",
+                        padding: "6px",
                         backgroundColor: "transparent",
                         border: "none",
                         borderRadius: "8px",
@@ -5793,8 +5795,8 @@ export default function CampaignsPage() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        width: "72px",
-                        height: "72px",
+                        width: "56px",
+                        height: "56px",
                         flexShrink: 0,
                         transition: "transform 0.2s ease",
                       }}
@@ -5815,43 +5817,45 @@ export default function CampaignsPage() {
                         className="download-tooltip"
                         style={{
                           position: "absolute",
-                          bottom: "100%",
+                          bottom: "calc(100% + 10px)",
                           left: "50%",
                           transform: "translateX(-50%)",
-                          marginBottom: "10px",
                           padding: "10px 14px",
                           backgroundColor: "rgba(0, 0, 0, 0.95)",
                           color: "#FFFFFF",
-                          fontSize: "13px",
+                          fontSize: "12px",
                           fontWeight: "500",
                           borderRadius: "8px",
                           pointerEvents: "none",
-                          zIndex: 10000,
-                          maxWidth: "240px",
+                          zIndex: 99999,
+                          maxWidth: "220px",
                           textAlign: "center",
                           lineHeight: "1.5",
                           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
                           whiteSpace: "normal",
+                          display: "block",
+                          visibility: "visible",
+                          opacity: 1,
                         }}
                       >
-                      <div
-                        style={{
-                          fontWeight: "600",
-                          marginBottom: "4px",
-                          fontSize: "13px",
-                        }}
-                      >
-                        Download
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "11px",
-                          opacity: 0.9,
-                          whiteSpace: "normal",
-                        }}
-                      >
-                        Save image to your device
-                      </div>
+                        <div
+                          style={{
+                            fontWeight: "600",
+                            marginBottom: "4px",
+                            fontSize: "13px",
+                          }}
+                        >
+                          Download
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "11px",
+                            opacity: 0.9,
+                            whiteSpace: "normal",
+                          }}
+                        >
+                          Save image to your device
+                        </div>
                       </div>
                     )}
                   </div>
@@ -5876,7 +5880,7 @@ export default function CampaignsPage() {
                     <button
                       onClick={() => setShowTweakModal(true)}
                       style={{
-                        padding: "8px",
+                        padding: "6px",
                         backgroundColor: "transparent",
                         border: "none",
                         borderRadius: "8px",
@@ -5884,8 +5888,8 @@ export default function CampaignsPage() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        width: "72px",
-                        height: "72px",
+                        width: "56px",
+                        height: "56px",
                         flexShrink: 0,
                         transition: "transform 0.2s ease",
                       }}
@@ -5906,43 +5910,45 @@ export default function CampaignsPage() {
                         className="tweak-tooltip"
                         style={{
                           position: "absolute",
-                          bottom: "100%",
+                          bottom: "calc(100% + 10px)",
                           left: "50%",
                           transform: "translateX(-50%)",
-                          marginBottom: "10px",
                           padding: "10px 14px",
                           backgroundColor: "rgba(0, 0, 0, 0.95)",
                           color: "#FFFFFF",
-                          fontSize: "13px",
+                          fontSize: "12px",
                           fontWeight: "500",
                           borderRadius: "8px",
                           pointerEvents: "none",
-                          zIndex: 10000,
-                          maxWidth: "240px",
+                          zIndex: 99999,
+                          maxWidth: "220px",
                           textAlign: "center",
                           lineHeight: "1.5",
                           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
                           whiteSpace: "normal",
+                          display: "block",
+                          visibility: "visible",
+                          opacity: 1,
                         }}
                       >
-                      <div
-                        style={{
-                          fontWeight: "600",
-                          marginBottom: "4px",
-                          fontSize: "13px",
-                        }}
-                      >
-                        Tweak
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "11px",
-                          opacity: 0.9,
-                          whiteSpace: "normal",
-                        }}
-                      >
-                        AI-powered image editing with custom prompts
-                      </div>
+                        <div
+                          style={{
+                            fontWeight: "600",
+                            marginBottom: "4px",
+                            fontSize: "13px",
+                          }}
+                        >
+                          Tweak
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "11px",
+                            opacity: 0.9,
+                            whiteSpace: "normal",
+                          }}
+                        >
+                          AI-powered image editing with custom prompts
+                        </div>
                       </div>
                     )}
                   </div>
@@ -6009,43 +6015,45 @@ export default function CampaignsPage() {
                         className="add-product-tooltip"
                         style={{
                           position: "absolute",
-                          bottom: "100%",
+                          bottom: "calc(100% + 10px)",
                           left: "50%",
                           transform: "translateX(-50%)",
-                          marginBottom: "10px",
                           padding: "10px 14px",
                           backgroundColor: "rgba(0, 0, 0, 0.95)",
                           color: "#FFFFFF",
-                          fontSize: "13px",
+                          fontSize: "12px",
                           fontWeight: "500",
                           borderRadius: "8px",
                           pointerEvents: "none",
-                          zIndex: 10000,
-                          maxWidth: "240px",
+                          zIndex: 99999,
+                          maxWidth: "220px",
                           textAlign: "center",
                           lineHeight: "1.5",
                           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
                           whiteSpace: "normal",
+                          display: "block",
+                          visibility: "visible",
+                          opacity: 1,
                         }}
                       >
-                      <div
-                        style={{
-                          fontWeight: "600",
-                          marginBottom: "4px",
-                          fontSize: "13px",
-                        }}
-                      >
-                        Add Product
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "11px",
-                          opacity: 0.9,
-                          whiteSpace: "normal",
-                        }}
-                      >
-                        Add another product onto this image
-                      </div>
+                        <div
+                          style={{
+                            fontWeight: "600",
+                            marginBottom: "4px",
+                            fontSize: "13px",
+                          }}
+                        >
+                          Add Product
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "11px",
+                            opacity: 0.9,
+                            whiteSpace: "normal",
+                          }}
+                        >
+                          Add another product onto this image
+                        </div>
                       </div>
                     )}
                   </div>
