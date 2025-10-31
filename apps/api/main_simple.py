@@ -2455,6 +2455,94 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
         print("↩️ Returning previous composed image instead of placeholder")
         return model_image_url
 
+def run_qwen_add_product(model_image_url: str, product_image_url: str, clothing_type: str, product_name: str) -> str:
+    """Add a product to a model image using Qwen Image Edit Plus"""
+    try:
+        print(f"🎨 Running Qwen to add {product_name} ({clothing_type}) to image...")
+        
+        # Convert local URLs to external URLs for Replicate
+        if model_image_url.startswith(get_base_url() + "/static/"):
+            filename = model_image_url.replace(get_base_url() + "/static/", "")
+            filepath = f"uploads/{filename}"
+            model_image_url = upload_to_replicate(filepath)
+            print(f"📁 Converted local model image to external URL")
+            
+        if product_image_url.startswith(get_base_url() + "/static/"):
+            filename = product_image_url.replace(get_base_url() + "/static/", "")
+            filepath = f"uploads/{filename}"
+            product_image_url = upload_to_replicate(filepath)
+            print(f"📁 Converted local product image to external URL")
+        
+        # Create a strong prompt that tells Qwen to apply the exact product from the packshot
+        clothing_type_lower = clothing_type.lower() if clothing_type else "product"
+        
+        # Map clothing types to specific instructions
+        clothing_instructions = {
+            "pants": "CRITICAL: Apply ONLY the pants from the second image onto the person in the first image. Remove any existing pants/bottoms. Use the EXACT pants shown in the packshot image (second image). Do not generate or create new pants - use the specific pants from the packshot. The pants must match exactly in color, style, texture, and details.",
+            "shorts": "CRITICAL: Apply ONLY the shorts from the second image onto the person in the first image. Remove any existing shorts/bottoms. Use the EXACT shorts shown in the packshot image (second image). Do not generate or create new shorts - use the specific shorts from the packshot.",
+            "skirt": "CRITICAL: Apply ONLY the skirt from the second image onto the person in the first image. Remove any existing skirts/bottoms. Use the EXACT skirt shown in the packshot image (second image). Do not generate or create new skirts - use the specific skirt from the packshot.",
+            "tshirt": "CRITICAL: Apply ONLY the t-shirt from the second image onto the person in the first image. Remove any existing shirts/tops. Use the EXACT t-shirt shown in the packshot image (second image). Do not generate or create new shirts - use the specific t-shirt from the packshot.",
+            "shirt": "CRITICAL: Apply ONLY the shirt from the second image onto the person in the first image. Remove any existing shirts/tops. Use the EXACT shirt shown in the packshot image (second image). Do not generate or create new shirts - use the specific shirt from the packshot.",
+            "sweater": "CRITICAL: Apply ONLY the sweater from the second image onto the person in the first image. Remove any existing sweaters/tops. Use the EXACT sweater shown in the packshot image (second image). Do not generate or create new sweaters - use the specific sweater from the packshot.",
+            "jacket": "CRITICAL: Apply ONLY the jacket from the second image onto the person in the first image. Remove any existing jackets/tops. Use the EXACT jacket shown in the packshot image (second image). Do not generate or create new jackets - use the specific jacket from the packshot.",
+            "hoodie": "CRITICAL: Apply ONLY the hoodie from the second image onto the person in the first image. Remove any existing hoodies/tops. Use the EXACT hoodie shown in the packshot image (second image). Do not generate or create new hoodies - use the specific hoodie from the packshot.",
+        }
+        
+        base_prompt = clothing_instructions.get(clothing_type_lower, 
+            f"CRITICAL: Apply ONLY the {clothing_type_lower} from the second image onto the person in the first image. Use the EXACT {clothing_type_lower} shown in the packshot image (second image). Do not generate or create new {clothing_type_lower} - use the specific {clothing_type_lower} from the packshot. The {clothing_type_lower} must match exactly in color, style, texture, and details.")
+        
+        full_prompt = f"{base_prompt} Keep the person's body, pose, face, and all other clothing unchanged. Only replace/add the {clothing_type_lower} from the packshot. Professional fashion photography quality with perfect garment integration."
+        
+        print(f"📝 Qwen prompt: {full_prompt[:200]}...")
+        print(f"🖼️ Model image URL: {model_image_url[:80]}...")
+        print(f"🛍️ Product image URL: {product_image_url[:80]}...")
+        print(f"👕 Clothing type: {clothing_type}")
+        
+        # Use Qwen Image Edit Plus with 2 images (model + product packshot)
+        try:
+            print("🔄 Calling Qwen Image Edit Plus...")
+            out = replicate.run("qwen/qwen-image-edit-plus", input={
+                "prompt": full_prompt,
+                "image": [model_image_url, product_image_url],
+                "num_inference_steps": 50,  # More steps for better accuracy
+                "guidance_scale": 7.5,  # Higher guidance for strict adherence to packshot
+                "strength": 0.8  # High strength to ensure packshot is applied
+            })
+            
+            # Handle output
+            if hasattr(out, 'url'):
+                result_url = out.url()
+            elif isinstance(out, str):
+                result_url = out
+            elif isinstance(out, list) and len(out) > 0:
+                result_url = out[0] if isinstance(out[0], str) else out[0].url()
+            else:
+                result_url = str(out)
+            
+            # Immediately persist Replicate URLs to avoid 404 errors
+            if isinstance(result_url, str) and result_url.startswith("https://replicate.delivery/"):
+                try:
+                    result_url = upload_to_cloudinary(result_url, "qwen_add_product")
+                    print(f"✅ Persisted Qwen result to Cloudinary: {result_url[:80]}...")
+                except Exception as upload_error:
+                    print(f"⚠️ Failed to persist to Cloudinary: {upload_error}")
+            
+            print(f"✅ Qwen add product completed: {result_url[:80]}...")
+            return result_url
+            
+        except Exception as qwen_error:
+            print(f"❌ Qwen add product failed: {qwen_error}")
+            import traceback
+            traceback.print_exc()
+            raise qwen_error
+            
+    except Exception as e:
+        print(f"❌ Qwen add product generation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        print("↩️ Returning original model image instead of placeholder")
+        return model_image_url
+
 def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:
     """ONE-STEP: Model + Product + Scene all in one Qwen call"""
     try:
@@ -3544,8 +3632,8 @@ async def reapply_clothes(
     db: Session = Depends(get_db)
 ):
     """
-    Reapply clothing to an existing image using Vella 1.5.
-    Takes the current image and re-runs the virtual try-on with the product.
+    Add a product to an existing image using Qwen Image Edit Plus.
+    Takes the current image and applies the product packshot onto the model.
     """
     try:
         print(f"👔 Reapplying clothes to image")
@@ -3625,14 +3713,14 @@ async def reapply_clothes(
             # External URL - use directly
             model_image_url = request.image_url
         
-        # Apply Vella try-on
-        print(f"🎭 Running Vella 1.5 try-on...")
-        vella_result_url = run_vella_try_on(model_image_url, product_image, "standard", clothing_type)
-        print(f"✅ Vella try-on completed: {vella_result_url[:50]}...")
+        # Apply Qwen to add product (switched from Vella)
+        print(f"🎨 Running Qwen to add product...")
+        qwen_result_url = run_qwen_add_product(model_image_url, product_image, clothing_type, product.name)
+        print(f"✅ Qwen add product completed: {qwen_result_url[:50]}...")
         
         # Download and save the result
         print(f"💾 Downloading result...")
-        final_url = upload_to_cloudinary(vella_result_url, "reapplied_clothes")
+        final_url = upload_to_cloudinary(qwen_result_url, "reapplied_clothes")
         print(f"✅ Reapplied clothes saved: {final_url[:50]}...")
         
         # If campaign_id is provided, update the image in the campaign
