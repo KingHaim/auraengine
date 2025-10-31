@@ -2229,10 +2229,33 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             
             if is_webp_packshot:
                 # WEBP packshots from Cloudinary packshot generation are usually already isolated
-                # Try to use them directly, but still verify if possible
-                print("🧵 Using WEBP packshot directly (usually already has transparent background)")
-                garment_url = product_image_url
-                print(f"🧵 Garment URL: {garment_url[:80]}...")
+                # However, Vella might work better with PNG format
+                # Convert WEBP to PNG to ensure Vella can use it correctly
+                print("🧵 WEBP packshot detected, converting to PNG for Vella compatibility...")
+                try:
+                    import requests
+                    from io import BytesIO
+                    print(f"📥 Downloading WEBP packshot from: {product_image_url[:80]}...")
+                    response = requests.get(product_image_url, timeout=10)
+                    response.raise_for_status()
+                    webp_img = Image.open(BytesIO(response.content)).convert("RGBA")
+                    print(f"✅ Downloaded WEBP, size: {webp_img.size}, mode: {webp_img.mode}")
+                    
+                    # Convert to PNG with transparency preserved
+                    png_buffer = BytesIO()
+                    webp_img.save(png_buffer, format="PNG", optimize=True)
+                    png_buffer.seek(0)
+                    
+                    # Upload PNG version to Cloudinary
+                    png_url = upload_pil_to_cloudinary(Image.open(png_buffer), "garment_png")
+                    print(f"✅ Converted WEBP to PNG: {png_url[:80]}...")
+                    garment_url = png_url
+                    print(f"🧵 Garment URL (PNG): {garment_url[:80]}...")
+                except Exception as conv_error:
+                    print(f"⚠️ WEBP→PNG conversion failed: {conv_error}")
+                    print(f"⚠️ Using original WEBP packshot (Vella may not use it correctly)")
+                    garment_url = product_image_url
+                    print(f"🧵 Garment URL (WEBP fallback): {garment_url[:80]}...")
             elif has_alpha(product_image_url) and not is_packshot:
                 # Only skip processing if it already has alpha AND it's not a packshot
                 garment_url = product_image_url
