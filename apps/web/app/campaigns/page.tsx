@@ -5752,106 +5752,120 @@ export default function CampaignsPage() {
                     fontSize: "18px",
                     fontWeight: "600",
                     margin: 0,
-                    marginBottom: "8px",
+                    marginBottom: "16px",
                   }}
                 >
                   Image Actions
                 </h3>
 
-                {/* Download Button */}
-                <button
-                  onClick={() =>
-                    downloadImage(
-                      enlargedImageUrl,
-                      `campaign-${Date.now()}.jpg`
-                    )
-                  }
+                {/* Action Buttons Container - Same Line */}
+                <div
                   style={{
-                    padding: "8px",
-                    backgroundColor: "transparent",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
                     display: "flex",
+                    flexDirection: "row",
                     alignItems: "center",
-                    justifyContent: "center",
-                    width: "48px",
-                    height: "48px",
+                    gap: "12px",
+                    width: "100%",
                   }}
                 >
-                  <img
-                    src="/downloadimage.png"
-                    alt="Download Image"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
-                    }}
-                  />
-                </button>
-
-                {/* Tweak Button */}
-                <button
-                  onClick={() => setShowTweakModal(true)}
-                  style={{
-                    padding: "8px",
-                    backgroundColor: "transparent",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "48px",
-                    height: "48px",
-                  }}
-                >
-                  <img
-                    src="/tweakimage.png"
-                    alt="Tweak Image"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
-                    }}
-                  />
-                </button>
-
-                {/* Add Product Button - Opens product selection to add product to existing image */}
-                <button
-                  onClick={() => {
-                    if (!addingProductToImage) {
-                      setProductSelectionMode("image");
-                      setSelectedProductForImage(null);
-                      setShowProductSelectionModal(true);
+                  {/* Download Button */}
+                  <button
+                    onClick={() =>
+                      downloadImage(
+                        enlargedImageUrl,
+                        `campaign-${Date.now()}.jpg`
+                      )
                     }
-                  }}
-                  disabled={addingProductToImage}
-                  style={{
-                    padding: "8px",
-                    backgroundColor: "transparent",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: addingProductToImage ? "not-allowed" : "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "48px",
-                    height: "48px",
-                    opacity: addingProductToImage ? 0.6 : 1,
-                    transition: "opacity 0.2s ease",
-                  }}
-                >
-                  <img
-                    src="/addclothes.png"
-                    alt="Add Product"
                     style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
+                      padding: "12px",
+                      backgroundColor: "transparent",
+                      border: "none",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "64px",
+                      height: "64px",
+                      flexShrink: 0,
                     }}
-                  />
-                </button>
+                  >
+                    <img
+                      src="/downloadimage.png"
+                      alt="Download Image"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                      }}
+                    />
+                  </button>
+
+                  {/* Tweak Button */}
+                  <button
+                    onClick={() => setShowTweakModal(true)}
+                    style={{
+                      padding: "12px",
+                      backgroundColor: "transparent",
+                      border: "none",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "64px",
+                      height: "64px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <img
+                      src="/tweakimage.png"
+                      alt="Tweak Image"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                      }}
+                    />
+                  </button>
+
+                  {/* Add Product Button - Opens product selection to add product to existing image */}
+                  <button
+                    onClick={() => {
+                      if (!addingProductToImage) {
+                        setProductSelectionMode("image");
+                        setSelectedProductForImage(null);
+                        setShowProductSelectionModal(true);
+                      }
+                    }}
+                    disabled={addingProductToImage}
+                    style={{
+                      padding: "12px",
+                      backgroundColor: "transparent",
+                      border: "none",
+                      borderRadius: "8px",
+                      cursor: addingProductToImage ? "not-allowed" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "64px",
+                      height: "64px",
+                      opacity: addingProductToImage ? 0.6 : 1,
+                      transition: "opacity 0.2s ease",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <img
+                      src="/addclothes.png"
+                      alt="Add Product"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                      }}
+                    />
+                  </button>
+                </div>
 
                 {/* Info Section */}
                 <div
