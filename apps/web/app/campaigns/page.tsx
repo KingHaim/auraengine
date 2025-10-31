@@ -5782,18 +5782,17 @@ export default function CampaignsPage() {
                     onMouseEnter={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1.1)";
-                      console.log(
-                        "Hovering download button, setting tooltip to true"
-                      );
                       setShowDownloadTooltip(true);
+                      setActiveTooltip({
+                        title: "Download",
+                        description: "Save image to your device",
+                      });
                     }}
                     onMouseLeave={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1)";
-                      console.log(
-                        "Leaving download button, setting tooltip to false"
-                      );
                       setShowDownloadTooltip(false);
+                      setActiveTooltip(null);
                     }}
                   >
                     <button
