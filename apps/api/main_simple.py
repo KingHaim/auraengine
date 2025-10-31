@@ -2082,8 +2082,9 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
     5. Detects clothing type and uses correct Vella 1.5 parameter
     """
     try:
-        print(f"🎭 Running Vella try-on: model={model_image_url[:50]}..., product={product_image_url[:50]}...")
+        print(f"🎭 Running Vella try-on: model={model_image_url[:80]}..., product={product_image_url[:80]}...")
         print(f"👕 Clothing type: {clothing_type}")
+        print(f"🔍 Full product_image_url: {product_image_url}")
 
         # Force persist ephemeral replicate URLs to stable /static before calling Vella
         if isinstance(model_image_url, str) and model_image_url.startswith("https://replicate.delivery/"):
@@ -3366,7 +3367,14 @@ async def reapply_clothes(
             raise HTTPException(status_code=404, detail="Product not found")
         
         # Use product packshot (front view preferred)
-        product_image = product.packshot_front_url or product.image_url
+        # For bottoms, we might need packshot_back_url if available
+        product_image = product.packshot_front_url or product.packshot_back_url or product.image_url
+        
+        print(f"🔍 Product image selection for '{product.name}':")
+        print(f"   packshot_front_url: {product.packshot_front_url}")
+        print(f"   packshot_back_url: {product.packshot_back_url}")
+        print(f"   image_url: {product.image_url}")
+        print(f"   Selected product_image: {product_image}")
         
         # Get clothing type from product or use provided
         # Also check category field as fallback since API returns clothing_type as null
