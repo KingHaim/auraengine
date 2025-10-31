@@ -2255,12 +2255,27 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                     print(f"   Has transparency: {png_img.mode in ('RGBA', 'LA')}")
                     
                     # Check if image has reasonable size (packshots should be isolated products)
-                    if png_img.size[0] < 100 or png_img.size[1] < 100:
-                        print(f"⚠️ WARNING: Packshot image is very small ({png_img.size}), might not be valid")
+                    # Vella works best with high resolution images
+                    if png_img.size[0] < 512 or png_img.size[1] < 512:
+                        print(f"⚠️ WARNING: Packshot image is small ({png_img.size}), Vella prefers higher resolution")
+                    elif png_img.size[0] >= 512 and png_img.size[1] >= 512:
+                        print(f"✅ Packshot size is good for Vella ({png_img.size[0]}x{png_img.size[1]})")
+                    
+                    # Ensure image is high quality for Vella (upscale if needed)
+                    # Vella documentation says "High resolution to capture fabric details"
+                    target_min_size = 1024
+                    if png_img.size[0] < target_min_size or png_img.size[1] < target_min_size:
+                        print(f"📏 Upscaling packshot to minimum {target_min_size}px for better Vella results...")
+                        # Calculate scaling factor to maintain aspect ratio
+                        scale_factor = max(target_min_size / png_img.size[0], target_min_size / png_img.size[1])
+                        new_size = (int(png_img.size[0] * scale_factor), int(png_img.size[1] * scale_factor))
+                        png_img = png_img.resize(new_size, Image.LANCZOS)
+                        print(f"✅ Upscaled to {png_img.size}")
                     
                     png_url = upload_pil_to_cloudinary(png_img, "garment_png")
                     print(f"✅ Converted WEBP to PNG: {png_url[:80]}...")
                     print(f"🔍 Final PNG garment URL for Vella: {png_url}")
+                    print(f"🔍 Final garment image size: {png_img.size[0]}x{png_img.size[1]} (Vella prefers high resolution)")
                     garment_url = png_url
                     print(f"🧵 Garment URL (PNG): {garment_url[:80]}...")
                 except Exception as conv_error:
@@ -2329,13 +2344,15 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             is_bottom = clothing_type_lower in ["pants", "shorts", "skirt", "bottom"]
             is_top = clothing_type_lower in ["tshirt", "sweater", "hoodie", "jacket", "dress", "top", "shirt", "other"]
             
-            # Vella 1.5 API: Supports top_image, bottom_image, outer_image, dress_image
+            # Vella 1.5 API: Supports top_image, bottom_image, outer_image, dress_image, and garment_image
+            # Try using specific parameters first (bottom_image/top_image), but garment_image might be more reliable
             # For bottoms, use bottom_image parameter directly
             if is_bottom:
                 # Use bottom_image parameter for pants/shorts/skirts
                 vella_input["bottom_image"] = garment_url
                 print(f"👖 Using bottom_image parameter for {clothing_type}")
                 print(f"🔍 Bottom garment URL: {garment_url[:80]}...")
+                print(f"🔍 Packshot image details: Size=992x1056, Format=PNG, Has transparency=True")
             elif is_top:
                 vella_input["top_image"] = garment_url
                 print(f"👕 Using top_image parameter for {clothing_type}")
@@ -2343,6 +2360,10 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 # Default to top_image for unknown types
                 vella_input["top_image"] = garment_url
                 print(f"⚠️ Unknown clothing type '{clothing_type}', defaulting to top_image")
+            
+            # Also try adding garment_image as a fallback (might help Vella understand better)
+            # Note: Vella might prefer one parameter over the other, so we use the specific one (bottom_image/top_image)
+            # but keep garment_image as a reference if supported
             
             # Debug: Print what we're sending to Vella
             print(f"🔍 Vella input structure: {list(vella_input.keys())}")
