@@ -69,12 +69,12 @@ export default function Dashboard() {
           scenesRes.ok ? scenesRes.json() : [],
         ]);
 
-        // Set campaigns for display (recent 3, sorted by most recent first)
+        // Set campaigns for display (recent campaigns, sorted by most recent first)
         const sortedCampaigns = campaignsData.sort(
           (a: Campaign, b: Campaign) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
-        setCampaigns(sortedCampaigns.slice(0, 3));
+        setCampaigns(sortedCampaigns); // Show all recent campaigns for quadrant view
 
         // Set stats with actual data
         setStats({
@@ -360,13 +360,13 @@ export default function Dashboard() {
           {campaigns.length > 0 ? (
             <div
               style={{
-                display: isMobile ? "flex" : "grid",
+                display: "grid",
                 gridTemplateColumns: isMobile
-                  ? "none"
-                  : "repeat(auto-fit, minmax(200px, 1fr))",
+                  ? "repeat(2, 1fr)"
+                  : "repeat(auto-fill, minmax(180px, 1fr))",
+                gap: isMobile ? "12px" : "16px",
                 overflowX: isMobile ? "auto" : "visible",
-                gap: "16px",
-                maxWidth: "800px",
+                maxWidth: "100%",
                 scrollbarWidth: "thin",
                 scrollbarColor: "#cbd5e1 transparent",
                 WebkitOverflowScrolling: "touch",
@@ -378,12 +378,13 @@ export default function Dashboard() {
                   onClick={() => (window.location.href = "/campaigns")}
                   style={{
                     backgroundColor: "#F9FAFB",
-                    borderRadius: "12px",
+                    borderRadius: "8px",
                     border: "1px solid #E5E7EB",
                     overflow: "hidden",
                     transition: "all 0.2s",
                     cursor: "pointer",
-                    minWidth: isMobile ? "200px" : "auto",
+                    aspectRatio: "1",
+                    position: "relative",
                     flexShrink: 0,
                   }}
                   onMouseEnter={(e) => {
@@ -398,7 +399,8 @@ export default function Dashboard() {
                 >
                   <div
                     style={{
-                      aspectRatio: "1",
+                      width: "100%",
+                      height: "100%",
                       position: "relative",
                       backgroundColor: "#F3F4F6",
                     }}
@@ -419,52 +421,37 @@ export default function Dashboard() {
                           width: "100%",
                           height: "100%",
                           display: "flex",
+                          flexDirection: "column",
                           alignItems: "center",
                           justifyContent: "center",
                           color: "#9CA3AF",
-                          fontSize: "14px",
+                          fontSize: "12px",
+                          padding: "16px",
+                          textAlign: "center",
                         }}
                       >
-                        No images yet
+                        <div style={{ fontSize: "24px", marginBottom: "8px" }}>
+                          🎯
+                        </div>
+                        <div>No images</div>
                       </div>
                     )}
-                  </div>
-                  <div style={{ padding: "12px" }}>
-                    <h4
+                    {/* Campaign name overlay - bottom */}
+                    <div
                       style={{
-                        fontSize: "14px",
+                        position: "absolute",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        background:
+                          "linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent)",
+                        padding: "8px 12px",
+                        color: "#FFFFFF",
+                        fontSize: isMobile ? "11px" : "12px",
                         fontWeight: "600",
-                        color: "#1F2937",
-                        marginBottom: "6px",
                       }}
                     >
                       {campaign.name}
-                    </h4>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: "12px",
-                          color: "#6B7280",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        {campaign.status}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "12px",
-                          color: "#6B7280",
-                        }}
-                      >
-                        {new Date(campaign.created_at).toLocaleDateString()}
-                      </span>
                     </div>
                   </div>
                 </div>
