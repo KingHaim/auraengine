@@ -2171,14 +2171,12 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
             is_bottom = clothing_type_lower in ["pants", "shorts", "skirt", "bottom"]
             is_top = clothing_type_lower in ["tshirt", "sweater", "hoodie", "jacket", "dress", "top", "shirt", "other"]
             
-            # Vella 1.5 API: Based on API documentation, it may only support top_image and garment_image
-            # Let's try using garment_image for bottoms with category hint, or try bottom_image if supported
+            # Vella 1.5 API: Supports top_image, bottom_image, outer_image, dress_image
+            # For bottoms, use bottom_image parameter directly
             if is_bottom:
-                # Try garment_image with category parameter first (most likely to work)
-                vella_input["garment_image"] = garment_url
-                # Add category hint to help Vella understand it's a bottom garment
-                vella_input["garment_category"] = "bottom"
-                print(f"👖 Using garment_image with category='bottom' for {clothing_type}")
+                # Use bottom_image parameter for pants/shorts/skirts
+                vella_input["bottom_image"] = garment_url
+                print(f"👖 Using bottom_image parameter for {clothing_type}")
                 print(f"🔍 Bottom garment URL: {garment_url[:80]}...")
             elif is_top:
                 vella_input["top_image"] = garment_url
@@ -2215,13 +2213,13 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 except Exception as e:
                     print(f"⚠️ Vella attempt {attempt + 1} failed: {e}")
                     print(f"🔍 Error details: {type(e).__name__}: {str(e)}")
-                    # If garment_image or garment_category was rejected, try top_image as last resort
-                    if "garment_image" in vella_input and ("not supported" in str(e).lower() or "invalid" in str(e).lower() or "unexpected" in str(e).lower()):
-                        print(f"🔄 garment_image parameter rejected, trying top_image fallback...")
-                        vella_input.pop("garment_image", None)
-                        vella_input.pop("garment_category", None)
-                        vella_input["top_image"] = garment_url
-                        print(f"⚠️ Retrying with top_image (may not work correctly for bottoms)")
+                    # If bottom_image was rejected, try garment_image with garment_type as fallback
+                    if "bottom_image" in vella_input and ("not supported" in str(e).lower() or "invalid" in str(e).lower() or "unexpected" in str(e).lower()):
+                        print(f"🔄 bottom_image parameter rejected, trying garment_image with garment_type='bottom' fallback...")
+                        vella_input.pop("bottom_image", None)
+                        vella_input["garment_image"] = garment_url
+                        vella_input["garment_type"] = "bottom"
+                        print(f"👖 Retrying with garment_image and garment_type='bottom'")
                         continue  # Retry with new parameters
                     if attempt < max_retries - 1:
                         wait_time = (attempt + 1) * 10  # Exponential backoff: 10s, 20s, 30s
@@ -3371,7 +3369,13 @@ async def reapply_clothes(
         product_image = product.packshot_front_url or product.image_url
         
         # Get clothing type from product or use provided
-        clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else request.clothing_type
+        # Also check category field as fallback since API returns clothing_type as null
+        clothing_type = (
+            product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type 
+            else (product.category if hasattr(product, 'category') and product.category else None)
+            or request.clothing_type
+        )
+        print(f"🔍 Final clothing_type used: {clothing_type} (from product.clothing_type={getattr(product, 'clothing_type', None)}, product.category={getattr(product, 'category', None)}, request.clothing_type={request.clothing_type})")
         
         # Convert image URL to format Vella can use
         if request.image_url.startswith(get_base_url() + "/static/"):
