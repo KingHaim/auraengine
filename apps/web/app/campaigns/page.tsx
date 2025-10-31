@@ -5749,6 +5749,7 @@ export default function CampaignsPage() {
                   overflowY: "auto",
                   overflowX: "visible",
                   position: "relative",
+                  overflow: "visible",
                 }}
               >
                 {/* Action Buttons Container - Same Line */}
@@ -5760,6 +5761,8 @@ export default function CampaignsPage() {
                     gap: "16px",
                     width: "100%",
                     justifyContent: "center",
+                    position: "relative",
+                    overflow: "visible",
                   }}
                 >
                   {/* Download Button */}
@@ -5767,15 +5770,19 @@ export default function CampaignsPage() {
                     style={{
                       position: "relative",
                       display: "inline-block",
+                      overflow: "visible",
+                      zIndex: 1,
                     }}
                     onMouseEnter={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1.1)";
+                      console.log("Hovering download button, setting tooltip to true");
                       setShowDownloadTooltip(true);
                     }}
                     onMouseLeave={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1)";
+                      console.log("Leaving download button, setting tooltip to false");
                       setShowDownloadTooltip(false);
                     }}
                   >
@@ -5817,25 +5824,24 @@ export default function CampaignsPage() {
                         className="download-tooltip"
                         style={{
                           position: "absolute",
-                          bottom: "calc(100% + 10px)",
+                          bottom: "100%",
                           left: "50%",
                           transform: "translateX(-50%)",
-                          padding: "10px 14px",
+                          marginBottom: "8px",
+                          padding: "8px 12px",
                           backgroundColor: "rgba(0, 0, 0, 0.95)",
                           color: "#FFFFFF",
                           fontSize: "12px",
                           fontWeight: "500",
-                          borderRadius: "8px",
+                          borderRadius: "6px",
                           pointerEvents: "none",
-                          zIndex: 99999,
-                          maxWidth: "220px",
+                          zIndex: 100000,
+                          maxWidth: "200px",
+                          minWidth: "120px",
                           textAlign: "center",
-                          lineHeight: "1.5",
-                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
+                          lineHeight: "1.4",
+                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)",
                           whiteSpace: "normal",
-                          display: "block",
-                          visibility: "visible",
-                          opacity: 1,
                         }}
                       >
                         <div
@@ -5865,15 +5871,19 @@ export default function CampaignsPage() {
                     style={{
                       position: "relative",
                       display: "inline-block",
+                      overflow: "visible",
+                      zIndex: 1,
                     }}
                     onMouseEnter={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1.1)";
+                      console.log("Hovering tweak button, setting tooltip to true");
                       setShowTweakTooltip(true);
                     }}
                     onMouseLeave={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1)";
+                      console.log("Leaving tweak button, setting tooltip to false");
                       setShowTweakTooltip(false);
                     }}
                   >
@@ -5910,25 +5920,24 @@ export default function CampaignsPage() {
                         className="tweak-tooltip"
                         style={{
                           position: "absolute",
-                          bottom: "calc(100% + 10px)",
+                          bottom: "100%",
                           left: "50%",
                           transform: "translateX(-50%)",
-                          padding: "10px 14px",
+                          marginBottom: "8px",
+                          padding: "8px 12px",
                           backgroundColor: "rgba(0, 0, 0, 0.95)",
                           color: "#FFFFFF",
                           fontSize: "12px",
                           fontWeight: "500",
-                          borderRadius: "8px",
+                          borderRadius: "6px",
                           pointerEvents: "none",
-                          zIndex: 99999,
-                          maxWidth: "220px",
+                          zIndex: 100000,
+                          maxWidth: "200px",
+                          minWidth: "120px",
                           textAlign: "center",
-                          lineHeight: "1.5",
-                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
+                          lineHeight: "1.4",
+                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)",
                           whiteSpace: "normal",
-                          display: "block",
-                          visibility: "visible",
-                          opacity: 1,
                         }}
                       >
                         <div
@@ -5958,17 +5967,21 @@ export default function CampaignsPage() {
                     style={{
                       position: "relative",
                       display: "inline-block",
+                      overflow: "visible",
+                      zIndex: 1,
                     }}
                     onMouseEnter={(e) => {
                       if (!addingProductToImage) {
                         const button = e.currentTarget.querySelector("button");
                         if (button) button.style.transform = "scale(1.1)";
+                        console.log("Hovering add product button, setting tooltip to true");
                         setShowAddProductTooltip(true);
                       }
                     }}
                     onMouseLeave={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1)";
+                      console.log("Leaving add product button, setting tooltip to false");
                       setShowAddProductTooltip(false);
                     }}
                   >
@@ -6015,25 +6028,24 @@ export default function CampaignsPage() {
                         className="add-product-tooltip"
                         style={{
                           position: "absolute",
-                          bottom: "calc(100% + 10px)",
+                          bottom: "100%",
                           left: "50%",
                           transform: "translateX(-50%)",
-                          padding: "10px 14px",
+                          marginBottom: "8px",
+                          padding: "8px 12px",
                           backgroundColor: "rgba(0, 0, 0, 0.95)",
                           color: "#FFFFFF",
                           fontSize: "12px",
                           fontWeight: "500",
-                          borderRadius: "8px",
+                          borderRadius: "6px",
                           pointerEvents: "none",
-                          zIndex: 99999,
-                          maxWidth: "220px",
+                          zIndex: 100000,
+                          maxWidth: "200px",
+                          minWidth: "120px",
                           textAlign: "center",
-                          lineHeight: "1.5",
-                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
+                          lineHeight: "1.4",
+                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)",
                           whiteSpace: "normal",
-                          display: "block",
-                          visibility: "visible",
-                          opacity: 1,
                         }}
                       >
                         <div
