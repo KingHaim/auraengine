@@ -487,6 +487,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
           position: "relative",
           zIndex: 1,
           marginTop: (!user || !isMobile) ? "0" : "50px",
+          width: "100%",
+          maxWidth: "100%",
+          overflowX: "hidden",
+          boxSizing: "border-box",
         }}
       >
         {/* Topbar */}
@@ -498,10 +502,21 @@ export default function AppLayout({ children }: AppLayoutProps) {
             alignItems: "center",
             justifyContent: "space-between",
             backgroundColor: "#11161C",
+            width: "100%",
+            maxWidth: "100%",
+            boxSizing: "border-box",
+            overflowX: "hidden",
           }}
         >
           <div
-            style={{ position: "relative", width: "100%", maxWidth: "640px" }}
+            style={{ 
+              position: "relative", 
+              width: "100%", 
+              maxWidth: "640px",
+              minWidth: 0,
+              flex: "1 1 auto",
+              overflow: "hidden",
+            }}
           >
             <div
               style={{

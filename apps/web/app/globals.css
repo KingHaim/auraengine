@@ -12,11 +12,30 @@ html {
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto,
     "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol";
+  overflow-x: hidden !important;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
 }
 
 body {
   background: #0e1115;
   color: #e6e8eb;
+  overflow-x: hidden !important;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+/* Prevent horizontal scrolling globally */
+* {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
 }
 
 /* Mobile responsiveness - Force mobile layout */
@@ -163,6 +182,36 @@ body {
   * {
     max-width: 100% !important;
     box-sizing: border-box !important;
+  }
+  
+  /* Ensure app container doesn't overflow */
+  .app-container {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+  
+  /* Ensure main content area doesn't overflow */
+  main {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+  
+  /* Ensure header doesn't overflow */
+  header {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+  
+  /* Ensure all flex containers respect width */
+  div[style*="display: flex"] {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  
+  /* Ensure all grid containers respect width */
+  div[style*="display: grid"] {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
   }
   
   /* App container mobile */
