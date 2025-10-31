@@ -6019,6 +6019,7 @@ export default function CampaignsPage() {
                     </div>
                   )}
                 </div>
+                </div>
               )}
 
               {/* Mobile: Action Buttons on Side of Image */}
