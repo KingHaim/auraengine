@@ -253,6 +253,10 @@ export default function CampaignsPage() {
   const [showDownloadTooltip, setShowDownloadTooltip] = useState(false);
   const [showTweakTooltip, setShowTweakTooltip] = useState(false);
   const [showAddProductTooltip, setShowAddProductTooltip] = useState(false);
+  const [activeTooltip, setActiveTooltip] = useState<{
+    title: string;
+    description: string;
+  } | null>(null);
   const [lastGeneratedImages, setLastGeneratedImages] = useState<string[]>([]);
   const [currentDisplayedImage, setCurrentDisplayedImage] = useState<
     string | null
@@ -5752,7 +5756,6 @@ export default function CampaignsPage() {
                   overflowX: "visible",
                   position: "relative",
                   overflow: "visible",
-                  paddingTop: "60px",
                 }}
               >
                 {/* Action Buttons Container - Same Line */}
@@ -5825,51 +5828,6 @@ export default function CampaignsPage() {
                         }}
                       />
                     </button>
-                    {/* Hover Tooltip */}
-                    {showDownloadTooltip && (
-                      <div
-                        className="download-tooltip"
-                        style={{
-                          position: "absolute",
-                          top: "-50px",
-                          left: "50%",
-                          transform: "translateX(-50%)",
-                          padding: "8px 12px",
-                          backgroundColor: "rgba(0, 0, 0, 0.95)",
-                          color: "#FFFFFF",
-                          fontSize: "12px",
-                          fontWeight: "500",
-                          borderRadius: "6px",
-                          pointerEvents: "none",
-                          zIndex: 1000,
-                          maxWidth: "200px",
-                          minWidth: "120px",
-                          textAlign: "center",
-                          lineHeight: "1.4",
-                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)",
-                          whiteSpace: "normal",
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontWeight: "600",
-                            marginBottom: "4px",
-                            fontSize: "13px",
-                          }}
-                        >
-                          Download
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "11px",
-                            opacity: 0.9,
-                            whiteSpace: "normal",
-                          }}
-                        >
-                          Save image to your device
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Tweak Button */}
@@ -5924,51 +5882,6 @@ export default function CampaignsPage() {
                         }}
                       />
                     </button>
-                    {/* Hover Tooltip */}
-                    {showTweakTooltip && (
-                      <div
-                        className="tweak-tooltip"
-                        style={{
-                          position: "absolute",
-                          top: "-50px",
-                          left: "50%",
-                          transform: "translateX(-50%)",
-                          padding: "8px 12px",
-                          backgroundColor: "rgba(0, 0, 0, 0.95)",
-                          color: "#FFFFFF",
-                          fontSize: "12px",
-                          fontWeight: "500",
-                          borderRadius: "6px",
-                          pointerEvents: "none",
-                          zIndex: 1000,
-                          maxWidth: "200px",
-                          minWidth: "120px",
-                          textAlign: "center",
-                          lineHeight: "1.4",
-                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)",
-                          whiteSpace: "normal",
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontWeight: "600",
-                            marginBottom: "4px",
-                            fontSize: "13px",
-                          }}
-                        >
-                          Tweak
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "11px",
-                            opacity: 0.9,
-                            whiteSpace: "normal",
-                          }}
-                        >
-                          AI-powered image editing with custom prompts
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Add Product Button - Opens product selection to add product to existing image */}
@@ -5983,19 +5896,18 @@ export default function CampaignsPage() {
                       if (!addingProductToImage) {
                         const button = e.currentTarget.querySelector("button");
                         if (button) button.style.transform = "scale(1.1)";
-                        console.log(
-                          "Hovering add product button, setting tooltip to true"
-                        );
                         setShowAddProductTooltip(true);
+                        setActiveTooltip({
+                          title: "Add Product",
+                          description: "Add another product onto this image",
+                        });
                       }
                     }}
                     onMouseLeave={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1)";
-                      console.log(
-                        "Leaving add product button, setting tooltip to false"
-                      );
                       setShowAddProductTooltip(false);
+                      setActiveTooltip(null);
                     }}
                   >
                     <button
@@ -6035,53 +5947,47 @@ export default function CampaignsPage() {
                         }}
                       />
                     </button>
-                    {/* Hover Tooltip */}
-                    {showAddProductTooltip && (
-                      <div
-                        className="add-product-tooltip"
-                        style={{
-                          position: "absolute",
-                          top: "-50px",
-                          left: "50%",
-                          transform: "translateX(-50%)",
-                          padding: "8px 12px",
-                          backgroundColor: "rgba(0, 0, 0, 0.95)",
-                          color: "#FFFFFF",
-                          fontSize: "12px",
-                          fontWeight: "500",
-                          borderRadius: "6px",
-                          pointerEvents: "none",
-                          zIndex: 1000,
-                          maxWidth: "200px",
-                          minWidth: "120px",
-                          textAlign: "center",
-                          lineHeight: "1.4",
-                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)",
-                          whiteSpace: "normal",
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontWeight: "600",
-                            marginBottom: "4px",
-                            fontSize: "13px",
-                          }}
-                        >
-                          Add Product
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "11px",
-                            opacity: 0.9,
-                            whiteSpace: "normal",
-                          }}
-                        >
-                          Add another product onto this image
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
+
+                {/* Tooltip Display Container */}
+                {activeTooltip && (
+                  <div
+                    style={{
+                      marginTop: "16px",
+                      padding: "12px 16px",
+                      backgroundColor: "rgba(0, 0, 0, 0.6)",
+                      borderRadius: "8px",
+                      textAlign: "center",
+                      minHeight: "60px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: "600",
+                        marginBottom: "6px",
+                        fontSize: "14px",
+                        color: "#FFFFFF",
+                      }}
+                    >
+                      {activeTooltip.title}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        color: "rgba(255, 255, 255, 0.8)",
+                        lineHeight: "1.4",
+                      }}
+                    >
+                      {activeTooltip.description}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
