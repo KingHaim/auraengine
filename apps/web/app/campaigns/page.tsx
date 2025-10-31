@@ -5752,6 +5752,7 @@ export default function CampaignsPage() {
                   overflowX: "visible",
                   position: "relative",
                   overflow: "visible",
+                  paddingTop: "60px",
                 }}
               >
                 {/* Action Buttons Container - Same Line */}
@@ -5778,13 +5779,17 @@ export default function CampaignsPage() {
                     onMouseEnter={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1.1)";
-                      console.log("Hovering download button, setting tooltip to true");
+                      console.log(
+                        "Hovering download button, setting tooltip to true"
+                      );
                       setShowDownloadTooltip(true);
                     }}
                     onMouseLeave={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1)";
-                      console.log("Leaving download button, setting tooltip to false");
+                      console.log(
+                        "Leaving download button, setting tooltip to false"
+                      );
                       setShowDownloadTooltip(false);
                     }}
                   >
@@ -5826,10 +5831,9 @@ export default function CampaignsPage() {
                         className="download-tooltip"
                         style={{
                           position: "absolute",
-                          bottom: "100%",
+                          top: "-50px",
                           left: "50%",
                           transform: "translateX(-50%)",
-                          marginBottom: "8px",
                           padding: "8px 12px",
                           backgroundColor: "rgba(0, 0, 0, 0.95)",
                           color: "#FFFFFF",
@@ -5837,7 +5841,7 @@ export default function CampaignsPage() {
                           fontWeight: "500",
                           borderRadius: "6px",
                           pointerEvents: "none",
-                          zIndex: 100000,
+                          zIndex: 1000,
                           maxWidth: "200px",
                           minWidth: "120px",
                           textAlign: "center",
@@ -5879,13 +5883,17 @@ export default function CampaignsPage() {
                     onMouseEnter={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1.1)";
-                      console.log("Hovering tweak button, setting tooltip to true");
+                      console.log(
+                        "Hovering tweak button, setting tooltip to true"
+                      );
                       setShowTweakTooltip(true);
                     }}
                     onMouseLeave={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1)";
-                      console.log("Leaving tweak button, setting tooltip to false");
+                      console.log(
+                        "Leaving tweak button, setting tooltip to false"
+                      );
                       setShowTweakTooltip(false);
                     }}
                   >
@@ -5922,10 +5930,9 @@ export default function CampaignsPage() {
                         className="tweak-tooltip"
                         style={{
                           position: "absolute",
-                          bottom: "100%",
+                          top: "-50px",
                           left: "50%",
                           transform: "translateX(-50%)",
-                          marginBottom: "8px",
                           padding: "8px 12px",
                           backgroundColor: "rgba(0, 0, 0, 0.95)",
                           color: "#FFFFFF",
@@ -5933,7 +5940,7 @@ export default function CampaignsPage() {
                           fontWeight: "500",
                           borderRadius: "6px",
                           pointerEvents: "none",
-                          zIndex: 100000,
+                          zIndex: 1000,
                           maxWidth: "200px",
                           minWidth: "120px",
                           textAlign: "center",
@@ -5976,14 +5983,18 @@ export default function CampaignsPage() {
                       if (!addingProductToImage) {
                         const button = e.currentTarget.querySelector("button");
                         if (button) button.style.transform = "scale(1.1)";
-                        console.log("Hovering add product button, setting tooltip to true");
+                        console.log(
+                          "Hovering add product button, setting tooltip to true"
+                        );
                         setShowAddProductTooltip(true);
                       }
                     }}
                     onMouseLeave={(e) => {
                       const button = e.currentTarget.querySelector("button");
                       if (button) button.style.transform = "scale(1)";
-                      console.log("Leaving add product button, setting tooltip to false");
+                      console.log(
+                        "Leaving add product button, setting tooltip to false"
+                      );
                       setShowAddProductTooltip(false);
                     }}
                   >
@@ -5997,7 +6008,7 @@ export default function CampaignsPage() {
                       }}
                       disabled={addingProductToImage}
                       style={{
-                        padding: "12px",
+                        padding: "6px",
                         backgroundColor: "transparent",
                         border: "none",
                         borderRadius: "8px",
@@ -6007,8 +6018,8 @@ export default function CampaignsPage() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        width: "96px",
-                        height: "96px",
+                        width: "56px",
+                        height: "56px",
                         opacity: addingProductToImage ? 0.6 : 1,
                         transition: "opacity 0.2s ease, transform 0.2s ease",
                         flexShrink: 0,
@@ -6030,10 +6041,9 @@ export default function CampaignsPage() {
                         className="add-product-tooltip"
                         style={{
                           position: "absolute",
-                          bottom: "100%",
+                          top: "-50px",
                           left: "50%",
                           transform: "translateX(-50%)",
-                          marginBottom: "8px",
                           padding: "8px 12px",
                           backgroundColor: "rgba(0, 0, 0, 0.95)",
                           color: "#FFFFFF",
@@ -6041,7 +6051,7 @@ export default function CampaignsPage() {
                           fontWeight: "500",
                           borderRadius: "6px",
                           pointerEvents: "none",
-                          zIndex: 100000,
+                          zIndex: 1000,
                           maxWidth: "200px",
                           minWidth: "120px",
                           textAlign: "center",
