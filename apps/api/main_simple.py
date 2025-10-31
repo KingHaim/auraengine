@@ -3535,13 +3535,23 @@ async def reapply_clothes(
                 print(f"⚠️ Failed to update campaign: {e}")
                 # Don't fail the whole request if campaign update fails
         
+        # Log final details for debugging
+        print(f"🎯 Final response details:")
+        print(f"   Product: {product.name}")
+        print(f"   Clothing type: {clothing_type}")
+        print(f"   Packshot used: {product_image[:80] if product_image else 'None'}...")
+        print(f"   Original image: {request.image_url[:80]}...")
+        print(f"   Result image: {final_url[:80]}...")
+        
         return {
             "success": True,
             "message": f"Successfully reapplied {product.name}",
             "original_url": request.image_url,
             "reapplied_url": final_url,
             "product_name": product.name,
-            "clothing_type": clothing_type
+            "clothing_type": clothing_type,
+            "packshot_used": product_image[:100] if product_image else None,
+            "packshots_available": len(packshots_list) if packshots_list else 0
         }
         
     except Exception as e:
