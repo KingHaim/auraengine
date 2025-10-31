@@ -5794,70 +5794,63 @@ export default function CampaignsPage() {
                 <button
                   onClick={() => setShowTweakModal(true)}
                   style={{
-                    padding: "12px 16px",
-                    backgroundColor: "#d42f48",
+                    padding: "8px",
+                    backgroundColor: "transparent",
                     border: "none",
                     borderRadius: "8px",
-                    color: "#FFFFFF",
-                    fontSize: "14px",
-                    fontWeight: "600",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "8px",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#b91c1c";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#d42f48";
+                    width: "48px",
+                    height: "48px",
                   }}
                 >
-                  ✨ Tweak Image
+                  <img
+                    src="/tweakimage.png"
+                    alt="Tweak Image"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                    }}
+                  />
                 </button>
 
                 {/* Add Product Button - Opens product selection to add product to existing image */}
                 <button
                   onClick={() => {
-                    setProductSelectionMode("image");
-                    setSelectedProductForImage(null);
-                    setShowProductSelectionModal(true);
+                    if (!addingProductToImage) {
+                      setProductSelectionMode("image");
+                      setSelectedProductForImage(null);
+                      setShowProductSelectionModal(true);
+                    }
                   }}
                   disabled={addingProductToImage}
                   style={{
-                    padding: "12px 16px",
-                    backgroundColor: addingProductToImage
-                      ? "#6B7280"
-                      : "#F59E0B",
+                    padding: "8px",
+                    backgroundColor: "transparent",
                     border: "none",
                     borderRadius: "8px",
-                    color: "#FFFFFF",
-                    fontSize: "14px",
-                    fontWeight: "600",
                     cursor: addingProductToImage ? "not-allowed" : "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "8px",
-                    transition: "all 0.2s ease",
+                    width: "48px",
+                    height: "48px",
                     opacity: addingProductToImage ? 0.6 : 1,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!addingProductToImage) {
-                      e.currentTarget.style.backgroundColor = "#D97706";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!addingProductToImage) {
-                      e.currentTarget.style.backgroundColor = "#F59E0B";
-                    }
+                    transition: "opacity 0.2s ease",
                   }}
                 >
-                  {addingProductToImage
-                    ? "👔 Adding Product..."
-                    : "➕ Add Product"}
+                  <img
+                    src="/addclothes.png"
+                    alt="Add Product"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                    }}
+                  />
                 </button>
 
                 {/* Info Section */}
