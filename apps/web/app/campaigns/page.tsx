@@ -921,7 +921,7 @@ export default function CampaignsPage() {
         clothing_type: clothingType,
         campaign_id: selectedCampaignForProfile?.id || null,
       };
-      
+
       console.log("📤 Making API call to /reapply-clothes:", {
         url: `${process.env.NEXT_PUBLIC_API_URL}/reapply-clothes`,
         method: "POST",
@@ -940,7 +940,11 @@ export default function CampaignsPage() {
         }
       );
 
-      console.log("📥 API Response status:", response.status, response.statusText);
+      console.log(
+        "📥 API Response status:",
+        response.status,
+        response.statusText
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -959,7 +963,9 @@ export default function CampaignsPage() {
 
           // Show success message after refresh
           alert(
-            `✅ Successfully added ${data.product_name || product.name} to the image!\n\nThe image has been updated.`
+            `✅ Successfully added ${
+              data.product_name || product.name
+            } to the image!\n\nThe image has been updated.`
           );
         } else {
           console.error("❌ API response missing reapplied_url:", data);
@@ -989,7 +995,11 @@ export default function CampaignsPage() {
           stack: error.stack,
         });
       }
-      alert(`❌ Failed to add product: ${error instanceof Error ? error.message : String(error)}`);
+      alert(
+        `❌ Failed to add product: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
     } finally {
       setAddingProductToImage(false);
       setSelectedProductForImage(null);
@@ -5757,21 +5767,27 @@ export default function CampaignsPage() {
                     )
                   }
                   style={{
-                    padding: "12px 16px",
-                    backgroundColor: "#10B981",
+                    padding: "8px",
+                    backgroundColor: "transparent",
                     border: "none",
                     borderRadius: "8px",
-                    color: "#FFFFFF",
-                    fontSize: "14px",
-                    fontWeight: "600",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "8px",
+                    width: "48px",
+                    height: "48px",
                   }}
                 >
-                  ⬇️ Download Image
+                  <img
+                    src="/downloadimage.png"
+                    alt="Download Image"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                    }}
+                  />
                 </button>
 
                 {/* Tweak Button */}
