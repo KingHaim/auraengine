@@ -5666,8 +5666,9 @@ export default function CampaignsPage() {
                 maxWidth: "90vw",
                 maxHeight: "90vh",
                 display: "flex",
-                gap: "24px",
+                gap: isMobile ? "12px" : "24px",
                 alignItems: "center",
+                flexDirection: isMobile ? "row" : "row",
                 overflow: "visible",
               }}
               onClick={(e) => e.stopPropagation()}
@@ -5700,6 +5701,7 @@ export default function CampaignsPage() {
                   flexDirection: "column",
                   alignItems: "center",
                   maxHeight: "90vh",
+                  position: "relative",
                 }}
               >
                 {enlargedImageUrl.endsWith(".mp4") ||
@@ -5741,24 +5743,25 @@ export default function CampaignsPage() {
                 </p>
               </div>
 
-              {/* Side Menu */}
-              <div
-                style={{
-                  width: "300px",
-                  backgroundColor: "rgba(30, 30, 30, 0.95)",
-                  borderRadius: "12px",
-                  padding: "24px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "16px",
-                  maxHeight: "90vh",
-                  overflowY: "auto",
-                  overflowX: "visible",
-                  position: "relative",
-                  overflow: "visible",
-                  justifyContent: "space-between",
-                }}
-              >
+              {/* Side Menu - Desktop Only */}
+              {!isMobile && (
+                <div
+                  style={{
+                    width: "300px",
+                    backgroundColor: "rgba(30, 30, 30, 0.95)",
+                    borderRadius: "12px",
+                    padding: "24px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "16px",
+                    maxHeight: "90vh",
+                    overflowY: "auto",
+                    overflowX: "visible",
+                    position: "relative",
+                    overflow: "visible",
+                    justifyContent: "space-between",
+                  }}
+                >
                 {/* Action Buttons Container - Same Line */}
                 <div
                   style={{
@@ -6016,7 +6019,191 @@ export default function CampaignsPage() {
                     </div>
                   )}
                 </div>
-              </div>
+              )}
+
+              {/* Mobile: Action Buttons on Side of Image */}
+              {isMobile && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {/* Download Button */}
+                  <div
+                    style={{
+                      position: "relative",
+                      display: "inline-block",
+                    }}
+                    onMouseEnter={(e) => {
+                      const button = e.currentTarget.querySelector("button");
+                      if (button) button.style.transform = "scale(1.1)";
+                      setShowDownloadTooltip(true);
+                      setActiveTooltip({
+                        title: "Download",
+                        description: "Save image to your device",
+                      });
+                    }}
+                    onMouseLeave={(e) => {
+                      const button = e.currentTarget.querySelector("button");
+                      if (button) button.style.transform = "scale(1)";
+                      setShowDownloadTooltip(false);
+                      setActiveTooltip(null);
+                    }}
+                  >
+                    <button
+                      onClick={() =>
+                        downloadImage(
+                          enlargedImageUrl,
+                          `campaign-${Date.now()}.jpg`
+                        )
+                      }
+                      style={{
+                        padding: "8px",
+                        backgroundColor: "rgba(30, 30, 30, 0.8)",
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "48px",
+                        height: "48px",
+                        flexShrink: 0,
+                        transition: "transform 0.2s ease",
+                      }}
+                    >
+                      <img
+                        src="/downloadimage.png"
+                        alt="Download Image"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Tweak Button */}
+                  <div
+                    style={{
+                      position: "relative",
+                      display: "inline-block",
+                    }}
+                    onMouseEnter={(e) => {
+                      const button = e.currentTarget.querySelector("button");
+                      if (button) button.style.transform = "scale(1.1)";
+                      setShowTweakTooltip(true);
+                      setActiveTooltip({
+                        title: "Tweak",
+                        description:
+                          "AI-powered image editing with custom prompts",
+                      });
+                    }}
+                    onMouseLeave={(e) => {
+                      const button = e.currentTarget.querySelector("button");
+                      if (button) button.style.transform = "scale(1)";
+                      setShowTweakTooltip(false);
+                      setActiveTooltip(null);
+                    }}
+                  >
+                    <button
+                      onClick={() => setShowTweakModal(true)}
+                      style={{
+                        padding: "8px",
+                        backgroundColor: "rgba(30, 30, 30, 0.8)",
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "48px",
+                        height: "48px",
+                        flexShrink: 0,
+                        transition: "transform 0.2s ease",
+                      }}
+                    >
+                      <img
+                        src="/tweakimage.png"
+                        alt="Tweak Image"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Add Product Button */}
+                  <div
+                    style={{
+                      position: "relative",
+                      display: "inline-block",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!addingProductToImage) {
+                        const button = e.currentTarget.querySelector("button");
+                        if (button) button.style.transform = "scale(1.1)";
+                        setShowAddProductTooltip(true);
+                        setActiveTooltip({
+                          title: "Add Product",
+                          description: "Add another product onto this image",
+                        });
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      const button = e.currentTarget.querySelector("button");
+                      if (button) button.style.transform = "scale(1)";
+                      setShowAddProductTooltip(false);
+                      setActiveTooltip(null);
+                    }}
+                  >
+                    <button
+                      onClick={() => {
+                        if (!addingProductToImage) {
+                          setProductSelectionMode("image");
+                          setSelectedProductForImage(null);
+                          setShowProductSelectionModal(true);
+                        }
+                      }}
+                      disabled={addingProductToImage}
+                      style={{
+                        padding: "8px",
+                        backgroundColor: "rgba(30, 30, 30, 0.8)",
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        borderRadius: "8px",
+                        cursor: addingProductToImage
+                          ? "not-allowed"
+                          : "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "48px",
+                        height: "48px",
+                        opacity: addingProductToImage ? 0.6 : 1,
+                        transition: "opacity 0.2s ease, transform 0.2s ease",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <img
+                        src="/addclothes.png"
+                        alt="Add Product"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
