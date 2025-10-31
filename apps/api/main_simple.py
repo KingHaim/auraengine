@@ -2352,7 +2352,21 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 vella_input["bottom_image"] = garment_url
                 print(f"👖 Using bottom_image parameter for {clothing_type}")
                 print(f"🔍 Bottom garment URL: {garment_url[:80]}...")
-                print(f"🔍 Packshot image details: Size=992x1056, Format=PNG, Has transparency=True")
+                print(f"🔍 Complete bottom_image URL: {garment_url}")
+                print(f"🔍 Packshot image details: PNG format, RGBA mode, Has transparency")
+                
+                # Verify the garment image is accessible and valid
+                try:
+                    import requests
+                    verify_response = requests.head(garment_url, timeout=5)
+                    print(f"🔍 Garment URL verification: Status {verify_response.status_code}")
+                    if verify_response.status_code == 200:
+                        content_type = verify_response.headers.get('Content-Type', '')
+                        print(f"🔍 Garment Content-Type: {content_type}")
+                        if 'image' not in content_type.lower():
+                            print(f"⚠️ WARNING: Garment URL might not be an image: {content_type}")
+                except Exception as verify_error:
+                    print(f"⚠️ Could not verify garment URL: {verify_error}")
             elif is_top:
                 vella_input["top_image"] = garment_url
                 print(f"👕 Using top_image parameter for {clothing_type}")
