@@ -2740,11 +2740,11 @@ def run_qwen_packshot_front_back(
         print("Generating front packshot...")
         if clothing_type:
             print(f"👕 Clothing type specified: {clothing_type}")
-            clothing_type_instruction = f" IMPORTANT: Extract and isolate ONLY the {clothing_type} from the image. Remove all other clothing items, accessories, and garments. Show ONLY the {clothing_type} as a standalone product. Do not include any other clothing or outfit pieces."
+            clothing_type_instruction = f" CRITICAL: Extract and isolate ONLY the {clothing_type} from the image. Remove ALL other clothing items, accessories, garments, and outfit pieces. Show EXCLUSIVELY the {clothing_type} as a standalone product on white background. The {clothing_type} must be clearly visible and complete. Remove any shirts, tops, jackets, sweaters, shoes, or any other items that are not the {clothing_type}. The final image must contain ONLY the isolated {clothing_type}."
         else:
             clothing_type_instruction = ""
             print("⚠️ No clothing type specified - generating full outfit")
-        front_prompt = f"Ultra-clean studio packshot of the uploaded product, front view. Even softbox lighting on a white seamless background. Soft contact shadow. No props, no text, no watermark. Crisp edges, accurate colors.{clothing_type_instruction} {user_mods}, product photography, professional lighting, studio setup, high quality, detailed"
+        front_prompt = f"Ultra-clean studio packshot of ONLY the {clothing_type if clothing_type else 'product'}, front view. Even softbox lighting on a pure white seamless background. Soft contact shadow. No props, no text, no watermark. Crisp edges, accurate colors.{clothing_type_instruction} {user_mods}, product photography, professional lighting, studio setup, high quality, detailed, isolated product, single garment only"
         
         try:
             front_out = replicate.run("qwen/qwen-image-edit-plus", input={
@@ -2776,10 +2776,10 @@ def run_qwen_packshot_front_back(
         # Step 3: Generate back packshot
         print("Generating back packshot...")
         if clothing_type:
-            clothing_type_instruction = f" IMPORTANT: Extract and isolate ONLY the {clothing_type} from the image. Remove all other clothing items, accessories, and garments. Show ONLY the {clothing_type} as a standalone product. Do not include any other clothing or outfit pieces."
+            clothing_type_instruction = f" CRITICAL: Extract and isolate ONLY the {clothing_type} from the image. Remove ALL other clothing items, accessories, garments, and outfit pieces. Show EXCLUSIVELY the {clothing_type} as a standalone product on white background. The {clothing_type} must be clearly visible and complete. Remove any shirts, tops, jackets, sweaters, shoes, or any other items that are not the {clothing_type}. The final image must contain ONLY the isolated {clothing_type}."
         else:
             clothing_type_instruction = ""
-        back_prompt = f"Ultra-clean studio packshot of the uploaded product, back view. Even softbox lighting on a white seamless background. Soft contact shadow. No props, no text, no watermark. Crisp edges, accurate colors.{clothing_type_instruction} {user_mods}, product photography, professional lighting, studio setup, high quality, detailed"
+        back_prompt = f"Ultra-clean studio packshot of ONLY the {clothing_type if clothing_type else 'product'}, back view. Even softbox lighting on a pure white seamless background. Soft contact shadow. No props, no text, no watermark. Crisp edges, accurate colors.{clothing_type_instruction} {user_mods}, product photography, professional lighting, studio setup, high quality, detailed, isolated product, single garment only"
         
         try:
             back_out = replicate.run("qwen/qwen-image-edit-plus", input={
