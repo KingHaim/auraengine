@@ -568,11 +568,12 @@ export default function CreditsPage() {
                   </div>
                 )}
               </div>
-              </div>
             </div>
-          ) : (
+          </div>
+        ) : (
           /* No Subscription Message */
-          user && !user.subscription_type && (
+          user &&
+          !user.subscription_type && (
             <div
               style={{
                 backgroundColor: "#F0F9FF",
@@ -594,8 +595,8 @@ export default function CreditsPage() {
                 No Active Subscription
               </h3>
               <p style={{ fontSize: "14px", color: "#64748B", margin: 0 }}>
-                You don't have an active subscription yet. Choose a plan below to
-                get started with subscription credits.
+                You don't have an active subscription yet. Choose a plan below
+                to get started with subscription credits.
               </p>
             </div>
           )
