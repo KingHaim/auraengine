@@ -202,7 +202,9 @@ export default function CreditsPage() {
         // Refresh user data
         window.location.reload();
       } else {
-        setMessage(data.detail || "Failed to cancel subscription. Please try again.");
+        setMessage(
+          data.detail || "Failed to cancel subscription. Please try again."
+        );
       }
     } catch (error) {
       setMessage("Failed to cancel subscription. Please try again.");
@@ -309,6 +311,20 @@ export default function CreditsPage() {
     );
   }
 
+  // Debug: Log user subscription info
+  useEffect(() => {
+    if (user) {
+      console.log("🔍 User Subscription Debug:", {
+        subscription_status: user?.subscription_status,
+        subscription_type: user?.subscription_type,
+        subscription_credits: user?.subscription_credits,
+        subscription_expires_at: user?.subscription_expires_at,
+        has_active_subscription: user?.subscription_status === "active" && user?.subscription_type,
+        full_user: user
+      });
+    }
+  }, [user]);
+
   return (
     <AppLayout>
       <div style={{ padding: "32px", maxWidth: "1200px", margin: "0 auto" }}>
@@ -398,7 +414,7 @@ export default function CreditsPage() {
         </div>
 
         {/* Current Subscription */}
-        {user?.subscription_status === "active" && user?.subscription_type && (
+        {user?.subscription_type && (user?.subscription_status === "active" || user?.subscription_status === "cancelled") && (
           <div
             style={{
               backgroundColor: "#FFFFFF",
@@ -497,7 +513,8 @@ export default function CreditsPage() {
         )}
 
         {/* Subscription Upsell Banner */}
-        {(!user?.subscription_status || user.subscription_status !== "active") && (
+        {(!user?.subscription_status ||
+          user.subscription_status !== "active") && (
           <div
             style={{
               backgroundColor:
@@ -511,7 +528,11 @@ export default function CreditsPage() {
             }}
           >
             <h3
-              style={{ fontSize: "20px", fontWeight: "600", marginBottom: "8px" }}
+              style={{
+                fontSize: "20px",
+                fontWeight: "600",
+                marginBottom: "8px",
+              }}
             >
               💰 Subscriptions = Better Credit Value
             </h3>
@@ -785,24 +806,35 @@ export default function CreditsPage() {
                       e.preventDefault();
                       e.stopPropagation();
                       console.log("🔴 Button clicked for tier:", tier.name);
-                      const currentTier = user?.subscription_type?.toLowerCase() || "";
+                      const currentTier =
+                        user?.subscription_type?.toLowerCase() || "";
                       const tierName = tier.name.toLowerCase();
-                      
+
                       // If it's the current subscription, do nothing or show message
-                      if (currentTier === tierName && user?.subscription_status === "active") {
+                      if (
+                        currentTier === tierName &&
+                        user?.subscription_status === "active"
+                      ) {
                         setMessage("You are already subscribed to this plan");
                         return;
                       }
-                      
+
                       // Otherwise, subscribe/upgrade/downgrade
                       handleSubscribe(tier);
                     }}
-                    disabled={isProcessing || (user?.subscription_type?.toLowerCase() === tier.name.toLowerCase() && user?.subscription_status === "active")}
+                    disabled={
+                      isProcessing ||
+                      (user?.subscription_type?.toLowerCase() ===
+                        tier.name.toLowerCase() &&
+                        user?.subscription_status === "active")
+                    }
                     style={{
                       width: "100%",
                       padding: "16px",
-                      backgroundColor: 
-                        user?.subscription_type?.toLowerCase() === tier.name.toLowerCase() && user?.subscription_status === "active"
+                      backgroundColor:
+                        user?.subscription_type?.toLowerCase() ===
+                          tier.name.toLowerCase() &&
+                        user?.subscription_status === "active"
                           ? "#10B981"
                           : isProcessing
                           ? "#9CA3AF"
@@ -812,15 +844,24 @@ export default function CreditsPage() {
                       borderRadius: "12px",
                       fontSize: "16px",
                       fontWeight: "600",
-                      cursor: isProcessing || (user?.subscription_type?.toLowerCase() === tier.name.toLowerCase() && user?.subscription_status === "active") ? "not-allowed" : "pointer",
+                      cursor:
+                        isProcessing ||
+                        (user?.subscription_type?.toLowerCase() ===
+                          tier.name.toLowerCase() &&
+                          user?.subscription_status === "active")
+                          ? "not-allowed"
+                          : "pointer",
                       transition: "all 0.2s",
                       opacity: isProcessing ? 0.6 : 1,
                     }}
                     onMouseEnter={(e) => {
-                      const currentTier = user?.subscription_type?.toLowerCase() || "";
+                      const currentTier =
+                        user?.subscription_type?.toLowerCase() || "";
                       const tierName = tier.name.toLowerCase();
-                      const isCurrentPlan = currentTier === tierName && user?.subscription_status === "active";
-                      
+                      const isCurrentPlan =
+                        currentTier === tierName &&
+                        user?.subscription_status === "active";
+
                       if (!isProcessing && !isCurrentPlan) {
                         e.currentTarget.style.transform = "translateY(-1px)";
                         e.currentTarget.style.boxShadow =
@@ -836,7 +877,9 @@ export default function CreditsPage() {
                   >
                     {isProcessing
                       ? "Processing..."
-                      : user?.subscription_type?.toLowerCase() === tier.name.toLowerCase() && user?.subscription_status === "active"
+                      : user?.subscription_type?.toLowerCase() ===
+                          tier.name.toLowerCase() &&
+                        user?.subscription_status === "active"
                       ? "Current Plan"
                       : user?.subscription_status === "active"
                       ? `Upgrade to ${tier.name}`
