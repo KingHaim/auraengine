@@ -3507,8 +3507,9 @@ def run_qwen_packshot_front_back(
             front_out = replicate.run("qwen/qwen-image-edit-plus", input={
                 "prompt": front_prompt,
                 "image": [product_png_url],
-                "num_inference_steps": 20,
-                "guidance_scale": 7.5
+                "num_inference_steps": 30,
+                "guidance_scale": 8.0,
+                "strength": 0.3  # Low strength to preserve exact product from source image
             })
             
             # Handle different return types
@@ -3536,14 +3537,15 @@ def run_qwen_packshot_front_back(
             clothing_type_instruction = f" CRITICAL: Extract and preserve EXACTLY the {clothing_type} shown in the source image. Do NOT generate or create a new {clothing_type}. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image. Show EXCLUSIVELY this specific {clothing_type} as it appears in the source image - isolated on a white background. Remove ALL other clothing items, accessories, garments, and outfit pieces. The final image must contain ONLY this exact {clothing_type} from the source image with ALL its original colors, patterns, and design elements preserved exactly."
         else:
             clothing_type_instruction = " CRITICAL: Extract and preserve EXACTLY the product shown in the source image. Do NOT generate or create a new product. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image."
-        back_prompt = f"Extract and isolate the {clothing_type if clothing_type else 'product'} from the source image EXACTLY as shown. Preserve the EXACT design, colors, patterns, logos, text, and all visual details from the source image. Do NOT generate a new product. Ultra-clean studio packshot, back view, on pure white seamless background. Even softbox lighting. Soft contact shadow. No props, no text overlays, no watermark. Crisp edges.{clothing_type_instruction} {user_mods}"
+        back_prompt = f"Extract and isolate the {clothing_type if clothing_type else 'product'} from the input image EXACTLY as shown. Preserve the EXACT design, colors, patterns, logos, text, graphics, and all visual details from the input image. Do NOT generate or create a new product. Use ONLY the product shown in the input image. Ultra-clean studio packshot, back view, on pure white seamless background. Even softbox lighting. Soft contact shadow. No props, no text overlays, no watermark. Crisp edges.{clothing_type_instruction} {user_mods}"
         
         try:
             back_out = replicate.run("qwen/qwen-image-edit-plus", input={
                 "prompt": back_prompt,
                 "image": [product_png_url],
-                "num_inference_steps": 20,
-                "guidance_scale": 7.5
+                "num_inference_steps": 30,
+                "guidance_scale": 8.0,
+                "strength": 0.3  # Low strength to preserve exact product from source image
             })
             
             # Handle different return types
