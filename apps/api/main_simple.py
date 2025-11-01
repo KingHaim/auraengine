@@ -3758,21 +3758,18 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         print(f"⏱️ Using {duration_seconds}s duration")
         
         # Run Veo 3.1
-        # IMPORTANT: Veo 3.1's reference_image parameter requires explicit prompt instructions
-        # The prompt must explicitly reference the image, otherwise Veo may ignore it
+        # According to Replicate API docs, Veo 3.1 uses "reference_images" (plural) as an array
+        # The prompt should describe the desired animation/motion, not instruct to use the image
+        # The reference_images parameter handles the visual reference automatically
         base_prompt = custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness"
         
-        # CRITICAL: Prepend explicit instruction to use the reference image exactly
-        # Veo needs this instruction to use the reference_image parameter correctly
-        if not custom_prompt:
-            enhanced_prompt = f"CRITICAL: Use the provided reference image EXACTLY as shown. Generate video from this specific image. Match the exact person, clothing, pose, composition, background, and lighting. {base_prompt}"
-        else:
-            # Even with custom prompt, add reference instruction
-            enhanced_prompt = f"Use the provided reference image EXACTLY as shown. {custom_prompt}"
+        # Keep prompt simple - describe the desired animation/scene
+        # Veo will use reference_images automatically without explicit instructions
+        enhanced_prompt = base_prompt
         
         print(f"🔄 Calling Google Veo 3.1 API...")
-        print(f"📝 Enhanced prompt: {enhanced_prompt[:200]}...")
-        print(f"🖼️ Reference image (base64): {final_image_url[:100]}...")
+        print(f"📝 Prompt: {enhanced_prompt[:200]}...")
+        print(f"🖼️ Reference images (array): [{final_image_url[:100]}...]")
         print(f"📐 Aspect ratio: {aspect_ratio}")
         print(f"⏱️ Duration: {duration_seconds}s")
         
@@ -3781,7 +3778,7 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
                 "google/veo-3.1",
                 input={
                     "prompt": enhanced_prompt,
-                    "reference_image": final_image_url,
+                    "reference_images": [final_image_url],  # ✅ Fixed: plural "reference_images" as array
                     "aspect_ratio": aspect_ratio,
                     "duration": duration_seconds,
                     "quality": "high"  # Veo 3.1 always high quality
