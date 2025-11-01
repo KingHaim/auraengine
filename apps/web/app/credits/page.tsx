@@ -192,9 +192,11 @@ export default function CreditsPage() {
         }
       }
     };
-
-    verifySubscription();
-  }, [token]);
+    
+    if (token) {
+      verifySubscription();
+    }
+  }, [token, refreshUser]);
 
   const handlePurchase = async (credits: number, price: number) => {
     if (!token) {
