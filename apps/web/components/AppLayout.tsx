@@ -253,6 +253,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { href: "/models", label: "MODELS" },
     { href: "/scenes", label: "SCENES" },
     { href: "/credits", label: "CREDITS" },
+  ];
+
+  const bottomNavigationItems = [
     { href: "/settings", label: "SETTINGS" },
   ];
 
@@ -467,15 +470,61 @@ export default function AppLayout({ children }: AppLayoutProps) {
               }}
             />
 
+            {/* Bottom Navigation */}
             <div
               style={{
                 paddingTop: "0px",
               }}
             >
-              {/* Help and Terms pages not yet created
-            <Link href="/help">HELP</Link>
-            <Link href="/terms">TERMS</Link>
-            */}
+              {bottomNavigationItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => {
+                      if (isMobile) {
+                        setSidebarOpen(false);
+                      }
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      height: isMobile ? "44px" : "40px",
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      backgroundColor: isActive
+                        ? "rgba(255,255,255,0.08)"
+                        : "transparent",
+                      color: isActive ? "#FFFFFF" : "rgba(199,205,214,0.6)",
+                      textDecoration: "none",
+                      fontSize: isMobile ? "12px" : "11px",
+                      fontWeight: isActive ? "600" : "500",
+                      letterSpacing: "0.22em",
+                      marginBottom: "4px",
+                      transition: "all 0.2s",
+                      cursor: "pointer",
+                      userSelect: "none",
+                      WebkitTapHighlightColor: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor =
+                          "rgba(255,255,255,0.05)";
+                        e.currentTarget.style.color = "#C7CDD6";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                        e.currentTarget.style.color = "rgba(199,205,214,0.6)";
+                      }
+                    }}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
             </div>
           </nav>
         </div>
