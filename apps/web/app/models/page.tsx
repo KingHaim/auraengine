@@ -619,25 +619,22 @@ export default function ModelsPage() {
             <button
               onClick={() => setShowGenerateModal(true)}
               style={{
-                width: "48px",
-                height: "48px",
-                backgroundColor: "#10B981",
+                width: "auto",
+                height: "auto",
+                backgroundColor: "transparent",
                 border: "none",
-                borderRadius: "8px",
                 color: "#FFFFFF",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 padding: 0,
-                transition: "all 0.2s ease",
+                transition: "transform 0.2s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#059669";
-                e.currentTarget.style.transform = "scale(1.05)";
+                e.currentTarget.style.transform = "scale(1.1)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#10B981";
                 e.currentTarget.style.transform = "scale(1)";
               }}
             >
@@ -645,8 +642,8 @@ export default function ModelsPage() {
                 src="/generatemodel.png"
                 alt="Generate Model"
                 style={{
-                  width: "32px",
-                  height: "32px",
+                  width: "56px",
+                  height: "56px",
                   objectFit: "contain",
                 }}
               />
