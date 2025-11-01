@@ -3,6 +3,14 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import AppLayout from "../../components/AppLayout";
 
+// Add CSS for spinner animation
+const spinnerCSS = `
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+`;
+
 interface Product {
   id: string;
   name: string;
@@ -24,6 +32,7 @@ export default function ProductsPage() {
   const { user, token, loading } = useAuth();
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -54,10 +63,12 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     if (!token) {
       console.log("No token available, skipping fetch");
+      setIsLoadingProducts(false);
       return;
     }
 
     try {
+      setIsLoadingProducts(true);
       console.log("🔍 Fetching products from API...");
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/products`,
@@ -77,6 +88,8 @@ export default function ProductsPage() {
       }
     } catch (error) {
       console.error("💥 Error fetching products:", error);
+    } finally {
+      setIsLoadingProducts(false);
     }
   };
 
@@ -514,10 +527,62 @@ export default function ProductsPage() {
             marginBottom: "16px",
           }}
         >
-          YOUR PRODUCTS ({products.length})
+          YOUR PRODUCTS ({isLoadingProducts ? "..." : products.length})
         </div>
 
-        {products.length === 0 ? (
+        {isLoadingProducts ? (
+          <div
+            className="products-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+              gap: "20px",
+              alignItems: "start",
+            }}
+          >
+            {[...Array(6)].map((_, index) => (
+              <div
+                key={`loading-${index}`}
+                className="product-card"
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  borderRadius: "16px",
+                  border: "1px solid #E5E7EB",
+                  overflow: "hidden",
+                  position: "relative",
+                  aspectRatio: "1",
+                }}
+              >
+                <div
+                  style={{
+                    width: "100%",
+                    aspectRatio: "1",
+                    position: "relative",
+                    overflow: "hidden",
+                    backgroundColor: "#D1D5DB",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <img
+                    src="/beating.gif"
+                    alt="Loading"
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      animation: "pulse 2s ease-in-out infinite",
+                    }}
+                    onError={(e) => {
+                      // Fallback to heart.png if beating.gif doesn't exist
+                      e.currentTarget.src = "/heart.png";
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : products.length === 0 ? (
           <div
             style={{
               textAlign: "center",

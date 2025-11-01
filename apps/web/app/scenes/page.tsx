@@ -3,6 +3,14 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import AppLayout from "../../components/AppLayout";
 
+// Add CSS for spinner animation
+const spinnerCSS = `
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+`;
+
 interface Scene {
   id: string;
   name: string;
@@ -38,6 +46,18 @@ export default function ScenesPage() {
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Inject spinner CSS
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = spinnerCSS;
+    document.head.appendChild(style);
+    return () => {
+      if (document.head.contains(style)) {
+        document.head.removeChild(style);
+      }
+    };
   }, []);
 
   // Fetch scenes when user is authenticated
@@ -272,17 +292,61 @@ export default function ScenesPage() {
 
         {scenesLoading ? (
           <div
+            className="scenes-grid"
             style={{
-              backgroundColor: "#F9FAFB",
-              borderRadius: "12px",
-              border: "1px solid #E5E7EB",
-              padding: "40px",
-              textAlign: "center",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+              gap: "12px",
+              width: "100%",
+              maxWidth: "100%",
+              boxSizing: "border-box",
+              alignItems: "start",
             }}
           >
-            <div style={{ fontSize: "16px", color: "#6B7280" }}>
-              Loading scenes...
-            </div>
+            {[...Array(6)].map((_, index) => (
+              <div
+                key={`loading-${index}`}
+                className="scene-card"
+                style={{
+                  borderRadius: "16px",
+                  overflow: "hidden",
+                  position: "relative",
+                  background: "#E5E7EB",
+                  display: "flex",
+                  flexDirection: "column",
+                  width: "100%",
+                  maxWidth: "100%",
+                  aspectRatio: "1",
+                }}
+              >
+                <div
+                  style={{
+                    width: "100%",
+                    aspectRatio: "1",
+                    position: "relative",
+                    overflow: "hidden",
+                    backgroundColor: "#D1D5DB",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <img
+                    src="/beating.gif"
+                    alt="Loading"
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      animation: "pulse 2s ease-in-out infinite",
+                    }}
+                    onError={(e) => {
+                      // Fallback to heart.png if beating.gif doesn't exist
+                      e.currentTarget.src = "/heart.png";
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         ) : scenes.length === 0 ? (
           <div
