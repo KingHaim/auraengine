@@ -1325,34 +1325,38 @@ export default function ModelsPage() {
               bottom: 0,
               backgroundColor: "rgba(9, 10, 12, 0.8)",
               display: "flex",
-              alignItems: "center",
+              alignItems: isMobile ? "flex-start" : "center",
               justifyContent: "center",
               zIndex: 1000,
+              overflowY: "auto",
+              padding: isMobile ? "0" : "20px",
             }}
           >
             <div
               style={{
                 backgroundColor: "#FFFFFF",
-                borderRadius: "16px",
-                width: "90vw",
-                height: "80vh",
+                borderRadius: isMobile ? "0" : "16px",
+                width: isMobile ? "100%" : "90vw",
+                height: isMobile ? "100%" : "80vh",
+                minHeight: isMobile ? "100vh" : "auto",
                 maxWidth: "1200px",
-                maxHeight: "800px",
-                border: "1px solid #E5E7EB",
+                maxHeight: isMobile ? "none" : "800px",
+                border: isMobile ? "none" : "1px solid #E5E7EB",
                 display: "flex",
+                flexDirection: isMobile ? "column" : "row",
                 overflow: "hidden",
               }}
             >
               {/* Left Panel - Model Display */}
               <div
                 style={{
-                  flex: 1,
+                  flex: isMobile ? "0 0 200px" : 1,
                   backgroundColor: "#F9FAFB",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
-                  padding: "16px",
+                  padding: isMobile ? "12px" : "16px",
                   position: "relative",
                   overflow: "hidden",
                 }}
@@ -1462,8 +1466,10 @@ export default function ModelsPage() {
                   backgroundColor: "#090a0c",
                   display: "flex",
                   flexDirection: "column",
-                  padding: "32px",
+                  padding: isMobile ? "20px 16px" : "32px",
                   position: "relative",
+                  overflowY: "auto",
+                  overflowX: "hidden",
                 }}
               >
                 {/* Close Button */}
@@ -1474,14 +1480,21 @@ export default function ModelsPage() {
                     setGeneratePrompt("");
                   }}
                   style={{
-                    position: "absolute",
-                    top: "24px",
-                    right: "24px",
-                    background: "none",
+                    position: isMobile ? "fixed" : "absolute",
+                    top: isMobile ? "16px" : "24px",
+                    right: isMobile ? "16px" : "24px",
+                    background: isMobile ? "rgba(0, 0, 0, 0.6)" : "none",
                     border: "none",
-                    fontSize: "24px",
+                    fontSize: isMobile ? "28px" : "24px",
                     color: "#FFFFFF",
                     cursor: "pointer",
+                    width: isMobile ? "40px" : "auto",
+                    height: isMobile ? "40px" : "auto",
+                    borderRadius: isMobile ? "50%" : "0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 1001,
                   }}
                 >
                   ✕
@@ -1491,21 +1504,21 @@ export default function ModelsPage() {
                 <h2
                   style={{
                     color: "#FFFFFF",
-                    fontSize: "24px",
+                    fontSize: isMobile ? "20px" : "24px",
                     fontWeight: "600",
-                    margin: "0 0 24px 0",
+                    margin: isMobile ? "0 0 16px 0" : "0 0 24px 0",
                   }}
                 >
                   Generate Model
                 </h2>
 
                 {/* Prompt Input */}
-                <div style={{ marginBottom: "24px" }}>
+                <div style={{ marginBottom: isMobile ? "16px" : "24px" }}>
                   <label
                     style={{
                       display: "block",
                       color: "#E5E7EB",
-                      fontSize: "14px",
+                      fontSize: isMobile ? "13px" : "14px",
                       fontWeight: "500",
                       marginBottom: "8px",
                     }}
@@ -1518,13 +1531,13 @@ export default function ModelsPage() {
                     placeholder="Type your modifications... (e.g., 'wearing a blue suit, short blonde hair, standing with arms crossed')"
                     style={{
                       width: "100%",
-                      height: "120px",
-                      padding: "16px",
+                      height: isMobile ? "100px" : "120px",
+                      padding: isMobile ? "12px" : "16px",
                       backgroundColor: "#1F2937",
                       border: "1px solid #374151",
                       borderRadius: "8px",
                       color: "#FFFFFF",
-                      fontSize: "14px",
+                      fontSize: isMobile ? "14px" : "14px",
                       resize: "vertical",
                       fontFamily: "inherit",
                     }}
@@ -1536,15 +1549,15 @@ export default function ModelsPage() {
                   style={{
                     backgroundColor: "#1F2937",
                     border: "1px solid #374151",
-                    padding: "16px",
+                    padding: isMobile ? "12px" : "16px",
                     borderRadius: "8px",
-                    marginBottom: "20px",
+                    marginBottom: isMobile ? "16px" : "20px",
                   }}
                 >
                   <h3
                     style={{
                       color: "#E5E7EB",
-                      fontSize: "14px",
+                      fontSize: isMobile ? "13px" : "14px",
                       margin: "0 0 12px 0",
                       fontWeight: "600",
                     }}
@@ -1556,8 +1569,8 @@ export default function ModelsPage() {
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "12px",
+                      gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+                      gap: isMobile ? "10px" : "12px",
                     }}
                   >
                     {/* Age */}
@@ -1823,12 +1836,12 @@ export default function ModelsPage() {
                   disabled={isGeneratingModel}
                   style={{
                     width: "100%",
-                    padding: "16px",
+                    padding: isMobile ? "14px" : "16px",
                     backgroundColor: isGeneratingModel ? "#374151" : "#10B981",
                     border: "none",
                     borderRadius: "8px",
                     color: "#FFFFFF",
-                    fontSize: "16px",
+                    fontSize: isMobile ? "15px" : "16px",
                     fontWeight: "600",
                     cursor: isGeneratingModel ? "not-allowed" : "pointer",
                     transition: "all 0.2s ease",
@@ -1836,6 +1849,9 @@ export default function ModelsPage() {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "8px",
+                    marginTop: isMobile ? "auto" : "0",
+                    position: isMobile ? "sticky" : "static",
+                    bottom: isMobile ? "0" : "auto",
                   }}
                 >
                   {isGeneratingModel && (
