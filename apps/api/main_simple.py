@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 from database import SessionLocal, create_tables
 from models import User, Product, Model, Scene, Campaign, Generation
-from schemas import UserCreate, UserResponse, Token, ProductResponse, ModelResponse, SceneResponse, CampaignResponse
+from schemas import UserCreate, UserResponse, Token, ProductResponse, ModelResponse, SceneResponse, CampaignResponse, ChangePasswordRequest
 from auth import get_current_user, create_access_token, verify_password, get_password_hash
 from datetime import datetime, timedelta
 import os
@@ -398,6 +398,56 @@ async def get_current_user_info(
             "created_at": user.created_at.isoformat() if user.created_at else None
         }
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/auth/change-password")
+async def change_password(
+    password_data: ChangePasswordRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Change user password"""
+    try:
+        # Get user from database
+        user = db.query(User).filter(User.id == current_user["user_id"]).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Verify current password
+        if not verify_password(password_data.current_password, user.hashed_password):
+            raise HTTPException(status_code=401, detail="Current password is incorrect")
+        
+        # Validate new password length
+        if len(password_data.new_password) < 8:
+            raise HTTPException(
+                status_code=400, 
+                detail="New password must be at least 8 characters long"
+            )
+        
+        # Check if new password is different from current password
+        if verify_password(password_data.new_password, user.hashed_password):
+            raise HTTPException(
+                status_code=400,
+                detail="New password must be different from current password"
+            )
+        
+        # Hash new password and update user
+        user.hashed_password = get_password_hash(password_data.new_password)
+        user.updated_at = datetime.utcnow()
+        db.commit()
+        db.refresh(user)
+        
+        return {
+            "message": "Password changed successfully",
+            "status": "success"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"❌ Error changing password: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 # ---------- Basic CRUD Endpoints ----------

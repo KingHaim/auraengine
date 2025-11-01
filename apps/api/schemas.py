@@ -12,6 +12,10 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
 class UserResponse(BaseModel):
     id: str
     email: str
