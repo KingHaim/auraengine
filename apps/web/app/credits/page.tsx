@@ -231,6 +231,61 @@ export default function CreditsPage() {
     setSelectedPackage(null);
   };
 
+  const handleCheckSubscription = async () => {
+    if (!token) {
+      setMessage("Please sign in to check subscription");
+      return;
+    }
+
+    setIsProcessing(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/subscriptions/check-activation`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.status === "success") {
+          setMessage(
+            "Subscription activated successfully! Welcome to your new plan."
+          );
+          // Reload to get updated user data
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else if (data.status === "active") {
+          setMessage("Your subscription is already active.");
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          setMessage(
+            data.message ||
+              "No paid subscriptions found. Please complete a subscription purchase."
+          );
+        }
+      } else {
+        setMessage(
+          data.detail || "Failed to check subscription. Please try again."
+        );
+      }
+    } catch (error) {
+      setMessage("Failed to check subscription. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleCancelSubscription = async () => {
     if (!token) {
       setMessage("Please sign in to cancel subscription");

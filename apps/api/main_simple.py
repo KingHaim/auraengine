@@ -2207,6 +2207,93 @@ async def verify_checkout_session(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/subscriptions/check-activation")
+async def check_subscription_activation(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Check and activate any paid subscriptions that haven't been activated yet"""
+    try:
+        user = db.query(User).filter(User.id == current_user["user_id"]).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # If user already has an active subscription, return it
+        if user.subscription_status == "active" and user.subscription_type:
+            return {
+                "message": "Subscription already active",
+                "status": "active",
+                "subscription_type": user.subscription_type,
+                "subscription_credits": user.subscription_credits
+            }
+        
+        # Search for recent checkout sessions for this user's email
+        try:
+            # List checkout sessions with the user's email
+            checkout_sessions = stripe.checkout.Session.list(
+                customer_email=user.email,
+                limit=10
+            )
+            
+            for session in checkout_sessions.data:
+                # Check if this session is a subscription and was paid
+                if (session.mode == "subscription" and 
+                    session.payment_status == "paid" and
+                    session.metadata.get('user_id') == user.id):
+                    
+                    # Get subscription details from metadata
+                    subscription_type = session.metadata.get('subscription_type', 'starter')
+                    credits = int(session.metadata.get('credits', 120))
+                    is_annual = session.metadata.get('is_annual', 'False').lower() == 'true'
+                    expires_at_str = session.metadata.get('expires_at')
+                    
+                    if expires_at_str:
+                        expires_at = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
+                    else:
+                        from datetime import timedelta
+                        expires_at = datetime.utcnow() + timedelta(days=365 if is_annual else 30)
+                    
+                    # Activate subscription
+                    user.subscription_type = subscription_type
+                    user.subscription_credits = credits
+                    user.subscription_status = "active"
+                    user.subscription_expires_at = expires_at
+                    
+                    db.commit()
+                    db.refresh(user)
+                    
+                    print(f"✅ Subscription activated via check-activation for user {user.id}: {subscription_type} with {credits} credits")
+                    
+                    return {
+                        "message": "Subscription activated successfully",
+                        "status": "success",
+                        "subscription_type": subscription_type,
+                        "subscription_credits": credits,
+                        "subscription_status": "active",
+                        "expires_at": expires_at.isoformat()
+                    }
+            
+            return {
+                "message": "No paid subscriptions found to activate",
+                "status": "not_found"
+            }
+            
+        except stripe.error.StripeError as e:
+            print(f"⚠️ Stripe error checking subscriptions: {e}")
+            return {
+                "message": f"Could not check subscriptions: {str(e)}",
+                "status": "error"
+            }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"❌ Error checking subscription activation: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/subscriptions/cancel")
 async def cancel_subscription(
     current_user: dict = Depends(get_current_user),
