@@ -53,27 +53,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserInfo = async (authToken: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
+        setToken(authToken);
         console.log("✅ User authenticated:", userData.email);
-      } else {
-        // Token is invalid, remove it
-        console.log("❌ Token invalid, removing from storage");
+      } else if (response.status === 401) {
+        // Token is invalid (401 Unauthorized), remove it
+        console.log("❌ Token invalid (401), removing from storage");
         localStorage.removeItem("aura_token");
         setToken(null);
         setUser(null);
+      } else {
+        // Other HTTP errors (500, 503, etc.) - keep token, might be temporary
+        console.warn(`⚠️ Failed to fetch user info (status ${response.status}), keeping token`);
+        // Keep the token but clear user state to prevent stale data
+        // Don't remove token for server errors
       }
     } catch (error) {
-      console.error("❌ Failed to fetch user info:", error);
-      localStorage.removeItem("aura_token");
-      setToken(null);
+      // Network errors - don't remove token, might be temporary connection issue
+      console.warn("⚠️ Network error fetching user info, keeping token:", error);
+      // Only clear user state, don't remove token for network errors
       setUser(null);
     } finally {
       setLoading(false);
@@ -85,16 +94,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     try {
       console.log("🔐 Attempting login for:", email);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -123,17 +135,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ) => {
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          full_name: fullName || "",
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+            full_name: fullName || "",
+          }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
