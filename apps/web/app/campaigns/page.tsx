@@ -7197,7 +7197,7 @@ export default function CampaignsPage() {
                         style={{ margin: 0 }}
                       />
                       <div>
-                        <div style={{ fontWeight: "500", fontSize: "14px" }}>
+                        <div style={{ fontWeight: "500", fontSize: "14px", color: "#1F2937" }}>
                           480p
                         </div>
                         <div style={{ fontSize: "11px", color: "#6B7280" }}>
@@ -7243,7 +7243,7 @@ export default function CampaignsPage() {
                         style={{ margin: 0 }}
                       />
                       <div>
-                        <div style={{ fontWeight: "500", fontSize: "14px" }}>
+                        <div style={{ fontWeight: "500", fontSize: "14px", color: "#1F2937" }}>
                           720p
                         </div>
                         <div style={{ fontSize: "11px", color: "#6B7280" }}>
@@ -7288,7 +7288,7 @@ export default function CampaignsPage() {
                           style={{ margin: 0 }}
                         />
                         <div>
-                          <div style={{ fontWeight: "500", fontSize: "14px" }}>
+                          <div style={{ fontWeight: "500", fontSize: "14px", color: "#1F2937" }}>
                             1080p
                           </div>
                           <div style={{ fontSize: "11px", color: "#6B7280" }}>
@@ -7357,7 +7357,7 @@ export default function CampaignsPage() {
                           onChange={(e) => setBulkVideoDuration(e.target.value)}
                           style={{ marginRight: "8px" }}
                         />
-                        <div style={{ fontWeight: "500", fontSize: "14px" }}>
+                        <div style={{ fontWeight: "500", fontSize: "14px", color: "#1F2937" }}>
                           5 seconds
                         </div>
                       </label>
@@ -7386,7 +7386,7 @@ export default function CampaignsPage() {
                           onChange={(e) => setBulkVideoDuration(e.target.value)}
                           style={{ marginRight: "8px" }}
                         />
-                        <div style={{ fontWeight: "500", fontSize: "14px" }}>
+                        <div style={{ fontWeight: "500", fontSize: "14px", color: "#1F2937" }}>
                           10 seconds
                         </div>
                       </label>
