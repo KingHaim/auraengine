@@ -62,8 +62,8 @@ body {
     overflow-x: hidden !important;
   }
   
-  /* Force single column everywhere except campaign grid, dashboard campaigns grid, and scenes grid */
-  div[style*="grid-template-columns"]:not(.campaign-grid):not(.dashboard-campaigns-grid):not(.scenes-grid) {
+  /* Force single column everywhere except campaign grid, dashboard campaigns grid, scenes grid, and models grid */
+  div[style*="grid-template-columns"]:not(.campaign-grid):not(.dashboard-campaigns-grid):not(.scenes-grid):not(.models-grid) {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
@@ -172,6 +172,22 @@ body {
   /* Show scene title overlay on mobile */
   .scene-title-overlay {
     display: block !important;
+  }
+  
+  /* Models grid mobile - Force 2 columns */
+  .models-grid,
+  div.models-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    display: grid !important;
+  }
+  
+  /* Ensure model cards are square on mobile */
+  .model-card {
+    aspect-ratio: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
   
   /* Additional specificity for campaigns page */

@@ -720,6 +720,7 @@ export default function ModelsPage() {
           </div>
         ) : (
           <div
+            className="models-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
@@ -727,9 +728,10 @@ export default function ModelsPage() {
               alignItems: "start",
             }}
           >
-            {models.map((model) => (
+              {models.map((model) => (
               <div
                 key={model.id}
+                className="model-card"
                 style={{
                   aspectRatio: "1",
                   borderRadius: "12px",
