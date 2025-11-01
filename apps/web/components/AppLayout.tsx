@@ -252,10 +252,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { href: "/products", label: "PRODUCTS" },
     { href: "/models", label: "MODELS" },
     { href: "/scenes", label: "SCENES" },
-    { href: "/credits", label: "CREDITS" },
   ];
 
   const bottomNavigationItems = [
+    { href: "/credits", label: "CREDITS" },
     { href: "/settings", label: "SETTINGS" },
   ];
 
