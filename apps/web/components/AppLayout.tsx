@@ -22,7 +22,7 @@ interface SearchResult {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  const { user, logout, loading, token } = useAuth();
+  const { user, logout, loading, token, refreshUser } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -743,7 +743,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                       color: "#9BA3AF",
                     }}
                   >
-                    {(user.subscription_credits || 0) + (user.credits || 0)} credits
+                    {((user.subscription_credits ?? 0) + (user.credits ?? 0))}{" "}
+                    credits
+                    {console.log("🔍 Header Credits Debug:", {
+                      subscription_credits: user.subscription_credits,
+                      purchased_credits: user.credits,
+                      total: (user.subscription_credits ?? 0) + (user.credits ?? 0),
+                      user: user
+                    })}
                   </div>
                 </div>
               )}
