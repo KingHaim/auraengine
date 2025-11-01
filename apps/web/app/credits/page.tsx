@@ -632,7 +632,12 @@ export default function CreditsPage() {
                   </ul>
 
                   <button
-                    onClick={() => handleSubscribe(tier)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log("🔴 Button clicked for tier:", tier.name);
+                      handleSubscribe(tier);
+                    }}
                     disabled={isProcessing}
                     style={{
                       width: "100%",
