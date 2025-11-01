@@ -1149,6 +1149,90 @@ async def delete_campaign(
         print(f"Error deleting campaign: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# ---------- Product Update Endpoint ----------
+@app.put("/products/{product_id}")
+async def update_product(
+    product_id: str,
+    name: str = Form(None),
+    description: str = Form(None),
+    category: str = Form(None),
+    clothing_type: str = Form(None),
+    tags: str = Form(None),
+    product_image: UploadFile = File(None),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update a product"""
+    try:
+        # Find the product
+        product = db.query(Product).filter(
+            Product.id == product_id,
+            Product.user_id == current_user["user_id"]
+        ).first()
+        
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        # Update fields if provided
+        if name is not None:
+            product.name = name
+        if description is not None:
+            product.description = description
+        if category is not None:
+            product.category = category
+        if clothing_type is not None:
+            product.clothing_type = clothing_type
+        if tags is not None:
+            # Parse tags from comma-separated string
+            product.tags = [tag.strip() for tag in tags.split(",") if tag.strip()] if tags else []
+        
+        # Update product image if provided
+        if product_image:
+            image_filename = f"product_{hash(product.name + str(datetime.now()))}.{product_image.filename.split('.')[-1]}"
+            image_path = os.path.join("uploads", image_filename)
+            
+            with open(image_path, "wb") as f:
+                content = await product_image.read()
+                f.write(content)
+            
+            # Upload to Cloudinary if available, otherwise use static URL
+            try:
+                product.image_url = upload_to_cloudinary(image_path, f"product_{product.id}")
+            except Exception:
+                product.image_url = get_static_url(image_filename)
+        
+        # Update updated_at timestamp
+        product.updated_at = datetime.utcnow()
+        
+        db.commit()
+        db.refresh(product)
+        
+        print(f"✅ Updated product: {product.name}")
+        
+        return {
+            "id": product.id,
+            "name": product.name,
+            "description": product.description,
+            "category": product.category,
+            "clothing_type": product.clothing_type,
+            "tags": product.tags,
+            "image_url": product.image_url,
+            "packshot_front_url": product.packshot_front_url,
+            "packshot_back_url": product.packshot_back_url,
+            "packshots": product.packshots,
+            "created_at": product.created_at.isoformat() if product.created_at else None,
+            "updated_at": product.updated_at.isoformat() if product.updated_at else None,
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"❌ Error updating product: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to update product: {str(e)}")
+
 # ---------- Delete Endpoints ----------
 @app.delete("/products/{product_id}")
 async def delete_product(
