@@ -144,6 +144,55 @@ export default function CreditsPage() {
     }
   }, [user]);
 
+  // Check for subscription success callback and verify subscription
+  useEffect(() => {
+    const verifySubscription = async () => {
+      // Check if we're on the success page
+      const urlParams = new URLSearchParams(window.location.search);
+      const subscriptionParam = urlParams.get("subscription");
+      const sessionId = urlParams.get("session_id");
+      
+      if (subscriptionParam === "success" && sessionId && token) {
+        console.log("🔍 Verifying subscription checkout session:", sessionId);
+        
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/subscriptions/verify-checkout`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ session_id: sessionId }),
+            }
+          );
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            console.log("✅ Subscription verified and activated:", data);
+            setMessage("Subscription activated successfully! Welcome to your new plan.");
+            // Remove query params and refresh user data
+            window.history.replaceState({}, "", window.location.pathname);
+            // Reload to get updated user data
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            console.error("❌ Subscription verification failed:", data);
+            setMessage(data.detail || "Failed to verify subscription. Please contact support.");
+          }
+        } catch (error) {
+          console.error("❌ Error verifying subscription:", error);
+          setMessage("Error verifying subscription. Please refresh the page.");
+        }
+      }
+    };
+    
+    verifySubscription();
+  }, [token]);
+
   const handlePurchase = async (credits: number, price: number) => {
     if (!token) {
       setMessage("Please sign in to purchase credits");

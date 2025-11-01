@@ -2109,6 +2109,101 @@ async def subscription_webhook(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/subscriptions/verify-checkout")
+async def verify_checkout_session(
+    session_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Verify and activate subscription from Stripe checkout session"""
+    try:
+        # Retrieve checkout session from Stripe
+        checkout_session = stripe.checkout.Session.retrieve(request.session_id)
+        
+        if not checkout_session:
+            raise HTTPException(status_code=404, detail="Checkout session not found")
+        
+        # Check if payment was successful
+        if checkout_session.payment_status != "paid":
+            raise HTTPException(
+                status_code=400,
+                detail=f"Payment status: {checkout_session.payment_status}. Subscription not activated."
+            )
+        
+        # Check if mode is subscription
+        if checkout_session.mode != "subscription":
+            raise HTTPException(
+                status_code=400,
+                detail="This checkout session is not a subscription"
+            )
+        
+        # Get user from metadata
+        user_id = checkout_session.metadata.get('user_id')
+        if not user_id or user_id != current_user["user_id"]:
+            raise HTTPException(
+                status_code=403,
+                detail="Checkout session does not belong to this user"
+            )
+        
+        # Get user from database
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check if subscription is already activated
+        if user.subscription_status == "active" and user.subscription_type:
+            print(f"ℹ️ Subscription already active for user {user_id}")
+            return {
+                "message": "Subscription already activated",
+                "status": "active",
+                "subscription_type": user.subscription_type,
+                "subscription_credits": user.subscription_credits
+            }
+        
+        # Get subscription details from metadata
+        subscription_type = checkout_session.metadata.get('subscription_type', 'starter')
+        credits = int(checkout_session.metadata.get('credits', 120))
+        is_annual = checkout_session.metadata.get('is_annual', 'False').lower() == 'true'
+        expires_at_str = checkout_session.metadata.get('expires_at')
+        
+        if expires_at_str:
+            expires_at = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
+        else:
+            from datetime import timedelta
+            expires_at = datetime.utcnow() + timedelta(days=365 if is_annual else 30)
+        
+        # Update user subscription
+        user.subscription_type = subscription_type
+        user.subscription_credits = credits
+        user.subscription_status = "active"
+        user.subscription_expires_at = expires_at
+        
+        db.commit()
+        db.refresh(user)
+        
+        print(f"✅ Subscription activated via verify-checkout for user {user_id}: {subscription_type} with {credits} credits")
+        
+        return {
+            "message": "Subscription activated successfully",
+            "status": "success",
+            "subscription_type": subscription_type,
+            "subscription_credits": credits,
+            "subscription_status": "active",
+            "expires_at": expires_at.isoformat()
+        }
+        
+    except stripe.error.StripeError as e:
+        print(f"❌ Stripe error verifying checkout: {e}")
+        raise HTTPException(status_code=400, detail=f"Stripe error: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"❌ Error verifying checkout: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/subscriptions/cancel")
 async def cancel_subscription(
     current_user: dict = Depends(get_current_user),
