@@ -174,6 +174,14 @@ async def startup_event():
         create_tables()
         print("✅ Database tables created successfully")
         
+        # Run migration for subscription columns if needed
+        try:
+            from migrate_subscription_columns import migrate_subscription_columns
+            print("🔄 Running subscription columns migration...")
+            migrate_subscription_columns()
+        except Exception as migration_error:
+            print(f"⚠️ Migration error (may be OK if columns already exist): {migration_error}")
+        
         # Test database connection
         from sqlalchemy import text
         from database import engine
