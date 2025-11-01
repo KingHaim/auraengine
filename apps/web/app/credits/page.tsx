@@ -165,7 +165,7 @@ export default function CreditsPage() {
 
   const handleSubscribe = async (tier: (typeof subscriptionTiers)[0]) => {
     console.log("🔔 handleSubscribe called for tier:", tier.name);
-    
+
     if (!token) {
       setMessage("Please sign in to create a subscription");
       return;
@@ -177,7 +177,7 @@ export default function CreditsPage() {
     try {
       const price = isAnnual ? tier.annualPrice : tier.monthlyPrice;
       const amountInCents = Math.round(price * 100); // Convert to cents
-      
+
       // Use the appropriate price ID based on annual/monthly selection
       let priceId = tier.priceId || "";
       if (isAnnual && tier.annualPriceId) {

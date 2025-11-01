@@ -89,13 +89,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
       } else {
         // Other HTTP errors (500, 503, etc.) - keep token, might be temporary
-        console.warn(`⚠️ Failed to fetch user info (status ${response.status}), keeping token`);
+        console.warn(
+          `⚠️ Failed to fetch user info (status ${response.status}), keeping token`
+        );
         // Keep the token but clear user state to prevent stale data
         // Don't remove token for server errors
       }
     } catch (error) {
       // Network errors - don't remove token, might be temporary connection issue
-      console.warn("⚠️ Network error fetching user info, keeping token:", error);
+      console.warn(
+        "⚠️ Network error fetching user info, keeping token:",
+        error
+      );
       // Only clear user state, don't remove token for network errors
       setUser(null);
     } finally {

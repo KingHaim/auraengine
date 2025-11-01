@@ -126,8 +126,11 @@ export default function ProductsPage() {
       formData.append("clothing_type", newProduct.clothingType);
       formData.append("tags", selectedTags.join(","));
       formData.append("product_image", newProduct.image);
-      
-      console.log("📦 Uploading product with clothing_type:", newProduct.clothingType);
+
+      console.log(
+        "📦 Uploading product with clothing_type:",
+        newProduct.clothingType
+      );
 
       // Add packshot files if provided
       if (newProduct.packshotFront) {
@@ -1478,7 +1481,11 @@ export default function ProductsPage() {
               <select
                 value={newProduct.clothingType}
                 onChange={(e) =>
-                  setNewProduct({ ...newProduct, clothingType: e.target.value, category: e.target.value })
+                  setNewProduct({
+                    ...newProduct,
+                    clothingType: e.target.value,
+                    category: e.target.value,
+                  })
                 }
                 style={{
                   width: "100%",

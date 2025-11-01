@@ -264,7 +264,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         fontFamily:
           "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
         minHeight: "100vh",
-        paddingLeft: (!user || isMobile) ? "0px" : `${SIDEBAR_WIDTH}px`,
+        paddingLeft: !user || isMobile ? "0px" : `${SIDEBAR_WIDTH}px`,
         position: "relative",
         zIndex: 1,
         width: "100%",
@@ -303,15 +303,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
           >
             ☰
           </button>
-        <img
-          src="/heart.png"
-          alt="Logo"
-          style={{
-            width: "32px",
-            height: "32px",
-            objectFit: "contain",
-          }}
-        />
+          <img
+            src="/heart.png"
+            alt="Logo"
+            style={{
+              width: "32px",
+              height: "32px",
+              objectFit: "contain",
+            }}
+          />
           <div style={{ width: "40px" }} /> {/* Spacer for alignment */}
         </div>
       )}
@@ -336,7 +336,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
       {user && (
         <div
           style={{
-            width: isMobile ? `${MOBILE_SIDEBAR_WIDTH}px` : `${SIDEBAR_WIDTH}px`,
+            width: isMobile
+              ? `${MOBILE_SIDEBAR_WIDTH}px`
+              : `${SIDEBAR_WIDTH}px`,
             background:
               "linear-gradient(180deg, #090a0c 0%, #090a0c 60%, #1a1a1a 80%, #8b1a2a 100%)",
             borderRight: "1px solid #1F2630",
@@ -355,127 +357,127 @@ export default function AppLayout({ children }: AppLayoutProps) {
             transition: "left 0.3s ease",
           }}
         >
-        {/* Radial glow overlay */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background:
-              "radial-gradient(600px 220px at 20% 20%, rgba(34,211,238,0.15) 0%, transparent 60%), radial-gradient(520px 220px at 80% 75%, rgba(139,92,246,0.12) 0%, transparent 60%)",
-            opacity: 0.5,
-            pointerEvents: "none",
-          }}
-        />
-        {/* Logo */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            marginBottom: isMobile ? "20px" : "40px",
-            position: "relative",
-            zIndex: 1,
-            width: "100%",
-          }}
-        >
-          <img
-            src="/logo.png"
-            alt="Logo"
-            style={{
-              width: isMobile ? "120px" : "180px",
-              height: isMobile ? "120px" : "180px",
-              objectFit: "contain",
-              display: "block",
-            }}
-          />
-        </div>
-
-        {/* Navigation */}
-        <nav style={{ flex: 1, position: "relative", zIndex: 1 }}>
-          <div style={{ marginBottom: "24px" }}>
-            {navigationItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => {
-                    if (isMobile) {
-                      setSidebarOpen(false);
-                    }
-                  }}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    height: isMobile ? "48px" : "44px",
-                    padding: "12px",
-                    borderRadius: "10px",
-                    backgroundColor: isActive
-                      ? "rgba(255,255,255,0.08)"
-                      : "transparent",
-                    color: isActive ? "#FFFFFF" : "#C7CDD6",
-                    textDecoration: "none",
-                    fontSize: isMobile ? "14px" : "12px",
-                    fontWeight: isActive ? "600" : "500",
-                    letterSpacing: isMobile ? "0.1em" : "0.18em",
-                    marginBottom: "4px",
-                    transition: "all 0.2s",
-                    cursor: "pointer",
-                    userSelect: "none",
-                    WebkitTapHighlightColor: "transparent",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.backgroundColor =
-                        "rgba(255,255,255,0.05)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }
-                  }}
-                  onTouchStart={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.backgroundColor =
-                        "rgba(255,255,255,0.1)";
-                    }
-                  }}
-                  onTouchEnd={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }
-                  }}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* White dashed separator */}
+          {/* Radial glow overlay */}
           <div
             style={{
-              borderTop: "1px dashed rgba(255,255,255,0.2)",
-              marginBottom: "24px",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background:
+                "radial-gradient(600px 220px at 20% 20%, rgba(34,211,238,0.15) 0%, transparent 60%), radial-gradient(520px 220px at 80% 75%, rgba(139,92,246,0.12) 0%, transparent 60%)",
+              opacity: 0.5,
+              pointerEvents: "none",
             }}
           />
-
+          {/* Logo */}
           <div
             style={{
-              paddingTop: "0px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              marginBottom: isMobile ? "20px" : "40px",
+              position: "relative",
+              zIndex: 1,
+              width: "100%",
             }}
           >
-            {/* Help and Terms pages not yet created
+            <img
+              src="/logo.png"
+              alt="Logo"
+              style={{
+                width: isMobile ? "120px" : "180px",
+                height: isMobile ? "120px" : "180px",
+                objectFit: "contain",
+                display: "block",
+              }}
+            />
+          </div>
+
+          {/* Navigation */}
+          <nav style={{ flex: 1, position: "relative", zIndex: 1 }}>
+            <div style={{ marginBottom: "24px" }}>
+              {navigationItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => {
+                      if (isMobile) {
+                        setSidebarOpen(false);
+                      }
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      height: isMobile ? "48px" : "44px",
+                      padding: "12px",
+                      borderRadius: "10px",
+                      backgroundColor: isActive
+                        ? "rgba(255,255,255,0.08)"
+                        : "transparent",
+                      color: isActive ? "#FFFFFF" : "#C7CDD6",
+                      textDecoration: "none",
+                      fontSize: isMobile ? "14px" : "12px",
+                      fontWeight: isActive ? "600" : "500",
+                      letterSpacing: isMobile ? "0.1em" : "0.18em",
+                      marginBottom: "4px",
+                      transition: "all 0.2s",
+                      cursor: "pointer",
+                      userSelect: "none",
+                      WebkitTapHighlightColor: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor =
+                          "rgba(255,255,255,0.05)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                      }
+                    }}
+                    onTouchStart={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor =
+                          "rgba(255,255,255,0.1)";
+                      }
+                    }}
+                    onTouchEnd={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                      }
+                    }}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* White dashed separator */}
+            <div
+              style={{
+                borderTop: "1px dashed rgba(255,255,255,0.2)",
+                marginBottom: "24px",
+              }}
+            />
+
+            <div
+              style={{
+                paddingTop: "0px",
+              }}
+            >
+              {/* Help and Terms pages not yet created
             <Link href="/help">HELP</Link>
             <Link href="/terms">TERMS</Link>
             */}
-          </div>
-        </nav>
-      </div>
+            </div>
+          </nav>
+        </div>
       )}
 
       {/* Main Content */}
@@ -486,7 +488,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           flexDirection: "column",
           position: "relative",
           zIndex: 1,
-          marginTop: (!user || !isMobile) ? "0" : "50px",
+          marginTop: !user || !isMobile ? "0" : "50px",
           width: "100%",
           maxWidth: "100%",
           overflowX: "hidden",
@@ -509,9 +511,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
           }}
         >
           <div
-            style={{ 
-              position: "relative", 
-              width: "100%", 
+            style={{
+              position: "relative",
+              width: "100%",
               maxWidth: "640px",
               minWidth: 0,
               flex: "1 1 auto",
