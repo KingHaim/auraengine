@@ -11,6 +11,7 @@ export default function Sidebar() {
     { href: "/products", label: "PRODUCTS" },
     { href: "/models", label: "MODELS" },
     { href: "/scenes", label: "SCENES" },
+    { href: "/settings", label: "SETTINGS" },
   ];
 
   const bottomItems: { href: string; label: string }[] = [

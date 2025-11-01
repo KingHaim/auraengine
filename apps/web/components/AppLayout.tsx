@@ -253,6 +253,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { href: "/models", label: "MODELS" },
     { href: "/scenes", label: "SCENES" },
     { href: "/credits", label: "CREDITS" },
+    { href: "/settings", label: "SETTINGS" },
   ];
 
   return (
