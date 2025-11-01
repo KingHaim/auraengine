@@ -3701,8 +3701,14 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         else:  # 480p
             aspect_ratio = "9:16"  # Portrait for social media
         
-        # Duration in seconds (5s or 10s)
-        duration_seconds = 10 if duration == "10s" else 5
+        # Duration in seconds - Veo 3.1 only accepts 4, 6, or 8 seconds
+        # Map user input (5s/10s) to Veo's allowed values (4, 6, 8)
+        if duration == "10s":
+            duration_seconds = 8  # Map 10s to 8s (closest allowed value)
+        elif duration == "5s":
+            duration_seconds = 6  # Map 5s to 6s (closest allowed value)
+        else:
+            duration_seconds = 6  # Default to 6s
         
         print(f"🎨 Using {aspect_ratio} aspect ratio")
         print(f"⏱️ Using {duration_seconds}s duration")
@@ -3843,8 +3849,14 @@ def run_veo_direct_generation(model_image: str, product_image: str, scene_image:
         else:  # 480p
             aspect_ratio = "9:16"
         
-        # Duration in seconds
-        duration_seconds = 10 if duration == "10s" else 5
+        # Duration in seconds - Veo 3.1 only accepts 4, 6, or 8 seconds
+        # Map user input (5s/10s) to Veo's allowed values (4, 6, 8)
+        if duration == "10s":
+            duration_seconds = 8  # Map 10s to 8s (closest allowed value)
+        elif duration == "5s":
+            duration_seconds = 6  # Map 5s to 6s (closest allowed value)
+        else:
+            duration_seconds = 6  # Default to 6s
         
         # Build comprehensive prompt for Veo
         if custom_prompt:
