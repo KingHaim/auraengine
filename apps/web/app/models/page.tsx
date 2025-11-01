@@ -71,6 +71,8 @@ export default function ModelsPage() {
   const [showModelProfileModal, setShowModelProfileModal] = useState(false);
   const [selectedModelForProfile, setSelectedModelForProfile] =
     useState<Model | null>(null);
+  const [physicalAttributesExpanded, setPhysicalAttributesExpanded] =
+    useState(false);
 
   // Function to open model profile modal
   const handleOpenModelProfile = (model: Model) => {
@@ -1477,7 +1479,8 @@ export default function ModelsPage() {
                   backgroundColor: "#090a0c",
                   display: "flex",
                   flexDirection: "column",
-                  padding: isMobile ? "20px 16px" : "32px",
+                  padding: isMobile ? "60px 16px 20px 16px" : "32px",
+                  paddingTop: isMobile ? "60px" : "32px",
                   position: "relative",
                   overflowY: "auto",
                   overflowX: "hidden",
@@ -1492,7 +1495,7 @@ export default function ModelsPage() {
                   }}
                   style={{
                     position: isMobile ? "fixed" : "absolute",
-                    top: isMobile ? "16px" : "24px",
+                    top: isMobile ? "50px" : "24px",
                     right: isMobile ? "16px" : "24px",
                     background: isMobile ? "rgba(0, 0, 0, 0.6)" : "none",
                     border: "none",
@@ -1542,8 +1545,8 @@ export default function ModelsPage() {
                     placeholder="Type your modifications... (e.g., 'wearing a blue suit, short blonde hair, standing with arms crossed')"
                     style={{
                       width: "100%",
-                      height: isMobile ? "100px" : "120px",
-                      padding: isMobile ? "12px" : "16px",
+                      height: isMobile ? "60px" : "80px",
+                      padding: isMobile ? "10px" : "12px",
                       backgroundColor: "#1F2937",
                       border: "1px solid #374151",
                       borderRadius: "8px",
@@ -1566,17 +1569,27 @@ export default function ModelsPage() {
                   }}
                 >
                   <h3
+                    onClick={() => setPhysicalAttributesExpanded(!physicalAttributesExpanded)}
                     style={{
                       color: "#E5E7EB",
                       fontSize: isMobile ? "13px" : "14px",
                       margin: "0 0 12px 0",
                       fontWeight: "600",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      userSelect: "none",
                     }}
                   >
-                    Physical Attributes
+                    <span>Physical Attributes</span>
+                    <span style={{ fontSize: "18px", transition: "transform 0.2s ease", transform: physicalAttributesExpanded ? "rotate(180deg)" : "rotate(0deg)" }}>
+                      ▼
+                    </span>
                   </h3>
 
                   {/* Two Column Grid */}
+                  {physicalAttributesExpanded && (
                   <div
                     style={{
                       display: "grid",
@@ -1818,7 +1831,9 @@ export default function ModelsPage() {
                       </select>
                     </div>
                   </div>
+                  )}
 
+                  {physicalAttributesExpanded && (
                   <div
                     style={{
                       marginTop: "12px",
@@ -1839,6 +1854,7 @@ export default function ModelsPage() {
                       💰 1 credit per model
                     </p>
                   </div>
+                  )}
                 </div>
 
                 {/* Generate Button */}
