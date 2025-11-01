@@ -93,7 +93,7 @@ export default function Dashboard() {
 
       try {
         setLoadingCampaigns(true);
-        
+
         // Fetch only recent campaigns with limit (12 recent campaigns)
         const campaignsRes = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/campaigns?limit=12&order_by=created_at&order=desc`,
@@ -104,10 +104,10 @@ export default function Dashboard() {
 
         if (campaignsRes.ok) {
           const campaignsData = await campaignsRes.json();
-          
+
           // Campaigns are already sorted by the API (order_by=created_at&order=desc)
           setCampaigns(campaignsData);
-          
+
           // Fetch count separately (fast endpoint)
           const countRes = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/campaigns/count`,
@@ -115,7 +115,7 @@ export default function Dashboard() {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-          
+
           if (countRes.ok) {
             const countData = await countRes.json();
             setStats((prev) => ({
@@ -139,9 +139,31 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div style={{ padding: "32px", textAlign: "center" }}>
-        <div style={{ fontSize: "16px", color: "#6B7280" }}>
-          Loading dashboard...
+      <div
+        style={{
+          display: "flex",
+          minHeight: "100vh",
+          backgroundColor: "#0E1115",
+          color: "#E6E8EB",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily:
+            "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <img
+            src="/beating.gif"
+            alt="Loading"
+            style={{
+              width: "60px",
+              height: "60px",
+              objectFit: "contain",
+              margin: "0 auto 12px",
+              animation: "pulse 2s ease-in-out infinite",
+            }}
+          />
+          <div style={{ fontSize: "14px", color: "#9BA3AF" }}>Loading...</div>
         </div>
       </div>
     );
