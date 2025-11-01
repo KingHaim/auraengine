@@ -25,6 +25,7 @@ export default function ModelsPage() {
     image: null as File | null,
   });
   const [isUploading, setIsUploading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [showPoseModal, setShowPoseModal] = useState(false);
   const [selectedModel, setSelectedModel] = useState<Model | null>(null);
   const [posePrompt, setPosePrompt] = useState(
@@ -387,6 +388,16 @@ export default function ModelsPage() {
   useEffect(() => {
     console.log("📋 Models state updated:", models);
   }, [models]);
+
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleUpload = async () => {
     if (!newModel.name || !newModel.image) return;
