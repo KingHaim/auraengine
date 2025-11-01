@@ -319,8 +319,13 @@ export default function CreditsPage() {
         subscription_type: user?.subscription_type,
         subscription_credits: user?.subscription_credits,
         subscription_expires_at: user?.subscription_expires_at,
-        has_active_subscription: user?.subscription_status === "active" && user?.subscription_type,
-        full_user: user
+        has_active_subscription:
+          user?.subscription_status === "active" && user?.subscription_type,
+        has_subscription_type: !!user?.subscription_type,
+        has_active_or_cancelled:
+          user?.subscription_status === "active" ||
+          user?.subscription_status === "cancelled",
+        full_user: user,
       });
     }
   }, [user]);
@@ -414,103 +419,105 @@ export default function CreditsPage() {
         </div>
 
         {/* Current Subscription */}
-        {user?.subscription_type && (user?.subscription_status === "active" || user?.subscription_status === "cancelled") && (
-          <div
-            style={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "16px",
-              border: "2px solid #d42f48",
-              padding: "24px",
-              marginBottom: "40px",
-            }}
-          >
+        {user?.subscription_type &&
+          (user?.subscription_status === "active" ||
+            user?.subscription_status === "cancelled") && (
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                flexWrap: "wrap",
-                gap: "16px",
+                backgroundColor: "#FFFFFF",
+                borderRadius: "16px",
+                border: "2px solid #d42f48",
+                padding: "24px",
+                marginBottom: "40px",
               }}
             >
-              <div style={{ flex: 1 }}>
-                <div
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    color: "#d42f48",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    marginBottom: "8px",
-                  }}
-                >
-                  Current Subscription
-                </div>
-                <h3
-                  style={{
-                    fontSize: "24px",
-                    fontWeight: "700",
-                    color: "#1E293B",
-                    marginBottom: "8px",
-                  }}
-                >
-                  {user.subscription_type.charAt(0).toUpperCase() +
-                    user.subscription_type.slice(1)}
-                </h3>
-                <div
-                  style={{
-                    fontSize: "14px",
-                    color: "#64748B",
-                    marginBottom: "12px",
-                  }}
-                >
-                  {user.subscription_credits || 0} credits/month
-                </div>
-                {user.subscription_expires_at && (
-                  <div
-                    style={{
-                      fontSize: "13px",
-                      color: "#64748B",
-                    }}
-                  >
-                    {user.subscription_expires_at
-                      ? `Renews on ${new Date(
-                          user.subscription_expires_at
-                        ).toLocaleDateString()}`
-                      : "No expiration date"}
-                  </div>
-                )}
-              </div>
               <div
                 style={{
                   display: "flex",
-                  flexDirection: "column",
-                  gap: "12px",
-                  alignItems: "flex-end",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  flexWrap: "wrap",
+                  gap: "16px",
                 }}
               >
-                <button
-                  onClick={handleCancelSubscription}
-                  disabled={isCancelling}
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: "600",
+                      color: "#d42f48",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Current Subscription
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: "24px",
+                      fontWeight: "700",
+                      color: "#1E293B",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    {user.subscription_type.charAt(0).toUpperCase() +
+                      user.subscription_type.slice(1)}
+                  </h3>
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      color: "#64748B",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    {user.subscription_credits || 0} credits/month
+                  </div>
+                  {user.subscription_expires_at && (
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        color: "#64748B",
+                      }}
+                    >
+                      {user.subscription_expires_at
+                        ? `Renews on ${new Date(
+                            user.subscription_expires_at
+                          ).toLocaleDateString()}`
+                        : "No expiration date"}
+                    </div>
+                  )}
+                </div>
+                <div
                   style={{
-                    padding: "10px 20px",
-                    backgroundColor: isCancelling ? "#9CA3AF" : "#DC2626",
-                    color: "#FFFFFF",
-                    border: "none",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    cursor: isCancelling ? "not-allowed" : "pointer",
-                    transition: "all 0.2s",
-                    whiteSpace: "nowrap",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                    alignItems: "flex-end",
                   }}
                 >
-                  {isCancelling ? "Cancelling..." : "Cancel Subscription"}
-                </button>
+                  <button
+                    onClick={handleCancelSubscription}
+                    disabled={isCancelling}
+                    style={{
+                      padding: "10px 20px",
+                      backgroundColor: isCancelling ? "#9CA3AF" : "#DC2626",
+                      color: "#FFFFFF",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      cursor: isCancelling ? "not-allowed" : "pointer",
+                      transition: "all 0.2s",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {isCancelling ? "Cancelling..." : "Cancel Subscription"}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Subscription Upsell Banner */}
         {(!user?.subscription_status ||
