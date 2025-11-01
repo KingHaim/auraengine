@@ -3737,14 +3737,13 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         # Use converted URL if available, otherwise use original
         final_image_url = converted_image_url if converted_image_url else image_url
         
-        # Veo 3.1 supports multiple resolutions and durations
-        # Map our quality to Veo's aspect_ratio (Veo handles resolution internally)
-        if video_quality == "1080p":
-            aspect_ratio = "16:9"  # Best for 1080p
-        elif video_quality == "720p":
-            aspect_ratio = "16:9"  # Standard HD
-        else:  # 480p
-            aspect_ratio = "9:16"  # Portrait for social media
+        # IMPORTANT: Veo 3.1 requires 16:9 aspect ratio when using reference_image
+        # According to Google's documentation, reference images only work with 16:9 aspect ratio
+        # So we force 16:9 when using reference_image, regardless of requested quality
+        aspect_ratio = "16:9"  # Required for reference_image parameter
+        
+        # Note: We use 16:9 even if user requested portrait (9:16) because reference_image requires it
+        print(f"⚠️ Using 16:9 aspect ratio (required for reference_image), even if {video_quality} was requested as portrait")
         
         # Duration in seconds - Veo 3.1 only accepts 4, 6, or 8 seconds
         # Map user input (5s/10s) to Veo's allowed values (4, 6, 8)
@@ -3759,17 +3758,23 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         print(f"⏱️ Using {duration_seconds}s duration")
         
         # Run Veo 3.1
+        # IMPORTANT: Veo 3.1's reference_image parameter requires explicit prompt instructions
+        # The prompt must explicitly reference the image, otherwise Veo may ignore it
+        base_prompt = custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness"
+        
+        # CRITICAL: Prepend explicit instruction to use the reference image exactly
+        # Veo needs this instruction to use the reference_image parameter correctly
+        if not custom_prompt:
+            enhanced_prompt = f"CRITICAL: Use the provided reference image EXACTLY as shown. Generate video from this specific image. Match the exact person, clothing, pose, composition, background, and lighting. {base_prompt}"
+        else:
+            # Even with custom prompt, add reference instruction
+            enhanced_prompt = f"Use the provided reference image EXACTLY as shown. {custom_prompt}"
+        
         print(f"🔄 Calling Google Veo 3.1 API...")
-        print(f"📝 Prompt: {custom_prompt or 'gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness'}")
-        print(f"🖼️ Reference image: {final_image_url[:100]}...")
+        print(f"📝 Enhanced prompt: {enhanced_prompt[:200]}...")
+        print(f"🖼️ Reference image (base64): {final_image_url[:100]}...")
         print(f"📐 Aspect ratio: {aspect_ratio}")
         print(f"⏱️ Duration: {duration_seconds}s")
-        
-        # Enhance prompt to emphasize using the reference image
-        enhanced_prompt = custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness"
-        if not custom_prompt:
-            # Add instruction to match the reference image closely
-            enhanced_prompt = f"Use the reference image exactly as shown. {enhanced_prompt}. Match the exact composition, lighting, and style from the reference image."
         
         try:
             out = replicate.run(
