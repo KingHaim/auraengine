@@ -196,7 +196,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshUser = async () => {
     const currentToken = token || localStorage.getItem("aura_token");
     if (currentToken) {
-      await fetchUserInfo(currentToken);
+      console.log("🔄 Refreshing user data...");
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${currentToken}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const userData = await response.json();
+          console.log("✅ User data refreshed:", userData);
+          setUser(userData);
+          console.log("🔍 Updated user credits:", {
+            subscription_credits: userData.subscription_credits,
+            purchased_credits: userData.credits,
+            total: (userData.subscription_credits || 0) + (userData.credits || 0)
+          });
+        } else {
+          console.error("❌ Failed to refresh user data:", response.status);
+        }
+      } catch (error) {
+        console.error("❌ Error refreshing user data:", error);
+      }
     }
   };
 
