@@ -527,8 +527,18 @@ export default function ModelsPage() {
         }}
       >
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "24px", marginBottom: "16px" }}>⏳</div>
-          <div>Loading...</div>
+          <img
+            src="/beating.gif"
+            alt="Loading"
+            style={{
+              width: "60px",
+              height: "60px",
+              objectFit: "contain",
+              margin: "0 auto 12px",
+              animation: "pulse 2s ease-in-out infinite",
+            }}
+          />
+          <div style={{ fontSize: "14px", color: "#9BA3AF" }}>Loading...</div>
         </div>
       </div>
     );
