@@ -396,7 +396,7 @@ export default function ProductsPage() {
               animation: "pulse 2s ease-in-out infinite",
             }}
           />
-          <div>Loading...</div>
+          <div style={{ fontSize: "14px", color: "#9BA3AF" }}>Loading...</div>
         </div>
       </div>
     );
