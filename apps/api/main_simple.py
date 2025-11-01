@@ -1804,9 +1804,16 @@ async def create_subscription_checkout(
         # In a full implementation, you'd create Stripe subscriptions
         
         # Create Stripe Checkout Session
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
+        # Build line items based on whether we have a price_id or need to create price_data
+        if request.price_id:
+            # Use existing Stripe Price ID
+            line_items = [{
+                'price': request.price_id,
+                'quantity': 1,
+            }]
+        else:
+            # Create price_data for subscription
+            line_items = [{
                 'price_data': {
                     'currency': 'usd',
                     'product_data': {
@@ -1816,11 +1823,14 @@ async def create_subscription_checkout(
                     'unit_amount': request.amount,
                     'recurring': {
                         'interval': 'year' if request.is_annual else 'month',
-                    } if not request.price_id else None,  # Only add recurring if not using price_id
-                } if not request.price_id else None,
-                'price': request.price_id if request.price_id else None,
+                    },
+                },
                 'quantity': 1,
-            }],
+            }]
+        
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
             mode='subscription',  # Use subscription mode for recurring payments
             success_url=f"{os.getenv('FRONTEND_URL', 'https://www.beatingheart.ai')}/credits?subscription=success",
             cancel_url=f"{os.getenv('FRONTEND_URL', 'https://www.beatingheart.ai')}/credits?subscription=cancelled",
