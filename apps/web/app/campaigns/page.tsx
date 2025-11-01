@@ -331,6 +331,13 @@ export default function CampaignsPage() {
           "🔍 fetchData - Number of campaigns:",
           campaignsData.length
         );
+        // Ensure all campaigns have required properties
+        campaignsData = campaignsData.map((campaign: any) => ({
+          ...campaign,
+          settings: campaign.settings || {},
+          generation_status: campaign.generation_status || "pending",
+          status: campaign.status || "draft",
+        }));
         campaignsData.forEach((campaign: any, index: number) => {
           console.log(`🔍 fetchData - Campaign ${index}:`, {
             id: campaign.id,
@@ -3151,17 +3158,19 @@ export default function CampaignsPage() {
                   zIndex: 10,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
+                  e.currentTarget.style.backgroundColor =
+                    "rgba(255, 255, 255, 0.2)";
                   e.currentTarget.style.transform = "scale(1.1)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
+                  e.currentTarget.style.backgroundColor =
+                    "rgba(255, 255, 255, 0.1)";
                   e.currentTarget.style.transform = "scale(1)";
                 }}
               >
                 ×
               </button>
-              
+
               <h3
                 style={{
                   color: "#FFFFFF",
