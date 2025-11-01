@@ -397,29 +397,130 @@ export default function CreditsPage() {
           </p>
         </div>
 
-        {/* Subscription Upsell Banner */}
-        <div
-          style={{
-            backgroundColor:
-              "linear-gradient(135deg, #d42f48 0%, #d42f48 100%)",
-            background: "linear-gradient(135deg, #d42f48 0%, #d42f48 100%)",
-            borderRadius: "16px",
-            padding: "24px",
-            marginBottom: "40px",
-            color: "white",
-            textAlign: "center",
-          }}
-        >
-          <h3
-            style={{ fontSize: "20px", fontWeight: "600", marginBottom: "8px" }}
+        {/* Current Subscription */}
+        {user?.subscription_status === "active" && user?.subscription_type && (
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: "16px",
+              border: "2px solid #d42f48",
+              padding: "24px",
+              marginBottom: "40px",
+            }}
           >
-            💰 Subscriptions = Better Credit Value
-          </h3>
-          <p style={{ fontSize: "14px", margin: 0, opacity: 0.9 }}>
-            From $0.17/credit (vs $0.25 one-time) • Unused credits roll over •
-            Cancel anytime
-          </p>
-        </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                flexWrap: "wrap",
+                gap: "16px",
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: "#d42f48",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Current Subscription
+                </div>
+                <h3
+                  style={{
+                    fontSize: "24px",
+                    fontWeight: "700",
+                    color: "#1E293B",
+                    marginBottom: "8px",
+                  }}
+                >
+                  {user.subscription_type.charAt(0).toUpperCase() +
+                    user.subscription_type.slice(1)}
+                </h3>
+                <div
+                  style={{
+                    fontSize: "14px",
+                    color: "#64748B",
+                    marginBottom: "12px",
+                  }}
+                >
+                  {user.subscription_credits || 0} credits/month
+                </div>
+                {user.subscription_expires_at && (
+                  <div
+                    style={{
+                      fontSize: "13px",
+                      color: "#64748B",
+                    }}
+                  >
+                    {user.subscription_expires_at
+                      ? `Renews on ${new Date(
+                          user.subscription_expires_at
+                        ).toLocaleDateString()}`
+                      : "No expiration date"}
+                  </div>
+                )}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                  alignItems: "flex-end",
+                }}
+              >
+                <button
+                  onClick={handleCancelSubscription}
+                  disabled={isCancelling}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: isCancelling ? "#9CA3AF" : "#DC2626",
+                    color: "#FFFFFF",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    cursor: isCancelling ? "not-allowed" : "pointer",
+                    transition: "all 0.2s",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {isCancelling ? "Cancelling..." : "Cancel Subscription"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Subscription Upsell Banner */}
+        {(!user?.subscription_status || user.subscription_status !== "active") && (
+          <div
+            style={{
+              backgroundColor:
+                "linear-gradient(135deg, #d42f48 0%, #d42f48 100%)",
+              background: "linear-gradient(135deg, #d42f48 0%, #d42f48 100%)",
+              borderRadius: "16px",
+              padding: "24px",
+              marginBottom: "40px",
+              color: "white",
+              textAlign: "center",
+            }}
+          >
+            <h3
+              style={{ fontSize: "20px", fontWeight: "600", marginBottom: "8px" }}
+            >
+              💰 Subscriptions = Better Credit Value
+            </h3>
+            <p style={{ fontSize: "14px", margin: 0, opacity: 0.9 }}>
+              From $0.17/credit (vs $0.25 one-time) • Unused credits roll over •
+              Cancel anytime
+            </p>
+          </div>
+        )}
 
         {/* Subscription Plans */}
         <div style={{ marginBottom: "60px" }}>

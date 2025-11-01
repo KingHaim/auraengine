@@ -2141,12 +2141,6 @@ async def cancel_subscription(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-        
-    except Exception as e:
-        print(f"❌ Webhook processing failed: {e}")
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
 
 # ---------- Helper Functions for Packshot Generation ----------
 def has_alpha(url: str) -> bool:
