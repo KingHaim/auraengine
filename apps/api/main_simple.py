@@ -3,7 +3,7 @@
 Simple working version for debugging
 Updated: Fixed Vella 1.5 API parameter (garment_image)
 """
-from fastapi import FastAPI, HTTPException, Depends, Request, Form, File, UploadFile
+from fastapi import FastAPI, HTTPException, Depends, Request, Form, File, UploadFile, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -625,12 +625,36 @@ async def upload_scene(
 
 @app.get("/campaigns", response_model=list[CampaignResponse])
 async def get_campaigns(
+    limit: Optional[int] = Query(None, description="Limit number of campaigns returned"),
+    order_by: Optional[str] = Query("created_at", description="Field to order by"),
+    order: Optional[str] = Query("desc", description="Order direction (asc/desc)"),
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get all campaigns for the current user"""
+    """Get campaigns for the current user with optional limit and ordering"""
     try:
-        campaigns = db.query(Campaign).filter(Campaign.user_id == current_user["user_id"]).all()
+        # Start with base query
+        query = db.query(Campaign).filter(Campaign.user_id == current_user["user_id"])
+        
+        # Apply ordering
+        if order_by == "created_at":
+            if order == "desc":
+                query = query.order_by(Campaign.created_at.desc())
+            else:
+                query = query.order_by(Campaign.created_at.asc())
+        elif order_by == "updated_at":
+            if order == "desc":
+                query = query.order_by(Campaign.updated_at.desc())
+            else:
+                query = query.order_by(Campaign.updated_at.asc())
+        
+        # Apply limit if provided
+        if limit:
+            campaigns = query.limit(limit).all()
+        else:
+            campaigns = query.all()
+        
+        # Process campaigns (optimize validation)
         result = []
         for campaign in campaigns:
             try:
@@ -651,9 +675,23 @@ async def get_campaigns(
                 print(f"⚠️ Campaign validation failed for {campaign.id}: {validation_error}")
                 # Skip this campaign if validation fails
                 continue
+        
         return result
     except Exception as e:
         print(f"❌ Error fetching campaigns: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/campaigns/count")
+async def get_campaigns_count(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get total count of campaigns for the current user (fast endpoint)"""
+    try:
+        count = db.query(Campaign).filter(Campaign.user_id == current_user["user_id"]).count()
+        return {"count": count}
+    except Exception as e:
+        print(f"❌ Error fetching campaigns count: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 async def generate_campaign_images_background(

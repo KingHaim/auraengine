@@ -21,7 +21,7 @@ interface Stats {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [stats, setStats] = useState<Stats>({
     totalCampaigns: 0,
@@ -30,6 +30,7 @@ export default function Dashboard() {
     totalScenes: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [loadingCampaigns, setLoadingCampaigns] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -39,59 +40,102 @@ export default function Dashboard() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Fetch stats first (progressive loading)
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchStats = async () => {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const token = localStorage.getItem("aura_token");
-        if (!token) return;
+        // Fetch stats in parallel (products, models, scenes)
+        const [productsRes, modelsRes, scenesRes] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/models`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/scenes`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
-        // Fetch all data in parallel
-        const [campaignsRes, productsRes, modelsRes, scenesRes] =
-          await Promise.all([
-            fetch(`${process.env.NEXT_PUBLIC_API_URL}/campaigns`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-            fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-            fetch(`${process.env.NEXT_PUBLIC_API_URL}/models`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-            fetch(`${process.env.NEXT_PUBLIC_API_URL}/scenes`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-          ]);
-
-        const [campaignsData, products, models, scenes] = await Promise.all([
-          campaignsRes.ok ? campaignsRes.json() : [],
+        const [products, models, scenes] = await Promise.all([
           productsRes.ok ? productsRes.json() : [],
           modelsRes.ok ? modelsRes.json() : [],
           scenesRes.ok ? scenesRes.json() : [],
         ]);
 
-        // Set campaigns for display (recent campaigns, sorted by most recent first)
-        const sortedCampaigns = campaignsData.sort(
-          (a: Campaign, b: Campaign) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-        setCampaigns(sortedCampaigns); // Show all recent campaigns for quadrant view
-
-        // Set stats with actual data
+        // Set stats immediately (we'll get campaign count from campaigns fetch)
         setStats({
-          totalCampaigns: campaignsData.length,
+          totalCampaigns: 0, // Will be updated when campaigns load
           totalProducts: products.length,
           totalModels: models.length,
           totalScenes: scenes.length,
         });
+
+        setLoading(false); // Show stats now
       } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
+        console.error("Error fetching dashboard stats:", error);
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    fetchStats();
+  }, [token]);
+
+  // Fetch recent campaigns separately (after stats are loaded)
+  useEffect(() => {
+    const fetchRecentCampaigns = async () => {
+      if (!token || loading) return; // Wait for stats to load first
+
+      try {
+        setLoadingCampaigns(true);
+        
+        // Fetch only recent campaigns with limit (12 recent campaigns)
+        const campaignsRes = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/campaigns?limit=12&order_by=created_at&order=desc`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (campaignsRes.ok) {
+          const campaignsData = await campaignsRes.json();
+          
+          // Campaigns are already sorted by the API (order_by=created_at&order=desc)
+          setCampaigns(campaignsData);
+          
+          // Fetch count separately (fast endpoint)
+          const countRes = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/campaigns/count`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          
+          if (countRes.ok) {
+            const countData = await countRes.json();
+            setStats((prev) => ({
+              ...prev,
+              totalCampaigns: countData.count || 0,
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching recent campaigns:", error);
+      } finally {
+        setLoadingCampaigns(false);
+      }
+    };
+
+    if (!loading) {
+      // Only fetch campaigns after stats are loaded
+      fetchRecentCampaigns();
+    }
+  }, [token, loading]);
 
   if (loading) {
     return (
@@ -357,7 +401,44 @@ export default function Dashboard() {
             </a>
           </div>
 
-          {campaigns.length > 0 ? (
+          {loadingCampaigns ? (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: isMobile
+                  ? "repeat(2, 1fr)"
+                  : "repeat(auto-fill, minmax(180px, 1fr))",
+                gap: isMobile ? "12px" : "16px",
+              }}
+            >
+              {[...Array(6)].map((_, index) => (
+                <div
+                  key={`loading-${index}`}
+                  style={{
+                    backgroundColor: "#E5E7EB",
+                    borderRadius: "8px",
+                    aspectRatio: "1",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <img
+                    src="/beating.gif"
+                    alt="Loading"
+                    style={{
+                      width: "32px",
+                      height: "32px",
+                      opacity: 0.6,
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.src = "/heart.png";
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : campaigns.length > 0 ? (
             <div
               className="dashboard-campaigns-grid"
               style={{
