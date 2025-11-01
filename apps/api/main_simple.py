@@ -364,7 +364,20 @@ async def get_current_user_info(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        return UserResponse.from_orm(user)
+        # Return user info with subscription details
+        return {
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "is_active": user.is_active,
+            "is_verified": user.is_verified,
+            "credits": user.credits,
+            "subscription_type": user.subscription_type,
+            "subscription_credits": user.subscription_credits or 0,
+            "subscription_status": user.subscription_status,
+            "subscription_expires_at": user.subscription_expires_at.isoformat() if user.subscription_expires_at else None,
+            "created_at": user.created_at.isoformat() if user.created_at else None
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -1227,6 +1240,34 @@ def run_nano_banana_model_generation(
         print(f"❌ Nano Banana model generation error: {e}")
         raise
 
+def deduct_credits(user: User, credits_needed: int, db: Session):
+    """
+    Deduct credits from user, prioritizing subscription credits first.
+    Returns True if deduction was successful, False otherwise.
+    """
+    # Calculate total available credits (subscription + purchased)
+    total_available = (user.subscription_credits or 0) + user.credits
+    
+    if total_available < credits_needed:
+        return False
+    
+    # First, deduct from subscription credits
+    if user.subscription_credits and user.subscription_credits > 0:
+        if user.subscription_credits >= credits_needed:
+            user.subscription_credits -= credits_needed
+            credits_needed = 0
+        else:
+            # Use all subscription credits, then deduct remaining from purchased credits
+            credits_needed -= user.subscription_credits
+            user.subscription_credits = 0
+    
+    # Deduct remaining credits from purchased credits
+    if credits_needed > 0:
+        user.credits -= credits_needed
+    
+    db.commit()
+    return True
+
 @app.post("/models/ai-generate")
 async def generate_model(
     prompt: str = Form(""),
@@ -1254,10 +1295,11 @@ async def generate_model(
             raise HTTPException(status_code=404, detail="User not found")
         
         credits_needed = variants
-        if user.credits < credits_needed:
+        total_available = (user.subscription_credits or 0) + user.credits
+        if total_available < credits_needed:
             raise HTTPException(
                 status_code=400, 
-                detail=f"Insufficient credits. You have {user.credits} credits, but need {credits_needed}"
+                detail=f"Insufficient credits. You have {total_available} total credits ({user.subscription_credits or 0} subscription + {user.credits} purchased), but need {credits_needed}"
             )
         
         # Generate model images using Nano Banana
@@ -1279,9 +1321,9 @@ async def generate_model(
         
         print(f"Stored local model URLs: {local_model_urls}")
         
-        # Deduct credits
-        user.credits -= credits_needed
-        db.commit()
+        # Deduct credits (prioritizing subscription credits)
+        if not deduct_credits(user, credits_needed, db):
+            raise HTTPException(status_code=400, detail="Failed to deduct credits")
         
         # Create model records in database
         created_models = []
@@ -1477,9 +1519,9 @@ async def generate_poses(
         model.poses = poses
         db.commit()
         
-        # Deduct credits
-        user.credits -= 1
-        db.commit()
+        # Deduct credits (prioritizing subscription credits)
+        if not deduct_credits(user, 1, db):
+            raise HTTPException(status_code=400, detail="Failed to deduct credits")
         
         print(f"✅ Generated {len(poses)} poses for model {model_id}")
         
@@ -1661,7 +1703,11 @@ async def confirm_payment(
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Confirm payment and add credits to user account"""
+    """Confirm payment and add credits to user account
+    
+    Only allows credit purchase if user has no active subscription OR 
+    all subscription credits have been exhausted.
+    """
     try:
         # Retrieve payment intent from Stripe
         intent = stripe.PaymentIntent.retrieve(request.payment_intent_id)
@@ -1681,23 +1727,38 @@ async def confirm_payment(
                 detail="Invalid credits amount"
             )
         
-        # Add credits to user account
+        # Get user and check subscription status
         user = db.query(User).filter(User.id == current_user["user_id"]).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
+        # Check if user has active subscription with remaining credits
+        has_active_subscription = (
+            user.subscription_status == "active" and 
+            user.subscription_expires_at and 
+            user.subscription_expires_at > datetime.utcnow()
+        )
+        
+        if has_active_subscription and user.subscription_credits > 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot purchase additional credits while subscription credits remain. You have {user.subscription_credits} subscription credits remaining. Please use all subscription credits before purchasing additional credits."
+            )
+        
+        # Add credits to user account (purchased credits)
         user.credits += credits_to_add
         db.commit()
         
         return {
             "message": f"Successfully added {credits_to_add} credits",
-            "credits_remaining": user.credits
+            "credits_remaining": user.credits,
+            "subscription_credits_remaining": user.subscription_credits or 0
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 # ---------- Helper Functions for Packshot Generation ----------
 def has_alpha(url: str) -> bool:
@@ -1783,8 +1844,8 @@ def rembg_cutout(photo_url: str) -> Image.Image:
             
             # Download the result
             print(f"📥 Downloading rembg result from: {result_url[:80]}...")
-            import requests
-            from io import BytesIO
+        import requests
+        from io import BytesIO
             result_response = requests.get(result_url, timeout=10)
             result_response.raise_for_status()
             result_img = Image.open(BytesIO(result_response.content)).convert("RGBA")
@@ -1843,7 +1904,7 @@ def rembg_cutout(photo_url: str) -> Image.Image:
             return Image.open(BytesIO(response.content)).convert("RGBA")
         except:
             # Last resort: return blank image
-            return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
+        return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
 
 def postprocess_cutout(img_rgba: Image.Image) -> Image.Image:
     """Clean up the cutout image"""
@@ -2281,7 +2342,7 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 except Exception as conv_error:
                     print(f"⚠️ WEBP→PNG conversion failed: {conv_error}")
                     print(f"⚠️ Using original WEBP packshot (Vella may not use it correctly)")
-                    garment_url = product_image_url
+                garment_url = product_image_url
                     print(f"🧵 Garment URL (WEBP fallback): {garment_url[:80]}...")
             elif has_alpha(product_image_url) and not is_packshot:
                 # Only skip processing if it already has alpha AND it's not a packshot
@@ -2291,11 +2352,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 print("🪄 Processing garment image (removing background)...")
                 print(f"   Input: {product_image_url[:80]}...")
                 try:
-                    cut = rembg_cutout(product_image_url)
+                cut = rembg_cutout(product_image_url)
                     print(f"✅ Background removal complete, image size: {cut.size}")
-                    cut = postprocess_cutout(cut)
+                cut = postprocess_cutout(cut)
                     print(f"✅ Post-processing complete, final size: {cut.size}")
-                    garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
+                garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
                     print(f"🧵 Garment cutout saved: {garment_url[:80]}...")
                 except Exception as rembg_error:
                     print(f"⚠️ Background removal failed: {rembg_error}")
@@ -3028,12 +3089,26 @@ async def upload_product(
                 clothing_type=clothing_type or ""
             )
             
+            # Calculate total credits needed for packshots
+            credits_needed = 0
+            if not packshot_front_url and len(generated_packshots) > 0:
+                credits_needed += 5
+            if not packshot_back_url and len(generated_packshots) > 1:
+                credits_needed += 5
+            
+            # Check if user has enough credits
+            total_available = (user.subscription_credits or 0) + user.credits
+            if total_available < credits_needed:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Insufficient credits. You have {total_available} total credits ({user.subscription_credits or 0} subscription + {user.credits} purchased), but need {credits_needed} for packshot generation."
+            )
+            
             if not packshot_front_url and len(generated_packshots) > 0:
                 # Download and save immediately to avoid ephemeral URL expiration
                 ephemeral_url = generated_packshots[0]
                 packshot_front_url = upload_to_cloudinary(ephemeral_url, "packshot_front")
                 packshots.append(packshot_front_url)
-                user.credits -= 5
                 print(f"Generated and saved front packshot: {packshot_front_url}")
             
             if not packshot_back_url and len(generated_packshots) > 1:
@@ -3041,8 +3116,12 @@ async def upload_product(
                 ephemeral_url = generated_packshots[1]
                 packshot_back_url = upload_to_cloudinary(ephemeral_url, "packshot_back")
                 packshots.append(packshot_back_url)
-                user.credits -= 5
                 print(f"Generated and saved back packshot: {packshot_back_url}")
+            
+            # Deduct credits (prioritizing subscription credits) - once for all packshots
+            if credits_needed > 0:
+                if not deduct_credits(user, credits_needed, db):
+                    raise HTTPException(status_code=400, detail="Failed to deduct credits")
         
         # Create product in database
         product = Product(
@@ -3142,8 +3221,16 @@ async def reroll_packshots(
         
         # Check if user has enough credits (10 credits for front + back packshot regeneration)
         user = db.query(User).filter(User.id == current_user["user_id"]).first()
-        if not user or user.credits < 10:
-            raise HTTPException(status_code=400, detail="Insufficient credits. Need 10 credits for packshot regeneration.")
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        credits_needed = 10
+        total_available = (user.subscription_credits or 0) + user.credits
+        if total_available < credits_needed:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Insufficient credits. You have {total_available} total credits ({user.subscription_credits or 0} subscription + {user.credits} purchased), but need {credits_needed} for packshot regeneration."
+            )
         
         # Generate new packshots
         print(f"Re-generating packshots for product: {product.name}")
@@ -3163,10 +3250,9 @@ async def reroll_packshots(
             product.packshots = new_packshots
             print(f"Updated product with new packshots: {new_packshots}")
         
-        # Deduct credits (10 credits for both front and back)
-        user.credits -= 10
-        
-        db.commit()
+        # Deduct credits (10 credits for both front and back) - prioritizing subscription credits
+        if not deduct_credits(user, credits_needed, db):
+            raise HTTPException(status_code=400, detail="Failed to deduct credits")
         
         return {
             "message": "Packshots re-rolled successfully",
@@ -3944,10 +4030,11 @@ async def generate_videos_for_campaign(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        if user.credits < total_credits_needed:
+        total_available = (user.subscription_credits or 0) + user.credits
+        if total_available < total_credits_needed:
             raise HTTPException(
                 status_code=400,
-                detail=f"Insufficient credits. You need {total_credits_needed} credits ({credits_per_video} per video × {num_videos_to_generate} videos), but have {user.credits} credits"
+                detail=f"Insufficient credits. You have {total_available} total credits ({user.subscription_credits or 0} subscription + {user.credits} purchased), but need {total_credits_needed} credits ({credits_per_video} per video × {num_videos_to_generate} videos)"
             )
         
         # Generate videos
@@ -4086,9 +4173,11 @@ async def generate_videos_for_campaign(
             campaign.settings["generated_images"] = generated_images
             flag_modified(campaign, "settings")
         
-        # Deduct credits for successful generations
+        # Deduct credits for successful generations (prioritizing subscription credits)
         credits_used = success_count * credits_per_video
-        user.credits -= credits_used
+        if credits_used > 0:
+            if not deduct_credits(user, credits_used, db):
+                raise HTTPException(status_code=400, detail="Failed to deduct credits")
         
         db.commit()
         db.refresh(campaign)

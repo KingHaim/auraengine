@@ -117,5 +117,9 @@ def get_current_user(
         "user_id": user.id,
         "email": user.email,
         "full_name": user.full_name,
-        "credits": user.credits
+        "credits": user.credits,
+        "subscription_type": user.subscription_type,
+        "subscription_credits": user.subscription_credits or 0,
+        "subscription_status": user.subscription_status,
+        "subscription_expires_at": user.subscription_expires_at.isoformat() if user.subscription_expires_at else None
     }

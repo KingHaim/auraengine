@@ -8,6 +8,10 @@ interface User {
   is_active: boolean;
   is_verified: boolean;
   credits: number;
+  subscription_type?: string | null;
+  subscription_credits?: number;
+  subscription_status?: string;
+  subscription_expires_at?: string | null;
   created_at: string;
 }
 

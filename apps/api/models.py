@@ -15,7 +15,12 @@ class User(Base):
     full_name = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
-    credits = Column(Integer, default=100)  # Free credits for new users
+    credits = Column(Integer, default=100)  # Free credits for new users (purchased credits)
+    # Subscription fields
+    subscription_type = Column(String, nullable=True)  # "starter", "professional", "enterprise", null
+    subscription_credits = Column(Integer, default=0)  # Credits from active subscription
+    subscription_status = Column(String, default="inactive")  # "active", "cancelled", "expired", "inactive"
+    subscription_expires_at = Column(DateTime, nullable=True)  # When subscription expires
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
