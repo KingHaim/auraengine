@@ -6915,6 +6915,7 @@ export default function CampaignsPage() {
                       minHeight: "100px",
                       fontFamily: "inherit",
                       backgroundColor: "#FAFAFA",
+                      color: "#1F2937",
                       transition: "border-color 0.2s ease",
                     }}
                     onFocus={(e) => {
