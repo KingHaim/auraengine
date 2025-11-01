@@ -697,9 +697,36 @@ export default function CreditsPage() {
             >
               No Active Subscription
             </h3>
-            <p style={{ fontSize: "14px", color: "#64748B", margin: 0 }}>
+            <p style={{ fontSize: "14px", color: "#64748B", marginBottom: "16px" }}>
               You don't have an active subscription yet. Choose a plan below to
               get started with subscription credits.
+            </p>
+            <button
+              onClick={handleCheckSubscription}
+              disabled={isProcessing}
+              style={{
+                padding: "10px 20px",
+                backgroundColor: isProcessing ? "#9CA3AF" : "#d42f48",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: "8px",
+                fontSize: "14px",
+                fontWeight: "600",
+                cursor: isProcessing ? "not-allowed" : "pointer",
+                transition: "all 0.2s",
+                marginBottom: "8px",
+              }}
+            >
+              {isProcessing ? "Checking..." : "Check for Recent Subscription"}
+            </button>
+            <p
+              style={{
+                fontSize: "12px",
+                color: "#64748B",
+                margin: 0,
+              }}
+            >
+              If you just completed payment, click here to activate your subscription
             </p>
           </div>
         )}
