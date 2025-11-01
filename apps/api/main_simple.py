@@ -3709,16 +3709,29 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         
         # Run Veo 3.1
         print(f"🔄 Calling Google Veo 3.1 API...")
-        out = replicate.run(
-            "google/veo-3.1",
-            input={
-                "prompt": custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness",
-                "reference_image": image_url,
-                "aspect_ratio": aspect_ratio,
-                "duration": duration_seconds,
-                "quality": "high"  # Veo 3.1 always high quality
-            }
-        )
+        print(f"📝 Prompt: {custom_prompt or 'gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness'}")
+        print(f"🖼️ Reference image: {image_url[:100]}...")
+        print(f"📐 Aspect ratio: {aspect_ratio}")
+        print(f"⏱️ Duration: {duration_seconds}s")
+        
+        try:
+            out = replicate.run(
+                "google/veo-3.1",
+                input={
+                    "prompt": custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness",
+                    "reference_image": image_url,
+                    "aspect_ratio": aspect_ratio,
+                    "duration": duration_seconds,
+                    "quality": "high"  # Veo 3.1 always high quality
+                }
+            )
+            print(f"✅ Veo API call successful, processing output...")
+        except Exception as api_error:
+            print(f"❌ Veo API call failed: {api_error}")
+            print(f"🔍 Error type: {type(api_error)}")
+            import traceback
+            traceback.print_exc()
+            raise
         
         # Handle output
         if hasattr(out, 'url'):
@@ -4502,8 +4515,8 @@ async def generate_videos_for_campaign(
 async def generate_video_for_generation(
     generation_id: str,
     video_quality: str = "480p",  # "480p", "720p", or "1080p"
-    duration: str = "5s",  # "5s" or "10s" (only for Seedance)
-    model: str = "wan",  # "wan" or "seedance"
+    duration: str = "5s",  # "5s" or "10s" (for Seedance, Kling, and Veo)
+    model: str = "wan",  # "wan", "seedance", "kling", or "veo"
     custom_prompt: Optional[str] = None,
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -4575,16 +4588,34 @@ async def generate_video_for_generation(
                     credits_needed = 3  # 480p 10s Kling
                 else:  # 5s
                     credits_needed = 2  # 480p 5s Kling
+        elif model == "veo":
+            # Veo 3.1 pricing (similar to Kling, high quality)
+            if video_quality == "1080p":
+                if duration == "10s":
+                    credits_needed = 6  # 1080p 10s Veo
+                else:  # 5s
+                    credits_needed = 4  # 1080p 5s Veo
+            elif video_quality == "720p":
+                if duration == "10s":
+                    credits_needed = 4  # 720p 10s Veo
+                else:  # 5s
+                    credits_needed = 3  # 720p 5s Veo
+            else:  # 480p
+                if duration == "10s":
+                    credits_needed = 3  # 480p 10s Veo
+                else:  # 5s
+                    credits_needed = 2  # 480p 5s Veo
         else:  # wan model
             if video_quality == "720p":
                 credits_needed = 2  # 720p Wan
             else:  # 480p
                 credits_needed = 1  # 480p Wan (cheapest)
         
-        if user.credits < credits_needed:
+        # Check credits (prioritizing subscription credits)
+        if not deduct_credits(user, credits_needed, db):
             raise HTTPException(
                 status_code=400,
-                detail=f"Insufficient credits. You have {user.credits} credits, but need {credits_needed} for {model} {video_quality} {duration if model in ['seedance', 'kling'] else ''} video generation"
+                detail=f"Insufficient credits. You need {credits_needed} credits for {model} {video_quality} {duration if model in ['seedance', 'kling', 'veo'] else ''} video generation"
             )
         
         # Get the image URL from the generation
@@ -4602,6 +4633,8 @@ async def generate_video_for_generation(
             video_url = run_seedance_video_generation(image_url, video_quality, duration, custom_prompt)
         elif model == "kling":
             video_url = run_kling_video_generation(image_url, video_quality, duration, custom_prompt)
+        elif model == "veo":
+            video_url = run_veo_video_generation(image_url, video_quality, duration, custom_prompt)
         else:  # wan model (default)
             video_url = run_wan_video_generation(image_url, video_quality, custom_prompt)
         
@@ -4610,9 +4643,7 @@ async def generate_video_for_generation(
             generation.video_urls = [video_url]
             generation.updated_at = datetime.utcnow()
             
-            # Deduct credits
-            user.credits -= credits_needed
-            
+            # Credits already deducted by deduct_credits
             db.commit()
             db.refresh(generation)
             db.refresh(user)
