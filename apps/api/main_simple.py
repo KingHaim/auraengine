@@ -32,6 +32,13 @@ import cloudinary.api
 # Environment variables
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
+
+# Initialize Stripe
+if STRIPE_SECRET_KEY:
+    stripe.api_key = STRIPE_SECRET_KEY
+else:
+    print("⚠️ STRIPE_SECRET_KEY not set - Stripe features will not work")
 
 # Cloudinary configuration
 CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
