@@ -3122,6 +3122,46 @@ export default function CampaignsPage() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Close Button (X) */}
+              <button
+                onClick={() => {
+                  setShowProductSelectionModal(false);
+                  if (productSelectionMode === "image") {
+                    setSelectedProductForImage(null);
+                    setProductSelectionMode("campaign");
+                  }
+                }}
+                style={{
+                  position: "absolute",
+                  top: "16px",
+                  right: "16px",
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "50%",
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  color: "#FFFFFF",
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "all 0.2s ease",
+                  zIndex: 10,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
+                  e.currentTarget.style.transform = "scale(1.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
+                  e.currentTarget.style.transform = "scale(1)";
+                }}
+              >
+                ×
+              </button>
+              
               <h3
                 style={{
                   color: "#FFFFFF",
@@ -5762,263 +5802,264 @@ export default function CampaignsPage() {
                     justifyContent: "space-between",
                   }}
                 >
-                {/* Action Buttons Container - Same Line */}
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: "16px",
-                    width: "100%",
-                    justifyContent: "center",
-                    position: "relative",
-                    overflow: "visible",
-                  }}
-                  onMouseLeave={() => {
-                    // Delay clearing tooltip to prevent flickering
-                    setTimeout(() => {
-                      setShowDownloadTooltip(false);
-                      setShowTweakTooltip(false);
-                      setShowAddProductTooltip(false);
-                      setActiveTooltip(null);
-                    }, 100);
-                  }}
-                >
-                  {/* Download Button */}
+                  {/* Action Buttons Container - Same Line */}
                   <div
                     style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: "16px",
+                      width: "100%",
+                      justifyContent: "center",
                       position: "relative",
-                      display: "inline-block",
                       overflow: "visible",
-                      zIndex: 1,
                     }}
-                    onMouseEnter={(e) => {
-                      const button = e.currentTarget.querySelector("button");
-                      if (button) button.style.transform = "scale(1.1)";
-                      setShowDownloadTooltip(true);
-                      setActiveTooltip({
-                        title: "Download",
-                        description: "Save image to your device",
-                      });
-                    }}
-                    onMouseLeave={(e) => {
-                      const button = e.currentTarget.querySelector("button");
-                      if (button) button.style.transform = "scale(1)";
-                      // Don't clear tooltip here - let parent handle it
+                    onMouseLeave={() => {
+                      // Delay clearing tooltip to prevent flickering
+                      setTimeout(() => {
+                        setShowDownloadTooltip(false);
+                        setShowTweakTooltip(false);
+                        setShowAddProductTooltip(false);
+                        setActiveTooltip(null);
+                      }, 100);
                     }}
                   >
-                    <button
-                      onClick={() =>
-                        downloadImage(
-                          enlargedImageUrl,
-                          `campaign-${Date.now()}.jpg`
-                        )
-                      }
+                    {/* Download Button */}
+                    <div
                       style={{
-                        padding: "6px",
-                        backgroundColor: "transparent",
-                        border: "none",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: "56px",
-                        height: "56px",
-                        flexShrink: 0,
-                        transition: "transform 0.2s ease",
+                        position: "relative",
+                        display: "inline-block",
+                        overflow: "visible",
+                        zIndex: 1,
                       }}
-                    >
-                      <img
-                        src="/downloadimage.png"
-                        alt="Download Image"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                        }}
-                      />
-                    </button>
-                  </div>
-
-                  {/* Tweak Button */}
-                  <div
-                    style={{
-                      position: "relative",
-                      display: "inline-block",
-                      overflow: "visible",
-                      zIndex: 1,
-                    }}
-                    onMouseEnter={(e) => {
-                      const button = e.currentTarget.querySelector("button");
-                      if (button) button.style.transform = "scale(1.1)";
-                      setShowTweakTooltip(true);
-                      setActiveTooltip({
-                        title: "Tweak",
-                        description:
-                          "AI-powered image editing with custom prompts",
-                      });
-                    }}
-                    onMouseLeave={(e) => {
-                      const button = e.currentTarget.querySelector("button");
-                      if (button) button.style.transform = "scale(1)";
-                      // Don't clear tooltip here - let parent handle it
-                    }}
-                  >
-                    <button
-                      onClick={() => setShowTweakModal(true)}
-                      style={{
-                        padding: "6px",
-                        backgroundColor: "transparent",
-                        border: "none",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: "56px",
-                        height: "56px",
-                        flexShrink: 0,
-                        transition: "transform 0.2s ease",
-                      }}
-                    >
-                      <img
-                        src="/tweakimage.png"
-                        alt="Tweak Image"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                        }}
-                      />
-                    </button>
-                  </div>
-
-                  {/* Add Product Button - Opens product selection to add product to existing image */}
-                  <div
-                    style={{
-                      position: "relative",
-                      display: "inline-block",
-                      overflow: "visible",
-                      zIndex: 1,
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!addingProductToImage) {
+                      onMouseEnter={(e) => {
                         const button = e.currentTarget.querySelector("button");
                         if (button) button.style.transform = "scale(1.1)";
-                        setShowAddProductTooltip(true);
+                        setShowDownloadTooltip(true);
                         setActiveTooltip({
-                          title: "Add Product",
-                          description: "Add another product onto this image",
+                          title: "Download",
+                          description: "Save image to your device",
                         });
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      const button = e.currentTarget.querySelector("button");
-                      if (button) button.style.transform = "scale(1)";
-                      // Don't clear tooltip here - let parent handle it
-                    }}
-                  >
-                    <button
-                      onClick={() => {
+                      }}
+                      onMouseLeave={(e) => {
+                        const button = e.currentTarget.querySelector("button");
+                        if (button) button.style.transform = "scale(1)";
+                        // Don't clear tooltip here - let parent handle it
+                      }}
+                    >
+                      <button
+                        onClick={() =>
+                          downloadImage(
+                            enlargedImageUrl,
+                            `campaign-${Date.now()}.jpg`
+                          )
+                        }
+                        style={{
+                          padding: "6px",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: "56px",
+                          height: "56px",
+                          flexShrink: 0,
+                          transition: "transform 0.2s ease",
+                        }}
+                      >
+                        <img
+                          src="/downloadimage.png"
+                          alt="Download Image"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain",
+                          }}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Tweak Button */}
+                    <div
+                      style={{
+                        position: "relative",
+                        display: "inline-block",
+                        overflow: "visible",
+                        zIndex: 1,
+                      }}
+                      onMouseEnter={(e) => {
+                        const button = e.currentTarget.querySelector("button");
+                        if (button) button.style.transform = "scale(1.1)";
+                        setShowTweakTooltip(true);
+                        setActiveTooltip({
+                          title: "Tweak",
+                          description:
+                            "AI-powered image editing with custom prompts",
+                        });
+                      }}
+                      onMouseLeave={(e) => {
+                        const button = e.currentTarget.querySelector("button");
+                        if (button) button.style.transform = "scale(1)";
+                        // Don't clear tooltip here - let parent handle it
+                      }}
+                    >
+                      <button
+                        onClick={() => setShowTweakModal(true)}
+                        style={{
+                          padding: "6px",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: "56px",
+                          height: "56px",
+                          flexShrink: 0,
+                          transition: "transform 0.2s ease",
+                        }}
+                      >
+                        <img
+                          src="/tweakimage.png"
+                          alt="Tweak Image"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain",
+                          }}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Add Product Button - Opens product selection to add product to existing image */}
+                    <div
+                      style={{
+                        position: "relative",
+                        display: "inline-block",
+                        overflow: "visible",
+                        zIndex: 1,
+                      }}
+                      onMouseEnter={(e) => {
                         if (!addingProductToImage) {
-                          setProductSelectionMode("image");
-                          setSelectedProductForImage(null);
-                          setShowProductSelectionModal(true);
+                          const button =
+                            e.currentTarget.querySelector("button");
+                          if (button) button.style.transform = "scale(1.1)";
+                          setShowAddProductTooltip(true);
+                          setActiveTooltip({
+                            title: "Add Product",
+                            description: "Add another product onto this image",
+                          });
                         }
                       }}
-                      disabled={addingProductToImage}
-                      style={{
-                        padding: "6px",
-                        backgroundColor: "transparent",
-                        border: "none",
-                        borderRadius: "8px",
-                        cursor: addingProductToImage
-                          ? "not-allowed"
-                          : "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: "56px",
-                        height: "56px",
-                        opacity: addingProductToImage ? 0.6 : 1,
-                        transition: "opacity 0.2s ease, transform 0.2s ease",
-                        flexShrink: 0,
+                      onMouseLeave={(e) => {
+                        const button = e.currentTarget.querySelector("button");
+                        if (button) button.style.transform = "scale(1)";
+                        // Don't clear tooltip here - let parent handle it
                       }}
                     >
-                      <img
-                        src="/addclothes.png"
-                        alt="Add Product"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
+                      <button
+                        onClick={() => {
+                          if (!addingProductToImage) {
+                            setProductSelectionMode("image");
+                            setSelectedProductForImage(null);
+                            setShowProductSelectionModal(true);
+                          }
                         }}
-                      />
-                    </button>
+                        disabled={addingProductToImage}
+                        style={{
+                          padding: "6px",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          borderRadius: "8px",
+                          cursor: addingProductToImage
+                            ? "not-allowed"
+                            : "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: "56px",
+                          height: "56px",
+                          opacity: addingProductToImage ? 0.6 : 1,
+                          transition: "opacity 0.2s ease, transform 0.2s ease",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <img
+                          src="/addclothes.png"
+                          alt="Add Product"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain",
+                          }}
+                        />
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {/* Tooltip Display Container - Positioned lower where text used to be */}
-                <div
-                  style={{
-                    marginTop: "auto",
-                    paddingTop: "24px",
-                    minHeight: "80px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {activeTooltip ? (
-                    <div
-                      style={{
-                        padding: "12px 16px",
-                        backgroundColor: "rgba(0, 0, 0, 0.6)",
-                        borderRadius: "8px",
-                        textAlign: "center",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        border: "1px solid rgba(255, 255, 255, 0.1)",
-                        width: "100%",
-                      }}
-                    >
+                  {/* Tooltip Display Container - Positioned lower where text used to be */}
+                  <div
+                    style={{
+                      marginTop: "auto",
+                      paddingTop: "24px",
+                      minHeight: "80px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {activeTooltip ? (
                       <div
                         style={{
-                          fontWeight: "600",
-                          marginBottom: "6px",
-                          fontSize: "14px",
-                          color: "#FFFFFF",
+                          padding: "12px 16px",
+                          backgroundColor: "rgba(0, 0, 0, 0.6)",
+                          borderRadius: "8px",
+                          textAlign: "center",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          border: "1px solid rgba(255, 255, 255, 0.1)",
+                          width: "100%",
                         }}
                       >
-                        {activeTooltip.title}
+                        <div
+                          style={{
+                            fontWeight: "600",
+                            marginBottom: "6px",
+                            fontSize: "14px",
+                            color: "#FFFFFF",
+                          }}
+                        >
+                          {activeTooltip.title}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            color: "rgba(255, 255, 255, 0.8)",
+                            lineHeight: "1.4",
+                          }}
+                        >
+                          {activeTooltip.description}
+                        </div>
                       </div>
+                    ) : (
                       <div
                         style={{
+                          padding: "12px 16px",
+                          textAlign: "center",
+                          color: "rgba(255, 255, 255, 0.4)",
                           fontSize: "12px",
-                          color: "rgba(255, 255, 255, 0.8)",
-                          lineHeight: "1.4",
+                          fontStyle: "italic",
                         }}
                       >
-                        {activeTooltip.description}
+                        Hover over an action to see details
                       </div>
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        padding: "12px 16px",
-                        textAlign: "center",
-                        color: "rgba(255, 255, 255, 0.4)",
-                        fontSize: "12px",
-                        fontStyle: "italic",
-                      }}
-                    >
-                      Hover over an action to see details
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
                 </div>
               )}
 
