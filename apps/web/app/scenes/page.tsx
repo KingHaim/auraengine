@@ -394,7 +394,7 @@ export default function ScenesPage() {
                         position: "absolute",
                         top: "8px",
                         right: "8px",
-                        backgroundColor: "rgba(139, 92, 246, 0.9)",
+                        backgroundColor: "rgba(212, 47, 72, 0.9)",
                         color: "white",
                         padding: "4px 8px",
                         borderRadius: "4px",
