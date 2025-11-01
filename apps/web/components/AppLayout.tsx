@@ -755,8 +755,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
                       color: "#9BA3AF",
                     }}
                   >
-                    {((user.subscription_credits ?? 0) + (user.credits ?? 0))}{" "}
-                    credits
+                    {(() => {
+                      const subCredits = user.subscription_credits ?? 0;
+                      const purchasedCredits = user.credits ?? 0;
+                      const total = subCredits + purchasedCredits;
+                      console.log("🔢 Header Credits Calculation:", {
+                        subscription_credits: subCredits,
+                        purchased_credits: purchasedCredits,
+                        total: total,
+                        raw_user_subscription: user.subscription_credits,
+                        raw_user_credits: user.credits
+                      });
+                      return `${total} credits`;
+                    })()}
                   </div>
                 </div>
               )}
