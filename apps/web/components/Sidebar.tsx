@@ -65,7 +65,11 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="block px-3 py-2 hover:text-white"
+                className={`block px-3 py-2 hover:text-white ${
+                  pathname === item.href
+                    ? "text-white font-semibold"
+                    : ""
+                }`}
               >
                 {item.label}
               </Link>
