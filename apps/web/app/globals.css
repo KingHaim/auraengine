@@ -62,8 +62,8 @@ body {
     overflow-x: hidden !important;
   }
   
-  /* Force single column everywhere except campaign grid */
-  div[style*="grid-template-columns"]:not(.campaign-grid) {
+  /* Force single column everywhere except campaign grid and dashboard campaigns grid */
+  div[style*="grid-template-columns"]:not(.campaign-grid):not(.dashboard-campaigns-grid) {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
@@ -140,6 +140,15 @@ body {
   /* Campaign grid mobile - Force 2 columns */
   .campaign-grid,
   div.campaign-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    display: grid !important;
+  }
+  
+  /* Dashboard campaigns grid mobile - Force 2 columns */
+  .dashboard-campaigns-grid,
+  div.dashboard-campaigns-grid {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 12px !important;
     width: 100% !important;
@@ -274,6 +283,14 @@ body {
   .campaign-grid,
   div.campaign-grid,
   div[class*="campaign-grid"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    display: grid !important;
+  }
+  
+  /* Dashboard campaigns grid extra small screens */
+  .dashboard-campaigns-grid,
+  div.dashboard-campaigns-grid {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
     display: grid !important;

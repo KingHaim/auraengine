@@ -359,6 +359,7 @@ export default function Dashboard() {
 
           {campaigns.length > 0 ? (
             <div
+              className="dashboard-campaigns-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: isMobile
