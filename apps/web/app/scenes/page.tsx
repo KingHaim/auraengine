@@ -135,9 +135,31 @@ export default function ScenesPage() {
   // Show loading state while authentication is being checked
   if (loading) {
     return (
-      <div style={{ padding: "32px", textAlign: "center" }}>
-        <div style={{ fontSize: "16px", color: "#6B7280" }}>
-          Loading scenes...
+      <div
+        style={{
+          display: "flex",
+          minHeight: "100vh",
+          backgroundColor: "#0E1115",
+          color: "#E6E8EB",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily:
+            "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <img
+            src="/beating.gif"
+            alt="Loading"
+            style={{
+              width: "60px",
+              height: "60px",
+              objectFit: "contain",
+              margin: "0 auto 12px",
+              animation: "pulse 2s ease-in-out infinite",
+            }}
+          />
+          <div style={{ fontSize: "14px", color: "#9BA3AF" }}>Loading...</div>
         </div>
       </div>
     );
@@ -238,7 +260,13 @@ export default function ScenesPage() {
               }
             }}
           >
-            {isMobile ? <span>+</span> : <><span>+</span> Add Scene</>}
+            {isMobile ? (
+              <span>+</span>
+            ) : (
+              <>
+                <span>+</span> Add Scene
+              </>
+            )}
           </button>
         </div>
 
@@ -431,7 +459,11 @@ export default function ScenesPage() {
                     )}
                     {scene.tags.length > 0 && (
                       <div
-                        style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "4px",
+                        }}
                       >
                         {scene.tags.slice(0, 2).map((tag, index) => (
                           <span
