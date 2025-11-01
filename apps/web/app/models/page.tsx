@@ -615,21 +615,41 @@ export default function ModelsPage() {
               Model Library
             </h1>
           </div>
-          <div style={{ display: "flex", gap: "12px" }}>
+          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
             <button
               onClick={() => setShowGenerateModal(true)}
               style={{
-                padding: "12px 24px",
+                width: "48px",
+                height: "48px",
                 backgroundColor: "#10B981",
                 border: "none",
                 borderRadius: "8px",
                 color: "#FFFFFF",
-                fontSize: "14px",
-                fontWeight: "500",
                 cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 0,
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#059669";
+                e.currentTarget.style.transform = "scale(1.05)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#10B981";
+                e.currentTarget.style.transform = "scale(1)";
               }}
             >
-              ✨ Generate Model
+              <img
+                src="/generatemodel.png"
+                alt="Generate Model"
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  objectFit: "contain",
+                }}
+              />
             </button>
             <button
               onClick={() => setShowUploadModal(true)}
@@ -728,7 +748,7 @@ export default function ModelsPage() {
               alignItems: "start",
             }}
           >
-              {models.map((model) => (
+            {models.map((model) => (
               <div
                 key={model.id}
                 className="model-card"
