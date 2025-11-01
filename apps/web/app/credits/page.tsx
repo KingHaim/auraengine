@@ -125,6 +125,25 @@ export default function CreditsPage() {
       .catch((err) => console.error("Failed to load Stripe config:", err));
   }, []);
 
+  // Debug: Log user subscription info
+  useEffect(() => {
+    if (user) {
+      console.log("🔍 User Subscription Debug:", {
+        subscription_status: user?.subscription_status,
+        subscription_type: user?.subscription_type,
+        subscription_credits: user?.subscription_credits,
+        subscription_expires_at: user?.subscription_expires_at,
+        has_active_subscription:
+          user?.subscription_status === "active" && user?.subscription_type,
+        has_subscription_type: !!user?.subscription_type,
+        has_active_or_cancelled:
+          user?.subscription_status === "active" ||
+          user?.subscription_status === "cancelled",
+        full_user: user,
+      });
+    }
+  }, [user]);
+
   const handlePurchase = async (credits: number, price: number) => {
     if (!token) {
       setMessage("Please sign in to purchase credits");
@@ -309,25 +328,6 @@ export default function CreditsPage() {
       </div>
     );
   }
-
-  // Debug: Log user subscription info
-  useEffect(() => {
-    if (user) {
-      console.log("🔍 User Subscription Debug:", {
-        subscription_status: user?.subscription_status,
-        subscription_type: user?.subscription_type,
-        subscription_credits: user?.subscription_credits,
-        subscription_expires_at: user?.subscription_expires_at,
-        has_active_subscription:
-          user?.subscription_status === "active" && user?.subscription_type,
-        has_subscription_type: !!user?.subscription_type,
-        has_active_or_cancelled:
-          user?.subscription_status === "active" ||
-          user?.subscription_status === "cancelled",
-        full_user: user,
-      });
-    }
-  }, [user]);
 
   return (
     <AppLayout>
