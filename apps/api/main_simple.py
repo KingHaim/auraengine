@@ -3685,12 +3685,57 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
     try:
         print(f"🎬 Running Google Veo 3.1 video generation: {image_url[:50]}...")
         
-        # Convert local URLs to base64 for Replicate
+        # Convert URLs to base64 for Replicate to ensure Veo uses the exact image
+        # Veo 3.1 works better with base64-encoded images than URLs
+        converted_image_url = None
+        
         if image_url.startswith(get_base_url() + "/static/"):
+            # Local file - convert to base64
             filename = image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
-            image_url = upload_to_replicate(filepath)
-            print(f"Converted image to base64: {image_url[:100]}...")
+            converted_image_url = upload_to_replicate(filepath)
+            print(f"✅ Converted local file to base64: {converted_image_url[:100]}...")
+        elif image_url.startswith("http://") or image_url.startswith("https://"):
+            # External URL (Cloudinary, etc.) - download and convert to base64
+            print(f"📥 Downloading image from URL for Veo conversion...")
+            try:
+                import requests
+                response = requests.get(image_url, timeout=30)
+                response.raise_for_status()
+                
+                # Convert to base64 data URL
+                import base64
+                image_data = response.content
+                image_base64 = base64.b64encode(image_data).decode('utf-8')
+                
+                # Determine image format from content or URL
+                if image_url.lower().endswith('.png'):
+                    mime_type = 'image/png'
+                elif image_url.lower().endswith('.webp'):
+                    mime_type = 'image/webp'
+                elif image_url.lower().endswith('.jpg') or image_url.lower().endswith('.jpeg'):
+                    mime_type = 'image/jpeg'
+                else:
+                    # Try to detect from content
+                    from io import BytesIO
+                    from PIL import Image
+                    img = Image.open(BytesIO(image_data))
+                    if img.format == 'PNG':
+                        mime_type = 'image/png'
+                    elif img.format == 'WEBP':
+                        mime_type = 'image/webp'
+                    else:
+                        mime_type = 'image/jpeg'
+                
+                converted_image_url = f"data:{mime_type};base64,{image_base64}"
+                print(f"✅ Converted external URL to base64 data URL (size: {len(converted_image_url)} chars)")
+            except Exception as download_error:
+                print(f"⚠️ Failed to download and convert image: {download_error}")
+                print(f"⚠️ Using original URL (Veo may not use it correctly)")
+                converted_image_url = image_url
+        
+        # Use converted URL if available, otherwise use original
+        final_image_url = converted_image_url if converted_image_url else image_url
         
         # Veo 3.1 supports multiple resolutions and durations
         # Map our quality to Veo's aspect_ratio (Veo handles resolution internally)
@@ -3716,16 +3761,22 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         # Run Veo 3.1
         print(f"🔄 Calling Google Veo 3.1 API...")
         print(f"📝 Prompt: {custom_prompt or 'gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness'}")
-        print(f"🖼️ Reference image: {image_url[:100]}...")
+        print(f"🖼️ Reference image: {final_image_url[:100]}...")
         print(f"📐 Aspect ratio: {aspect_ratio}")
         print(f"⏱️ Duration: {duration_seconds}s")
+        
+        # Enhance prompt to emphasize using the reference image
+        enhanced_prompt = custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness"
+        if not custom_prompt:
+            # Add instruction to match the reference image closely
+            enhanced_prompt = f"Use the reference image exactly as shown. {enhanced_prompt}. Match the exact composition, lighting, and style from the reference image."
         
         try:
             out = replicate.run(
                 "google/veo-3.1",
                 input={
-                    "prompt": custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness",
-                    "reference_image": image_url,
+                    "prompt": enhanced_prompt,
+                    "reference_image": final_image_url,
                     "aspect_ratio": aspect_ratio,
                     "duration": duration_seconds,
                     "quality": "high"  # Veo 3.1 always high quality
