@@ -13,6 +13,11 @@ export default function CreditsPage() {
   const [message, setMessage] = useState("");
   const [isAnnual, setIsAnnual] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<{
+    credits: number;
+    price: number;
+  } | null>(null);
 
   // Credit packages with psychological pricing and per-credit indicators
   const creditPackages = [
@@ -119,12 +124,6 @@ export default function CreditsPage() {
       .then((data) => setStripePublishableKey(data.publishable_key))
       .catch((err) => console.error("Failed to load Stripe config:", err));
   }, []);
-
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState<{
-    credits: number;
-    price: number;
-  } | null>(null);
 
   const handlePurchase = async (credits: number, price: number) => {
     if (!token) {
@@ -595,8 +594,8 @@ export default function CreditsPage() {
               No Active Subscription
             </h3>
             <p style={{ fontSize: "14px", color: "#64748B", margin: 0 }}>
-              You don't have an active subscription yet. Choose a plan below
-              to get started with subscription credits.
+              You don't have an active subscription yet. Choose a plan below to
+              get started with subscription credits.
             </p>
           </div>
         )}
