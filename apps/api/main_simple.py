@@ -2095,10 +2095,52 @@ async def subscription_webhook(
         elif event['type'] == 'customer.subscription.deleted':
             subscription = event['data']['object']
             # Handle subscription cancellation
-            # You can find the user via customer ID or subscription metadata
+            customer_id = subscription.get('customer')
+            
+            # Find user by customer ID or subscription metadata
+            # Note: You may need to store Stripe customer_id in user model
             print(f"📋 Subscription cancelled: {subscription.get('id')}")
         
         return {"status": "ok"}
+
+@app.post("/subscriptions/cancel")
+async def cancel_subscription(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Cancel user subscription"""
+    try:
+        user = db.query(User).filter(User.id == current_user["user_id"]).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check if user has an active subscription
+        if user.subscription_status != "active":
+            raise HTTPException(
+                status_code=400,
+                detail="No active subscription to cancel"
+            )
+        
+        # Update subscription status to cancelled
+        user.subscription_status = "cancelled"
+        # Keep subscription_type and credits until expiration
+        # The subscription will remain active until expires_at
+        db.commit()
+        db.refresh(user)
+        
+        return {
+            "message": "Subscription cancelled successfully. Access will continue until the end of the current billing period.",
+            "status": "success",
+            "expires_at": user.subscription_expires_at.isoformat() if user.subscription_expires_at else None
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"❌ Error cancelling subscription: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
         
     except Exception as e:
         print(f"❌ Webhook processing failed: {e}")

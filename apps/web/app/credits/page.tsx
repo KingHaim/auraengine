@@ -12,6 +12,7 @@ export default function CreditsPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState("");
   const [isAnnual, setIsAnnual] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Credit packages with psychological pricing and per-credit indicators
   const creditPackages = [
@@ -161,6 +162,53 @@ export default function CreditsPage() {
     setMessage(`Payment failed: ${error}`);
     setShowPaymentForm(false);
     setSelectedPackage(null);
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!token) {
+      setMessage("Please sign in to cancel subscription");
+      return;
+    }
+
+    if (
+      !window.confirm(
+        "Are you sure you want to cancel your subscription? You will lose access to subscription benefits after the current billing period ends."
+      )
+    ) {
+      return;
+    }
+
+    setIsCancelling(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/subscriptions/cancel`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage(
+          "Subscription cancelled successfully. You will continue to have access until the end of your current billing period."
+        );
+        // Refresh user data
+        window.location.reload();
+      } else {
+        setMessage(data.detail || "Failed to cancel subscription. Please try again.");
+      }
+    } catch (error) {
+      setMessage("Failed to cancel subscription. Please try again.");
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   const handleSubscribe = async (tier: (typeof subscriptionTiers)[0]) => {
@@ -636,24 +684,43 @@ export default function CreditsPage() {
                       e.preventDefault();
                       e.stopPropagation();
                       console.log("🔴 Button clicked for tier:", tier.name);
+                      const currentTier = user?.subscription_type?.toLowerCase() || "";
+                      const tierName = tier.name.toLowerCase();
+                      
+                      // If it's the current subscription, do nothing or show message
+                      if (currentTier === tierName && user?.subscription_status === "active") {
+                        setMessage("You are already subscribed to this plan");
+                        return;
+                      }
+                      
+                      // Otherwise, subscribe/upgrade/downgrade
                       handleSubscribe(tier);
                     }}
-                    disabled={isProcessing}
+                    disabled={isProcessing || (user?.subscription_type?.toLowerCase() === tier.name.toLowerCase() && user?.subscription_status === "active")}
                     style={{
                       width: "100%",
                       padding: "16px",
-                      backgroundColor: isProcessing ? "#9CA3AF" : tier.color,
+                      backgroundColor: 
+                        user?.subscription_type?.toLowerCase() === tier.name.toLowerCase() && user?.subscription_status === "active"
+                          ? "#10B981"
+                          : isProcessing
+                          ? "#9CA3AF"
+                          : tier.color,
                       color: "#FFFFFF",
                       border: "none",
                       borderRadius: "12px",
                       fontSize: "16px",
                       fontWeight: "600",
-                      cursor: isProcessing ? "not-allowed" : "pointer",
+                      cursor: isProcessing || (user?.subscription_type?.toLowerCase() === tier.name.toLowerCase() && user?.subscription_status === "active") ? "not-allowed" : "pointer",
                       transition: "all 0.2s",
                       opacity: isProcessing ? 0.6 : 1,
                     }}
                     onMouseEnter={(e) => {
-                      if (!isProcessing) {
+                      const currentTier = user?.subscription_type?.toLowerCase() || "";
+                      const tierName = tier.name.toLowerCase();
+                      const isCurrentPlan = currentTier === tierName && user?.subscription_status === "active";
+                      
+                      if (!isProcessing && !isCurrentPlan) {
                         e.currentTarget.style.transform = "translateY(-1px)";
                         e.currentTarget.style.boxShadow =
                           "0 4px 12px rgba(9, 10, 12, 0.2)";
@@ -666,7 +733,13 @@ export default function CreditsPage() {
                       }
                     }}
                   >
-                    {isProcessing ? "Processing..." : `Choose ${tier.name}`}
+                    {isProcessing
+                      ? "Processing..."
+                      : user?.subscription_type?.toLowerCase() === tier.name.toLowerCase() && user?.subscription_status === "active"
+                      ? "Current Plan"
+                      : user?.subscription_status === "active"
+                      ? `Upgrade to ${tier.name}`
+                      : `Choose ${tier.name}`}
                   </button>
                 </div>
               );
