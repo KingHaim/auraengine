@@ -116,6 +116,18 @@ export default function ProductsPage() {
     fetchCategories();
   }, [token]);
 
+  // Inject spinner CSS
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = spinnerCSS;
+    document.head.appendChild(style);
+    return () => {
+      if (document.head.contains(style)) {
+        document.head.removeChild(style);
+      }
+    };
+  }, []);
+
   const handleUpload = async () => {
     if (!newProduct.name || !newProduct.image) return;
     if (!token) {
