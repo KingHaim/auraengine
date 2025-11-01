@@ -418,10 +418,8 @@ export default function CreditsPage() {
           </p>
         </div>
 
-        {/* Current Subscription */}
-        {user?.subscription_type &&
-          (user?.subscription_status === "active" ||
-            user?.subscription_status === "cancelled") && (
+        {/* Current Subscription - Show if subscription_type exists */}
+        {user?.subscription_type && (
             <div
               style={{
                 backgroundColor: "#FFFFFF",
@@ -461,9 +459,34 @@ export default function CreditsPage() {
                       marginBottom: "8px",
                     }}
                   >
-                    {user.subscription_type.charAt(0).toUpperCase() +
-                      user.subscription_type.slice(1)}
+                    {user.subscription_type
+                      ? user.subscription_type.charAt(0).toUpperCase() +
+                        user.subscription_type.slice(1)
+                      : "Unknown"}
                   </h3>
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      color: "#64748B",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Status:{" "}
+                    <span
+                      style={{
+                        color:
+                          user.subscription_status === "active"
+                            ? "#10B981"
+                            : user.subscription_status === "cancelled"
+                            ? "#F59E0B"
+                            : "#64748B",
+                        fontWeight: "600",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {user.subscription_status || "inactive"}
+                    </span>
+                  </div>
                   <div
                     style={{
                       fontSize: "14px",
@@ -473,18 +496,29 @@ export default function CreditsPage() {
                   >
                     {user.subscription_credits || 0} credits/month
                   </div>
-                  {user.subscription_expires_at && (
+                  {user.subscription_expires_at ? (
                     <div
                       style={{
                         fontSize: "13px",
                         color: "#64748B",
                       }}
                     >
-                      {user.subscription_expires_at
-                        ? `Renews on ${new Date(
+                      {user.subscription_status === "cancelled"
+                        ? `Access until ${new Date(
                             user.subscription_expires_at
                           ).toLocaleDateString()}`
-                        : "No expiration date"}
+                        : `Renews on ${new Date(
+                            user.subscription_expires_at
+                          ).toLocaleDateString()}`}
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        color: "#64748B",
+                      }}
+                    >
+                      No expiration date
                     </div>
                   )}
                 </div>
@@ -496,24 +530,43 @@ export default function CreditsPage() {
                     alignItems: "flex-end",
                   }}
                 >
-                  <button
-                    onClick={handleCancelSubscription}
-                    disabled={isCancelling}
-                    style={{
-                      padding: "10px 20px",
-                      backgroundColor: isCancelling ? "#9CA3AF" : "#DC2626",
-                      color: "#FFFFFF",
-                      border: "none",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      fontWeight: "600",
-                      cursor: isCancelling ? "not-allowed" : "pointer",
-                      transition: "all 0.2s",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {isCancelling ? "Cancelling..." : "Cancel Subscription"}
-                  </button>
+                  {user.subscription_status === "active" && (
+                    <button
+                      onClick={handleCancelSubscription}
+                      disabled={isCancelling}
+                      style={{
+                        padding: "10px 20px",
+                        backgroundColor: isCancelling ? "#9CA3AF" : "#DC2626",
+                        color: "#FFFFFF",
+                        border: "none",
+                        borderRadius: "8px",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        cursor: isCancelling ? "not-allowed" : "pointer",
+                        transition: "all 0.2s",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {isCancelling ? "Cancelling..." : "Cancel Subscription"}
+                    </button>
+                  )}
+                  {user.subscription_status === "cancelled" && (
+                    <div
+                      style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#FEF3C7",
+                        color: "#92400E",
+                        border: "1px solid #F59E0B",
+                        borderRadius: "8px",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        whiteSpace: "nowrap",
+                        textAlign: "center",
+                      }}
+                    >
+                      Cancelled - Access Until Expiration
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
