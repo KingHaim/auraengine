@@ -2102,6 +2102,12 @@ async def subscription_webhook(
             print(f"📋 Subscription cancelled: {subscription.get('id')}")
         
         return {"status": "ok"}
+        
+    except Exception as e:
+        print(f"❌ Webhook processing failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/subscriptions/cancel")
 async def cancel_subscription(
