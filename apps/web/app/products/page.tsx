@@ -565,6 +565,7 @@ export default function ProductsPage() {
           </div>
         ) : (
           <div
+            className="products-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
@@ -575,6 +576,7 @@ export default function ProductsPage() {
             {products.map((product) => (
               <div
                 key={product.id}
+                className="product-card"
                 style={{
                   backgroundColor: "#FFFFFF",
                   borderRadius: "16px",
@@ -636,7 +638,27 @@ export default function ProductsPage() {
                       }
                     }}
                   />
+                  {/* Product name overlay - mobile only */}
+                  <div
+                    className="product-title-overlay"
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      background:
+                        "linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent)",
+                      padding: "8px 12px",
+                      color: "#FFFFFF",
+                      fontSize: "12px",
+                      fontWeight: "600",
+                      display: "none",
+                    }}
+                  >
+                    {product.name}
+                  </div>
                 </div>
+                {/* Product info section - desktop only */}
                 <div style={{ padding: "16px" }}>
                   <h3
                     style={{

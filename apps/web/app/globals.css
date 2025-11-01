@@ -62,8 +62,8 @@ body {
     overflow-x: hidden !important;
   }
   
-  /* Force single column everywhere except campaign grid, dashboard campaigns grid, scenes grid, and models grid */
-  div[style*="grid-template-columns"]:not(.campaign-grid):not(.dashboard-campaigns-grid):not(.scenes-grid):not(.models-grid) {
+  /* Force single column everywhere except campaign grid, dashboard campaigns grid, scenes grid, models grid, and products grid */
+  div[style*="grid-template-columns"]:not(.campaign-grid):not(.dashboard-campaigns-grid):not(.scenes-grid):not(.models-grid):not(.products-grid) {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
@@ -188,6 +188,32 @@ body {
     aspect-ratio: 1 !important;
     width: 100% !important;
     max-width: 100% !important;
+  }
+  
+  /* Products grid mobile - Force 2 columns */
+  .products-grid,
+  div.products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    display: grid !important;
+  }
+  
+  /* Ensure product cards are square on mobile */
+  .product-card {
+    aspect-ratio: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Hide product info section on mobile */
+  .product-card > div:nth-child(2) {
+    display: none !important;
+  }
+  
+  /* Show product title overlay on mobile */
+  .product-title-overlay {
+    display: block !important;
   }
   
   /* Additional specificity for campaigns page */
