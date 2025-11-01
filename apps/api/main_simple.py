@@ -3497,11 +3497,11 @@ def run_qwen_packshot_front_back(
         print("Generating front packshot...")
         if clothing_type:
             print(f"👕 Clothing type specified: {clothing_type}")
-            clothing_type_instruction = f" CRITICAL: Extract and isolate ONLY the {clothing_type} from the image. Remove ALL other clothing items, accessories, garments, and outfit pieces. Show EXCLUSIVELY the {clothing_type} as a standalone product on white background. The {clothing_type} must be clearly visible and complete. Remove any shirts, tops, jackets, sweaters, shoes, or any other items that are not the {clothing_type}. The final image must contain ONLY the isolated {clothing_type}."
+            clothing_type_instruction = f" CRITICAL: Extract and preserve EXACTLY the {clothing_type} shown in the source image. Do NOT generate or create a new {clothing_type}. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image. Show EXCLUSIVELY this specific {clothing_type} as it appears in the source image - isolated on a white background. Remove ALL other clothing items, accessories, garments, and outfit pieces. The final image must contain ONLY this exact {clothing_type} from the source image with ALL its original colors, patterns, and design elements preserved exactly."
         else:
-            clothing_type_instruction = ""
-            print("⚠️ No clothing type specified - generating full outfit")
-        front_prompt = f"Ultra-clean studio packshot of ONLY the {clothing_type if clothing_type else 'product'}, front view. Even softbox lighting on a pure white seamless background. Soft contact shadow. No props, no text, no watermark. Crisp edges, accurate colors.{clothing_type_instruction} {user_mods}, product photography, professional lighting, studio setup, high quality, detailed, isolated product, single garment only"
+            clothing_type_instruction = " CRITICAL: Extract and preserve EXACTLY the product shown in the source image. Do NOT generate or create a new product. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image."
+            print("⚠️ No clothing type specified - extracting product as shown")
+        front_prompt = f"Extract and isolate the {clothing_type if clothing_type else 'product'} from the source image EXACTLY as shown. Preserve the EXACT design, colors, patterns, logos, text, and all visual details from the source image. Do NOT generate a new product. Ultra-clean studio packshot, front view, on pure white seamless background. Even softbox lighting. Soft contact shadow. No props, no text overlays, no watermark. Crisp edges.{clothing_type_instruction} {user_mods}"
         
         try:
             front_out = replicate.run("qwen/qwen-image-edit-plus", input={
@@ -3533,10 +3533,10 @@ def run_qwen_packshot_front_back(
         # Step 3: Generate back packshot
         print("Generating back packshot...")
         if clothing_type:
-            clothing_type_instruction = f" CRITICAL: Extract and isolate ONLY the {clothing_type} from the image. Remove ALL other clothing items, accessories, garments, and outfit pieces. Show EXCLUSIVELY the {clothing_type} as a standalone product on white background. The {clothing_type} must be clearly visible and complete. Remove any shirts, tops, jackets, sweaters, shoes, or any other items that are not the {clothing_type}. The final image must contain ONLY the isolated {clothing_type}."
+            clothing_type_instruction = f" CRITICAL: Extract and preserve EXACTLY the {clothing_type} shown in the source image. Do NOT generate or create a new {clothing_type}. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image. Show EXCLUSIVELY this specific {clothing_type} as it appears in the source image - isolated on a white background. Remove ALL other clothing items, accessories, garments, and outfit pieces. The final image must contain ONLY this exact {clothing_type} from the source image with ALL its original colors, patterns, and design elements preserved exactly."
         else:
-            clothing_type_instruction = ""
-        back_prompt = f"Ultra-clean studio packshot of ONLY the {clothing_type if clothing_type else 'product'}, back view. Even softbox lighting on a pure white seamless background. Soft contact shadow. No props, no text, no watermark. Crisp edges, accurate colors.{clothing_type_instruction} {user_mods}, product photography, professional lighting, studio setup, high quality, detailed, isolated product, single garment only"
+            clothing_type_instruction = " CRITICAL: Extract and preserve EXACTLY the product shown in the source image. Do NOT generate or create a new product. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image."
+        back_prompt = f"Extract and isolate the {clothing_type if clothing_type else 'product'} from the source image EXACTLY as shown. Preserve the EXACT design, colors, patterns, logos, text, and all visual details from the source image. Do NOT generate a new product. Ultra-clean studio packshot, back view, on pure white seamless background. Even softbox lighting. Soft contact shadow. No props, no text overlays, no watermark. Crisp edges.{clothing_type_instruction} {user_mods}"
         
         try:
             back_out = replicate.run("qwen/qwen-image-edit-plus", input={
@@ -3655,7 +3655,7 @@ async def upload_product(
                 print(f"👕 Clothing type received: {clothing_type}")
             else:
                 print("⚠️ WARNING: No clothing_type provided - packshot may include entire outfit")
-            user_mods = "professional product photography, clean background, studio lighting"
+            user_mods = "preserve exact design and colors from source image, professional product photography, clean background, studio lighting"
             generated_packshots = run_qwen_packshot_front_back(
                 product_image_url=image_url,
                 user_mods=user_mods,
