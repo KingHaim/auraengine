@@ -160,6 +160,63 @@ export default function CreditsPage() {
     setSelectedPackage(null);
   };
 
+  const handleSubscribe = async (tier: typeof subscriptionTiers[0]) => {
+    if (!token) {
+      setMessage("Please sign in to create a subscription");
+      return;
+    }
+
+    setIsProcessing(true);
+    setMessage("");
+
+    try {
+      const price = isAnnual ? tier.annualPrice : tier.monthlyPrice;
+      const amountInCents = Math.round(price * 100); // Convert to cents
+
+      // Create subscription checkout session via API
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/subscriptions/create-checkout`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            subscription_type: tier.name.toLowerCase(),
+            price_id: tier.priceId || "", // We'll add Stripe price IDs later
+            is_annual: isAnnual,
+            credits: tier.credits,
+            amount: amountInCents,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to create subscription");
+      }
+
+      const { checkout_url } = await response.json();
+
+      // Redirect to Stripe Checkout
+      if (checkout_url) {
+        window.location.href = checkout_url;
+      } else {
+        throw new Error("No checkout URL received");
+      }
+    } catch (error) {
+      console.error("Subscription creation failed:", error);
+      setMessage(
+        `Subscription creation failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div
@@ -548,29 +605,36 @@ export default function CreditsPage() {
                   </ul>
 
                   <button
+                    onClick={() => handleSubscribe(tier)}
+                    disabled={isProcessing}
                     style={{
                       width: "100%",
                       padding: "16px",
-                      backgroundColor: tier.color,
+                      backgroundColor: isProcessing ? "#9CA3AF" : tier.color,
                       color: "#FFFFFF",
                       border: "none",
                       borderRadius: "12px",
                       fontSize: "16px",
                       fontWeight: "600",
-                      cursor: "pointer",
+                      cursor: isProcessing ? "not-allowed" : "pointer",
                       transition: "all 0.2s",
+                      opacity: isProcessing ? 0.6 : 1,
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-1px)";
-                      e.currentTarget.style.boxShadow =
-                        "0 4px 12px rgba(9, 10, 12, 0.2)";
+                      if (!isProcessing) {
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                        e.currentTarget.style.boxShadow =
+                          "0 4px 12px rgba(9, 10, 12, 0.2)";
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "none";
+                      if (!isProcessing) {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }
                     }}
                   >
-                    Choose {tier.name}
+                    {isProcessing ? "Processing..." : `Choose ${tier.name}`}
                   </button>
                 </div>
               );

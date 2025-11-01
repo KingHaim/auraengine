@@ -1768,6 +1768,150 @@ async def confirm_payment(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+# ---------- Subscription Endpoints ----------
+class SubscriptionCheckoutRequest(BaseModel):
+    subscription_type: str  # "starter", "professional", "enterprise"
+    price_id: str = ""  # Stripe Price ID (optional, we'll create product/price if not provided)
+    is_annual: bool = False
+    credits: int
+    amount: int  # Amount in cents
+
+@app.post("/subscriptions/create-checkout")
+async def create_subscription_checkout(
+    request: SubscriptionCheckoutRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create a Stripe Checkout session for subscription"""
+    try:
+        from datetime import timedelta
+        
+        # Calculate subscription expiration date
+        if request.is_annual:
+            expires_at = datetime.utcnow() + timedelta(days=365)
+        else:
+            expires_at = datetime.utcnow() + timedelta(days=30)
+        
+        # Create or retrieve Stripe product and price
+        # For now, we'll create a one-time payment checkout session
+        # In a full implementation, you'd create Stripe subscriptions
+        
+        # Create Stripe Checkout Session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': f"{request.subscription_type.capitalize()} Subscription",
+                        'description': f"{request.credits} credits per {'year' if request.is_annual else 'month'}",
+                    },
+                    'unit_amount': request.amount,
+                    'recurring': {
+                        'interval': 'year' if request.is_annual else 'month',
+                    } if not request.price_id else None,  # Only add recurring if not using price_id
+                } if not request.price_id else None,
+                'price': request.price_id if request.price_id else None,
+                'quantity': 1,
+            }],
+            mode='subscription',  # Use subscription mode for recurring payments
+            success_url=f"{os.getenv('FRONTEND_URL', 'https://www.beatingheart.ai')}/credits?subscription=success",
+            cancel_url=f"{os.getenv('FRONTEND_URL', 'https://www.beatingheart.ai')}/credits?subscription=cancelled",
+            client_reference_id=current_user["user_id"],
+            metadata={
+                'user_id': current_user["user_id"],
+                'subscription_type': request.subscription_type,
+                'credits': str(request.credits),
+                'is_annual': str(request.is_annual),
+                'expires_at': expires_at.isoformat(),
+            },
+            customer_email=current_user.get("email"),
+        )
+        
+        return {
+            "checkout_url": checkout_session.url,
+            "session_id": checkout_session.id
+        }
+        
+    except Exception as e:
+        print(f"❌ Subscription checkout creation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to create checkout session: {str(e)}")
+
+@app.post("/subscriptions/webhook")
+async def subscription_webhook(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Handle Stripe webhook events for subscriptions"""
+    try:
+        payload = await request.body()
+        sig_header = request.headers.get('stripe-signature')
+        webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+        
+        if not webhook_secret:
+            raise HTTPException(status_code=400, detail="Webhook secret not configured")
+        
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, webhook_secret
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid payload: {e}")
+        except stripe.error.SignatureVerificationError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid signature: {e}")
+        
+        # Handle the event
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            
+            # Get user from metadata
+            user_id = session.get('metadata', {}).get('user_id')
+            if not user_id:
+                print("⚠️ No user_id in session metadata")
+                return {"status": "ok"}
+            
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                print(f"⚠️ User not found: {user_id}")
+                return {"status": "ok"}
+            
+            # Get subscription details from metadata
+            subscription_type = session.get('metadata', {}).get('subscription_type', 'starter')
+            credits = int(session.get('metadata', {}).get('credits', 120))
+            is_annual = session.get('metadata', {}).get('is_annual', 'False').lower() == 'true'
+            expires_at_str = session.get('metadata', {}).get('expires_at')
+            
+            if expires_at_str:
+                expires_at = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
+            else:
+                from datetime import timedelta
+                expires_at = datetime.utcnow() + timedelta(days=365 if is_annual else 30)
+            
+            # Update user subscription
+            user.subscription_type = subscription_type
+            user.subscription_credits = credits
+            user.subscription_status = "active"
+            user.subscription_expires_at = expires_at
+            
+            db.commit()
+            print(f"✅ Subscription activated for user {user_id}: {subscription_type} with {credits} credits")
+        
+        elif event['type'] == 'customer.subscription.deleted':
+            subscription = event['data']['object']
+            # Handle subscription cancellation
+            # You can find the user via customer ID or subscription metadata
+            print(f"📋 Subscription cancelled: {subscription.get('id')}")
+        
+        return {"status": "ok"}
+        
+    except Exception as e:
+        print(f"❌ Webhook processing failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 # ---------- Helper Functions for Packshot Generation ----------
 def has_alpha(url: str) -> bool:
     """Check if image has alpha channel by examining the file"""
