@@ -51,6 +51,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Retry fetching user info periodically if token exists but user is null (for network recovery)
+  useEffect(() => {
+    if (token && !user && !loading && !initialCheck) {
+      // Token exists but user is null - might be network error, retry after 5 seconds
+      const retryTimer = setTimeout(() => {
+        console.log("🔄 Retrying user info fetch after network error...");
+        if (token) {
+          fetchUserInfo(token);
+        }
+      }, 5000);
+      return () => clearTimeout(retryTimer);
+    }
+  }, [token, user, loading, initialCheck]);
+
   const fetchUserInfo = async (authToken: string) => {
     try {
       const response = await fetch(
