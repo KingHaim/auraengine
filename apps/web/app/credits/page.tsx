@@ -129,9 +129,9 @@ export default function CreditsPage() {
     }
 
     // Check if user has active subscription with remaining credits
-    const hasActiveSubscription = 
-      user?.subscription_status === "active" && 
-      user?.subscription_credits && 
+    const hasActiveSubscription =
+      user?.subscription_status === "active" &&
+      user?.subscription_credits &&
       user.subscription_credits > 0;
 
     if (hasActiveSubscription) {
@@ -237,7 +237,8 @@ export default function CreditsPage() {
                 fontWeight: "600",
               }}
             >
-              Subscription Credits: {user.subscription_credits} · Purchased Credits: {user.credits || 0}
+              Subscription Credits: {user.subscription_credits} · Purchased
+              Credits: {user.credits || 0}
             </div>
           )}
           {user?.subscription_credits && user.subscription_credits > 0 && (
@@ -252,7 +253,8 @@ export default function CreditsPage() {
                 color: "#92400E",
               }}
             >
-              ⚠️ You have subscription credits remaining. Please use all subscription credits before purchasing additional credits.
+              ⚠️ You have subscription credits remaining. Please use all
+              subscription credits before purchasing additional credits.
             </div>
           )}
           <p style={{ color: "#64748B", fontSize: "14px", margin: 0 }}>
@@ -712,8 +714,7 @@ export default function CreditsPage() {
                   disabled={
                     isProcessing ||
                     (user?.subscription_status === "active" &&
-                      user?.subscription_credits &&
-                      user.subscription_credits > 0)
+                      (user?.subscription_credits ?? 0) > 0)
                   }
                   style={{
                     width: "100%",
@@ -721,8 +722,7 @@ export default function CreditsPage() {
                     backgroundColor:
                       isProcessing ||
                       (user?.subscription_status === "active" &&
-                        user?.subscription_credits &&
-                        user.subscription_credits > 0)
+                        (user?.subscription_credits ?? 0) > 0)
                         ? "#9CA3AF"
                         : "#d42f48",
                     color: "#FFFFFF",
@@ -733,16 +733,14 @@ export default function CreditsPage() {
                     cursor:
                       isProcessing ||
                       (user?.subscription_status === "active" &&
-                        user?.subscription_credits &&
-                        user.subscription_credits > 0)
+                        (user?.subscription_credits ?? 0) > 0)
                         ? "not-allowed"
                         : "pointer",
                     transition: "all 0.2s",
                   }}
                   title={
                     user?.subscription_status === "active" &&
-                    user?.subscription_credits &&
-                    user.subscription_credits > 0
+                    (user?.subscription_credits ?? 0) > 0
                       ? `You have ${user.subscription_credits} subscription credits remaining. Use all subscription credits before purchasing additional credits.`
                       : undefined
                   }
@@ -750,8 +748,7 @@ export default function CreditsPage() {
                   {isProcessing
                     ? "Processing..."
                     : user?.subscription_status === "active" &&
-                      user?.subscription_credits &&
-                      user.subscription_credits > 0
+                      (user?.subscription_credits ?? 0) > 0
                     ? "Use Subscription Credits First"
                     : "Purchase"}
                 </button>
