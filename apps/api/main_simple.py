@@ -2009,7 +2009,7 @@ async def create_subscription_checkout(
             payment_method_types=['card'],
             line_items=line_items,
             mode='subscription',  # Use subscription mode for recurring payments
-            success_url=f"{os.getenv('FRONTEND_URL', 'https://www.beatingheart.ai')}/credits?subscription=success",
+            success_url=f"{os.getenv('FRONTEND_URL', 'https://www.beatingheart.ai')}/credits?subscription=success&session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{os.getenv('FRONTEND_URL', 'https://www.beatingheart.ai')}/credits?subscription=cancelled",
             client_reference_id=current_user["user_id"],
             metadata={
@@ -2109,9 +2109,12 @@ async def subscription_webhook(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+class VerifyCheckoutRequest(BaseModel):
+    session_id: str
+
 @app.post("/subscriptions/verify-checkout")
 async def verify_checkout_session(
-    session_id: str,
+    request: VerifyCheckoutRequest,
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
