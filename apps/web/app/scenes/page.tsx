@@ -21,6 +21,7 @@ export default function ScenesPage() {
   const [scenesLoading, setScenesLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [newScene, setNewScene] = useState({
     name: "",
     description: "",
@@ -28,6 +29,16 @@ export default function ScenesPage() {
     tags: "",
     image: null as File | null,
   });
+
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Fetch scenes when user is authenticated
   useEffect(() => {
@@ -160,10 +171,10 @@ export default function ScenesPage() {
 
   return (
     <AppLayout>
-      <div style={{ padding: "32px" }}>
+      <div style={{ padding: isMobile ? "16px" : "32px" }}>
         <div
           style={{
-            marginBottom: "32px",
+            marginBottom: isMobile ? "20px" : "32px",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-start",
@@ -172,7 +183,7 @@ export default function ScenesPage() {
           <div>
             <h1
               style={{
-                fontSize: "24px",
+                fontSize: isMobile ? "20px" : "24px",
                 fontWeight: "700",
                 color: "#1E293B",
                 marginBottom: "8px",
@@ -180,34 +191,54 @@ export default function ScenesPage() {
             >
               Scene Library
             </h1>
-            <p
-              style={{
-                fontSize: "14px",
-                color: "#64748B",
-                margin: "4px 0 0 0",
-              }}
-            >
-              Manage your background scenes for campaigns
-            </p>
+            {!isMobile && (
+              <p
+                style={{
+                  fontSize: "14px",
+                  color: "#64748B",
+                  margin: "4px 0 0 0",
+                }}
+              >
+                Manage your background scenes for campaigns
+              </p>
+            )}
           </div>
           <button
             onClick={() => setShowUploadModal(true)}
             style={{
-              padding: "12px 24px",
-              backgroundColor: "#d42f48",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              fontSize: "14px",
+              width: isMobile ? "48px" : "auto",
+              height: isMobile ? "48px" : "auto",
+              padding: isMobile ? "0" : "12px 24px",
+              backgroundColor: isMobile ? "transparent" : "#d42f48",
+              color: isMobile ? "#d42f48" : "white",
+              border: isMobile ? "2px solid #d42f48" : "none",
+              borderRadius: isMobile ? "50%" : "8px",
+              fontSize: isMobile ? "24px" : "14px",
               fontWeight: "500",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
+              justifyContent: "center",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              if (isMobile) {
+                e.currentTarget.style.backgroundColor = "#d42f48";
+                e.currentTarget.style.color = "white";
+              } else {
+                e.currentTarget.style.transform = "scale(1.05)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (isMobile) {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#d42f48";
+              } else {
+                e.currentTarget.style.transform = "scale(1)";
+              }
             }}
           >
-            <span>+</span>
-            Add Scene
+            {isMobile ? <span>+</span> : <><span>+</span> Add Scene</>}
           </button>
         </div>
 
@@ -273,34 +304,48 @@ export default function ScenesPage() {
           </div>
         ) : (
           <div
+            className="scenes-grid"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              gap: "24px",
+              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+              gap: "12px",
+              width: "100%",
+              maxWidth: "100%",
+              boxSizing: "border-box",
+              alignItems: "start",
             }}
           >
             {scenes.map((scene) => (
               <div
                 key={scene.id}
+                className="scene-card"
                 style={{
-                  backgroundColor: "#FFFFFF",
-                  borderRadius: "12px",
-                  border: "1px solid #E5E7EB",
+                  borderRadius: "16px",
                   overflow: "hidden",
-                  transition: "all 0.2s",
+                  transition: "all 0.3s ease",
                   cursor: "pointer",
+                  position: "relative",
+                  background: "#FFFFFF",
+                  aspectRatio: "1",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.transform = "translateY(-4px)";
                   e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(9, 10, 12, 0.1)";
+                    "0 8px 24px rgba(9, 10, 12, 0.15)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "translateY(0)";
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
-                <div style={{ position: "relative", aspectRatio: "16/9" }}>
+                <div
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
                   <img
                     src={scene.image_url}
                     alt={scene.name}
@@ -328,67 +373,99 @@ export default function ScenesPage() {
                         fontSize: "10px",
                         fontWeight: "600",
                         letterSpacing: "0.5px",
+                        zIndex: 2,
                       }}
                     >
                       STANDARD
                     </div>
                   )}
-                </div>
-                <div style={{ padding: "16px" }}>
-                  <h3
+                  {/* Scene name overlay - mobile only */}
+                  <div
+                    className="scene-title-overlay"
                     style={{
-                      fontSize: "16px",
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      background:
+                        "linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent)",
+                      padding: "8px 12px",
+                      color: "#FFFFFF",
+                      fontSize: isMobile ? "11px" : "12px",
                       fontWeight: "600",
-                      color: "#1F2937",
-                      marginBottom: "4px",
+                      display: isMobile ? "block" : "none",
                     }}
                   >
                     {scene.name}
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      marginBottom: "8px",
-                      lineHeight: "1.4",
-                    }}
-                  >
-                    {scene.description || "No description available"}
-                  </p>
-                  <div
-                    style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}
-                  >
-                    {scene.tags.slice(0, 3).map((tag, index) => (
-                      <span
-                        key={index}
-                        style={{
-                          backgroundColor: "#F3F4F6",
-                          color: "#6B7280",
-                          padding: "2px 6px",
-                          borderRadius: "4px",
-                          fontSize: "11px",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                    {scene.tags.length > 3 && (
-                      <span
-                        style={{
-                          backgroundColor: "#F3F4F6",
-                          color: "#6B7280",
-                          padding: "2px 6px",
-                          borderRadius: "4px",
-                          fontSize: "11px",
-                          fontWeight: "500",
-                        }}
-                      >
-                        +{scene.tags.length - 3}
-                      </span>
-                    )}
                   </div>
                 </div>
+                {/* Scene info section - desktop only */}
+                {!isMobile && (
+                  <div style={{ padding: "12px" }}>
+                    <h3
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        color: "#1F2937",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      {scene.name}
+                    </h3>
+                    {scene.description && (
+                      <p
+                        style={{
+                          fontSize: "12px",
+                          color: "#6B7280",
+                          marginBottom: "8px",
+                          lineHeight: "1.4",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                        }}
+                      >
+                        {scene.description}
+                      </p>
+                    )}
+                    {scene.tags.length > 0 && (
+                      <div
+                        style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}
+                      >
+                        {scene.tags.slice(0, 2).map((tag, index) => (
+                          <span
+                            key={index}
+                            style={{
+                              backgroundColor: "#F3F4F6",
+                              color: "#6B7280",
+                              padding: "2px 6px",
+                              borderRadius: "4px",
+                              fontSize: "10px",
+                              fontWeight: "500",
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {scene.tags.length > 2 && (
+                          <span
+                            style={{
+                              backgroundColor: "#F3F4F6",
+                              color: "#6B7280",
+                              padding: "2px 6px",
+                              borderRadius: "4px",
+                              fontSize: "10px",
+                              fontWeight: "500",
+                            }}
+                          >
+                            +{scene.tags.length - 2}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>

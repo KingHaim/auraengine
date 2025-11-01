@@ -62,8 +62,8 @@ body {
     overflow-x: hidden !important;
   }
   
-  /* Force single column everywhere except campaign grid and dashboard campaigns grid */
-  div[style*="grid-template-columns"]:not(.campaign-grid):not(.dashboard-campaigns-grid) {
+  /* Force single column everywhere except campaign grid, dashboard campaigns grid, and scenes grid */
+  div[style*="grid-template-columns"]:not(.campaign-grid):not(.dashboard-campaigns-grid):not(.scenes-grid) {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
@@ -153,6 +153,25 @@ body {
     gap: 12px !important;
     width: 100% !important;
     display: grid !important;
+  }
+  
+  /* Scenes grid mobile - Force 2 columns */
+  .scenes-grid,
+  div.scenes-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    display: grid !important;
+  }
+  
+  /* Hide scene info section on mobile */
+  .scene-card > div:nth-child(2) {
+    display: none !important;
+  }
+  
+  /* Show scene title overlay on mobile */
+  .scene-title-overlay {
+    display: block !important;
   }
   
   /* Additional specificity for campaigns page */
@@ -294,6 +313,20 @@ body {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
     display: grid !important;
+  }
+  
+  /* Scenes grid extra small screens */
+  .scenes-grid,
+  div.scenes-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    display: grid !important;
+  }
+  
+  /* Scene title overlay extra small screens */
+  .scene-title-overlay {
+    font-size: 10px !important;
+    padding: 6px !important;
   }
   
   /* Products and Models grid extra small screens */
