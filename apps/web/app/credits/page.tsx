@@ -419,7 +419,7 @@ export default function CreditsPage() {
         </div>
 
         {/* Current Subscription - Show if subscription_type exists */}
-        {user?.subscription_type ? (
+        {user?.subscription_type && (
           <div
             style={{
               backgroundColor: "#FFFFFF",
@@ -570,36 +570,35 @@ export default function CreditsPage() {
               </div>
             </div>
           </div>
-        ) : (
-          /* No Subscription Message */
-          user &&
-          !user.subscription_type && (
-            <div
+        )}
+
+        {/* No Subscription Message */}
+        {user && !user.subscription_type && (
+          <div
+            style={{
+              backgroundColor: "#F0F9FF",
+              borderRadius: "16px",
+              border: "1px solid #BAE6FD",
+              padding: "24px",
+              marginBottom: "40px",
+              textAlign: "center",
+            }}
+          >
+            <h3
               style={{
-                backgroundColor: "#F0F9FF",
-                borderRadius: "16px",
-                border: "1px solid #BAE6FD",
-                padding: "24px",
-                marginBottom: "40px",
-                textAlign: "center",
+                fontSize: "20px",
+                fontWeight: "600",
+                color: "#1E293B",
+                marginBottom: "12px",
               }}
             >
-              <h3
-                style={{
-                  fontSize: "20px",
-                  fontWeight: "600",
-                  color: "#1E293B",
-                  marginBottom: "12px",
-                }}
-              >
-                No Active Subscription
-              </h3>
-              <p style={{ fontSize: "14px", color: "#64748B", margin: 0 }}>
-                You don't have an active subscription yet. Choose a plan below
-                to get started with subscription credits.
-              </p>
-            </div>
-          )
+              No Active Subscription
+            </h3>
+            <p style={{ fontSize: "14px", color: "#64748B", margin: 0 }}>
+              You don't have an active subscription yet. Choose a plan below
+              to get started with subscription credits.
+            </p>
+          </div>
         )}
 
         {/* Subscription Upsell Banner */}
