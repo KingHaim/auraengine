@@ -30,6 +30,18 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Debug: Log user credits changes
+  useEffect(() => {
+    if (user) {
+      console.log("🔍 AppLayout User Credits Debug:", {
+        subscription_credits: user.subscription_credits,
+        purchased_credits: user.credits,
+        total: (user.subscription_credits ?? 0) + (user.credits ?? 0),
+        user: user
+      });
+    }
+  }, [user]);
+
   // Check if mobile on mount and resize
   useEffect(() => {
     const checkMobile = () => {
