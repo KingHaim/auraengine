@@ -743,7 +743,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                       color: "#9BA3AF",
                     }}
                   >
-                    {user.credits} credits
+                    {(user.subscription_credits || 0) + (user.credits || 0)} credits
                   </div>
                 </div>
               )}

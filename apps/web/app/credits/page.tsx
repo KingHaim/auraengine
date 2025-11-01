@@ -5,7 +5,7 @@ import AppLayout from "../../components/AppLayout";
 import StripePaymentForm from "../../components/StripePaymentForm";
 
 export default function CreditsPage() {
-  const { user, token, loading } = useAuth();
+  const { user, token, loading, refreshUser } = useAuth();
   const [stripePublishableKey, setStripePublishableKey] = useState<
     string | null
   >(null);
@@ -151,10 +151,10 @@ export default function CreditsPage() {
       const urlParams = new URLSearchParams(window.location.search);
       const subscriptionParam = urlParams.get("subscription");
       const sessionId = urlParams.get("session_id");
-      
+
       if (subscriptionParam === "success" && sessionId && token) {
         console.log("🔍 Verifying subscription checkout session:", sessionId);
-        
+
         try {
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/subscriptions/verify-checkout`,
@@ -167,21 +167,24 @@ export default function CreditsPage() {
               body: JSON.stringify({ session_id: sessionId }),
             }
           );
-          
+
           const data = await response.json();
-          
+
           if (response.ok) {
             console.log("✅ Subscription verified and activated:", data);
-            setMessage("Subscription activated successfully! Welcome to your new plan.");
+            setMessage(
+              "Subscription activated successfully! Welcome to your new plan."
+            );
             // Remove query params and refresh user data
             window.history.replaceState({}, "", window.location.pathname);
-            // Reload to get updated user data
-            setTimeout(() => {
-              window.location.reload();
-            }, 1000);
+            // Refresh user data to update credits in header
+            await refreshUser();
           } else {
             console.error("❌ Subscription verification failed:", data);
-            setMessage(data.detail || "Failed to verify subscription. Please contact support.");
+            setMessage(
+              data.detail ||
+                "Failed to verify subscription. Please contact support."
+            );
           }
         } catch (error) {
           console.error("❌ Error verifying subscription:", error);
@@ -189,7 +192,7 @@ export default function CreditsPage() {
         }
       }
     };
-    
+
     verifySubscription();
   }, [token]);
 
@@ -259,15 +262,11 @@ export default function CreditsPage() {
           setMessage(
             "Subscription activated successfully! Welcome to your new plan."
           );
-          // Reload to get updated user data
-          setTimeout(() => {
-            window.location.reload();
-          }, 1500);
+          // Refresh user data to update credits in header
+          await refreshUser();
         } else if (data.status === "active") {
           setMessage("Your subscription is already active.");
-          setTimeout(() => {
-            window.location.reload();
-          }, 1500);
+          await refreshUser();
         } else {
           setMessage(
             data.message ||
@@ -697,7 +696,13 @@ export default function CreditsPage() {
             >
               No Active Subscription
             </h3>
-            <p style={{ fontSize: "14px", color: "#64748B", marginBottom: "16px" }}>
+            <p
+              style={{
+                fontSize: "14px",
+                color: "#64748B",
+                marginBottom: "16px",
+              }}
+            >
               You don't have an active subscription yet. Choose a plan below to
               get started with subscription credits.
             </p>
@@ -726,7 +731,8 @@ export default function CreditsPage() {
                 margin: 0,
               }}
             >
-              If you just completed payment, click here to activate your subscription
+              If you just completed payment, click here to activate your
+              subscription
             </p>
           </div>
         )}
