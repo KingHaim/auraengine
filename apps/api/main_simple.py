@@ -3721,16 +3721,16 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         print(f"⏱️ Duration: {duration_seconds}s")
         
         try:
-        out = replicate.run(
-            "google/veo-3.1",
-            input={
-                "prompt": custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness",
-                "reference_image": image_url,
-                "aspect_ratio": aspect_ratio,
-                "duration": duration_seconds,
-                "quality": "high"  # Veo 3.1 always high quality
-            }
-        )
+            out = replicate.run(
+                "google/veo-3.1",
+                input={
+                    "prompt": custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness",
+                    "reference_image": image_url,
+                    "aspect_ratio": aspect_ratio,
+                    "duration": duration_seconds,
+                    "quality": "high"  # Veo 3.1 always high quality
+                }
+            )
             print(f"✅ Veo API call successful, processing output...")
         except replicate.exceptions.ModelError as model_error:
             # Handle content moderation errors specifically
