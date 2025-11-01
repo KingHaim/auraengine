@@ -1844,8 +1844,8 @@ def rembg_cutout(photo_url: str) -> Image.Image:
             
             # Download the result
             print(f"📥 Downloading rembg result from: {result_url[:80]}...")
-        import requests
-        from io import BytesIO
+            import requests
+            from io import BytesIO
             result_response = requests.get(result_url, timeout=10)
             result_response.raise_for_status()
             result_img = Image.open(BytesIO(result_response.content)).convert("RGBA")
@@ -1904,7 +1904,7 @@ def rembg_cutout(photo_url: str) -> Image.Image:
             return Image.open(BytesIO(response.content)).convert("RGBA")
         except:
             # Last resort: return blank image
-        return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
+            return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
 
 def postprocess_cutout(img_rgba: Image.Image) -> Image.Image:
     """Clean up the cutout image"""
