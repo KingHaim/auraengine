@@ -419,158 +419,187 @@ export default function CreditsPage() {
         </div>
 
         {/* Current Subscription - Show if subscription_type exists */}
-        {user?.subscription_type && (
+        {user?.subscription_type ? (
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: "16px",
+              border: "2px solid #d42f48",
+              padding: "24px",
+              marginBottom: "40px",
+            }}
+          >
             <div
               style={{
-                backgroundColor: "#FFFFFF",
-                borderRadius: "16px",
-                border: "2px solid #d42f48",
-                padding: "24px",
-                marginBottom: "40px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                flexWrap: "wrap",
+                gap: "16px",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  flexWrap: "wrap",
-                  gap: "16px",
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <div
+              <div style={{ flex: 1 }}>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: "#d42f48",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Current Subscription
+                </div>
+                <h3
+                  style={{
+                    fontSize: "24px",
+                    fontWeight: "700",
+                    color: "#1E293B",
+                    marginBottom: "8px",
+                  }}
+                >
+                  {user.subscription_type
+                    ? user.subscription_type.charAt(0).toUpperCase() +
+                      user.subscription_type.slice(1)
+                    : "Unknown"}
+                </h3>
+                <div
+                  style={{
+                    fontSize: "14px",
+                    color: "#64748B",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Status:{" "}
+                  <span
                     style={{
-                      fontSize: "12px",
+                      color:
+                        user.subscription_status === "active"
+                          ? "#10B981"
+                          : user.subscription_status === "cancelled"
+                          ? "#F59E0B"
+                          : "#64748B",
                       fontWeight: "600",
-                      color: "#d42f48",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                      marginBottom: "8px",
+                      textTransform: "capitalize",
                     }}
                   >
-                    Current Subscription
-                  </div>
-                  <h3
-                    style={{
-                      fontSize: "24px",
-                      fontWeight: "700",
-                      color: "#1E293B",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    {user.subscription_type
-                      ? user.subscription_type.charAt(0).toUpperCase() +
-                        user.subscription_type.slice(1)
-                      : "Unknown"}
-                  </h3>
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      color: "#64748B",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    Status:{" "}
-                    <span
-                      style={{
-                        color:
-                          user.subscription_status === "active"
-                            ? "#10B981"
-                            : user.subscription_status === "cancelled"
-                            ? "#F59E0B"
-                            : "#64748B",
-                        fontWeight: "600",
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      {user.subscription_status || "inactive"}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      color: "#64748B",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    {user.subscription_credits || 0} credits/month
-                  </div>
-                  {user.subscription_expires_at ? (
-                    <div
-                      style={{
-                        fontSize: "13px",
-                        color: "#64748B",
-                      }}
-                    >
-                      {user.subscription_status === "cancelled"
-                        ? `Access until ${new Date(
-                            user.subscription_expires_at
-                          ).toLocaleDateString()}`
-                        : `Renews on ${new Date(
-                            user.subscription_expires_at
-                          ).toLocaleDateString()}`}
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        fontSize: "13px",
-                        color: "#64748B",
-                      }}
-                    >
-                      No expiration date
-                    </div>
-                  )}
+                    {user.subscription_status || "inactive"}
+                  </span>
                 </div>
                 <div
                   style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                    alignItems: "flex-end",
+                    fontSize: "14px",
+                    color: "#64748B",
+                    marginBottom: "12px",
                   }}
                 >
-                  {user.subscription_status === "active" && (
-                    <button
-                      onClick={handleCancelSubscription}
-                      disabled={isCancelling}
-                      style={{
-                        padding: "10px 20px",
-                        backgroundColor: isCancelling ? "#9CA3AF" : "#DC2626",
-                        color: "#FFFFFF",
-                        border: "none",
-                        borderRadius: "8px",
-                        fontSize: "14px",
-                        fontWeight: "600",
-                        cursor: isCancelling ? "not-allowed" : "pointer",
-                        transition: "all 0.2s",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {isCancelling ? "Cancelling..." : "Cancel Subscription"}
-                    </button>
-                  )}
-                  {user.subscription_status === "cancelled" && (
-                    <div
-                      style={{
-                        padding: "10px 20px",
-                        backgroundColor: "#FEF3C7",
-                        color: "#92400E",
-                        border: "1px solid #F59E0B",
-                        borderRadius: "8px",
-                        fontSize: "14px",
-                        fontWeight: "600",
-                        whiteSpace: "nowrap",
-                        textAlign: "center",
-                      }}
-                    >
-                      Cancelled - Access Until Expiration
-                    </div>
-                  )}
+                  {user.subscription_credits || 0} credits/month
                 </div>
+                {user.subscription_expires_at ? (
+                  <div
+                    style={{
+                      fontSize: "13px",
+                      color: "#64748B",
+                    }}
+                  >
+                    {user.subscription_status === "cancelled"
+                      ? `Access until ${new Date(
+                          user.subscription_expires_at
+                        ).toLocaleDateString()}`
+                      : `Renews on ${new Date(
+                          user.subscription_expires_at
+                        ).toLocaleDateString()}`}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      fontSize: "13px",
+                      color: "#64748B",
+                    }}
+                  >
+                    No expiration date
+                  </div>
+                )}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                  alignItems: "flex-end",
+                }}
+              >
+                {user.subscription_status === "active" && (
+                  <button
+                    onClick={handleCancelSubscription}
+                    disabled={isCancelling}
+                    style={{
+                      padding: "10px 20px",
+                      backgroundColor: isCancelling ? "#9CA3AF" : "#DC2626",
+                      color: "#FFFFFF",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      cursor: isCancelling ? "not-allowed" : "pointer",
+                      transition: "all 0.2s",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {isCancelling ? "Cancelling..." : "Cancel Subscription"}
+                  </button>
+                )}
+                {user.subscription_status === "cancelled" && (
+                  <div
+                    style={{
+                      padding: "10px 20px",
+                      backgroundColor: "#FEF3C7",
+                      color: "#92400E",
+                      border: "1px solid #F59E0B",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      whiteSpace: "nowrap",
+                      textAlign: "center",
+                    }}
+                  >
+                    Cancelled - Access Until Expiration
+                  </div>
+                )}
+              </div>
               </div>
             </div>
-          )}
+          ) : (
+          /* No Subscription Message */
+          user && !user.subscription_type && (
+            <div
+              style={{
+                backgroundColor: "#F0F9FF",
+                borderRadius: "16px",
+                border: "1px solid #BAE6FD",
+                padding: "24px",
+                marginBottom: "40px",
+                textAlign: "center",
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  color: "#1E293B",
+                  marginBottom: "12px",
+                }}
+              >
+                No Active Subscription
+              </h3>
+              <p style={{ fontSize: "14px", color: "#64748B", margin: 0 }}>
+                You don't have an active subscription yet. Choose a plan below to
+                get started with subscription credits.
+              </p>
+            </div>
+          )
+        )}
 
         {/* Subscription Upsell Banner */}
         {(!user?.subscription_status ||
