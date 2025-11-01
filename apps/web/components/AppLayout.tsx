@@ -745,12 +745,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   >
                     {((user.subscription_credits ?? 0) + (user.credits ?? 0))}{" "}
                     credits
-                    {console.log("🔍 Header Credits Debug:", {
-                      subscription_credits: user.subscription_credits,
-                      purchased_credits: user.credits,
-                      total: (user.subscription_credits ?? 0) + (user.credits ?? 0),
-                      user: user
-                    })}
                   </div>
                 </div>
               )}

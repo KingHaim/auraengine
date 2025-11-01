@@ -193,6 +193,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("aura_token");
   };
 
+  const refreshUser = async () => {
+    const currentToken = token || localStorage.getItem("aura_token");
+    if (currentToken) {
+      await fetchUserInfo(currentToken);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -202,6 +209,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register,
         logout,
         loading,
+        refreshUser,
       }}
     >
       {children}
