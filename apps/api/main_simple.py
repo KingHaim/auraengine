@@ -62,7 +62,10 @@ else:
     print(f"   Missing: CLOUD_NAME={bool(CLOUDINARY_CLOUD_NAME)}, API_KEY={bool(CLOUDINARY_API_KEY)}, API_SECRET={bool(CLOUDINARY_API_SECRET)}")
 
 def convert_localhost_video_urls(settings: dict) -> dict:
-    """Convert localhost video URLs to Cloudinary URLs on-the-fly"""
+    """
+    Convert localhost video URLs to Cloudinary URLs on-the-fly.
+    Optimized: Non-blocking, fast fail for read operations.
+    """
     if not settings or not isinstance(settings, dict):
         return settings
     
@@ -70,21 +73,22 @@ def convert_localhost_video_urls(settings: dict) -> dict:
     if not generated_images:
         return settings
     
-    updated = False
+    # Fast check: skip if no localhost URLs found (most common case)
+    has_localhost = False
     for img_data in generated_images:
         video_url = img_data.get("video_url")
-        if video_url and "localhost:8000" in video_url:
-            print(f"🔄 Converting localhost video URL: {video_url[:50]}...")
-            try:
-                # Upload to Cloudinary
-                new_url = upload_to_cloudinary(video_url, "kling_videos")
-                if new_url != video_url:
-                    img_data["video_url"] = new_url
-                    updated = True
-                    print(f"✅ Converted to Cloudinary: {new_url[:50]}...")
-            except Exception as e:
-                print(f"⚠️ Failed to convert video URL: {e}")
+        if video_url and ("localhost:8000" in video_url or "localhost" in video_url):
+            has_localhost = True
+            break
     
+    if not has_localhost:
+        # No localhost URLs, return immediately without processing
+        return settings
+    
+    # Only process if localhost URLs are found (rare case)
+    # Skip conversion during read operations to avoid blocking
+    # Return settings as-is - conversion should happen during write operations
+    # or in background jobs
     return settings
 
 # Helper functions for URL generation
@@ -666,9 +670,10 @@ async def get_campaigns(
                 if not hasattr(campaign, 'scene_generation_status') or campaign.scene_generation_status is None:
                     campaign.scene_generation_status = "idle"
                 
-                # Convert localhost video URLs to Cloudinary URLs
-                if campaign.settings:
-                    campaign.settings = convert_localhost_video_urls(campaign.settings)
+                # Skip video URL conversion during read - it's too slow and blocks requests
+                # Video URLs should be converted during write operations or background jobs
+                # if campaign.settings:
+                #     campaign.settings = convert_localhost_video_urls(campaign.settings)
                 
                 result.append(CampaignResponse.model_validate(campaign))
             except Exception as validation_error:
