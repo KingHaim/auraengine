@@ -3909,10 +3909,30 @@ def run_veo_direct_generation(model_image: str, product_image: str, scene_image:
         return None
 
 def download_and_save_video(url: str) -> str:
-    """Download video from URL and save it locally"""
+    """
+    Download video from URL and upload to Cloudinary (or save locally if Cloudinary not available).
+    Returns Cloudinary URL for production, localhost URL as fallback.
+    """
     try:
+        # First, try to upload directly to Cloudinary from the URL
+        if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+            try:
+                print(f"☁️ Uploading video to Cloudinary from: {url[:100]}...")
+                result = cloudinary.uploader.upload(
+                    url,
+                    folder="kling_videos",
+                    public_id=f"kling_videos_{uuid.uuid4().hex}",
+                    resource_type="video"
+                )
+                cloudinary_url = result['secure_url']
+                print(f"✅ Video uploaded to Cloudinary: {cloudinary_url[:100]}...")
+                return cloudinary_url
+            except Exception as cloudinary_error:
+                print(f"⚠️ Failed to upload video to Cloudinary: {cloudinary_error}")
+                print(f"📥 Falling back to local download...")
+        
+        # Fallback: Download and save locally (for development or if Cloudinary fails)
         import requests
-        import uuid
         
         print(f"📥 Downloading video from: {url[:100]}...")
         response = requests.get(url, timeout=60)
@@ -3927,13 +3947,37 @@ def download_and_save_video(url: str) -> str:
         with open(filepath, "wb") as f:
             f.write(response.content)
         
-        # Return local URL
+        # Try to upload the saved file to Cloudinary
+        if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+            try:
+                print(f"☁️ Uploading saved video file to Cloudinary...")
+                result = cloudinary.uploader.upload(
+                    filepath,
+                    folder="kling_videos",
+                    public_id=f"kling_videos_{video_id}",
+                    resource_type="video"
+                )
+                cloudinary_url = result['secure_url']
+                print(f"✅ Video uploaded to Cloudinary: {cloudinary_url[:100]}...")
+                # Clean up local file after successful upload
+                try:
+                    os.remove(filepath)
+                    print(f"🗑️ Removed local video file after Cloudinary upload")
+                except:
+                    pass
+                return cloudinary_url
+            except Exception as upload_error:
+                print(f"⚠️ Failed to upload saved video to Cloudinary: {upload_error}")
+        
+        # Return local URL only as last resort
         local_url = get_static_url(filename)
         print(f"✅ Video saved locally: {local_url}")
         return local_url
         
     except Exception as e:
-        print(f"❌ Failed to download video: {e}")
+        print(f"❌ Failed to download/save video: {e}")
+        import traceback
+        traceback.print_exc()
         return url  # Return original URL as fallback
 
 class TweakImageRequest(BaseModel):
