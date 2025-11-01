@@ -2140,8 +2140,8 @@ def rembg_cutout(photo_url: str) -> Image.Image:
             
             # Download the result
             print(f"📥 Downloading rembg result from: {result_url[:80]}...")
-            import requests
-            from io import BytesIO
+        import requests
+        from io import BytesIO
             result_response = requests.get(result_url, timeout=10)
             result_response.raise_for_status()
             result_img = Image.open(BytesIO(result_response.content)).convert("RGBA")
@@ -2200,7 +2200,7 @@ def rembg_cutout(photo_url: str) -> Image.Image:
             return Image.open(BytesIO(response.content)).convert("RGBA")
         except:
             # Last resort: return blank image
-            return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
+        return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
 
 def postprocess_cutout(img_rgba: Image.Image) -> Image.Image:
     """Clean up the cutout image"""
@@ -2638,7 +2638,7 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 except Exception as conv_error:
                     print(f"⚠️ WEBP→PNG conversion failed: {conv_error}")
                     print(f"⚠️ Using original WEBP packshot (Vella may not use it correctly)")
-                    garment_url = product_image_url
+                garment_url = product_image_url
                     print(f"🧵 Garment URL (WEBP fallback): {garment_url[:80]}...")
             elif has_alpha(product_image_url) and not is_packshot:
                 # Only skip processing if it already has alpha AND it's not a packshot
@@ -2648,11 +2648,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 print("🪄 Processing garment image (removing background)...")
                 print(f"   Input: {product_image_url[:80]}...")
                 try:
-                    cut = rembg_cutout(product_image_url)
+                cut = rembg_cutout(product_image_url)
                     print(f"✅ Background removal complete, image size: {cut.size}")
-                    cut = postprocess_cutout(cut)
+                cut = postprocess_cutout(cut)
                     print(f"✅ Post-processing complete, final size: {cut.size}")
-                    garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
+                garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
                     print(f"🧵 Garment cutout saved: {garment_url[:80]}...")
                 except Exception as rembg_error:
                     print(f"⚠️ Background removal failed: {rembg_error}")
@@ -3721,17 +3721,30 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         print(f"⏱️ Duration: {duration_seconds}s")
         
         try:
-            out = replicate.run(
-                "google/veo-3.1",
-                input={
-                    "prompt": custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness",
-                    "reference_image": image_url,
-                    "aspect_ratio": aspect_ratio,
-                    "duration": duration_seconds,
-                    "quality": "high"  # Veo 3.1 always high quality
-                }
-            )
+        out = replicate.run(
+            "google/veo-3.1",
+            input={
+                "prompt": custom_prompt or "gentle natural movement, subtle breathing, soft fabric flow, professional fashion photography, minimal motion, elegant stillness",
+                "reference_image": image_url,
+                "aspect_ratio": aspect_ratio,
+                "duration": duration_seconds,
+                "quality": "high"  # Veo 3.1 always high quality
+            }
+        )
             print(f"✅ Veo API call successful, processing output...")
+        except replicate.exceptions.ModelError as model_error:
+            # Handle content moderation errors specifically
+            error_str = str(model_error)
+            if "flagged as sensitive" in error_str or "E005" in error_str:
+                print(f"⚠️ Veo content moderation: Image flagged as sensitive")
+                print(f"💡 Suggestion: Try using a different model (Kling, Seedance, or Wan) or use a different image")
+                raise ValueError("Image was flagged as sensitive by Veo's content moderation. Please try a different image or use another video model (Kling, Seedance, or Wan).")
+            else:
+                print(f"❌ Veo ModelError: {model_error}")
+                raise
+        except replicate.exceptions.ReplicateError as replicate_error:
+            print(f"❌ Veo ReplicateError: {replicate_error}")
+            raise
         except Exception as api_error:
             print(f"❌ Veo API call failed: {api_error}")
             print(f"🔍 Error type: {type(api_error)}")
