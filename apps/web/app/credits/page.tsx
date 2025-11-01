@@ -70,6 +70,9 @@ export default function CreditsPage() {
       color: "#d42f48", // Light blue
       anchor: false,
       perCredit: 0.21,
+      priceId: "price_1SOSwrP94ZYHDynVdyUPwWPY", // Add your Stripe Price ID here
+      monthlyPriceId: "", // Add monthly price ID if different
+      annualPriceId: "", // Add annual price ID if different
     },
     {
       name: "Professional",
@@ -160,7 +163,9 @@ export default function CreditsPage() {
     setSelectedPackage(null);
   };
 
-  const handleSubscribe = async (tier: typeof subscriptionTiers[0]) => {
+  const handleSubscribe = async (tier: (typeof subscriptionTiers)[0]) => {
+    console.log("🔔 handleSubscribe called for tier:", tier.name);
+    
     if (!token) {
       setMessage("Please sign in to create a subscription");
       return;
@@ -172,6 +177,22 @@ export default function CreditsPage() {
     try {
       const price = isAnnual ? tier.annualPrice : tier.monthlyPrice;
       const amountInCents = Math.round(price * 100); // Convert to cents
+      
+      // Use the appropriate price ID based on annual/monthly selection
+      let priceId = tier.priceId || "";
+      if (isAnnual && tier.annualPriceId) {
+        priceId = tier.annualPriceId;
+      } else if (!isAnnual && tier.monthlyPriceId) {
+        priceId = tier.monthlyPriceId;
+      }
+
+      console.log("📤 Creating subscription checkout:", {
+        subscription_type: tier.name.toLowerCase(),
+        price_id: priceId,
+        is_annual: isAnnual,
+        credits: tier.credits,
+        amount: amountInCents,
+      });
 
       // Create subscription checkout session via API
       const response = await fetch(
@@ -184,7 +205,7 @@ export default function CreditsPage() {
           },
           body: JSON.stringify({
             subscription_type: tier.name.toLowerCase(),
-            price_id: tier.priceId || "", // We'll add Stripe price IDs later
+            price_id: priceId,
             is_annual: isAnnual,
             credits: tier.credits,
             amount: amountInCents,
@@ -192,21 +213,27 @@ export default function CreditsPage() {
         }
       );
 
+      console.log("📥 API Response status:", response.status);
+
       if (!response.ok) {
         const error = await response.json();
+        console.error("❌ API Error:", error);
         throw new Error(error.detail || "Failed to create subscription");
       }
 
-      const { checkout_url } = await response.json();
+      const data = await response.json();
+      console.log("✅ Checkout data received:", data);
+      const { checkout_url } = data;
 
       // Redirect to Stripe Checkout
       if (checkout_url) {
+        console.log("🔗 Redirecting to Stripe Checkout:", checkout_url);
         window.location.href = checkout_url;
       } else {
         throw new Error("No checkout URL received");
       }
     } catch (error) {
-      console.error("Subscription creation failed:", error);
+      console.error("❌ Subscription creation failed:", error);
       setMessage(
         `Subscription creation failed: ${
           error instanceof Error ? error.message : String(error)
