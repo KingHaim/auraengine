@@ -3501,7 +3501,7 @@ def run_qwen_packshot_front_back(
         else:
             clothing_type_instruction = " CRITICAL: Extract and preserve EXACTLY the product shown in the source image. Do NOT generate or create a new product. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image."
             print("⚠️ No clothing type specified - extracting product as shown")
-        front_prompt = f"Extract and isolate the {clothing_type if clothing_type else 'product'} from the source image EXACTLY as shown. Preserve the EXACT design, colors, patterns, logos, text, and all visual details from the source image. Do NOT generate a new product. Ultra-clean studio packshot, front view, on pure white seamless background. Even softbox lighting. Soft contact shadow. No props, no text overlays, no watermark. Crisp edges.{clothing_type_instruction} {user_mods}"
+        front_prompt = f"Extract and isolate the {clothing_type if clothing_type else 'product'} from the input image EXACTLY as shown. Preserve the EXACT design, colors, patterns, logos, text, graphics, and all visual details from the input image. Do NOT generate or create a new product. Use ONLY the product shown in the input image. Ultra-clean studio packshot, front view, on pure white seamless background. Even softbox lighting. Soft contact shadow. No props, no text overlays, no watermark. Crisp edges.{clothing_type_instruction} {user_mods}"
         
         try:
             front_out = replicate.run("qwen/qwen-image-edit-plus", input={
