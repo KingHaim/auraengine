@@ -9,6 +9,14 @@ const spinnerCSS = `
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
 `;
 
 interface Product {
@@ -102,6 +110,7 @@ export default function CampaignsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [models, setModels] = useState<Model[]>([]);
   const [scenes, setScenes] = useState<Scene[]>([]);
+  const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(true);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newCampaign, setNewCampaign] = useState({
@@ -292,10 +301,12 @@ export default function CampaignsPage() {
   const fetchData = async () => {
     if (!token) {
       console.log("No token available, skipping fetch");
+      setIsLoadingCampaigns(false);
       return null;
     }
 
     try {
+      setIsLoadingCampaigns(true);
       console.log("🔍 Fetching campaigns data from API...");
       console.log("Token:", token.substring(0, 20) + "...");
 
@@ -409,9 +420,11 @@ export default function CampaignsPage() {
       }
 
       console.log("✅ Fetched all campaigns data");
+      setIsLoadingCampaigns(false);
       return campaignsData;
     } catch (error) {
       console.error("💥 Error fetching campaigns data:", error);
+      setIsLoadingCampaigns(false);
       return [];
     }
   };
@@ -1779,10 +1792,69 @@ export default function CampaignsPage() {
               marginBottom: "16px",
             }}
           >
-            YOUR CAMPAIGNS ({campaigns.length})
+            YOUR CAMPAIGNS ({isLoadingCampaigns ? "..." : campaigns.length})
           </div>
 
-          {campaigns.length === 0 ? (
+          {isLoadingCampaigns ? (
+            <div
+              className="campaign-grid"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                gap: "12px",
+                width: "100%",
+                maxWidth: "100%",
+                boxSizing: "border-box",
+                alignItems: "start",
+              }}
+            >
+              {[...Array(6)].map((_, index) => (
+                <div
+                  key={`loading-${index}`}
+                  className="campaign-card"
+                  style={{
+                    borderRadius: "16px",
+                    overflow: "hidden",
+                    position: "relative",
+                    background: "#E5E7EB",
+                    display: "flex",
+                    flexDirection: "column",
+                    width: "100%",
+                    maxWidth: "100%",
+                    boxSizing: "border-box",
+                    aspectRatio: "1",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "100%",
+                      aspectRatio: "1",
+                      position: "relative",
+                      overflow: "hidden",
+                      backgroundColor: "#D1D5DB",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <img
+                      src="/beating.gif"
+                      alt="Loading"
+                      style={{
+                        width: "48px",
+                        height: "48px",
+                        animation: "heartbeat 1s ease-in-out infinite",
+                      }}
+                      onError={(e) => {
+                        // Fallback to heart.png if beating.gif doesn't exist
+                        e.currentTarget.src = "/heart.png";
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : campaigns.length === 0 ? (
             <div
               style={{
                 textAlign: "center",
