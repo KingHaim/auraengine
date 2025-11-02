@@ -3490,40 +3490,43 @@ def run_qwen_packshot_front_back(
     try:
         print("Processing product image for front and back packshots...")
         
-        # Step 1: Ensure we have a public URL (Cloudinary) for Replicate
-        # Replicate needs accessible URLs, not localhost or data URLs
-        print(f"Original product_image_url: {product_image_url[:100] if len(product_image_url) > 100 else product_image_url}...")
-        
-        # Convert localhost or data URLs to Cloudinary URLs
-        if product_image_url.startswith("data:image/"):
-            print("Converting data URL to Cloudinary...")
-            product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
-            print(f"✅ Converted to Cloudinary: {product_png_url[:100]}...")
-        elif product_image_url.startswith(get_base_url() + "/static/"):
-            filename = product_image_url.replace(get_base_url() + "/static/", "")
-            filepath = f"uploads/{filename}"
-            # Upload to Cloudinary first, then use that URL
-            product_png_url = upload_to_cloudinary(f"http://localhost:8000{product_image_url}" if "localhost" in get_base_url() else product_image_url, "product_temp")
-            print(f"✅ Converted local file to Cloudinary: {product_png_url[:100]}...")
-        elif product_image_url.startswith("http://localhost"):
-            # Upload localhost URL to Cloudinary
-            product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
-            print(f"✅ Converted localhost URL to Cloudinary: {product_png_url[:100]}...")
-        else:
-            # Already a public URL (Cloudinary or external)
-            product_png_url = product_image_url
-            print(f"✅ Using existing public URL: {product_png_url[:100]}...")
+        # Step 1: Try to remove background using rembg (better for extraction than Qwen)
+        print(f"🔄 Attempting background removal with rembg for better extraction...")
+        try:
+            if not has_alpha(product_image_url):
+                print("Removing background from product image using rembg...")
+                cut = rembg_cutout(product_image_url)
+                cut = postprocess_cutout(cut)
+                product_png_url = upload_pil_to_cloudinary(cut, "packshot_front")
+                print(f"✅ Background removed, saved to Cloudinary: {product_png_url[:100]}...")
+            else:
+                print("Product image already has alpha channel")
+                # Still upload to Cloudinary to ensure public URL
+                if product_image_url.startswith("data:image/") or product_image_url.startswith("http://localhost"):
+                    product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
+                else:
+                    product_png_url = product_image_url
+        except Exception as rembg_error:
+            print(f"⚠️ Background removal failed: {rembg_error}. Using original image...")
+            # Upload original to Cloudinary
+            if product_image_url.startswith("data:image/"):
+                product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
+            elif product_image_url.startswith(get_base_url() + "/static/"):
+                filename = product_image_url.replace(get_base_url() + "/static/", "")
+                product_png_url = upload_to_cloudinary(f"http://localhost:8000/static/{filename}", "product_temp")
+            elif product_image_url.startswith("http://localhost"):
+                product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
+            else:
+                product_png_url = product_image_url
 
-        # Step 2: Generate front packshot
+        # Step 2: For front packshot, if rembg worked, just add white background with minimal Qwen edit
         print("Generating front packshot...")
         if clothing_type:
             print(f"👕 Clothing type specified: {clothing_type}")
-            clothing_type_instruction = f" Keep the {clothing_type} unchanged - same colors, design, patterns, logo, text, graphics. Remove other items."
-        else:
-            clothing_type_instruction = " CRITICAL: Extract and preserve EXACTLY the product shown in the source image. Do NOT generate or create a new product. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image."
-            print("⚠️ No clothing type specified - extracting product as shown")
-        # Ultra-minimal prompt - Qwen works better with simple instructions
-        front_prompt = f"White background. Keep {clothing_type if clothing_type else 'product'} unchanged."
+        
+        # If we already have a cutout (transparent background), just use Qwen to add white background
+        # with minimal strength so it doesn't change the product
+        front_prompt = f"White background only. Do not change the product at all."
         
         try:
             print(f"🎨 Calling Qwen with URL: {product_png_url[:100]}...")
@@ -3531,9 +3534,9 @@ def run_qwen_packshot_front_back(
             front_out = replicate.run("qwen/qwen-image-edit-plus", input={
                 "prompt": front_prompt,
                 "image": [product_png_url],
-                "num_inference_steps": 20,  # Lower steps = less creative interpretation
-                "guidance_scale": 7.0,
-                "strength": 0.1  # Extremely low strength - almost no changes except background
+                "num_inference_steps": 15,  # Very low steps - minimal processing
+                "guidance_scale": 5.0,  # Lower guidance - less strict adherence (paradoxically may help)
+                "strength": 0.05  # Extremely low strength - barely any changes
             })
             
             # Handle different return types
