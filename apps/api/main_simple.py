@@ -3561,20 +3561,18 @@ def run_qwen_packshot_front_back(
         # Step 3: Generate back packshot
         print("Generating back packshot...")
         if clothing_type:
-            clothing_type_instruction = f" Keep the {clothing_type} unchanged - same colors, design, patterns, logo, text, graphics. Remove other items."
+            back_prompt = f"Extract the {clothing_type} from the image and create a professional packshot showing the back view on white background. Match the exact {clothing_type} design, colors, and details."
         else:
-            clothing_type_instruction = " CRITICAL: Extract and preserve EXACTLY the product shown in the source image. Do NOT generate or create a new product. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image."
-        # For back view, we can't reliably extract it - just use same image with white background
-        # Qwen will generate a back view, but we'll accept it as approximation
-        back_prompt = f"Create a back view of the {clothing_type if clothing_type else 'product'} shown in the input image. Match the colors, design, and style exactly. Place on pure white background.{clothing_type_instruction}"
+            back_prompt = f"Extract the product from the image and create a professional packshot showing the back view on white background. Match the exact product design, colors, and details."
         
         try:
+            print(f"🎨 Calling Qwen for back packshot...")
             back_out = replicate.run("qwen/qwen-image-edit-plus", input={
                 "prompt": back_prompt,
                 "image": [product_png_url],
                 "num_inference_steps": 30,
                 "guidance_scale": 7.5,
-                "strength": 0.3  # Higher strength for back view generation (it needs to create the back)
+                "strength": 0.7  # Higher strength to actually extract and create packshot
             })
             
             # Handle different return types
