@@ -3490,16 +3490,48 @@ def run_qwen_packshot_front_back(
     try:
         print("Processing product image for front and back packshots...")
         
-        # Step 1: Ensure we have a public URL for Replicate
+        # Step 1: Ensure we have a public Cloudinary URL for Replicate (NOT local file paths)
+        print(f"🔄 Processing product_image_url: {product_image_url[:100] if len(product_image_url) > 100 else product_image_url}...")
+        
         if product_image_url.startswith("data:image/"):
             product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
+            print(f"✅ Converted data URL to Cloudinary: {product_png_url[:100]}...")
         elif product_image_url.startswith(get_base_url() + "/static/"):
             filename = product_image_url.replace(get_base_url() + "/static/", "")
-            product_png_url = upload_to_cloudinary(f"http://localhost:8000/static/{filename}", "product_temp")
+            filepath = f"uploads/{filename}"
+            # Read file and upload to Cloudinary
+            import base64
+            with open(filepath, "rb") as f:
+                file_content = f.read()
+                ext = filename.split('.')[-1] if '.' in filename else 'jpg'
+                data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
+                product_png_url = upload_to_cloudinary(data_url, "product_temp")
+            print(f"✅ Converted static file to Cloudinary: {product_png_url[:100]}...")
         elif product_image_url.startswith("http://localhost"):
             product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
-        else:
+            print(f"✅ Converted localhost URL to Cloudinary: {product_png_url[:100]}...")
+        elif product_image_url.startswith("uploads/"):
+            # Direct file path - read and upload to Cloudinary
+            print(f"⚠️ Got direct file path, uploading to Cloudinary...")
+            import base64
+            with open(product_image_url, "rb") as f:
+                file_content = f.read()
+                ext = product_image_url.split('.')[-1] if '.' in product_image_url else 'jpg'
+                data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
+                product_png_url = upload_to_cloudinary(data_url, "product_temp")
+            print(f"✅ Converted file path to Cloudinary: {product_png_url[:100]}...")
+        elif product_image_url.startswith("https://res.cloudinary.com/"):
+            # Already a Cloudinary URL
             product_png_url = product_image_url
+            print(f"✅ Already a Cloudinary URL: {product_png_url[:100]}...")
+        else:
+            # Assume it's a public URL or upload to Cloudinary to be safe
+            if not (product_image_url.startswith("http://") or product_image_url.startswith("https://")):
+                print(f"⚠️ Unknown URL format, attempting to upload to Cloudinary...")
+                product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
+            else:
+                product_png_url = product_image_url
+            print(f"✅ Using URL: {product_png_url[:100]}...")
 
         # Step 2: Simple extraction prompt - what Qwen is designed for
         print("Generating front packshot...")
@@ -3612,11 +3644,16 @@ async def upload_product(
             content = await product_image.read()
             f.write(content)
         
-        # Prefer data URL to avoid /static dependency in this deployment
+        # Upload to Cloudinary first (ensures public URL for packshot generation)
         try:
-            image_url = upload_to_replicate(image_path)
+            image_url = upload_to_cloudinary(f"data:image/{product_image.filename.split('.')[-1]};base64,{base64.b64encode(content).decode()}", "products")
         except Exception:
-            image_url = get_static_url(image_filename)
+            try:
+                # Fallback: upload file path to Cloudinary
+                image_url = upload_to_cloudinary(f"file://{image_path}", "products")
+            except Exception:
+                # Last resort: use static URL
+                image_url = get_static_url(image_filename)
         
         # Initialize packshot URLs
         packshot_front_url = None
