@@ -3512,19 +3512,20 @@ def run_qwen_packshot_front_back(
         print("Generating front packshot...")
         if clothing_type:
             print(f"👕 Clothing type specified: {clothing_type}")
-            clothing_type_instruction = f" CRITICAL INSTRUCTION: Look at the input image carefully. Extract and preserve EXACTLY the {clothing_type} shown in the input image. Do NOT generate, create, or invent a new {clothing_type}. You MUST copy the EXACT same design, colors, patterns, textures, logo, text, graphics, lettering, and every visual detail from the input image. The output must be IDENTICAL to the {clothing_type} in the input image, just isolated on white background. Match the colors exactly. Match the design exactly. Match every detail exactly. Show EXCLUSIVELY this specific {clothing_type} as it appears in the input image. Remove ALL other clothing items, accessories, garments, and outfit pieces."
+            clothing_type_instruction = f" CRITICAL: In the input image, find the {clothing_type}. Keep ONLY that {clothing_type} unchanged - same colors, same design, same patterns, same logo, same text, same graphics, same lettering, same everything. Remove all other clothing, accessories, and items. The {clothing_type} must appear identical to how it looks in the input image, just on a white background."
         else:
             clothing_type_instruction = " CRITICAL: Extract and preserve EXACTLY the product shown in the source image. Do NOT generate or create a new product. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image."
             print("⚠️ No clothing type specified - extracting product as shown")
-        front_prompt = f"Extract and isolate the {clothing_type if clothing_type else 'product'} from the input image EXACTLY as shown. Preserve the EXACT design, colors, patterns, logos, text, graphics, and all visual details from the input image. Do NOT generate or create a new product. Use ONLY the product shown in the input image. Ultra-clean studio packshot, front view, on pure white seamless background. Even softbox lighting. Soft contact shadow. No props, no text overlays, no watermark. Crisp edges.{clothing_type_instruction} {user_mods}"
+        # Based on Qwen Image Edit Plus documentation - use appearance editing for precise extraction
+        front_prompt = f"Keep ONLY the {clothing_type if clothing_type else 'product'} from the input image. Change the background to pure white. Keep everything else pixel-perfect - preserve the EXACT {clothing_type} with identical colors, design, patterns, logos, text, graphics, lettering, and every detail exactly as shown in the input image. Do not modify, generate, or create anything new. Only change the background to white. The {clothing_type} must remain identical to what is in the input image.{clothing_type_instruction} {user_mods}"
         
         try:
             front_out = replicate.run("qwen/qwen-image-edit-plus", input={
                 "prompt": front_prompt,
                 "image": [product_png_url],
-                "num_inference_steps": 40,
-                "guidance_scale": 9.0,
-                "strength": 0.5  # Medium strength to extract product while preserving exact details
+                "num_inference_steps": 50,  # More steps for appearance editing precision
+                "guidance_scale": 9.5,  # Higher guidance for strict adherence
+                "strength": 0.4  # Lower strength for appearance editing - minimal changes, just background
             })
             
             # Handle different return types
@@ -3549,18 +3550,19 @@ def run_qwen_packshot_front_back(
         # Step 3: Generate back packshot
         print("Generating back packshot...")
         if clothing_type:
-            clothing_type_instruction = f" CRITICAL INSTRUCTION: Look at the input image carefully. Extract and preserve EXACTLY the {clothing_type} shown in the input image. Do NOT generate, create, or invent a new {clothing_type}. You MUST copy the EXACT same design, colors, patterns, textures, logo, text, graphics, lettering, and every visual detail from the input image. The output must be IDENTICAL to the {clothing_type} in the input image, just isolated on white background. Match the colors exactly. Match the design exactly. Match every detail exactly. Show EXCLUSIVELY this specific {clothing_type} as it appears in the input image. Remove ALL other clothing items, accessories, garments, and outfit pieces."
+            clothing_type_instruction = f" CRITICAL: In the input image, find the {clothing_type}. Keep ONLY that {clothing_type} unchanged - same colors, same design, same patterns, same logo, same text, same graphics, same lettering, same everything. Remove all other clothing, accessories, and items. The {clothing_type} must appear identical to how it looks in the input image, just on a white background."
         else:
             clothing_type_instruction = " CRITICAL: Extract and preserve EXACTLY the product shown in the source image. Do NOT generate or create a new product. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image."
-        back_prompt = f"Extract and isolate the {clothing_type if clothing_type else 'product'} from the input image EXACTLY as shown. Preserve the EXACT design, colors, patterns, logos, text, graphics, and all visual details from the input image. Do NOT generate or create a new product. Use ONLY the product shown in the input image. Ultra-clean studio packshot, back view, on pure white seamless background. Even softbox lighting. Soft contact shadow. No props, no text overlays, no watermark. Crisp edges.{clothing_type_instruction} {user_mods}"
+        # Based on Qwen Image Edit Plus documentation - use appearance editing for precise extraction
+        back_prompt = f"Keep ONLY the {clothing_type if clothing_type else 'product'} from the input image. Change the background to pure white. Show the back view. Keep everything else pixel-perfect - preserve the EXACT {clothing_type} with identical colors, design, patterns, logos, text, graphics, lettering, and every detail exactly as shown in the input image. Do not modify, generate, or create anything new. Only change the background to white and show the back view. The {clothing_type} must remain identical to what is in the input image.{clothing_type_instruction} {user_mods}"
         
         try:
             back_out = replicate.run("qwen/qwen-image-edit-plus", input={
                 "prompt": back_prompt,
                 "image": [product_png_url],
-                "num_inference_steps": 40,
-                "guidance_scale": 9.0,
-                "strength": 0.5  # Medium strength to extract product while preserving exact details
+                "num_inference_steps": 50,  # More steps for appearance editing precision
+                "guidance_scale": 9.5,  # Higher guidance for strict adherence
+                "strength": 0.4  # Lower strength for appearance editing - minimal changes, just background
             })
             
             # Handle different return types
