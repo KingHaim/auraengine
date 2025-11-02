@@ -2360,26 +2360,41 @@ def rembg_cutout(photo_url: str) -> Image.Image:
     try:
         print(f"🪄 Removing background for: {photo_url[:80]}...")
         
-        # If this is a data URL, decode and use rembg
+        # If this is a data URL, decode and save to temp file, then use rembg
         if photo_url.startswith("data:image"):
             import base64
             from io import BytesIO
+            import tempfile
             header, b64data = photo_url.split(",", 1)
             img_bytes = base64.b64decode(b64data)
-            # Use rembg API to remove background
-            img_io = BytesIO(img_bytes)
-            print("🔄 Calling rembg API for data URL...")
-            out = replicate.run("cjwbw/rembg", input={"image": img_io})
-            if hasattr(out, 'url'):
-                result_url = out.url()
-            elif isinstance(out, str):
-                result_url = out
-            else:
-                result_url = str(out)
-            # Download the result
-            import requests
-            response = requests.get(result_url)
-            return Image.open(BytesIO(response.content)).convert("RGBA")
+            
+            # Save to temporary file (rembg works better with files than BytesIO)
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp_file:
+                tmp_file.write(img_bytes)
+                tmp_file_path = tmp_file.name
+            
+            try:
+                print("🔄 Calling rembg API for data URL (via temp file)...")
+                with open(tmp_file_path, 'rb') as f:
+                    out = replicate.run("cjwbw/rembg", input={"image": f})
+                if hasattr(out, 'url'):
+                    result_url = out.url()
+                elif isinstance(out, str):
+                    result_url = out
+                else:
+                    result_url = str(out)
+                # Download the result
+                import requests
+                response = requests.get(result_url, timeout=10)
+                response.raise_for_status()
+                return Image.open(BytesIO(response.content)).convert("RGBA")
+            finally:
+                # Clean up temp file
+                try:
+                    import os
+                    os.unlink(tmp_file_path)
+                except:
+                    pass
 
         # If it's a local URL, convert to file path and use rembg
         if photo_url.startswith(get_base_url() + "/static/"):
@@ -3497,7 +3512,7 @@ def run_qwen_packshot_front_back(
         print("Generating front packshot...")
         if clothing_type:
             print(f"👕 Clothing type specified: {clothing_type}")
-            clothing_type_instruction = f" CRITICAL: Extract and preserve EXACTLY the {clothing_type} shown in the source image. Do NOT generate or create a new {clothing_type}. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image. Show EXCLUSIVELY this specific {clothing_type} as it appears in the source image - isolated on a white background. Remove ALL other clothing items, accessories, garments, and outfit pieces. The final image must contain ONLY this exact {clothing_type} from the source image with ALL its original colors, patterns, and design elements preserved exactly."
+            clothing_type_instruction = f" CRITICAL INSTRUCTION: Look at the input image carefully. Extract and preserve EXACTLY the {clothing_type} shown in the input image. Do NOT generate, create, or invent a new {clothing_type}. You MUST copy the EXACT same design, colors, patterns, textures, logo, text, graphics, lettering, and every visual detail from the input image. The output must be IDENTICAL to the {clothing_type} in the input image, just isolated on white background. Match the colors exactly. Match the design exactly. Match every detail exactly. Show EXCLUSIVELY this specific {clothing_type} as it appears in the input image. Remove ALL other clothing items, accessories, garments, and outfit pieces."
         else:
             clothing_type_instruction = " CRITICAL: Extract and preserve EXACTLY the product shown in the source image. Do NOT generate or create a new product. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image."
             print("⚠️ No clothing type specified - extracting product as shown")
@@ -3507,9 +3522,9 @@ def run_qwen_packshot_front_back(
             front_out = replicate.run("qwen/qwen-image-edit-plus", input={
                 "prompt": front_prompt,
                 "image": [product_png_url],
-                "num_inference_steps": 30,
-                "guidance_scale": 8.0,
-                "strength": 0.3  # Low strength to preserve exact product from source image
+                "num_inference_steps": 40,
+                "guidance_scale": 9.0,
+                "strength": 0.5  # Medium strength to extract product while preserving exact details
             })
             
             # Handle different return types
@@ -3534,7 +3549,7 @@ def run_qwen_packshot_front_back(
         # Step 3: Generate back packshot
         print("Generating back packshot...")
         if clothing_type:
-            clothing_type_instruction = f" CRITICAL: Extract and preserve EXACTLY the {clothing_type} shown in the source image. Do NOT generate or create a new {clothing_type}. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image. Show EXCLUSIVELY this specific {clothing_type} as it appears in the source image - isolated on a white background. Remove ALL other clothing items, accessories, garments, and outfit pieces. The final image must contain ONLY this exact {clothing_type} from the source image with ALL its original colors, patterns, and design elements preserved exactly."
+            clothing_type_instruction = f" CRITICAL INSTRUCTION: Look at the input image carefully. Extract and preserve EXACTLY the {clothing_type} shown in the input image. Do NOT generate, create, or invent a new {clothing_type}. You MUST copy the EXACT same design, colors, patterns, textures, logo, text, graphics, lettering, and every visual detail from the input image. The output must be IDENTICAL to the {clothing_type} in the input image, just isolated on white background. Match the colors exactly. Match the design exactly. Match every detail exactly. Show EXCLUSIVELY this specific {clothing_type} as it appears in the input image. Remove ALL other clothing items, accessories, garments, and outfit pieces."
         else:
             clothing_type_instruction = " CRITICAL: Extract and preserve EXACTLY the product shown in the source image. Do NOT generate or create a new product. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image."
         back_prompt = f"Extract and isolate the {clothing_type if clothing_type else 'product'} from the input image EXACTLY as shown. Preserve the EXACT design, colors, patterns, logos, text, graphics, and all visual details from the input image. Do NOT generate or create a new product. Use ONLY the product shown in the input image. Ultra-clean studio packshot, back view, on pure white seamless background. Even softbox lighting. Soft contact shadow. No props, no text overlays, no watermark. Crisp edges.{clothing_type_instruction} {user_mods}"
@@ -3543,9 +3558,9 @@ def run_qwen_packshot_front_back(
             back_out = replicate.run("qwen/qwen-image-edit-plus", input={
                 "prompt": back_prompt,
                 "image": [product_png_url],
-                "num_inference_steps": 30,
-                "guidance_scale": 8.0,
-                "strength": 0.3  # Low strength to preserve exact product from source image
+                "num_inference_steps": 40,
+                "guidance_scale": 9.0,
+                "strength": 0.5  # Medium strength to extract product while preserving exact details
             })
             
             # Handle different return types
