@@ -3490,18 +3490,29 @@ def run_qwen_packshot_front_back(
     try:
         print("Processing product image for front and back packshots...")
         
-        # Step 1: Process product image
-        # Skip background removal for packshot generation - let Qwen handle it with white background prompt
-        # This preserves the exact product better than preprocessing
-        print("Using original image for packshot generation (skipping background removal)...")
-        product_png_url = product_image_url
+        # Step 1: Ensure we have a public URL (Cloudinary) for Replicate
+        # Replicate needs accessible URLs, not localhost or data URLs
+        print(f"Original product_image_url: {product_image_url[:100] if len(product_image_url) > 100 else product_image_url}...")
         
-        # Convert to public URL for Replicate
-        if product_png_url.startswith(get_base_url() + "/static/"):
-            filename = product_png_url.replace(get_base_url() + "/static/", "")
+        # Convert localhost or data URLs to Cloudinary URLs
+        if product_image_url.startswith("data:image/"):
+            print("Converting data URL to Cloudinary...")
+            product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
+            print(f"✅ Converted to Cloudinary: {product_png_url[:100]}...")
+        elif product_image_url.startswith(get_base_url() + "/static/"):
+            filename = product_image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
-            product_png_url = upload_to_replicate(filepath)
-            print(f"Converted to public URL: {product_png_url[:100]}...")
+            # Upload to Cloudinary first, then use that URL
+            product_png_url = upload_to_cloudinary(f"http://localhost:8000{product_image_url}" if "localhost" in get_base_url() else product_image_url, "product_temp")
+            print(f"✅ Converted local file to Cloudinary: {product_png_url[:100]}...")
+        elif product_image_url.startswith("http://localhost"):
+            # Upload localhost URL to Cloudinary
+            product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
+            print(f"✅ Converted localhost URL to Cloudinary: {product_png_url[:100]}...")
+        else:
+            # Already a public URL (Cloudinary or external)
+            product_png_url = product_image_url
+            print(f"✅ Using existing public URL: {product_png_url[:100]}...")
 
         # Step 2: Generate front packshot
         print("Generating front packshot...")
@@ -3511,16 +3522,18 @@ def run_qwen_packshot_front_back(
         else:
             clothing_type_instruction = " CRITICAL: Extract and preserve EXACTLY the product shown in the source image. Do NOT generate or create a new product. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image."
             print("⚠️ No clothing type specified - extracting product as shown")
-        # Minimal prompt - just change background, preserve product exactly
-        front_prompt = f"Change the background to pure white. Keep the {clothing_type if clothing_type else 'product'} exactly as it is - do not change colors, design, patterns, logo, text, or any details. Only change background.{clothing_type_instruction}"
+        # Ultra-minimal prompt - Qwen works better with simple instructions
+        front_prompt = f"White background. Keep {clothing_type if clothing_type else 'product'} unchanged."
         
         try:
+            print(f"🎨 Calling Qwen with URL: {product_png_url[:100]}...")
+            print(f"📝 Prompt: {front_prompt}")
             front_out = replicate.run("qwen/qwen-image-edit-plus", input={
                 "prompt": front_prompt,
                 "image": [product_png_url],
-                "num_inference_steps": 30,
-                "guidance_scale": 7.5,
-                "strength": 0.15  # Very low strength - minimal editing, just background change
+                "num_inference_steps": 20,  # Lower steps = less creative interpretation
+                "guidance_scale": 7.0,
+                "strength": 0.1  # Extremely low strength - almost no changes except background
             })
             
             # Handle different return types
