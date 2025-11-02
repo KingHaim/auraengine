@@ -3491,15 +3491,10 @@ def run_qwen_packshot_front_back(
         print("Processing product image for front and back packshots...")
         
         # Step 1: Process product image
-        if not has_alpha(product_image_url):
-            print("Removing background from product image...")
-            cut = rembg_cutout(product_image_url)
-            cut = postprocess_cutout(cut)
-            product_png_url = upload_png(cut)
-            print(f"Background removed, saved as: {product_png_url}")
-        else:
-            product_png_url = product_image_url
-            print("Product image already has alpha channel")
+        # Skip background removal for packshot generation - let Qwen handle it with white background prompt
+        # This preserves the exact product better than preprocessing
+        print("Using original image for packshot generation (skipping background removal)...")
+        product_png_url = product_image_url
         
         # Convert to public URL for Replicate
         if product_png_url.startswith(get_base_url() + "/static/"):
@@ -3512,20 +3507,20 @@ def run_qwen_packshot_front_back(
         print("Generating front packshot...")
         if clothing_type:
             print(f"👕 Clothing type specified: {clothing_type}")
-            clothing_type_instruction = f" CRITICAL: In the input image, find the {clothing_type}. Keep ONLY that {clothing_type} unchanged - same colors, same design, same patterns, same logo, same text, same graphics, same lettering, same everything. Remove all other clothing, accessories, and items. The {clothing_type} must appear identical to how it looks in the input image, just on a white background."
+            clothing_type_instruction = f" Keep the {clothing_type} unchanged - same colors, design, patterns, logo, text, graphics. Remove other items."
         else:
             clothing_type_instruction = " CRITICAL: Extract and preserve EXACTLY the product shown in the source image. Do NOT generate or create a new product. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image."
             print("⚠️ No clothing type specified - extracting product as shown")
-        # Based on Qwen Image Edit Plus documentation - use appearance editing for precise extraction
-        front_prompt = f"Keep ONLY the {clothing_type if clothing_type else 'product'} from the input image. Change the background to pure white. Keep everything else pixel-perfect - preserve the EXACT {clothing_type} with identical colors, design, patterns, logos, text, graphics, lettering, and every detail exactly as shown in the input image. Do not modify, generate, or create anything new. Only change the background to white. The {clothing_type} must remain identical to what is in the input image.{clothing_type_instruction} {user_mods}"
+        # Minimal prompt - just change background, preserve product exactly
+        front_prompt = f"Change the background to pure white. Keep the {clothing_type if clothing_type else 'product'} exactly as it is - do not change colors, design, patterns, logo, text, or any details. Only change background.{clothing_type_instruction}"
         
         try:
             front_out = replicate.run("qwen/qwen-image-edit-plus", input={
                 "prompt": front_prompt,
                 "image": [product_png_url],
-                "num_inference_steps": 50,  # More steps for appearance editing precision
-                "guidance_scale": 9.5,  # Higher guidance for strict adherence
-                "strength": 0.4  # Lower strength for appearance editing - minimal changes, just background
+                "num_inference_steps": 30,
+                "guidance_scale": 7.5,
+                "strength": 0.15  # Very low strength - minimal editing, just background change
             })
             
             # Handle different return types
@@ -3550,19 +3545,20 @@ def run_qwen_packshot_front_back(
         # Step 3: Generate back packshot
         print("Generating back packshot...")
         if clothing_type:
-            clothing_type_instruction = f" CRITICAL: In the input image, find the {clothing_type}. Keep ONLY that {clothing_type} unchanged - same colors, same design, same patterns, same logo, same text, same graphics, same lettering, same everything. Remove all other clothing, accessories, and items. The {clothing_type} must appear identical to how it looks in the input image, just on a white background."
+            clothing_type_instruction = f" Keep the {clothing_type} unchanged - same colors, design, patterns, logo, text, graphics. Remove other items."
         else:
             clothing_type_instruction = " CRITICAL: Extract and preserve EXACTLY the product shown in the source image. Do NOT generate or create a new product. You MUST use the EXACT same design, colors, patterns, textures, logo, text, graphics, and all visual details from the source image."
-        # Based on Qwen Image Edit Plus documentation - use appearance editing for precise extraction
-        back_prompt = f"Keep ONLY the {clothing_type if clothing_type else 'product'} from the input image. Change the background to pure white. Show the back view. Keep everything else pixel-perfect - preserve the EXACT {clothing_type} with identical colors, design, patterns, logos, text, graphics, lettering, and every detail exactly as shown in the input image. Do not modify, generate, or create anything new. Only change the background to white and show the back view. The {clothing_type} must remain identical to what is in the input image.{clothing_type_instruction} {user_mods}"
+        # For back view, we can't reliably extract it - just use same image with white background
+        # Qwen will generate a back view, but we'll accept it as approximation
+        back_prompt = f"Create a back view of the {clothing_type if clothing_type else 'product'} shown in the input image. Match the colors, design, and style exactly. Place on pure white background.{clothing_type_instruction}"
         
         try:
             back_out = replicate.run("qwen/qwen-image-edit-plus", input={
                 "prompt": back_prompt,
                 "image": [product_png_url],
-                "num_inference_steps": 50,  # More steps for appearance editing precision
-                "guidance_scale": 9.5,  # Higher guidance for strict adherence
-                "strength": 0.4  # Lower strength for appearance editing - minimal changes, just background
+                "num_inference_steps": 30,
+                "guidance_scale": 7.5,
+                "strength": 0.3  # Higher strength for back view generation (it needs to create the back)
             })
             
             # Handle different return types
