@@ -314,27 +314,11 @@ export default function CampaignsPage() {
       console.log("Token:", token.substring(0, 20) + "...");
 
       // Fetch all data in parallel
-      const [campaignsRes, productsRes, modelsRes, scenesRes] =
+      const [campaignsRes, productsRes, modelsRes, scenesRes, posesRes] =
         await Promise.all([
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/campaigns`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          // Fetch pose image URLs
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/poses`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.poses) {
-                setPoseImageUrls(data.poses);
-              }
-            })
-            .catch((err) => {
-              console.error("Error fetching pose URLs:", err);
-            });
-
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
@@ -344,7 +328,20 @@ export default function CampaignsPage() {
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/scenes`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/poses`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
         ]);
+
+      // Handle pose URLs
+      if (posesRes.ok) {
+        const posesData = await posesRes.json();
+        if (posesData.poses) {
+          setPoseImageUrls(posesData.poses);
+        }
+      } else {
+        console.error("Error fetching pose URLs:", posesRes.status);
+      }
 
       console.log("API Response statuses:", {
         campaigns: campaignsRes.status,
