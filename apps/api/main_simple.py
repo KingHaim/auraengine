@@ -756,7 +756,8 @@ async def generate_campaign_images_background(
     scene_id_list: list,
     selected_poses_dict: dict,
     number_of_images: int,
-    db: Session
+    manikin_pose: str = "Pose-neutral.jpg",
+    db: Session = None
 ):
     """Generate campaign images in background"""
     try:
@@ -814,6 +815,16 @@ async def generate_campaign_images_background(
                             print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
                             print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for {product.name} + {model.name} + {scene.name}")
                             
+                            # For the first image (initial image), transfer pose from manikin
+                            current_model_image = model_image
+                            if shot_idx == 1:
+                                # Get manikin pose from campaign settings or use default
+                                campaign_manikin_pose = campaign.settings.get("manikin_pose", "Pose-neutral.jpg") if campaign.settings else "Pose-neutral.jpg"
+                                manikin_pose_url = get_static_url(f"poses/{campaign_manikin_pose}")
+                                print(f"🎭 First image: Transferring pose from manikin ({campaign_manikin_pose})...")
+                                current_model_image = transfer_pose_from_manikin(model_image, manikin_pose_url)
+                                print(f"✅ Pose transferred for initial image")
+                            
                             # REAL WORKFLOW: Qwen Triple Composition (Model + Product + Scene all in one)
                             quality_mode = "standard"
 
@@ -821,7 +832,7 @@ async def generate_campaign_images_background(
                             
                             # Step 1: Qwen Triple Composition (Model + Product + Scene all in one)
                             # Stabilize inputs to /static to avoid replicate 404s
-                            stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
+                            stable_model = stabilize_url(current_model_image, "pose") if 'stabilize_url' in globals() else current_model_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                             stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
                             
@@ -916,6 +927,7 @@ async def create_campaign(
     model_ids: str = Form(...),    # JSON string
     scene_ids: str = Form(...),    # JSON string
     selected_poses: str = Form("{}"),  # JSON string
+    manikin_pose: str = Form("Pose-neutral.jpg"),  # Selected manikin pose
     number_of_images: int = Form(1),
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -945,6 +957,7 @@ async def create_campaign(
                 "model_ids": model_id_list,
                 "scene_ids": scene_id_list,
                 "selected_poses": selected_poses_dict,
+                "manikin_pose": manikin_pose,  # Store selected manikin pose
                 "generated_images": []
             }
         )
@@ -969,8 +982,9 @@ async def create_campaign(
             product_id_list, 
             model_id_list, 
             scene_id_list, 
-            selected_poses_dict, 
+            selected_poses_dict,
             number_of_images,
+            manikin_pose,  # Pass selected manikin pose
             db
         ))
         
@@ -1082,6 +1096,16 @@ async def generate_campaign_images(
                         try:
                             print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
                             
+                            # For the first image (initial image), transfer pose from manikin
+                            current_model_image = model_image
+                            if shot_idx == 1:
+                                # Get manikin pose from campaign settings or use default
+                                campaign_manikin_pose = campaign.settings.get("manikin_pose", "Pose-neutral.jpg") if campaign.settings else "Pose-neutral.jpg"
+                                manikin_pose_url = get_static_url(f"poses/{campaign_manikin_pose}")
+                                print(f"🎭 First image: Transferring pose from manikin ({campaign_manikin_pose})...")
+                                current_model_image = transfer_pose_from_manikin(model_image, manikin_pose_url)
+                                print(f"✅ Pose transferred for initial image")
+                            
                             # REAL WORKFLOW: Qwen Triple Composition (Model + Product + Scene all in one)
                             quality_mode = "standard"
 
@@ -1089,7 +1113,7 @@ async def generate_campaign_images(
 
                             # Step 1: Qwen Triple Composition (Model + Product + Scene all in one)
                             # Stabilize inputs to /static to avoid replicate 404s
-                            stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
+                            stable_model = stabilize_url(current_model_image, "pose") if 'stabilize_url' in globals() else current_model_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                             stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
                             
@@ -3190,6 +3214,96 @@ def run_qwen_add_product(model_image_url: str, product_image_url: str, clothing_
         import traceback
         traceback.print_exc()
         print("↩️ Returning original model image instead of placeholder")
+        return model_image_url
+
+def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> str:
+    """Transfer pose from manikin image to model using Qwen Image Edit Plus"""
+    try:
+        print(f"🎭 Transferring pose from manikin to model...")
+        print(f"📸 Model: {model_image_url[:50]}...")
+        print(f"🦴 Manikin pose: {manikin_pose_url[:50]}...")
+        
+        # Ensure URLs are accessible (convert local paths to Cloudinary if needed)
+        if model_image_url.startswith(get_base_url() + "/static/"):
+            filename = model_image_url.replace(get_base_url() + "/static/", "")
+            # File could be in static/ or uploads/ directory
+            static_path = f"static/{filename}"
+            uploads_path = f"uploads/{filename}"
+            filepath = static_path if os.path.exists(static_path) else (uploads_path if os.path.exists(uploads_path) else None)
+            if filepath and os.path.exists(filepath):
+                # Read file and upload to Cloudinary
+                import base64
+                with open(filepath, "rb") as f:
+                    file_content = f.read()
+                    ext = filename.split('.')[-1] if '.' in filename else 'jpg'
+                    data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
+                    model_image_url = upload_to_cloudinary(data_url, "model_pose")
+            else:
+                # If file doesn't exist locally, try to use the URL directly
+                print(f"⚠️ File not found locally: {static_path} or {uploads_path}, using URL directly")
+        
+        if manikin_pose_url.startswith(get_base_url() + "/static/"):
+            filename = manikin_pose_url.replace(get_base_url() + "/static/", "")
+            # File could be in static/ or uploads/ directory
+            static_path = f"static/{filename}"
+            uploads_path = f"uploads/{filename}"
+            filepath = static_path if os.path.exists(static_path) else (uploads_path if os.path.exists(uploads_path) else None)
+            if filepath and os.path.exists(filepath):
+                # Read file and upload to Cloudinary
+                import base64
+                with open(filepath, "rb") as f:
+                    file_content = f.read()
+                    ext = filename.split('.')[-1] if '.' in filename else 'jpg'
+                    data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
+                    manikin_pose_url = upload_to_cloudinary(data_url, "manikin_pose")
+            else:
+                # If file doesn't exist locally, try to use the URL directly
+                print(f"⚠️ File not found locally: {static_path} or {uploads_path}, using URL directly")
+        
+        # Use Qwen Image Edit Plus to transfer pose
+        # Prompt: Copy the exact pose from the manikin (second image) to the person (first image)
+        prompt = (
+            "Copy the exact pose and body position from the second image (manikin) to the person in the first image. "
+            "Keep the same person, face, appearance, and all other details unchanged. "
+            "Only change the pose and body position to match the manikin exactly. "
+            "The person should have the exact same pose as the manikin. "
+            "Professional fashion photography style."
+        )
+        
+        print(f"📝 Pose transfer prompt: {prompt[:100]}...")
+        
+        out = replicate.run("qwen/qwen-image-edit-plus", input={
+            "prompt": prompt,
+            "image": [model_image_url, manikin_pose_url],  # Model first, manikin second
+            "num_inference_steps": 30,
+            "guidance_scale": 7.0,
+            "strength": 0.6  # Moderate strength to preserve person while changing pose
+        })
+        
+        # Handle output
+        if hasattr(out, 'url'):
+            result_url = out.url()
+        elif isinstance(out, str):
+            result_url = out
+        elif isinstance(out, list) and len(out) > 0:
+            result_url = out[0] if isinstance(out[0], str) else out[0].url()
+        else:
+            result_url = str(out)
+        
+        # Upload to Cloudinary for stability
+        if result_url:
+            stable_url = upload_to_cloudinary(result_url, "pose_transfer")
+            print(f"✅ Pose transferred successfully: {stable_url[:50]}...")
+            return stable_url
+        else:
+            print(f"⚠️ Pose transfer returned None, using original model image")
+            return model_image_url
+            
+    except Exception as e:
+        print(f"❌ Pose transfer failed: {e}")
+        import traceback
+        traceback.print_exc()
+        # Fallback to original model image
         return model_image_url
 
 def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:

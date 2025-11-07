@@ -141,6 +141,8 @@ export default function CampaignsPage() {
   const [selectedPoses, setSelectedPoses] = useState<{
     [modelId: string]: string[];
   }>({});
+  const [selectedManikinPose, setSelectedManikinPose] =
+    useState<string>("Pose-neutral.jpg");
   const [generatingVideo, setGeneratingVideo] = useState<string | null>(null);
   const [videoGenerationStatus, setVideoGenerationStatus] = useState<{
     [key: string]: string;
@@ -542,6 +544,7 @@ export default function CampaignsPage() {
       formData.append("model_ids", JSON.stringify([selectedModel]));
       formData.append("scene_ids", JSON.stringify(selectedScenes));
       formData.append("selected_poses", JSON.stringify(selectedPoses));
+      formData.append("manikin_pose", selectedManikinPose);
       formData.append("number_of_images", numberOfImagesToGenerate.toString());
 
       console.log("🔍 About to make fetch request to create campaign");
@@ -2904,7 +2907,7 @@ export default function CampaignsPage() {
                   </div>
                 </div>
 
-                {/* POSES Section */}
+                {/* MANIKIN POSES Section */}
                 <div style={{ marginBottom: "16px" }}>
                   <h3
                     style={{
@@ -2916,15 +2919,101 @@ export default function CampaignsPage() {
                       letterSpacing: "0.5px",
                     }}
                   >
-                    POSES
+                    INITIAL POSE
                   </h3>
                   <div
                     style={{
                       color: "#9CA3AF",
-                      fontSize: "14px",
+                      fontSize: "12px",
+                      marginBottom: "12px",
                     }}
                   >
-                    Select a model to view poses
+                    Select a manikin pose for the first image
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "12px",
+                      overflowX: "auto",
+                      paddingBottom: "8px",
+                      scrollbarWidth: "thin",
+                      scrollbarColor: "#4B5563 #374151",
+                    }}
+                  >
+                    {[
+                      "Pose-neutral.jpg",
+                      "Pose-handneck.jpg",
+                      "Pose-thinking.jpg",
+                    ].map((poseName) => {
+                      const poseUrl = `${
+                        process.env.NEXT_PUBLIC_API_URL ||
+                        "http://localhost:8000"
+                      }/static/poses/${poseName}`;
+                      const isSelected = selectedManikinPose === poseName;
+                      return (
+                        <div
+                          key={poseName}
+                          onClick={() => setSelectedManikinPose(poseName)}
+                          style={{
+                            minWidth: "100px",
+                            height: "120px",
+                            backgroundColor: "#4B5563",
+                            borderRadius: "8px",
+                            backgroundImage: `url(${poseUrl})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            cursor: "pointer",
+                            border: isSelected
+                              ? "2px solid #d42f48"
+                              : "1px solid #6B7280",
+                            position: "relative",
+                            overflow: "hidden",
+                            flexShrink: 0,
+                          }}
+                        >
+                          <div
+                            style={{
+                              position: "absolute",
+                              bottom: "0",
+                              left: "0",
+                              right: "0",
+                              backgroundColor: "rgba(9, 10, 12, 0.7)",
+                              color: "#FFFFFF",
+                              padding: "4px 8px",
+                              fontSize: "11px",
+                              fontWeight: "500",
+                              textTransform: "capitalize",
+                            }}
+                          >
+                            {poseName
+                              .replace("Pose-", "")
+                              .replace(".jpg", "")
+                              .replace("-", " ")}
+                          </div>
+                          {isSelected && (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "6px",
+                                right: "6px",
+                                width: "20px",
+                                height: "20px",
+                                backgroundColor: "#d42f48",
+                                borderRadius: "50%",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "12px",
+                                color: "#FFFFFF",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              ✓
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
