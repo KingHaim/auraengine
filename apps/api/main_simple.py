@@ -307,7 +307,7 @@ async def health():
 
 @app.get("/poses")
 async def get_pose_urls():
-    """Get URLs for all pose images (Cloudinary URLs if available, otherwise static URLs)"""
+    """Get URLs for all pose images (Cloudinary URLs if available, otherwise static URLs) - Public endpoint"""
     global POSE_IMAGE_URLS
     # If poses haven't been uploaded yet, try to get static URLs
     if not POSE_IMAGE_URLS:

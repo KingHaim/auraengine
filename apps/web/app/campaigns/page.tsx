@@ -328,9 +328,7 @@ export default function CampaignsPage() {
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/scenes`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/poses`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/poses`),
         ]);
 
       // Handle pose URLs
