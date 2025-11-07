@@ -280,22 +280,27 @@ async def debug_files():
         return {"error": str(e)}
 
 # Direct endpoint to serve static images
-@app.get("/static/{filename}")
-async def serve_static_file(filename: str):
-    """Serve static files directly"""
+@app.get("/static/{file_path:path}")
+async def serve_static_file(file_path: str):
+    """Serve static files directly, supporting subdirectories"""
     import os
-    file_path = os.path.join("uploads", filename)
-    if os.path.exists(file_path):
+    # Try static directory first (for poses, scenes, etc.)
+    static_path = os.path.join("static", file_path)
+    if os.path.exists(static_path):
         from fastapi.responses import FileResponse
-        return FileResponse(file_path)
-    else:
-        # Return debug info when file not found
-        uploads_dir = "uploads"
-        files = os.listdir(uploads_dir) if os.path.exists(uploads_dir) else []
-        raise HTTPException(
-            status_code=404, 
-            detail=f"File not found: {filename}. Available files: {files}"
-        )
+        return FileResponse(static_path)
+    
+    # Fallback to uploads directory
+    uploads_path = os.path.join("uploads", file_path)
+    if os.path.exists(uploads_path):
+        from fastapi.responses import FileResponse
+        return FileResponse(uploads_path)
+    
+    # Return debug info when file not found
+    raise HTTPException(
+        status_code=404, 
+        detail=f"File not found: {file_path}. Tried: {static_path}, {uploads_path}"
+    )
 
 # ---------- Authentication Endpoints ----------
 @app.post("/auth/register", response_model=Token)
