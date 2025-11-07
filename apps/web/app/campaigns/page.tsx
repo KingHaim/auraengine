@@ -143,6 +143,7 @@ export default function CampaignsPage() {
   }>({});
   const [selectedManikinPose, setSelectedManikinPose] =
     useState<string>("Pose-neutral.jpg");
+  const [poseImageUrls, setPoseImageUrls] = useState<{[key: string]: string}>({});
   const [generatingVideo, setGeneratingVideo] = useState<string | null>(null);
   const [videoGenerationStatus, setVideoGenerationStatus] = useState<{
     [key: string]: string;
@@ -318,6 +319,22 @@ export default function CampaignsPage() {
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/campaigns`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
+          // Fetch pose image URLs
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/poses`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.poses) {
+                setPoseImageUrls(data.poses);
+              }
+            })
+            .catch((err) => {
+              console.error("Error fetching pose URLs:", err);
+            });
+
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
@@ -2945,7 +2962,8 @@ export default function CampaignsPage() {
                       "Pose-handneck.jpg",
                       "Pose-thinking.jpg",
                     ].map((poseName) => {
-                      const poseUrl = `${
+                      // Use Cloudinary URL if available, otherwise fallback to static URL
+                      const poseUrl = poseImageUrls[poseName] || `${
                         process.env.NEXT_PUBLIC_API_URL ||
                         "http://localhost:8000"
                       }/static/poses/${poseName}`;

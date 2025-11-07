@@ -177,6 +177,55 @@ class PaymentConfirmRequest(BaseModel):
 app = FastAPI(title="Aura API", version="1.0.0")
 
 # Create database tables on startup
+# Cache for pose image URLs (Cloudinary URLs)
+POSE_IMAGE_URLS = {}
+
+def upload_pose_images_to_cloudinary():
+    """Upload pose images to Cloudinary on startup"""
+    global POSE_IMAGE_URLS
+    try:
+        if not CLOUDINARY_CLOUD_NAME or not CLOUDINARY_API_KEY or not CLOUDINARY_API_SECRET:
+            print("⚠️ Cloudinary not configured - pose images will use local static URLs")
+            return
+        
+        import os
+        api_dir = os.path.dirname(os.path.abspath(__file__))
+        poses_dir = os.path.join(api_dir, "static", "poses")
+        
+        if not os.path.exists(poses_dir):
+            print(f"⚠️ Poses directory not found: {poses_dir}")
+            return
+        
+        pose_files = ["Pose-neutral.jpg", "Pose-handneck.jpg", "Pose-thinking.jpg"]
+        
+        for pose_file in pose_files:
+            pose_path = os.path.join(poses_dir, pose_file)
+            if os.path.exists(pose_path):
+                try:
+                    # Read file and upload to Cloudinary
+                    with open(pose_path, "rb") as f:
+                        file_content = f.read()
+                        import base64
+                        ext = pose_file.split('.')[-1]
+                        data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
+                        cloudinary_url = upload_to_cloudinary(data_url, "poses")
+                        POSE_IMAGE_URLS[pose_file] = cloudinary_url
+                        print(f"✅ Uploaded {pose_file} to Cloudinary: {cloudinary_url[:50]}...")
+                except Exception as e:
+                    print(f"⚠️ Failed to upload {pose_file} to Cloudinary: {e}")
+                    # Fallback to static URL
+                    POSE_IMAGE_URLS[pose_file] = get_static_url(f"poses/{pose_file}")
+            else:
+                print(f"⚠️ Pose file not found: {pose_path}")
+                # Fallback to static URL
+                POSE_IMAGE_URLS[pose_file] = get_static_url(f"poses/{pose_file}")
+        
+        print(f"✅ Pose images initialized: {len(POSE_IMAGE_URLS)} poses")
+    except Exception as e:
+        print(f"⚠️ Error uploading pose images to Cloudinary: {e}")
+        import traceback
+        traceback.print_exc()
+
 @app.on_event("startup")
 async def startup_event():
     try:
@@ -199,6 +248,10 @@ async def startup_event():
         with engine.connect() as conn:
             result = conn.execute(text("SELECT 1"))
             print("✅ Database connection test successful")
+        
+        # Upload pose images to Cloudinary
+        print("🖼️ Uploading pose images to Cloudinary...")
+        upload_pose_images_to_cloudinary()
             
     except Exception as e:
         print(f"❌ Database startup error: {e}")
@@ -251,6 +304,21 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy", "message": "Aura API is running"}
+
+@app.get("/poses")
+async def get_pose_urls():
+    """Get URLs for all pose images (Cloudinary URLs if available, otherwise static URLs)"""
+    global POSE_IMAGE_URLS
+    # If poses haven't been uploaded yet, try to get static URLs
+    if not POSE_IMAGE_URLS:
+        pose_files = ["Pose-neutral.jpg", "Pose-handneck.jpg", "Pose-thinking.jpg"]
+        for pose_file in pose_files:
+            POSE_IMAGE_URLS[pose_file] = get_static_url(f"poses/{pose_file}")
+    
+    return {
+        "poses": POSE_IMAGE_URLS,
+        "base_url": get_base_url()
+    }
 
 # Simple test endpoint
 @app.get("/test")
