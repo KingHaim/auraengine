@@ -284,22 +284,36 @@ async def debug_files():
 async def serve_static_file(file_path: str):
     """Serve static files directly, supporting subdirectories"""
     import os
+    # Get the directory where this file is located (apps/api/)
+    api_dir = os.path.dirname(os.path.abspath(__file__))
+    
     # Try static directory first (for poses, scenes, etc.)
-    static_path = os.path.join("static", file_path)
+    static_path = os.path.join(api_dir, "static", file_path)
     if os.path.exists(static_path):
         from fastapi.responses import FileResponse
         return FileResponse(static_path)
     
-    # Fallback to uploads directory
-    uploads_path = os.path.join("uploads", file_path)
+    # Fallback to uploads directory (relative to API directory)
+    uploads_path = os.path.join(api_dir, "uploads", file_path)
     if os.path.exists(uploads_path):
         from fastapi.responses import FileResponse
         return FileResponse(uploads_path)
     
+    # Fallback to current working directory (for backwards compatibility)
+    cwd_static = os.path.join("static", file_path)
+    if os.path.exists(cwd_static):
+        from fastapi.responses import FileResponse
+        return FileResponse(cwd_static)
+    
+    cwd_uploads = os.path.join("uploads", file_path)
+    if os.path.exists(cwd_uploads):
+        from fastapi.responses import FileResponse
+        return FileResponse(cwd_uploads)
+    
     # Return debug info when file not found
     raise HTTPException(
         status_code=404, 
-        detail=f"File not found: {file_path}. Tried: {static_path}, {uploads_path}"
+        detail=f"File not found: {file_path}. Tried: {static_path}, {uploads_path}, {cwd_static}, {cwd_uploads}"
     )
 
 # ---------- Authentication Endpoints ----------
