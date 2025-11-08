@@ -213,12 +213,14 @@ def upload_pose_images_to_cloudinary():
                         print(f"✅ Uploaded {pose_file} to Cloudinary: {cloudinary_url[:50]}...")
                 except Exception as e:
                     print(f"⚠️ Failed to upload {pose_file} to Cloudinary: {e}")
-                    # Fallback to static URL
-                    POSE_IMAGE_URLS[pose_file] = get_static_url(f"poses/{pose_file}")
+                    print(f"⚠️ Will try to upload on-demand when needed")
+                    # Don't set fallback URL - we'll upload on-demand
+                    POSE_IMAGE_URLS[pose_file] = None
             else:
                 print(f"⚠️ Pose file not found: {pose_path}")
-                # Fallback to static URL
-                POSE_IMAGE_URLS[pose_file] = get_static_url(f"poses/{pose_file}")
+                print(f"⚠️ Will try to upload on-demand when needed")
+                # Don't set fallback URL - we'll upload on-demand
+                POSE_IMAGE_URLS[pose_file] = None
         
         print(f"✅ Pose images initialized: {len(POSE_IMAGE_URLS)} poses")
     except Exception as e:
@@ -3345,17 +3347,48 @@ def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> s
         if manikin_pose_url.startswith("https://res.cloudinary.com/"):
             # Already a Cloudinary URL, use it directly
             print(f"✅ Using Cloudinary URL for manikin pose")
-        elif manikin_pose_url.startswith(get_base_url() + "/static/"):
-            filename = manikin_pose_url.replace(get_base_url() + "/static/", "")
-            # Try to get from POSE_IMAGE_URLS first (Cloudinary URL)
-            if filename in POSE_IMAGE_URLS and POSE_IMAGE_URLS[filename].startswith("https://res.cloudinary.com/"):
-                manikin_pose_url = POSE_IMAGE_URLS[filename]
-                print(f"✅ Using Cloudinary URL from cache: {manikin_pose_url[:80]}...")
+        elif manikin_pose_url.startswith(get_base_url() + "/static/") or manikin_pose_url.startswith("http://localhost"):
+            # This is a localhost URL - we need to convert it to Cloudinary
+            filename = manikin_pose_url.replace(get_base_url() + "/static/", "").replace("http://localhost:8000/static/", "")
+            # Remove "poses/" prefix if present
+            if filename.startswith("poses/"):
+                filename = filename.replace("poses/", "")
+            
+            # First check POSE_IMAGE_URLS for Cloudinary URL
+            if filename in POSE_IMAGE_URLS:
+                cached_url = POSE_IMAGE_URLS[filename]
+                if cached_url.startswith("https://res.cloudinary.com/"):
+                    manikin_pose_url = cached_url
+                    print(f"✅ Using Cloudinary URL from cache: {manikin_pose_url[:80]}...")
+                else:
+                    # Cache has localhost URL, need to upload
+                    print(f"⚠️ Cache has localhost URL, uploading to Cloudinary...")
+                    # Try to find file locally
+                    api_dir = os.path.dirname(os.path.abspath(__file__))
+                    static_path = os.path.join(api_dir, "static", "poses", filename)
+                    uploads_path = os.path.join(api_dir, "uploads", "poses", filename)
+                    filepath = static_path if os.path.exists(static_path) else (uploads_path if os.path.exists(uploads_path) else None)
+                    if filepath and os.path.exists(filepath):
+                        # Read file and upload to Cloudinary
+                        import base64
+                        with open(filepath, "rb") as f:
+                            file_content = f.read()
+                            ext = filename.split('.')[-1] if '.' in filename else 'jpg'
+                            data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
+                            manikin_pose_url = upload_to_cloudinary(data_url, "manikin_pose")
+                            # Update cache
+                            POSE_IMAGE_URLS[filename] = manikin_pose_url
+                            print(f"✅ Uploaded manikin pose to Cloudinary: {manikin_pose_url[:80]}...")
+                    else:
+                        # File not found - this will fail, but at least we tried
+                        print(f"❌ CRITICAL: Pose file not found locally: {filename}")
+                        print(f"❌ Cannot upload to Cloudinary - pose transfer will fail")
+                        raise FileNotFoundError(f"Pose file not found: {filename}")
             else:
-                # File could be in static/ or uploads/ directory
+                # Not in cache, try to find and upload
                 api_dir = os.path.dirname(os.path.abspath(__file__))
-                static_path = os.path.join(api_dir, "static", filename)
-                uploads_path = os.path.join(api_dir, "uploads", filename)
+                static_path = os.path.join(api_dir, "static", "poses", filename)
+                uploads_path = os.path.join(api_dir, "uploads", "poses", filename)
                 filepath = static_path if os.path.exists(static_path) else (uploads_path if os.path.exists(uploads_path) else None)
                 if filepath and os.path.exists(filepath):
                     # Read file and upload to Cloudinary
@@ -3365,10 +3398,14 @@ def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> s
                         ext = filename.split('.')[-1] if '.' in filename else 'jpg'
                         data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
                         manikin_pose_url = upload_to_cloudinary(data_url, "manikin_pose")
+                        # Update cache
+                        POSE_IMAGE_URLS[filename] = manikin_pose_url
                         print(f"✅ Uploaded manikin pose to Cloudinary: {manikin_pose_url[:80]}...")
                 else:
-                    # If file doesn't exist locally, try to use the URL directly (will likely fail)
-                    print(f"⚠️ File not found locally: {static_path} or {uploads_path}, using URL directly (may fail)")
+                    # File not found - this will fail
+                    print(f"❌ CRITICAL: Pose file not found locally: {filename}")
+                    print(f"❌ Cannot upload to Cloudinary - pose transfer will fail")
+                    raise FileNotFoundError(f"Pose file not found: {filename}")
         
         # Use Qwen Image Edit Plus to transfer pose
         # CRITICAL: For pose transfer, we want to copy the pose FROM the manikin TO the model
