@@ -3870,7 +3870,7 @@ async def upload_product(
                 image_url = upload_to_cloudinary(f"file://{image_path}", "products")
             except Exception:
                 # Last resort: use static URL
-            image_url = get_static_url(image_filename)
+                image_url = get_static_url(image_filename)
         
         # Initialize packshot URLs
         packshot_front_url = None
