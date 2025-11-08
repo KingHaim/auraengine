@@ -378,11 +378,11 @@ async def serve_static_file(file_path: str):
         from fastapi.responses import FileResponse
         return FileResponse(cwd_uploads)
     
-    # Return debug info when file not found
-    raise HTTPException(
-        status_code=404, 
+        # Return debug info when file not found
+        raise HTTPException(
+            status_code=404, 
         detail=f"File not found: {file_path}. Tried: {static_path}, {uploads_path}, {cwd_static}, {cwd_uploads}"
-    )
+        )
 
 # ---------- Authentication Endpoints ----------
 @app.post("/auth/register", response_model=Token)
@@ -907,8 +907,10 @@ async def generate_campaign_images_background(
                             if shot_idx == 1:
                                 # Get manikin pose from campaign settings or use default
                                 campaign_manikin_pose = campaign.settings.get("manikin_pose", "Pose-neutral.jpg") if campaign.settings else "Pose-neutral.jpg"
-                                manikin_pose_url = get_static_url(f"poses/{campaign_manikin_pose}")
+                                # Use Cloudinary URL if available, otherwise fallback to static URL
+                                manikin_pose_url = POSE_IMAGE_URLS.get(campaign_manikin_pose, get_static_url(f"poses/{campaign_manikin_pose}"))
                                 print(f"🎭 First image: Transferring pose from manikin ({campaign_manikin_pose})...")
+                                print(f"🖼️ Using manikin pose URL: {manikin_pose_url[:80]}...")
                                 current_model_image = transfer_pose_from_manikin(model_image, manikin_pose_url)
                                 print(f"✅ Pose transferred for initial image")
                             
@@ -1069,7 +1071,7 @@ async def create_campaign(
             product_id_list, 
             model_id_list, 
             scene_id_list, 
-            selected_poses_dict,
+            selected_poses_dict, 
             number_of_images,
             manikin_pose,  # Pass selected manikin pose
             db
@@ -1188,8 +1190,10 @@ async def generate_campaign_images(
                             if shot_idx == 1:
                                 # Get manikin pose from campaign settings or use default
                                 campaign_manikin_pose = campaign.settings.get("manikin_pose", "Pose-neutral.jpg") if campaign.settings else "Pose-neutral.jpg"
-                                manikin_pose_url = get_static_url(f"poses/{campaign_manikin_pose}")
+                                # Use Cloudinary URL if available, otherwise fallback to static URL
+                                manikin_pose_url = POSE_IMAGE_URLS.get(campaign_manikin_pose, get_static_url(f"poses/{campaign_manikin_pose}"))
                                 print(f"🎭 First image: Transferring pose from manikin ({campaign_manikin_pose})...")
+                                print(f"🖼️ Using manikin pose URL: {manikin_pose_url[:80]}...")
                                 current_model_image = transfer_pose_from_manikin(model_image, manikin_pose_url)
                                 print(f"✅ Pose transferred for initial image")
                             
@@ -2543,8 +2547,8 @@ def rembg_cutout(photo_url: str) -> Image.Image:
             
             # Download the result
             print(f"📥 Downloading rembg result from: {result_url[:80]}...")
-            import requests
-            from io import BytesIO
+        import requests
+        from io import BytesIO
             result_response = requests.get(result_url, timeout=10)
             result_response.raise_for_status()
             result_img = Image.open(BytesIO(result_response.content)).convert("RGBA")
@@ -2603,7 +2607,7 @@ def rembg_cutout(photo_url: str) -> Image.Image:
             return Image.open(BytesIO(response.content)).convert("RGBA")
         except:
             # Last resort: return blank image
-            return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
+        return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
 
 def postprocess_cutout(img_rgba: Image.Image) -> Image.Image:
     """Clean up the cutout image"""
@@ -3041,7 +3045,7 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 except Exception as conv_error:
                     print(f"⚠️ WEBP→PNG conversion failed: {conv_error}")
                     print(f"⚠️ Using original WEBP packshot (Vella may not use it correctly)")
-                    garment_url = product_image_url
+                garment_url = product_image_url
                     print(f"🧵 Garment URL (WEBP fallback): {garment_url[:80]}...")
             elif has_alpha(product_image_url) and not is_packshot:
                 # Only skip processing if it already has alpha AND it's not a packshot
@@ -3051,11 +3055,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 print("🪄 Processing garment image (removing background)...")
                 print(f"   Input: {product_image_url[:80]}...")
                 try:
-                    cut = rembg_cutout(product_image_url)
+                cut = rembg_cutout(product_image_url)
                     print(f"✅ Background removal complete, image size: {cut.size}")
-                    cut = postprocess_cutout(cut)
+                cut = postprocess_cutout(cut)
                     print(f"✅ Post-processing complete, final size: {cut.size}")
-                    garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
+                garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
                     print(f"🧵 Garment cutout saved: {garment_url[:80]}...")
                 except Exception as rembg_error:
                     print(f"⚠️ Background removal failed: {rembg_error}")
@@ -3329,32 +3333,46 @@ def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> s
                 # If file doesn't exist locally, try to use the URL directly
                 print(f"⚠️ File not found locally: {static_path} or {uploads_path}, using URL directly")
         
-        if manikin_pose_url.startswith(get_base_url() + "/static/"):
+        # If manikin pose URL is a localhost/static URL, try to convert to Cloudinary
+        # But first check if it's already a Cloudinary URL (from POSE_IMAGE_URLS)
+        if manikin_pose_url.startswith("https://res.cloudinary.com/"):
+            # Already a Cloudinary URL, use it directly
+            print(f"✅ Using Cloudinary URL for manikin pose")
+        elif manikin_pose_url.startswith(get_base_url() + "/static/"):
             filename = manikin_pose_url.replace(get_base_url() + "/static/", "")
-            # File could be in static/ or uploads/ directory
-            static_path = f"static/{filename}"
-            uploads_path = f"uploads/{filename}"
-            filepath = static_path if os.path.exists(static_path) else (uploads_path if os.path.exists(uploads_path) else None)
-            if filepath and os.path.exists(filepath):
-                # Read file and upload to Cloudinary
-                import base64
-                with open(filepath, "rb") as f:
-                    file_content = f.read()
-                    ext = filename.split('.')[-1] if '.' in filename else 'jpg'
-                    data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
-                    manikin_pose_url = upload_to_cloudinary(data_url, "manikin_pose")
+            # Try to get from POSE_IMAGE_URLS first (Cloudinary URL)
+            if filename in POSE_IMAGE_URLS and POSE_IMAGE_URLS[filename].startswith("https://res.cloudinary.com/"):
+                manikin_pose_url = POSE_IMAGE_URLS[filename]
+                print(f"✅ Using Cloudinary URL from cache: {manikin_pose_url[:80]}...")
             else:
-                # If file doesn't exist locally, try to use the URL directly
-                print(f"⚠️ File not found locally: {static_path} or {uploads_path}, using URL directly")
+                # File could be in static/ or uploads/ directory
+                api_dir = os.path.dirname(os.path.abspath(__file__))
+                static_path = os.path.join(api_dir, "static", filename)
+                uploads_path = os.path.join(api_dir, "uploads", filename)
+                filepath = static_path if os.path.exists(static_path) else (uploads_path if os.path.exists(uploads_path) else None)
+                if filepath and os.path.exists(filepath):
+                    # Read file and upload to Cloudinary
+                    import base64
+                    with open(filepath, "rb") as f:
+                        file_content = f.read()
+                        ext = filename.split('.')[-1] if '.' in filename else 'jpg'
+                        data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
+                        manikin_pose_url = upload_to_cloudinary(data_url, "manikin_pose")
+                        print(f"✅ Uploaded manikin pose to Cloudinary: {manikin_pose_url[:80]}...")
+                else:
+                    # If file doesn't exist locally, try to use the URL directly (will likely fail)
+                    print(f"⚠️ File not found locally: {static_path} or {uploads_path}, using URL directly (may fail)")
         
         # Use Qwen Image Edit Plus to transfer pose
-        # Prompt: Copy the exact pose from the manikin (second image) to the person (first image)
+        # Prompt: Copy the exact full body pose from the manikin (second image) to the person (first image)
         prompt = (
-            "Copy the exact pose and body position from the second image (manikin) to the person in the first image. "
+            "Copy the EXACT full body pose and body position from the second image (manikin) to the person in the first image. "
+            "The person must match the manikin's complete body position including: head position, arm positions, leg positions, torso angle, and overall stance. "
+            "Preserve the full body composition - do NOT crop to torso or portrait. Keep the full body visible from head to feet. "
             "Keep the same person, face, appearance, and all other details unchanged. "
             "Only change the pose and body position to match the manikin exactly. "
-            "The person should have the exact same pose as the manikin. "
-            "Professional fashion photography style."
+            "The person should have the exact same full body pose as the manikin. "
+            "Professional fashion photography style with full body shot."
         )
         
         print(f"📝 Pose transfer prompt: {prompt[:100]}...")
@@ -3362,9 +3380,9 @@ def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> s
         out = replicate.run("qwen/qwen-image-edit-plus", input={
             "prompt": prompt,
             "image": [model_image_url, manikin_pose_url],  # Model first, manikin second
-            "num_inference_steps": 30,
-            "guidance_scale": 7.0,
-            "strength": 0.6  # Moderate strength to preserve person while changing pose
+            "num_inference_steps": 40,  # More steps for better pose matching
+            "guidance_scale": 8.0,  # Higher guidance for strict pose adherence
+            "strength": 0.7  # Higher strength to ensure pose is transferred
         })
         
         # Handle output
@@ -3730,8 +3748,8 @@ def run_qwen_packshot_front_back(
             if not (product_image_url.startswith("http://") or product_image_url.startswith("https://")):
                 print(f"⚠️ Unknown URL format, attempting to upload to Cloudinary...")
                 product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
-            else:
-                product_png_url = product_image_url
+        else:
+            product_png_url = product_image_url
             print(f"✅ Using URL: {product_png_url[:100]}...")
 
         # Step 2: Simple extraction prompt - what Qwen is designed for
@@ -3854,7 +3872,7 @@ async def upload_product(
                 image_url = upload_to_cloudinary(f"file://{image_path}", "products")
             except Exception:
                 # Last resort: use static URL
-                image_url = get_static_url(image_filename)
+            image_url = get_static_url(image_filename)
         
         # Initialize packshot URLs
         packshot_front_url = None
@@ -4299,16 +4317,16 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         print(f"⏱️ Duration: {duration_seconds}s")
         
         try:
-            out = replicate.run(
-                "google/veo-3.1",
-                input={
+        out = replicate.run(
+            "google/veo-3.1",
+            input={
                     "prompt": enhanced_prompt,
                     "reference_images": [final_image_url],  # ✅ Fixed: plural "reference_images" as array
-                    "aspect_ratio": aspect_ratio,
-                    "duration": duration_seconds,
-                    "quality": "high"  # Veo 3.1 always high quality
-                }
-            )
+                "aspect_ratio": aspect_ratio,
+                "duration": duration_seconds,
+                "quality": "high"  # Veo 3.1 always high quality
+            }
+        )
             print(f"✅ Veo API call successful, processing output...")
         except replicate.exceptions.ModelError as model_error:
             # Handle content moderation errors specifically

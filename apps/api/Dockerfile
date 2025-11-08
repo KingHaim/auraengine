@@ -17,10 +17,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir --upgrade pillow
 
 # Create directories for uploads first
-RUN mkdir -p uploads temp
+RUN mkdir -p uploads temp static/poses
 
 # Copy application code
 COPY apps/api/ .
+
+# Copy static files (including poses) if they exist
+COPY apps/api/static/ static/ 2>/dev/null || true
 
 # Ensure uploads directory has the right permissions
 RUN chmod -R 755 uploads
