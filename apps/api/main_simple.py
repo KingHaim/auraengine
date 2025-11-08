@@ -918,10 +918,18 @@ async def generate_campaign_images_background(
                             if shot_idx == 1:
                                 # Get manikin pose from campaign settings or use default
                                 campaign_manikin_pose = campaign.settings.get("manikin_pose", "Pose-neutral.jpg") if campaign.settings else "Pose-neutral.jpg"
-                                # Use Cloudinary URL if available, otherwise fallback to static URL
-                                manikin_pose_url = POSE_IMAGE_URLS.get(campaign_manikin_pose, get_static_url(f"poses/{campaign_manikin_pose}"))
+                                # Get URL from cache, or use static URL as fallback
+                                cached_url = POSE_IMAGE_URLS.get(campaign_manikin_pose)
+                                if cached_url and cached_url.startswith("https://res.cloudinary.com/"):
+                                    manikin_pose_url = cached_url
+                                elif cached_url is None or not cached_url.startswith("https://"):
+                                    # Need to upload on-demand or use static URL
+                                    manikin_pose_url = get_static_url(f"poses/{campaign_manikin_pose}")
+                                else:
+                                    manikin_pose_url = cached_url
+                                
                                 print(f"🎭 First image: Transferring pose from manikin ({campaign_manikin_pose})...")
-                                print(f"🖼️ Using manikin pose URL: {manikin_pose_url[:80]}...")
+                                print(f"🖼️ Using manikin pose URL: {manikin_pose_url[:80] if manikin_pose_url else 'None'}...")
                                 current_model_image = transfer_pose_from_manikin(model_image, manikin_pose_url)
                                 print(f"✅ Pose transferred for initial image")
                             
@@ -1201,10 +1209,18 @@ async def generate_campaign_images(
                             if shot_idx == 1:
                                 # Get manikin pose from campaign settings or use default
                                 campaign_manikin_pose = campaign.settings.get("manikin_pose", "Pose-neutral.jpg") if campaign.settings else "Pose-neutral.jpg"
-                                # Use Cloudinary URL if available, otherwise fallback to static URL
-                                manikin_pose_url = POSE_IMAGE_URLS.get(campaign_manikin_pose, get_static_url(f"poses/{campaign_manikin_pose}"))
+                                # Get URL from cache, or use static URL as fallback
+                                cached_url = POSE_IMAGE_URLS.get(campaign_manikin_pose)
+                                if cached_url and cached_url.startswith("https://res.cloudinary.com/"):
+                                    manikin_pose_url = cached_url
+                                elif cached_url is None or not cached_url.startswith("https://"):
+                                    # Need to upload on-demand or use static URL
+                                    manikin_pose_url = get_static_url(f"poses/{campaign_manikin_pose}")
+                                else:
+                                    manikin_pose_url = cached_url
+                                
                                 print(f"🎭 First image: Transferring pose from manikin ({campaign_manikin_pose})...")
-                                print(f"🖼️ Using manikin pose URL: {manikin_pose_url[:80]}...")
+                                print(f"🖼️ Using manikin pose URL: {manikin_pose_url[:80] if manikin_pose_url else 'None'}...")
                                 current_model_image = transfer_pose_from_manikin(model_image, manikin_pose_url)
                                 print(f"✅ Pose transferred for initial image")
                             
