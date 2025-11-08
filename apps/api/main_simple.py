@@ -249,15 +249,24 @@ async def startup_event():
             result = conn.execute(text("SELECT 1"))
             print("✅ Database connection test successful")
         
-        # Upload pose images to Cloudinary
+        # Upload pose images to Cloudinary (non-blocking, don't fail startup if this fails)
         print("🖼️ Uploading pose images to Cloudinary...")
-        upload_pose_images_to_cloudinary()
+        try:
+            upload_pose_images_to_cloudinary()
+        except Exception as pose_error:
+            print(f"⚠️ Pose image upload failed (non-critical): {pose_error}")
+            print("⚠️ Continuing startup - pose images will use fallback URLs")
+        
+        print("✅ Application startup complete")
             
     except Exception as e:
-        print(f"❌ Database startup error: {e}")
+        print(f"❌ Critical startup error: {e}")
         import traceback
         traceback.print_exc()
-        raise
+        # Don't raise - let the app start even if there are non-critical errors
+        # Only raise for truly critical errors that prevent the app from functioning
+        if "database" in str(e).lower() or "connection" in str(e).lower():
+            raise
 
 # CORS middleware - Allow all origins for deployment
 # When allow_credentials=True, we must explicitly list origins (cannot use "*")
