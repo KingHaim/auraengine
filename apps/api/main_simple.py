@@ -3424,35 +3424,37 @@ def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> s
                     raise FileNotFoundError(f"Pose file not found: {filename}")
         
         # Use Qwen Image Edit Plus to transfer pose
-        # CRITICAL: For pose transfer, we want to copy the pose FROM the manikin TO the model
-        # Try model first, then manikin - Qwen might interpret first image as the one to edit
+        # NOTE: Qwen Image Edit Plus is not specifically designed for pose transfer,
+        # but we'll try to make it work with very explicit instructions
+        # Try manikin first as reference, model second to edit
         prompt = (
-            "CRITICAL INSTRUCTION: Copy the EXACT full body pose from the SECOND image (manikin reference) to the person in the FIRST image. "
-            "The person must match the manikin's complete body position EXACTLY: "
-            "- Head position and angle must match exactly "
-            "- Left arm position (shoulder, elbow, wrist) must match exactly "
-            "- Right arm position (shoulder, elbow, wrist) must match exactly "
-            "- Torso angle and position must match exactly "
-            "- Leg positions and stance must match exactly "
-            "- Overall body posture and stance must match exactly. "
-            "MANDATORY: Preserve FULL BODY composition - show complete body from head to feet. DO NOT crop to torso or portrait. "
-            "Keep the same person, face, appearance, clothing, and all other details unchanged. "
-            "ONLY change the pose and body position to match the manikin reference exactly. "
-            "The output must be a full body shot matching the manikin's pose exactly. "
-            "Professional fashion photography style with complete full body visible."
+            "CRITICAL: The FIRST image shows a manikin in a specific pose. The SECOND image shows a person. "
+            "Your task: Make the person in the SECOND image adopt the EXACT same full body pose as the manikin in the FIRST image. "
+            "REQUIREMENTS - The person must match EVERY aspect of the manikin's pose: "
+            "1. Head position, angle, and tilt - EXACT match "
+            "2. Left arm: shoulder position, elbow angle, wrist position - EXACT match "
+            "3. Right arm: shoulder position, elbow angle, wrist position - EXACT match "
+            "4. Torso: angle, rotation, position - EXACT match "
+            "5. Legs: position, stance, angles - EXACT match "
+            "6. Overall body posture and stance - EXACT match. "
+            "CRITICAL: Output MUST be a FULL BODY shot showing the complete person from head to feet. "
+            "DO NOT crop to torso, portrait, or upper body. The entire body must be visible. "
+            "Keep the person's face, appearance, clothing, and all other details exactly the same. "
+            "ONLY change the pose to match the manikin. "
+            "Professional fashion photography, full body composition, complete person visible from head to feet."
         )
         
         print(f"📝 Pose transfer prompt: {prompt[:200]}...")
-        print(f"🖼️ Image order: [model_image (to edit), manikin_pose (reference)]")
+        print(f"🖼️ Image order: [manikin_pose (reference), model_image (to edit)]")
         
-        # Try original order: Model first (to edit), manikin second (reference)
-        # Qwen Image Edit Plus might edit the first image based on the second
+        # Try manikin first (reference), model second (to edit)
+        # This way Qwen sees the reference pose first, then edits the model
         out = replicate.run("qwen/qwen-image-edit-plus", input={
             "prompt": prompt,
-            "image": [model_image_url, manikin_pose_url],  # Model first (to edit), manikin second (reference)
-            "num_inference_steps": 60,  # More steps for better pose matching
+            "image": [manikin_pose_url, model_image_url],  # Manikin first (reference), model second (to edit)
+            "num_inference_steps": 70,  # Even more steps for better quality
             "guidance_scale": 10.0,  # Maximum guidance for strict pose adherence
-            "strength": 0.9  # Very high strength to ensure pose is transferred
+            "strength": 0.95  # Maximum strength to ensure pose is transferred
         })
         
         # Handle output
