@@ -3746,9 +3746,9 @@ def run_qwen_packshot_front_back(
             if not (product_image_url.startswith("http://") or product_image_url.startswith("https://")):
                 print(f"⚠️ Unknown URL format, attempting to upload to Cloudinary...")
                 product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
-        else:
-            product_png_url = product_image_url
-            print(f"✅ Using URL: {product_png_url[:100]}...")
+            else:
+                product_png_url = product_image_url
+                print(f"✅ Using URL: {product_png_url[:100]}...")
 
         # Step 2: Simple extraction prompt - what Qwen is designed for
         print("Generating front packshot...")
