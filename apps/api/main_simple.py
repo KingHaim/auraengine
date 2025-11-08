@@ -4315,16 +4315,16 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         print(f"⏱️ Duration: {duration_seconds}s")
         
         try:
-        out = replicate.run(
-            "google/veo-3.1",
-            input={
+            out = replicate.run(
+                "google/veo-3.1",
+                input={
                     "prompt": enhanced_prompt,
                     "reference_images": [final_image_url],  # ✅ Fixed: plural "reference_images" as array
-                "aspect_ratio": aspect_ratio,
-                "duration": duration_seconds,
-                "quality": "high"  # Veo 3.1 always high quality
-            }
-        )
+                    "aspect_ratio": aspect_ratio,
+                    "duration": duration_seconds,
+                    "quality": "high"  # Veo 3.1 always high quality
+                }
+            )
             print(f"✅ Veo API call successful, processing output...")
         except replicate.exceptions.ModelError as model_error:
             # Handle content moderation errors specifically
