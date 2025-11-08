@@ -3362,25 +3362,28 @@ def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> s
                     print(f"⚠️ File not found locally: {static_path} or {uploads_path}, using URL directly (may fail)")
         
         # Use Qwen Image Edit Plus to transfer pose
-        # Prompt: Copy the exact full body pose from the manikin (second image) to the person (first image)
+        # CRITICAL: For pose transfer, we want to copy the pose FROM the manikin TO the model
+        # Swapped image order: manikin first (reference), model second (to edit)
         prompt = (
-            "Copy the EXACT full body pose and body position from the second image (manikin) to the person in the first image. "
-            "The person must match the manikin's complete body position including: head position, arm positions, leg positions, torso angle, and overall stance. "
+            "CRITICAL: Copy the EXACT full body pose and body position from the FIRST image (manikin reference) to the person in the SECOND image. "
+            "The person in the second image must match the manikin's complete body position exactly including: head position, arm positions, leg positions, torso angle, and overall stance. "
             "Preserve the full body composition - do NOT crop to torso or portrait. Keep the full body visible from head to feet. "
             "Keep the same person, face, appearance, and all other details unchanged. "
-            "Only change the pose and body position to match the manikin exactly. "
+            "ONLY change the pose and body position to match the manikin exactly. "
             "The person should have the exact same full body pose as the manikin. "
             "Professional fashion photography style with full body shot."
         )
         
-        print(f"📝 Pose transfer prompt: {prompt[:100]}...")
+        print(f"📝 Pose transfer prompt: {prompt[:150]}...")
+        print(f"🖼️ Image order: [manikin_pose (reference), model_image (to edit)]")
         
+        # SWAPPED ORDER: Manikin first (reference), model second (to edit)
         out = replicate.run("qwen/qwen-image-edit-plus", input={
             "prompt": prompt,
-            "image": [model_image_url, manikin_pose_url],  # Model first, manikin second
-            "num_inference_steps": 40,  # More steps for better pose matching
-            "guidance_scale": 8.0,  # Higher guidance for strict pose adherence
-            "strength": 0.7  # Higher strength to ensure pose is transferred
+            "image": [manikin_pose_url, model_image_url],  # SWAPPED: Manikin first (reference), model second (to edit)
+            "num_inference_steps": 50,  # More steps for better pose matching
+            "guidance_scale": 9.0,  # Higher guidance for strict pose adherence
+            "strength": 0.85  # Higher strength to ensure pose is transferred
         })
         
         # Handle output
@@ -3394,12 +3397,13 @@ def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> s
             result_url = str(out)
         
         # Upload to Cloudinary for stability
-        if result_url:
+        if result_url and result_url != model_image_url:
             stable_url = upload_to_cloudinary(result_url, "pose_transfer")
-            print(f"✅ Pose transferred successfully: {stable_url[:50]}...")
+            print(f"✅ Pose transferred successfully: {stable_url[:80]}...")
             return stable_url
         else:
-            print(f"⚠️ Pose transfer returned None, using original model image")
+            print(f"⚠️ Pose transfer returned None or same image, using original model image")
+            print(f"⚠️ Result URL: {result_url[:80] if result_url else 'None'}...")
             return model_image_url
             
     except Exception as e:
