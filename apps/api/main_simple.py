@@ -3053,11 +3053,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 print("🪄 Processing garment image (removing background)...")
                 print(f"   Input: {product_image_url[:80]}...")
                 try:
-                cut = rembg_cutout(product_image_url)
+                    cut = rembg_cutout(product_image_url)
                     print(f"✅ Background removal complete, image size: {cut.size}")
-                cut = postprocess_cutout(cut)
+                    cut = postprocess_cutout(cut)
                     print(f"✅ Post-processing complete, final size: {cut.size}")
-                garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
+                    garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
                     print(f"🧵 Garment cutout saved: {garment_url[:80]}...")
                 except Exception as rembg_error:
                     print(f"⚠️ Background removal failed: {rembg_error}")
