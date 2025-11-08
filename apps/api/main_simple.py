@@ -3373,12 +3373,12 @@ def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> s
             # First check POSE_IMAGE_URLS for Cloudinary URL
             if filename in POSE_IMAGE_URLS:
                 cached_url = POSE_IMAGE_URLS[filename]
-                if cached_url.startswith("https://res.cloudinary.com/"):
+                if cached_url and cached_url.startswith("https://res.cloudinary.com/"):
                     manikin_pose_url = cached_url
                     print(f"✅ Using Cloudinary URL from cache: {manikin_pose_url[:80]}...")
                 else:
-                    # Cache has localhost URL, need to upload
-                    print(f"⚠️ Cache has localhost URL, uploading to Cloudinary...")
+                    # Cache has localhost URL or None, need to upload
+                    print(f"⚠️ Cache has localhost URL or None, uploading to Cloudinary...")
                     # Try to find file locally
                     api_dir = os.path.dirname(os.path.abspath(__file__))
                     static_path = os.path.join(api_dir, "static", "poses", filename)
