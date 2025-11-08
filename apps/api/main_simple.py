@@ -3372,27 +3372,34 @@ def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> s
         
         # Use Qwen Image Edit Plus to transfer pose
         # CRITICAL: For pose transfer, we want to copy the pose FROM the manikin TO the model
-        # Swapped image order: manikin first (reference), model second (to edit)
+        # Try model first, then manikin - Qwen might interpret first image as the one to edit
         prompt = (
-            "CRITICAL: Copy the EXACT full body pose and body position from the FIRST image (manikin reference) to the person in the SECOND image. "
-            "The person in the second image must match the manikin's complete body position exactly including: head position, arm positions, leg positions, torso angle, and overall stance. "
-            "Preserve the full body composition - do NOT crop to torso or portrait. Keep the full body visible from head to feet. "
-            "Keep the same person, face, appearance, and all other details unchanged. "
-            "ONLY change the pose and body position to match the manikin exactly. "
-            "The person should have the exact same full body pose as the manikin. "
-            "Professional fashion photography style with full body shot."
+            "CRITICAL INSTRUCTION: Copy the EXACT full body pose from the SECOND image (manikin reference) to the person in the FIRST image. "
+            "The person must match the manikin's complete body position EXACTLY: "
+            "- Head position and angle must match exactly "
+            "- Left arm position (shoulder, elbow, wrist) must match exactly "
+            "- Right arm position (shoulder, elbow, wrist) must match exactly "
+            "- Torso angle and position must match exactly "
+            "- Leg positions and stance must match exactly "
+            "- Overall body posture and stance must match exactly. "
+            "MANDATORY: Preserve FULL BODY composition - show complete body from head to feet. DO NOT crop to torso or portrait. "
+            "Keep the same person, face, appearance, clothing, and all other details unchanged. "
+            "ONLY change the pose and body position to match the manikin reference exactly. "
+            "The output must be a full body shot matching the manikin's pose exactly. "
+            "Professional fashion photography style with complete full body visible."
         )
         
-        print(f"📝 Pose transfer prompt: {prompt[:150]}...")
-        print(f"🖼️ Image order: [manikin_pose (reference), model_image (to edit)]")
+        print(f"📝 Pose transfer prompt: {prompt[:200]}...")
+        print(f"🖼️ Image order: [model_image (to edit), manikin_pose (reference)]")
         
-        # SWAPPED ORDER: Manikin first (reference), model second (to edit)
+        # Try original order: Model first (to edit), manikin second (reference)
+        # Qwen Image Edit Plus might edit the first image based on the second
         out = replicate.run("qwen/qwen-image-edit-plus", input={
             "prompt": prompt,
-            "image": [manikin_pose_url, model_image_url],  # SWAPPED: Manikin first (reference), model second (to edit)
-            "num_inference_steps": 50,  # More steps for better pose matching
-            "guidance_scale": 9.0,  # Higher guidance for strict pose adherence
-            "strength": 0.85  # Higher strength to ensure pose is transferred
+            "image": [model_image_url, manikin_pose_url],  # Model first (to edit), manikin second (reference)
+            "num_inference_steps": 60,  # More steps for better pose matching
+            "guidance_scale": 10.0,  # Maximum guidance for strict pose adherence
+            "strength": 0.9  # Very high strength to ensure pose is transferred
         })
         
         # Handle output
