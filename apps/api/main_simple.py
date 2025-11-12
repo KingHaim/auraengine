@@ -3420,12 +3420,13 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         # Use nano-banana to replace manikin with person
         # nano-banana is better at person replacement than Qwen is at pose transfer
         prompt = (
-            "Replace the manikin in the first image with the person from the second image. "
-            "Keep the exact same pose, body position, and composition from the first image. "
-            "The person from the second image should replace the manikin while maintaining the exact same pose. "
-            "Preserve the full body composition - show the complete person from head to feet. "
-            "Keep the background and scene exactly as they are in the first image. "
-            "Professional fashion photography with perfect pose matching."
+            "FULL BODY SHOT: Replace the manikin in the first image with the person from the second image. "
+            "CRITICAL: Maintain the EXACT SAME FULL BODY FRAMING as the first image - head to feet visible. "
+            "Copy the person's appearance, face, clothing, and style from the second image. "
+            "Match the exact pose and body position from the first image (manikin). "
+            "DO NOT CROP: The output must show the complete body from head to feet, exactly like the first image framing. "
+            "Keep the same camera angle, distance, and composition as the first image. "
+            "Professional fashion photography, full body composition, complete figure visible."
         )
         
         print(f"📝 Manikin replacement prompt: {prompt[:200]}...")
@@ -3435,9 +3436,9 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         out = replicate.run("google/nano-banana", input={
             "prompt": prompt,
             "image_input": [manikin_pose_url, person_wearing_product_url],  # Manikin first (base), person second (to replace with)
-            "num_inference_steps": 20,  # Moderate steps for good quality
-            "guidance_scale": 5.0,  # Moderate guidance for pose matching
-            "strength": 0.7,  # Higher strength to ensure replacement happens
+            "num_inference_steps": 30,  # More steps for better quality
+            "guidance_scale": 7.5,  # Higher guidance for composition adherence
+            "strength": 0.5,  # Lower strength to preserve composition from first image
             "seed": None
         })
         
