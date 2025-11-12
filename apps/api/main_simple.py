@@ -3420,13 +3420,14 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         # Use nano-banana to replace manikin with person
         # nano-banana is better at person replacement than Qwen is at pose transfer
         prompt = (
-            "FULL BODY SHOT: Replace the manikin in the first image with the person from the second image. "
-            "CRITICAL: Maintain the EXACT SAME FULL BODY FRAMING as the first image - head to feet visible. "
-            "Copy the person's appearance, face, clothing, and style from the second image. "
-            "Match the exact pose and body position from the first image (manikin). "
-            "DO NOT CROP: The output must show the complete body from head to feet, exactly like the first image framing. "
-            "Keep the same camera angle, distance, and composition as the first image. "
-            "Professional fashion photography, full body composition, complete figure visible."
+            "Transform the wooden mannequin from the first image into the real person from the second image. "
+            "REQUIREMENTS: "
+            "1. Keep the EXACT same standing pose - arms straight down at sides, legs straight together "
+            "2. Keep the EXACT same full body framing - complete figure from head to feet centered "
+            "3. Keep the EXACT same white/neutral background "
+            "4. Use the person's face, skin tone, hair, and the orange t-shirt from the second image "
+            "5. The person must be standing in the same neutral straight pose as the mannequin "
+            "Full body fashion photograph, centered, head to feet visible, professional lighting"
         )
         
         print(f"📝 Manikin replacement prompt: {prompt[:200]}...")
@@ -3436,9 +3437,9 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         out = replicate.run("google/nano-banana", input={
             "prompt": prompt,
             "image_input": [manikin_pose_url, person_wearing_product_url],  # Manikin first (base), person second (to replace with)
-            "num_inference_steps": 30,  # More steps for better quality
-            "guidance_scale": 7.5,  # Higher guidance for composition adherence
-            "strength": 0.5,  # Lower strength to preserve composition from first image
+            "num_inference_steps": 40,  # High steps for quality
+            "guidance_scale": 9.0,  # Very high guidance for strict adherence
+            "strength": 0.75,  # Higher strength for transformation
             "seed": None
         })
         
