@@ -913,8 +913,29 @@ async def generate_campaign_images_background(
                             print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
                             print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for {product.name} + {model.name} + {scene.name}")
                             
-                            # For the first image (initial image), transfer pose from manikin
-                            current_model_image = model_image
+                            # NEW WORKFLOW: First generate person wearing product, then replace manikin for first image
+                            # Step 1: Qwen Triple Composition (Model + Product + Scene all in one)
+                            quality_mode = "standard"
+                            
+                            # Stabilize inputs to /static to avoid replicate 404s
+                            stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
+                            stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
+                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
+                            
+                            print(f"🎬 Step 1: Qwen triple composition - Model + {product.name} + Scene...")
+                            person_wearing_product_url = run_qwen_triple_composition(
+                                stable_model,
+                                stable_product,
+                                stable_scene,
+                                product.name,
+                                quality_mode,
+                                shot_type_prompt=shot_type['prompt']
+                            )
+                            # Qwen result is already persisted
+                            print(f"✅ Qwen triple composition completed: {person_wearing_product_url[:50]}...")
+                            
+                            # Step 2: For the first image (initial image), replace manikin with person wearing product
+                            final_result_url = person_wearing_product_url
                             if shot_idx == 1:
                                 # Get manikin pose from campaign settings or use default
                                 campaign_manikin_pose = campaign.settings.get("manikin_pose", "Pose-neutral.jpg") if campaign.settings else "Pose-neutral.jpg"
@@ -928,33 +949,10 @@ async def generate_campaign_images_background(
                                 else:
                                     manikin_pose_url = cached_url
                                 
-                                print(f"🎭 First image: Transferring pose from manikin ({campaign_manikin_pose})...")
+                                print(f"🍌 First image: Replacing manikin with person wearing product ({campaign_manikin_pose})...")
                                 print(f"🖼️ Using manikin pose URL: {manikin_pose_url[:80] if manikin_pose_url else 'None'}...")
-                                current_model_image = transfer_pose_from_manikin(model_image, manikin_pose_url)
-                                print(f"✅ Pose transferred for initial image")
-                            
-                            # REAL WORKFLOW: Qwen Triple Composition (Model + Product + Scene all in one)
-                            quality_mode = "standard"
-
-                            # ONE-STEP APPROACH: Qwen handles everything in a single call
-                            
-                            # Step 1: Qwen Triple Composition (Model + Product + Scene all in one)
-                            # Stabilize inputs to /static to avoid replicate 404s
-                            stable_model = stabilize_url(current_model_image, "pose") if 'stabilize_url' in globals() else current_model_image
-                            stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
-                            
-                            print(f"🎬 Step 1: Qwen triple composition - Model + {product.name} + Scene...")
-                            final_result_url = run_qwen_triple_composition(
-                                stable_model,
-                                stable_product,
-                                stable_scene,
-                                product.name,
-                                quality_mode,
-                                shot_type_prompt=shot_type['prompt']
-                            )
-                            # Qwen result is already persisted
-                            print(f"✅ Qwen triple composition completed: {final_result_url[:50]}...")
+                                final_result_url = replace_manikin_with_person(manikin_pose_url, person_wearing_product_url)
+                                print(f"✅ Manikin replaced for initial image")
 
                             # Define clothing type for result structure (needed for compatibility)
                             clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
@@ -1204,8 +1202,29 @@ async def generate_campaign_images(
                         try:
                             print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
                             
-                            # For the first image (initial image), transfer pose from manikin
-                            current_model_image = model_image
+                            # NEW WORKFLOW: First generate person wearing product, then replace manikin for first image
+                            # Step 1: Qwen Triple Composition (Model + Product + Scene all in one)
+                            quality_mode = "standard"
+                            
+                            # Stabilize inputs to /static to avoid replicate 404s
+                            stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
+                            stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
+                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
+                            
+                            print(f"🎬 Step 1: Qwen triple composition - Model + {product.name} + Scene...")
+                            person_wearing_product_url = run_qwen_triple_composition(
+                                stable_model,
+                                stable_product,
+                                stable_scene,
+                                product.name,
+                                quality_mode,
+                                shot_type_prompt=shot_type['prompt']
+                            )
+                            # Qwen result is already persisted
+                            print(f"✅ Qwen triple composition completed: {person_wearing_product_url[:50]}...")
+                            
+                            # Step 2: For the first image (initial image), replace manikin with person wearing product
+                            final_result_url = person_wearing_product_url
                             if shot_idx == 1:
                                 # Get manikin pose from campaign settings or use default
                                 campaign_manikin_pose = campaign.settings.get("manikin_pose", "Pose-neutral.jpg") if campaign.settings else "Pose-neutral.jpg"
@@ -1219,33 +1238,10 @@ async def generate_campaign_images(
                                 else:
                                     manikin_pose_url = cached_url
                                 
-                                print(f"🎭 First image: Transferring pose from manikin ({campaign_manikin_pose})...")
+                                print(f"🍌 First image: Replacing manikin with person wearing product ({campaign_manikin_pose})...")
                                 print(f"🖼️ Using manikin pose URL: {manikin_pose_url[:80] if manikin_pose_url else 'None'}...")
-                                current_model_image = transfer_pose_from_manikin(model_image, manikin_pose_url)
-                                print(f"✅ Pose transferred for initial image")
-                            
-                            # REAL WORKFLOW: Qwen Triple Composition (Model + Product + Scene all in one)
-                            quality_mode = "standard"
-
-                            # ONE-STEP APPROACH: Qwen handles everything in a single call
-
-                            # Step 1: Qwen Triple Composition (Model + Product + Scene all in one)
-                            # Stabilize inputs to /static to avoid replicate 404s
-                            stable_model = stabilize_url(current_model_image, "pose") if 'stabilize_url' in globals() else current_model_image
-                            stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
-                            
-                            print(f"🎬 Step 1: Qwen triple composition - Model + {product.name} + Scene...")
-                            final_result_url = run_qwen_triple_composition(
-                                stable_model,
-                                stable_product,
-                                stable_scene,
-                                product.name,
-                                quality_mode,
-                                shot_type_prompt=shot_type['prompt']
-                            )
-                            # Qwen result is already persisted
-                            print(f"✅ Qwen triple composition completed: {final_result_url[:50]}...")
+                                final_result_url = replace_manikin_with_person(manikin_pose_url, person_wearing_product_url)
+                                print(f"✅ Manikin replaced for initial image")
 
                             # Define clothing type for result structure (needed for compatibility)
                             clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
@@ -2582,8 +2578,6 @@ def rembg_cutout(photo_url: str) -> Image.Image:
         except Exception as rembg_error:
             # If URL doesn't work, try downloading and using file
             print(f"⚠️ rembg with URL failed, trying with file: {rembg_error}")
-            import requests
-            from io import BytesIO
             print(f"📥 Downloading image from: {photo_url[:80]}...")
             response = requests.get(photo_url, timeout=10)
             response.raise_for_status()
@@ -3332,16 +3326,16 @@ def run_qwen_add_product(model_image_url: str, product_image_url: str, clothing_
         print("↩️ Returning original model image instead of placeholder")
         return model_image_url
 
-def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> str:
-    """Transfer pose from manikin image to model using Qwen Image Edit Plus"""
+def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_url: str) -> str:
+    """Replace manikin in pose image with person wearing product using nano-banana"""
     try:
-        print(f"🎭 Transferring pose from manikin to model...")
-        print(f"📸 Model: {model_image_url[:50]}...")
+        print(f"🍌 Replacing manikin with person using nano-banana...")
         print(f"🦴 Manikin pose: {manikin_pose_url[:50]}...")
+        print(f"👤 Person wearing product: {person_wearing_product_url[:50]}...")
         
         # Ensure URLs are accessible (convert local paths to Cloudinary if needed)
-        if model_image_url.startswith(get_base_url() + "/static/"):
-            filename = model_image_url.replace(get_base_url() + "/static/", "")
+        if person_wearing_product_url.startswith(get_base_url() + "/static/"):
+            filename = person_wearing_product_url.replace(get_base_url() + "/static/", "")
             # File could be in static/ or uploads/ directory
             static_path = f"static/{filename}"
             uploads_path = f"uploads/{filename}"
@@ -3353,7 +3347,7 @@ def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> s
                     file_content = f.read()
                     ext = filename.split('.')[-1] if '.' in filename else 'jpg'
                     data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
-                    model_image_url = upload_to_cloudinary(data_url, "model_pose")
+                    person_wearing_product_url = upload_to_cloudinary(data_url, "person_wearing_product")
             else:
                 # If file doesn't exist locally, try to use the URL directly
                 print(f"⚠️ File not found locally: {static_path} or {uploads_path}, using URL directly")
@@ -3398,7 +3392,7 @@ def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> s
                     else:
                         # File not found - this will fail, but at least we tried
                         print(f"❌ CRITICAL: Pose file not found locally: {filename}")
-                        print(f"❌ Cannot upload to Cloudinary - pose transfer will fail")
+                        print(f"❌ Cannot upload to Cloudinary - manikin replacement will fail")
                         raise FileNotFoundError(f"Pose file not found: {filename}")
             else:
                 # Not in cache, try to find and upload
@@ -3420,41 +3414,31 @@ def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> s
                 else:
                     # File not found - this will fail
                     print(f"❌ CRITICAL: Pose file not found locally: {filename}")
-                    print(f"❌ Cannot upload to Cloudinary - pose transfer will fail")
+                    print(f"❌ Cannot upload to Cloudinary - manikin replacement will fail")
                     raise FileNotFoundError(f"Pose file not found: {filename}")
         
-        # Use Qwen Image Edit Plus to transfer pose
-        # NOTE: Qwen Image Edit Plus is not specifically designed for pose transfer,
-        # but we'll try to make it work with very explicit instructions
-        # Try manikin first as reference, model second to edit
+        # Use nano-banana to replace manikin with person
+        # nano-banana is better at person replacement than Qwen is at pose transfer
         prompt = (
-            "CRITICAL: The FIRST image shows a manikin in a specific pose. The SECOND image shows a person. "
-            "Your task: Make the person in the SECOND image adopt the EXACT same full body pose as the manikin in the FIRST image. "
-            "REQUIREMENTS - The person must match EVERY aspect of the manikin's pose: "
-            "1. Head position, angle, and tilt - EXACT match "
-            "2. Left arm: shoulder position, elbow angle, wrist position - EXACT match "
-            "3. Right arm: shoulder position, elbow angle, wrist position - EXACT match "
-            "4. Torso: angle, rotation, position - EXACT match "
-            "5. Legs: position, stance, angles - EXACT match "
-            "6. Overall body posture and stance - EXACT match. "
-            "CRITICAL: Output MUST be a FULL BODY shot showing the complete person from head to feet. "
-            "DO NOT crop to torso, portrait, or upper body. The entire body must be visible. "
-            "Keep the person's face, appearance, clothing, and all other details exactly the same. "
-            "ONLY change the pose to match the manikin. "
-            "Professional fashion photography, full body composition, complete person visible from head to feet."
+            "Replace the manikin in the first image with the person from the second image. "
+            "Keep the exact same pose, body position, and composition from the first image. "
+            "The person from the second image should replace the manikin while maintaining the exact same pose. "
+            "Preserve the full body composition - show the complete person from head to feet. "
+            "Keep the background and scene exactly as they are in the first image. "
+            "Professional fashion photography with perfect pose matching."
         )
         
-        print(f"📝 Pose transfer prompt: {prompt[:200]}...")
-        print(f"🖼️ Image order: [manikin_pose (reference), model_image (to edit)]")
+        print(f"📝 Manikin replacement prompt: {prompt[:200]}...")
+        print(f"🖼️ Image order: [manikin_pose (base), person_wearing_product (to replace with)]")
         
-        # Try manikin first (reference), model second (to edit)
-        # This way Qwen sees the reference pose first, then edits the model
-        out = replicate.run("qwen/qwen-image-edit-plus", input={
+        # Use nano-banana with multiple images: manikin first (base), person second (to replace with)
+        out = replicate.run("google/nano-banana", input={
             "prompt": prompt,
-            "image": [manikin_pose_url, model_image_url],  # Manikin first (reference), model second (to edit)
-            "num_inference_steps": 70,  # Even more steps for better quality
-            "guidance_scale": 10.0,  # Maximum guidance for strict pose adherence
-            "strength": 0.95  # Maximum strength to ensure pose is transferred
+            "image_input": [manikin_pose_url, person_wearing_product_url],  # Manikin first (base), person second (to replace with)
+            "num_inference_steps": 20,  # Moderate steps for good quality
+            "guidance_scale": 5.0,  # Moderate guidance for pose matching
+            "strength": 0.7,  # Higher strength to ensure replacement happens
+            "seed": None
         })
         
         # Handle output
@@ -3468,21 +3452,21 @@ def transfer_pose_from_manikin(model_image_url: str, manikin_pose_url: str) -> s
             result_url = str(out)
         
         # Upload to Cloudinary for stability
-        if result_url and result_url != model_image_url:
-            stable_url = upload_to_cloudinary(result_url, "pose_transfer")
-            print(f"✅ Pose transferred successfully: {stable_url[:80]}...")
+        if result_url and result_url != person_wearing_product_url:
+            stable_url = upload_to_cloudinary(result_url, "manikin_replacement")
+            print(f"✅ Manikin replaced successfully: {stable_url[:80]}...")
             return stable_url
         else:
-            print(f"⚠️ Pose transfer returned None or same image, using original model image")
+            print(f"⚠️ Manikin replacement returned None or same image, using person wearing product")
             print(f"⚠️ Result URL: {result_url[:80] if result_url else 'None'}...")
-            return model_image_url
+            return person_wearing_product_url
             
     except Exception as e:
-        print(f"❌ Pose transfer failed: {e}")
+        print(f"❌ Manikin replacement failed: {e}")
         import traceback
         traceback.print_exc()
-        # Fallback to original model image
-        return model_image_url
+        # Fallback to person wearing product
+        return person_wearing_product_url
 
 def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:
     """ONE-STEP: Model + Product + Scene all in one Qwen call"""
@@ -4398,8 +4382,8 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
                     "aspect_ratio": aspect_ratio,
                     "duration": duration_seconds,
                     "quality": "high"  # Veo 3.1 always high quality
-                }
-            )
+            }
+        )
             print(f"✅ Veo API call successful, processing output...")
         except replicate.exceptions.ModelError as model_error:
             # Handle content moderation errors specifically
