@@ -16,17 +16,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Ensure Pillow is upgraded to pick up libwebp support
 RUN pip install --no-cache-dir --upgrade pillow
 
-# Create directories for uploads first
-RUN mkdir -p uploads temp static/poses
+# Create directories for uploads and temp
+RUN mkdir -p uploads temp
 
-# Copy application code (this already includes static/ directory)
+# Copy application code (this includes static/poses directory with pose images)
 COPY apps/api/ .
 
 # Ensure uploads directory has the right permissions
 RUN chmod -R 755 uploads
 
-# Verify static files exist
-RUN ls -la uploads/
+# Verify pose files were copied
+RUN ls -la static/poses/ || echo "Warning: static/poses directory not found"
 
 # Expose port
 EXPOSE 8000
