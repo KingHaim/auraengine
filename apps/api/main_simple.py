@@ -3561,13 +3561,15 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
                     product_image_url = upload_to_cloudinary(data_url, "additional_product")
         
         # Create prompt for adding the garment
+        # Be smart about replacing vs adding - if it's a conflicting garment type, replace it
         prompt = (
             f"Add the {product_name} from the second image to the person in the first image. "
-            f"The person should now be wearing both their existing clothing AND the new {product_name}. "
-            f"Keep the person's pose, facial expression, background, scene, and all existing clothing exactly the same. "
-            f"Only add the new {product_name} naturally on the person. "
+            f"IMPORTANT: If the {product_name} conflicts with existing clothing (e.g., both are shorts, both are pants, both are shirts), "
+            f"REPLACE the conflicting item with the new {product_name} instead of layering them. "
+            f"The person should be wearing the new {product_name} naturally - NO layering of similar garments. "
+            f"Keep the person's pose, facial expression, background, and scene exactly the same. "
             f"The {product_name} should fit naturally and match the lighting and style of the first image. "
-            f"Professional fashion photography with natural layering."
+            f"Professional fashion photography with natural clothing composition."
         )
         
         print(f"📝 Add product prompt: {prompt[:150]}...")
