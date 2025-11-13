@@ -884,6 +884,15 @@ async def generate_campaign_images_background(
         available_shots = CAMPAIGN_SHOT_TYPES.copy()
         random.shuffle(available_shots)
         shot_types_to_generate = available_shots[:shots_to_generate_count]
+        
+        # If manikin pose is set, ensure first shot is frontal (not side view)
+        if manikin_pose and manikin_pose != "":
+            # Find a frontal shot type (not profile/side)
+            frontal_shots = [s for s in available_shots if 'side' not in s['name'].lower() and 'profile' not in s['name'].lower()]
+            if frontal_shots and len(shot_types_to_generate) > 0:
+                # Replace first shot with a frontal one
+                shot_types_to_generate[0] = frontal_shots[0]
+                print(f"🎯 Using frontal shot type for manikin pose: {frontal_shots[0]['title']}")
 
         # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
         # NEW: Process all products together for each model+scene combination
