@@ -17,19 +17,22 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir --upgrade pillow
 
 # Create directories for uploads and temp
-RUN mkdir -p uploads temp static/poses
+RUN mkdir -p uploads temp
 
 # Copy application code (this includes static/poses directory with pose images)
 COPY apps/api/ .
 
-# Explicitly copy pose files to ensure they're included (in case .dockerignore blocks them)
-COPY apps/api/static/poses/*.jpg static/poses/
-
 # Ensure uploads directory has the right permissions
-RUN chmod -R 755 uploads static
+RUN chmod -R 755 uploads
 
-# Verify pose files were copied
-RUN ls -la static/poses/ && echo "✅ Pose files found:" && ls static/poses/*.jpg
+# Verify pose files were copied and list them
+RUN echo "📁 Checking for pose files..." && \
+    if [ -d "static/poses" ]; then \
+        ls -la static/poses/ && echo "✅ Pose files found:" && ls static/poses/*.jpg 2>/dev/null || echo "⚠️ No .jpg files in static/poses"; \
+    else \
+        echo "❌ static/poses directory not found - checking if static/ exists" && \
+        ls -la static/ 2>/dev/null || echo "❌ static/ directory not found at all"; \
+    fi
 
 # Expose port
 EXPOSE 8000

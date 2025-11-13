@@ -24,10 +24,9 @@ ENV/
 auraengine.db
 aura_engine.db
 
-# Uploads and temp files (keep uploads/ for static files)
+# Uploads and temp files
 temp/
-# Don't ignore static/ - we need static/poses/ for manikin images
-# static/
+# static/ - REMOVED: We need static/poses/ for manikin images
 
 # Logs
 *.log
