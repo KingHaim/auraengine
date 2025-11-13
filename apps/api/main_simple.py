@@ -3460,12 +3460,13 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         prompt = (
             "Transform the wooden mannequin from the first image into the real person from the second image. "
             "REQUIREMENTS: "
-            "1. Keep the EXACT same standing pose - arms straight down at sides, legs straight together "
+            "1. Keep the EXACT same standing pose - arms straight down at sides, legs straight together, facing forward "
             "2. Keep the EXACT same full body framing - complete figure from head to feet centered "
             "3. Keep the EXACT same white/neutral background "
-            "4. Use the person's face, skin tone, hair, and the orange t-shirt from the second image "
-            "5. The person must be standing in the same neutral straight pose as the mannequin "
-            "Full body fashion photograph, centered, head to feet visible, professional lighting"
+            "4. Use the person's face, skin tone, hair, and exact clothing from the second image "
+            "5. The person must be standing in the same neutral straight pose as the mannequin, facing forward directly at camera "
+            "6. DO NOT change to side profile - keep frontal view like the mannequin "
+            "Full body fashion photograph, frontal view, centered, head to feet visible, professional lighting"
         )
         
         print(f"📝 Manikin replacement prompt: {prompt[:200]}...")
