@@ -3500,28 +3500,29 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         # Use nano-banana to replace manikin with person
         # nano-banana is better at person replacement than Qwen is at pose transfer
         prompt = (
-            "Copy the pose AND framing from the mannequin in the first image and apply it to the person in the second image. "
+            "Change the person in the first image to match the EXACT pose from the mannequin in the second image. "
             "REQUIREMENTS: "
-            "1. Copy the EXACT standing pose from the mannequin - arms straight down at sides, legs straight together, facing forward "
-            "2. CRITICAL: Copy the EXACT framing from the mannequin - FULL BODY from HEAD to FEET visible, centered "
-            "3. The output MUST show the complete person including legs and feet, just like the mannequin image "
-            "4. Keep the person's appearance from the second image - face, skin tone, hair, clothing "
-            "5. Keep the background and scene from the second image (not the mannequin's white background) "
-            "6. DO NOT crop to waist or torso - show complete figure head-to-feet "
-            "7. Facing forward directly at camera, NOT side profile "
-            "Professional fashion photograph, complete full-length portrait with scene background"
+            "1. The person MUST stand with arms straight down at sides and legs straight together, facing forward - exactly like the mannequin "
+            "2. CRITICAL: Show FULL BODY from HEAD to FEET - complete figure including legs and feet visible "
+            "3. The person should be standing upright and still, in a neutral fashion model pose "
+            "4. Keep the person's face, hair, skin tone, and clothing from the first image "
+            "5. Keep the background and scene from the first image "
+            "6. DO NOT crop - show the complete body head-to-feet "
+            "7. Centered, facing forward, professional fashion photography "
+            "Full-length portrait, neutral standing pose, scene background preserved"
         )
         
         print(f"📝 Manikin replacement prompt: {prompt[:200]}...")
-        print(f"🖼️ Image order: [manikin_pose (base), person_wearing_product (to replace with)]")
+        print(f"🖼️ Image order: [person_wearing_product (base), manikin_pose (pose reference)]")
         
         # Use nano-banana with multiple images: manikin first (base), person second (to replace with)
+        # Swap image order to use person as base and manikin as reference for pose
         out = replicate.run("google/nano-banana", input={
             "prompt": prompt,
-            "image_input": [manikin_pose_url, person_wearing_product_url],  # Manikin first (base), person second (to replace with)
-            "num_inference_steps": 40,  # High steps for quality
-            "guidance_scale": 9.0,  # Very high guidance for strict adherence
-            "strength": 0.75,  # Higher strength for transformation
+            "image_input": [person_wearing_product_url, manikin_pose_url],  # Person first (base), manikin second (pose reference)
+            "num_inference_steps": 50,  # Very high steps for quality
+            "guidance_scale": 12.0,  # Maximum guidance for strict pose adherence
+            "strength": 0.85,  # High strength to force pose change
             "seed": None
         })
         
