@@ -3478,15 +3478,16 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         # Use nano-banana to replace manikin with person
         # nano-banana is better at person replacement than Qwen is at pose transfer
         prompt = (
-            "Transform the wooden mannequin from the first image into the real person from the second image. "
+            "Copy the pose from the mannequin in the first image and apply it to the person in the second image. "
             "REQUIREMENTS: "
-            "1. Keep the EXACT same standing pose - arms straight down at sides, legs straight together, facing forward "
-            "2. Keep the EXACT same full body framing - complete figure from head to feet centered "
-            "3. Keep the EXACT same white/neutral background "
-            "4. Use the person's face, skin tone, hair, and exact clothing from the second image "
-            "5. The person must be standing in the same neutral straight pose as the mannequin, facing forward directly at camera "
-            "6. DO NOT change to side profile - keep frontal view like the mannequin "
-            "Full body fashion photograph, frontal view, centered, head to feet visible, professional lighting"
+            "1. Copy the EXACT standing pose from the mannequin - arms straight down at sides, legs straight together, facing forward "
+            "2. Keep the person's appearance from the second image - face, skin tone, hair, clothing "
+            "3. CRITICAL: Keep the background and scene from the SECOND image (not the mannequin's background) "
+            "4. Keep the lighting, atmosphere, and environment from the second image "
+            "5. Only change the pose - everything else stays from the second image "
+            "6. Full body shot - complete figure from head to feet, centered "
+            "7. Facing forward directly at camera, NOT side profile "
+            "Professional fashion photograph with scene background preserved"
         )
         
         print(f"📝 Manikin replacement prompt: {prompt[:200]}...")
