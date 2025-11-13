@@ -885,14 +885,21 @@ async def generate_campaign_images_background(
         random.shuffle(available_shots)
         shot_types_to_generate = available_shots[:shots_to_generate_count]
         
-        # If manikin pose is set, ensure first shot is frontal (not side view)
+        # If manikin pose is set, ensure first shot is full body frontal (not side view or closeup)
         if manikin_pose and manikin_pose != "":
-            # Find a frontal shot type (not profile/side)
-            frontal_shots = [s for s in available_shots if 'side' not in s['name'].lower() and 'profile' not in s['name'].lower()]
-            if frontal_shots and len(shot_types_to_generate) > 0:
-                # Replace first shot with a frontal one
-                shot_types_to_generate[0] = frontal_shots[0]
-                print(f"🎯 Using frontal shot type for manikin pose: {frontal_shots[0]['title']}")
+            # Find a FULL BODY frontal shot type (not profile/side/closeup/detail)
+            excluded_keywords = ['side', 'profile', 'close', 'closeup', 'detail', 'macro', 'upper', 'lower']
+            full_body_frontal_shots = [s for s in available_shots if not any(keyword in s['name'].lower() for keyword in excluded_keywords)]
+            if full_body_frontal_shots and len(shot_types_to_generate) > 0:
+                # Replace first shot with a full body frontal one
+                shot_types_to_generate[0] = full_body_frontal_shots[0]
+                print(f"🎯 Using full body frontal shot for manikin pose: {full_body_frontal_shots[0]['title']}")
+            elif len(shot_types_to_generate) > 0:
+                # Fallback to any frontal shot if no full body found
+                frontal_shots = [s for s in available_shots if 'side' not in s['name'].lower() and 'profile' not in s['name'].lower()]
+                if frontal_shots:
+                    shot_types_to_generate[0] = frontal_shots[0]
+                    print(f"🎯 Using frontal shot for manikin pose: {frontal_shots[0]['title']}")
 
         # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
         # NEW: Process all products together for each model+scene combination
