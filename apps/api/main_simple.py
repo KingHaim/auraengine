@@ -958,11 +958,15 @@ async def generate_campaign_images_background(
                                 additional_product_image = additional_product.packshot_front_url or additional_product.image_url
                                 stable_additional_product = stabilize_url(additional_product_image, "product") if 'stabilize_url' in globals() else additional_product_image
                                 
-                                print(f"➕ Adding {additional_product.name} to current image...")
+                                # Get product type from clothing_type field
+                                product_type = additional_product.clothing_type if hasattr(additional_product, 'clothing_type') and additional_product.clothing_type else "garment"
+                                
+                                print(f"➕ Adding {additional_product.name} ({product_type}) to current image...")
                                 current_image_url = add_product_to_image(
                                     current_image_url,
                                     stable_additional_product,
-                                    additional_product.name
+                                    additional_product.name,
+                                    product_type
                                 )
                             print(f"✅ All {len(products)} products added successfully!")
                         
@@ -1284,11 +1288,15 @@ async def generate_campaign_images(
                                 additional_product_image = additional_product.packshot_front_url or additional_product.image_url
                                 stable_additional_product = stabilize_url(additional_product_image, "product") if 'stabilize_url' in globals() else additional_product_image
                                 
-                                print(f"➕ Adding {additional_product.name} to current image...")
+                                # Get product type from clothing_type field
+                                product_type = additional_product.clothing_type if hasattr(additional_product, 'clothing_type') and additional_product.clothing_type else "garment"
+                                
+                                print(f"➕ Adding {additional_product.name} ({product_type}) to current image...")
                                 current_image_url = add_product_to_image(
                                     current_image_url,
                                     stable_additional_product,
-                                    additional_product.name
+                                    additional_product.name,
+                                    product_type
                                 )
                             print(f"✅ All {len(products)} products added successfully!")
                         
@@ -3577,9 +3585,12 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
                     product_image_url = upload_to_cloudinary(data_url, "additional_product")
         
         # Create prompt for adding the garment
-        # Detect if this is a bottom garment that conflicts with existing bottoms
-        is_bottom = any(keyword in product_name.lower() for keyword in ['short', 'pant', 'jean', 'trouser', 'skirt'])
-        is_top = any(keyword in product_name.lower() for keyword in ['shirt', 't-shirt', 'tshirt', 'top', 'blouse', 'sweater', 'hoodie'])
+        # Use product_type field to determine garment category (more reliable than parsing name)
+        product_type_lower = product_type.lower() if product_type else ""
+        is_bottom = product_type_lower in ['shorts', 'pants', 'jeans', 'trousers', 'skirt', 'short', 'pant', 'jean', 'trouser'] or \
+                    any(keyword in product_name.lower() for keyword in ['short', 'pant', 'jean', 'trouser', 'skirt'])
+        is_top = product_type_lower in ['shirt', 't-shirt', 'tshirt', 'top', 'blouse', 'sweater', 'hoodie', 'tee'] or \
+                 any(keyword in product_name.lower() for keyword in ['shirt', 't-shirt', 'tshirt', 'top', 'blouse', 'sweater', 'hoodie'])
         
         if is_bottom:
             prompt = (
