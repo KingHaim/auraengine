@@ -886,109 +886,128 @@ async def generate_campaign_images_background(
         shot_types_to_generate = available_shots[:shots_to_generate_count]
 
         # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
-        for product in products:
-            for model in models:
-                for scene in scenes:
-                    # Use product packshot (front view preferred)
-                    product_image = product.packshot_front_url or product.image_url
-                    
-                    # Use model's selected pose if available
-                    model_image = model.image_url
-                    if selected_poses_dict.get(str(model.id)) and len(selected_poses_dict[str(model.id)]) > 0:
-                        import random
-                        model_image = random.choice(selected_poses_dict[str(model.id)])
-                        print(f"🎭 Using selected pose for {model.name}")
-                    elif model.poses and len(model.poses) > 0:
-                        import random
-                        model_image = random.choice(model.poses)
-                        print(f"🎭 Using random pose for {model.name}")
-                    
-                    print(f"🎬 Processing campaign flow: {product.name} + {model.name} + {scene.name}")
-                    print(f"📸 Generating {len(shot_types_to_generate)} shots for this combination...")
-                    
-                    # Generate the requested shot types for this combination
-                    print(f"🎬 Starting generation of {len(shot_types_to_generate)} shots...")
-                    for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
-                        try:
-                            print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
-                            print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for {product.name} + {model.name} + {scene.name}")
-                            
-                            # NEW WORKFLOW: First generate person wearing product, then replace manikin for first image
-                            # Step 1: Qwen Triple Composition (Model + Product + Scene all in one)
-                            quality_mode = "standard"
-                            
-                            # Stabilize inputs to /static to avoid replicate 404s
-                            stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
-                            stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
-                            
-                            print(f"🎬 Step 1: Qwen triple composition - Model + {product.name} + Scene...")
-                            person_wearing_product_url = run_qwen_triple_composition(
-                                stable_model,
-                                stable_product,
-                                stable_scene,
-                                product.name,
-                                quality_mode,
-                                shot_type_prompt=shot_type['prompt']
-                            )
-                            # Qwen result is already persisted
-                            print(f"✅ Qwen triple composition completed: {person_wearing_product_url[:50]}...")
-                            
-                            # Step 2: For the first image (initial image), replace manikin with person wearing product
-                            final_result_url = person_wearing_product_url
-                            if shot_idx == 1:
-                                # Get manikin pose from campaign settings or use default
-                                campaign_manikin_pose = campaign.settings.get("manikin_pose", "Pose-neutral.jpg") if campaign.settings else "Pose-neutral.jpg"
-                                # Get URL from cache, or use static URL as fallback
-                                cached_url = POSE_IMAGE_URLS.get(campaign_manikin_pose)
-                                if cached_url and cached_url.startswith("https://res.cloudinary.com/"):
-                                    manikin_pose_url = cached_url
-                                elif cached_url is None or not cached_url.startswith("https://"):
-                                    # Need to upload on-demand or use static URL
-                                    manikin_pose_url = get_static_url(f"poses/{campaign_manikin_pose}")
-                                else:
-                                    manikin_pose_url = cached_url
+        # NEW: Process all products together for each model+scene combination
+        for model in models:
+            for scene in scenes:
+                # Use model's selected pose if available
+                model_image = model.image_url
+                if selected_poses_dict.get(str(model.id)) and len(selected_poses_dict[str(model.id)]) > 0:
+                    import random
+                    model_image = random.choice(selected_poses_dict[str(model.id)])
+                    print(f"🎭 Using selected pose for {model.name}")
+                elif model.poses and len(model.poses) > 0:
+                    import random
+                    model_image = random.choice(model.poses)
+                    print(f"🎭 Using random pose for {model.name}")
+                
+                # Build product list names for logging
+                product_names = ", ".join([p.name for p in products])
+                print(f"🎬 Processing campaign flow: [{product_names}] + {model.name} + {scene.name}")
+                print(f"📸 Generating {len(shot_types_to_generate)} shots with {len(products)} product(s)...")
+                
+                # Generate the requested shot types for this combination
+                print(f"🎬 Starting generation of {len(shot_types_to_generate)} shots...")
+                for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
+                    try:
+                        print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
+                        print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for [{product_names}] + {model.name} + {scene.name}")
+                        
+                        # NEW MULTI-PRODUCT WORKFLOW
+                        # Step 1: Generate base image with first product using Qwen
+                        first_product = products[0]
+                        first_product_image = first_product.packshot_front_url or first_product.image_url
+                        quality_mode = "standard"
+                        
+                        # Stabilize inputs to /static to avoid replicate 404s
+                        stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
+                        stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
+                        stable_first_product = stabilize_url(first_product_image, "product") if 'stabilize_url' in globals() else first_product_image
+                        
+                        print(f"🎬 Step 1: Qwen base composition - Model + {first_product.name} + Scene...")
+                        person_wearing_product_url = run_qwen_triple_composition(
+                            stable_model,
+                            stable_first_product,
+                            stable_scene,
+                            first_product.name,
+                            quality_mode,
+                            shot_type_prompt=shot_type['prompt']
+                        )
+                        print(f"✅ Base image with {first_product.name} completed: {person_wearing_product_url[:50]}...")
+                        
+                        # Step 2: Add additional products sequentially using nano-banana
+                        current_image_url = person_wearing_product_url
+                        if len(products) > 1:
+                            print(f"👕 Adding {len(products) - 1} additional product(s) using nano-banana...")
+                            for additional_product in products[1:]:
+                                additional_product_image = additional_product.packshot_front_url or additional_product.image_url
+                                stable_additional_product = stabilize_url(additional_product_image, "product") if 'stabilize_url' in globals() else additional_product_image
                                 
-                                print(f"🍌 First image: Replacing manikin with person wearing product ({campaign_manikin_pose})...")
-                                print(f"🖼️ Using manikin pose URL: {manikin_pose_url[:80] if manikin_pose_url else 'None'}...")
-                                final_result_url = replace_manikin_with_person(manikin_pose_url, person_wearing_product_url)
-                                print(f"✅ Manikin replaced for initial image")
-
-                            # Define clothing type for result structure (needed for compatibility)
-                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
+                                print(f"➕ Adding {additional_product.name} to current image...")
+                                current_image_url = add_product_to_image(
+                                    current_image_url,
+                                    stable_additional_product,
+                                    additional_product.name
+                                )
+                            print(f"✅ All {len(products)} products added successfully!")
+                        
+                        # Update reference to final image with all products
+                        person_wearing_product_url = current_image_url
+                        
+                        # Step 3: For the first image (initial image), replace manikin with person wearing product
+                        final_result_url = person_wearing_product_url
+                        if shot_idx == 1:
+                            # Get manikin pose from campaign settings or use default
+                            campaign_manikin_pose = campaign.settings.get("manikin_pose", "Pose-neutral.jpg") if campaign.settings else "Pose-neutral.jpg"
+                            # Get URL from cache, or use static URL as fallback
+                            cached_url = POSE_IMAGE_URLS.get(campaign_manikin_pose)
+                            if cached_url and cached_url.startswith("https://res.cloudinary.com/"):
+                                manikin_pose_url = cached_url
+                            elif cached_url is None or not cached_url.startswith("https://"):
+                                # Need to upload on-demand or use static URL
+                                manikin_pose_url = get_static_url(f"poses/{campaign_manikin_pose}")
+                            else:
+                                manikin_pose_url = cached_url
                             
-                            # Step 2: REMOVED - Qwen handles everything in one step
-                            
-                            # Step 3: REMOVED - Qwen handles everything in one step
-                            
-                            # Normalize and store final URL
-                            print(f"💾 Normalizing final result URL...")
-                            final_url = stabilize_url(to_url(final_result_url), f"final_{shot_type['name']}") if 'stabilize_url' in globals() else download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
-                            print(f"✅ Final result saved locally: {final_url[:50]}...")
-                            
-                            generated_images.append({
-                                "product_name": product.name,
-                                "product_id": str(product.id),
-                                "model_name": model.name,
-                                "scene_name": scene.name,
-                                "shot_type": shot_type['title'],
-                                "shot_name": shot_type['name'],
-                                "image_url": final_url,
-                                "model_image_url": model_image,
-                                "product_image_url": product_image,
-                                "clothing_type": clothing_type
-                            })
-                            
-                            print(f"✅ Shot completed: {shot_type['title']}")
-                            
-                        except Exception as e:
-                            print(f"❌ Failed shot {shot_type['title']}: {e}")
-                            import traceback
-                            traceback.print_exc()
-                            print(f"🔄 Continuing to next shot... (Shot {shot_idx}/{len(shot_types_to_generate)})")
-                            continue
-                    
-                    print(f"\n🎉 Campaign flow complete: {product.name} + {model.name} + {scene.name}")
+                            print(f"🍌 First image: Replacing manikin with person wearing product ({campaign_manikin_pose})...")
+                            print(f"🖼️ Using manikin pose URL: {manikin_pose_url[:80] if manikin_pose_url else 'None'}...")
+                            final_result_url = replace_manikin_with_person(manikin_pose_url, person_wearing_product_url)
+                            print(f"✅ Manikin replaced for initial image")
+                        
+                        # Store all product info for the result (combined names)
+                        combined_product_names = ", ".join([p.name for p in products])
+                        combined_product_ids = [str(p.id) for p in products]
+                        first_product_image = products[0].packshot_front_url or products[0].image_url
+                        first_product_type = products[0].clothing_type if hasattr(products[0], 'clothing_type') and products[0].clothing_type else "outfit"
+                        
+                        # Normalize and store final URL
+                        print(f"💾 Normalizing final result URL...")
+                        final_url = stabilize_url(to_url(final_result_url), f"final_{shot_type['name']}") if 'stabilize_url' in globals() else download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
+                        print(f"✅ Final result saved locally: {final_url[:50]}...")
+                        
+                        generated_images.append({
+                            "product_name": combined_product_names,
+                            "product_id": combined_product_ids[0] if combined_product_ids else str(products[0].id),  # Use first product ID for compatibility
+                            "product_ids": combined_product_ids,  # NEW: Store all product IDs
+                            "model_name": model.name,
+                            "scene_name": scene.name,
+                            "shot_type": shot_type['title'],
+                            "shot_name": shot_type['name'],
+                            "image_url": final_url,
+                            "model_image_url": model_image,
+                            "product_image_url": first_product_image,
+                            "clothing_type": first_product_type
+                        })
+                        
+                        print(f"✅ Shot completed: {shot_type['title']}")
+                        
+                    except Exception as e:
+                        print(f"❌ Failed shot {shot_type['title']}: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        print(f"🔄 Continuing to next shot... (Shot {shot_idx}/{len(shot_types_to_generate)})")
+                        continue
+                
+                print(f"\n🎉 Campaign flow complete: [{product_names}] + {model.name} + {scene.name}")
         
         # Update campaign with generated images
         campaign.generation_status = "completed" if len(generated_images) > 0 else "failed"
@@ -1176,107 +1195,126 @@ async def generate_campaign_images(
         new_images = []
         
         # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
-        for product in products:
-            for model in models:
-                for scene in scenes:
-                    # Use product packshot (front view preferred)
-                    product_image = product.packshot_front_url or product.image_url
-                    
-                    # Use model's pose if available, or select random
-                    if model.poses and len(model.poses) > 0:
-                        import random
-                        model_image = random.choice(model.poses)
-                        print(f"🎭 Using random pose for {model.name}")
-                    else:
-                        model_image = model.image_url
-                    
-                    print(f"🎬 Processing campaign flow: {product.name} + {model.name} + {scene.name}")
-                    print(f"📸 Generating {number_of_images} images for this campaign...")
-                    
-                    # Generate only the requested number of images - RANDOMIZED
+        # NEW: Process all products together for each model+scene combination
+        for model in models:
+            for scene in scenes:
+                # Use model's pose if available, or select random
+                if model.poses and len(model.poses) > 0:
                     import random
-                    available_shots = CAMPAIGN_SHOT_TYPES.copy()
-                    random.shuffle(available_shots)
-                    shot_types_to_generate = available_shots[:number_of_images]
-                    for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
-                        try:
-                            print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
-                            
-                            # NEW WORKFLOW: First generate person wearing product, then replace manikin for first image
-                            # Step 1: Qwen Triple Composition (Model + Product + Scene all in one)
-                            quality_mode = "standard"
-                            
-                            # Stabilize inputs to /static to avoid replicate 404s
-                            stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
-                            stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                            stable_product = stabilize_url(product_image, "product") if 'stabilize_url' in globals() else product_image
-                            
-                            print(f"🎬 Step 1: Qwen triple composition - Model + {product.name} + Scene...")
-                            person_wearing_product_url = run_qwen_triple_composition(
-                                stable_model,
-                                stable_product,
-                                stable_scene,
-                                product.name,
-                                quality_mode,
-                                shot_type_prompt=shot_type['prompt']
-                            )
-                            # Qwen result is already persisted
-                            print(f"✅ Qwen triple composition completed: {person_wearing_product_url[:50]}...")
-                            
-                            # Step 2: For the first image (initial image), replace manikin with person wearing product
-                            final_result_url = person_wearing_product_url
-                            if shot_idx == 1:
-                                # Get manikin pose from campaign settings or use default
-                                campaign_manikin_pose = campaign.settings.get("manikin_pose", "Pose-neutral.jpg") if campaign.settings else "Pose-neutral.jpg"
-                                # Get URL from cache, or use static URL as fallback
-                                cached_url = POSE_IMAGE_URLS.get(campaign_manikin_pose)
-                                if cached_url and cached_url.startswith("https://res.cloudinary.com/"):
-                                    manikin_pose_url = cached_url
-                                elif cached_url is None or not cached_url.startswith("https://"):
-                                    # Need to upload on-demand or use static URL
-                                    manikin_pose_url = get_static_url(f"poses/{campaign_manikin_pose}")
-                                else:
-                                    manikin_pose_url = cached_url
+                    model_image = random.choice(model.poses)
+                    print(f"🎭 Using random pose for {model.name}")
+                else:
+                    model_image = model.image_url
+                
+                # Build product list names for logging
+                product_names = ", ".join([p.name for p in products])
+                print(f"🎬 Processing campaign flow: [{product_names}] + {model.name} + {scene.name}")
+                print(f"📸 Generating {number_of_images} images with {len(products)} product(s)...")
+                
+                # Generate only the requested number of images - RANDOMIZED
+                import random
+                available_shots = CAMPAIGN_SHOT_TYPES.copy()
+                random.shuffle(available_shots)
+                shot_types_to_generate = available_shots[:number_of_images]
+                for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
+                    try:
+                        print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
+                        
+                        # NEW MULTI-PRODUCT WORKFLOW
+                        # Step 1: Generate base image with first product using Qwen
+                        first_product = products[0]
+                        first_product_image = first_product.packshot_front_url or first_product.image_url
+                        quality_mode = "standard"
+                        
+                        # Stabilize inputs to /static to avoid replicate 404s
+                        stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
+                        stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
+                        stable_first_product = stabilize_url(first_product_image, "product") if 'stabilize_url' in globals() else first_product_image
+                        
+                        print(f"🎬 Step 1: Qwen base composition - Model + {first_product.name} + Scene...")
+                        person_wearing_product_url = run_qwen_triple_composition(
+                            stable_model,
+                            stable_first_product,
+                            stable_scene,
+                            first_product.name,
+                            quality_mode,
+                            shot_type_prompt=shot_type['prompt']
+                        )
+                        print(f"✅ Base image with {first_product.name} completed: {person_wearing_product_url[:50]}...")
+                        
+                        # Step 2: Add additional products sequentially using nano-banana
+                        current_image_url = person_wearing_product_url
+                        if len(products) > 1:
+                            print(f"👕 Adding {len(products) - 1} additional product(s) using nano-banana...")
+                            for additional_product in products[1:]:
+                                additional_product_image = additional_product.packshot_front_url or additional_product.image_url
+                                stable_additional_product = stabilize_url(additional_product_image, "product") if 'stabilize_url' in globals() else additional_product_image
                                 
-                                print(f"🍌 First image: Replacing manikin with person wearing product ({campaign_manikin_pose})...")
-                                print(f"🖼️ Using manikin pose URL: {manikin_pose_url[:80] if manikin_pose_url else 'None'}...")
-                                final_result_url = replace_manikin_with_person(manikin_pose_url, person_wearing_product_url)
-                                print(f"✅ Manikin replaced for initial image")
-
-                            # Define clothing type for result structure (needed for compatibility)
-                            clothing_type = product.clothing_type if hasattr(product, 'clothing_type') and product.clothing_type else "top"
+                                print(f"➕ Adding {additional_product.name} to current image...")
+                                current_image_url = add_product_to_image(
+                                    current_image_url,
+                                    stable_additional_product,
+                                    additional_product.name
+                                )
+                            print(f"✅ All {len(products)} products added successfully!")
+                        
+                        # Update reference to final image with all products
+                        person_wearing_product_url = current_image_url
+                        
+                        # Step 3: For the first image (initial image), replace manikin with person wearing product
+                        final_result_url = person_wearing_product_url
+                        if shot_idx == 1:
+                            # Get manikin pose from campaign settings or use default
+                            campaign_manikin_pose = campaign.settings.get("manikin_pose", "Pose-neutral.jpg") if campaign.settings else "Pose-neutral.jpg"
+                            # Get URL from cache, or use static URL as fallback
+                            cached_url = POSE_IMAGE_URLS.get(campaign_manikin_pose)
+                            if cached_url and cached_url.startswith("https://res.cloudinary.com/"):
+                                manikin_pose_url = cached_url
+                            elif cached_url is None or not cached_url.startswith("https://"):
+                                # Need to upload on-demand or use static URL
+                                manikin_pose_url = get_static_url(f"poses/{campaign_manikin_pose}")
+                            else:
+                                manikin_pose_url = cached_url
                             
-                            # Step 2: REMOVED - Qwen handles everything in one step
-                            
-                            # Step 3: REMOVED - Qwen handles everything in one step
-                            
-                            # Normalize and store final URL
-                            print(f"💾 Normalizing final result URL...")
-                            final_url = stabilize_url(to_url(final_result_url), f"final_{shot_type['name']}") if 'stabilize_url' in globals() else download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
-                            print(f"✅ Final result saved locally: {final_url[:50]}...")
-                            
-                            new_images.append({
-                                "product_name": product.name,
-                                "product_id": str(product.id),
-                                "model_name": model.name,
-                                "scene_name": scene.name,
-                                "shot_type": shot_type['title'],
-                                "shot_name": shot_type['name'],
-                                "image_url": final_url,
-                                "model_image_url": model_image,
-                                "product_image_url": product_image,
-                                "clothing_type": clothing_type
-                            })
-                            
-                            print(f"✅ Shot completed: {shot_type['title']}")
-                            
-                        except Exception as e:
-                            print(f"❌ Failed shot {shot_type['title']}: {e}")
-                            import traceback
-                            traceback.print_exc()
-                            continue
-                    
-                    print(f"\n🎉 Campaign flow complete: {product.name} + {model.name} + {scene.name}")
+                            print(f"🍌 First image: Replacing manikin with person wearing product ({campaign_manikin_pose})...")
+                            print(f"🖼️ Using manikin pose URL: {manikin_pose_url[:80] if manikin_pose_url else 'None'}...")
+                            final_result_url = replace_manikin_with_person(manikin_pose_url, person_wearing_product_url)
+                            print(f"✅ Manikin replaced for initial image")
+                        
+                        # Store all product info for the result (combined names)
+                        combined_product_names = ", ".join([p.name for p in products])
+                        combined_product_ids = [str(p.id) for p in products]
+                        first_product_image = products[0].packshot_front_url or products[0].image_url
+                        first_product_type = products[0].clothing_type if hasattr(products[0], 'clothing_type') and products[0].clothing_type else "outfit"
+                        
+                        # Normalize and store final URL
+                        print(f"💾 Normalizing final result URL...")
+                        final_url = stabilize_url(to_url(final_result_url), f"final_{shot_type['name']}") if 'stabilize_url' in globals() else download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
+                        print(f"✅ Final result saved locally: {final_url[:50]}...")
+                        
+                        new_images.append({
+                            "product_name": combined_product_names,
+                            "product_id": combined_product_ids[0] if combined_product_ids else str(products[0].id),
+                            "product_ids": combined_product_ids,  # NEW: Store all product IDs
+                            "model_name": model.name,
+                            "scene_name": scene.name,
+                            "shot_type": shot_type['title'],
+                            "shot_name": shot_type['name'],
+                            "image_url": final_url,
+                            "model_image_url": model_image,
+                            "product_image_url": first_product_image,
+                            "clothing_type": first_product_type
+                        })
+                        
+                        print(f"✅ Shot completed: {shot_type['title']}")
+                        
+                    except Exception as e:
+                        print(f"❌ Failed shot {shot_type['title']}: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        continue
+                
+                print(f"\n🎉 Campaign flow complete: [{product_names}] + {model.name} + {scene.name}")
         
         # Update campaign
         campaign.status = "completed" if len(new_images) > 0 else "failed"
@@ -3469,6 +3507,84 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         traceback.print_exc()
         # Fallback to person wearing product
         return person_wearing_product_url
+
+def add_product_to_image(current_image_url: str, product_image_url: str, product_name: str, product_type: str = "garment") -> str:
+    """Add an additional product/garment to an existing image using nano-banana"""
+    try:
+        print(f"👕 Adding {product_name} to existing image using nano-banana...")
+        print(f"🖼️ Current image: {current_image_url[:80]}...")
+        print(f"🧵 Product to add: {product_image_url[:80]}...")
+        
+        # Ensure URLs are accessible (convert local paths to Cloudinary if needed)
+        if current_image_url.startswith(get_base_url() + "/static/"):
+            filename = current_image_url.replace(get_base_url() + "/static/", "")
+            filepath = f"static/{filename}" if os.path.exists(f"static/{filename}") else f"uploads/{filename}"
+            if os.path.exists(filepath):
+                import base64
+                with open(filepath, "rb") as f:
+                    file_content = f.read()
+                    ext = filename.split('.')[-1] if '.' in filename else 'jpg'
+                    data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
+                    current_image_url = upload_to_cloudinary(data_url, "current_image")
+        
+        if product_image_url.startswith(get_base_url() + "/static/"):
+            filename = product_image_url.replace(get_base_url() + "/static/", "")
+            filepath = f"static/{filename}" if os.path.exists(f"static/{filename}") else f"uploads/{filename}"
+            if os.path.exists(filepath):
+                import base64
+                with open(filepath, "rb") as f:
+                    file_content = f.read()
+                    ext = filename.split('.')[-1] if '.' in filename else 'jpg'
+                    data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
+                    product_image_url = upload_to_cloudinary(data_url, "additional_product")
+        
+        # Create prompt for adding the garment
+        prompt = (
+            f"Add the {product_name} from the second image to the person in the first image. "
+            f"The person should now be wearing both their existing clothing AND the new {product_name}. "
+            f"Keep the person's pose, facial expression, background, scene, and all existing clothing exactly the same. "
+            f"Only add the new {product_name} naturally on the person. "
+            f"The {product_name} should fit naturally and match the lighting and style of the first image. "
+            f"Professional fashion photography with natural layering."
+        )
+        
+        print(f"📝 Add product prompt: {prompt[:150]}...")
+        
+        # Use nano-banana to add the product
+        out = replicate.run("google/nano-banana", input={
+            "prompt": prompt,
+            "image_input": [current_image_url, product_image_url],  # Current image first, new product second
+            "num_inference_steps": 30,
+            "guidance_scale": 7.5,
+            "strength": 0.65,  # Moderate strength to add garment while preserving scene
+            "seed": None
+        })
+        
+        # Handle output
+        if hasattr(out, 'url'):
+            result_url = out.url()
+        elif isinstance(out, str):
+            result_url = out
+        elif isinstance(out, list) and len(out) > 0:
+            result_url = out[0] if isinstance(out[0], str) else out[0].url()
+        else:
+            result_url = str(out)
+        
+        # Upload to Cloudinary for stability
+        if result_url and result_url != current_image_url:
+            stable_url = upload_to_cloudinary(result_url, f"with_{product_name}")
+            print(f"✅ Added {product_name} successfully: {stable_url[:80]}...")
+            return stable_url
+        else:
+            print(f"⚠️ Product addition returned same image, using current")
+            return current_image_url
+    
+    except Exception as e:
+        print(f"❌ Failed to add {product_name}: {e}")
+        import traceback
+        traceback.print_exc()
+        # Fallback to current image
+        return current_image_url
 
 def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:
     """ONE-STEP: Model + Product + Scene all in one Qwen call"""
