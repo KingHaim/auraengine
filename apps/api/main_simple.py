@@ -3561,16 +3561,32 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
                     product_image_url = upload_to_cloudinary(data_url, "additional_product")
         
         # Create prompt for adding the garment
-        # Be smart about replacing vs adding - if it's a conflicting garment type, replace it
-        prompt = (
-            f"Add the {product_name} from the second image to the person in the first image. "
-            f"IMPORTANT: If the {product_name} conflicts with existing clothing (e.g., both are shorts, both are pants, both are shirts), "
-            f"REPLACE the conflicting item with the new {product_name} instead of layering them. "
-            f"The person should be wearing the new {product_name} naturally - NO layering of similar garments. "
-            f"Keep the person's pose, facial expression, background, and scene exactly the same. "
-            f"The {product_name} should fit naturally and match the lighting and style of the first image. "
-            f"Professional fashion photography with natural clothing composition."
-        )
+        # Detect if this is a bottom garment that conflicts with existing bottoms
+        is_bottom = any(keyword in product_name.lower() for keyword in ['short', 'pant', 'jean', 'trouser', 'skirt'])
+        is_top = any(keyword in product_name.lower() for keyword in ['shirt', 't-shirt', 'tshirt', 'top', 'blouse', 'sweater', 'hoodie'])
+        
+        if is_bottom:
+            prompt = (
+                f"Replace any existing pants, shorts, or bottom garments with the {product_name} from the second image. "
+                f"CRITICAL: The person should be wearing ONLY the {product_name} on their legs - NO pants underneath shorts, NO layering of bottoms. "
+                f"Remove any existing leg wear and show only the new {product_name}. "
+                f"Keep the person's pose, facial expression, background, scene, and upper body clothing exactly the same. "
+                f"Professional fashion photography with clean, natural look."
+            )
+        elif is_top:
+            prompt = (
+                f"Replace any existing shirt or top garment with the {product_name} from the second image. "
+                f"CRITICAL: The person should be wearing ONLY the {product_name} on their upper body - NO layering of similar tops. "
+                f"Keep the person's pose, facial expression, background, scene, and lower body clothing exactly the same. "
+                f"Professional fashion photography with clean, natural look."
+            )
+        else:
+            # For accessories or other items, use additive approach
+            prompt = (
+                f"Add the {product_name} from the second image to the person in the first image. "
+                f"Keep the person's pose, facial expression, background, and existing clothing. "
+                f"Professional fashion photography with natural styling."
+            )
         
         print(f"📝 Add product prompt: {prompt[:150]}...")
         
