@@ -3547,6 +3547,8 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
 def add_product_to_image(current_image_url: str, product_image_url: str, product_name: str, product_type: str = "garment") -> str:
     """Add an additional product/garment to an existing image using nano-banana"""
     try:
+        # Trim whitespace from product name to avoid Cloudinary folder issues
+        product_name = product_name.strip()
         print(f"👕 Adding {product_name} to existing image using nano-banana...")
         print(f"🖼️ Current image: {current_image_url[:80]}...")
         print(f"🧵 Product to add: {product_image_url[:80]}...")
