@@ -26,7 +26,10 @@ aura_engine.db
 
 # Uploads and temp files
 temp/
-# static/ - REMOVED: We need static/poses/ for manikin images
+
+# EXPLICITLY ALLOW static/ directory (especially static/poses/)
+!static/
+!static/**
 
 # Logs
 *.log
