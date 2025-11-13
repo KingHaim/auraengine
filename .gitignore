@@ -26,7 +26,9 @@ aura_engine.db
 # Uploads and temp files
 uploads/
 temp/
-static/
+# static/ - REMOVED: We need to track static/poses/ for manikin images
+# Instead, ignore specific subdirectories if needed:
+# static/uploads/
 
 # Node
 node_modules/
