@@ -946,7 +946,8 @@ async def generate_campaign_images_background(
                             stable_scene,
                             first_product.name,
                             quality_mode,
-                            shot_type_prompt=shot_type['prompt']
+                            shot_type_prompt=shot_type['prompt'],
+                            clothing_type=first_product.clothing_type
                         )
                         print(f"✅ Base image with {first_product.name} completed: {person_wearing_product_url[:50]}...")
                         
@@ -1276,7 +1277,8 @@ async def generate_campaign_images(
                             stable_scene,
                             first_product.name,
                             quality_mode,
-                            shot_type_prompt=shot_type['prompt']
+                            shot_type_prompt=shot_type['prompt'],
+                            clothing_type=first_product.clothing_type
                         )
                         print(f"✅ Base image with {first_product.name} completed: {person_wearing_product_url[:50]}...")
                         
@@ -3595,23 +3597,23 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
         
         if is_bottom:
             prompt = (
-                f"Replace any existing pants, shorts, or bottom garments with the {product_name} from the second image. "
-                f"CRITICAL: The person should be wearing ONLY the {product_name} on their legs - NO pants underneath shorts, NO layering of bottoms. "
-                f"Remove any existing leg wear and show only the new {product_name}. "
+                f"Replace any existing pants, shorts, or bottom garments with the {product_type} from the second image. "
+                f"CRITICAL: The person should be wearing ONLY the {product_type} on their legs - NO pants underneath shorts, NO layering of bottoms. "
+                f"Remove any existing leg wear and show only the new {product_type}. "
                 f"Keep the person's pose, facial expression, background, scene, and upper body clothing exactly the same. "
                 f"Professional fashion photography with clean, natural look."
             )
         elif is_top:
             prompt = (
-                f"Replace any existing shirt or top garment with the {product_name} from the second image. "
-                f"CRITICAL: The person should be wearing ONLY the {product_name} on their upper body - NO layering of similar tops. "
+                f"Replace any existing shirt or top garment with the {product_type} from the second image. "
+                f"CRITICAL: The person should be wearing ONLY the {product_type} on their upper body - NO layering of similar tops. "
                 f"Keep the person's pose, facial expression, background, scene, and lower body clothing exactly the same. "
                 f"Professional fashion photography with clean, natural look."
             )
         else:
             # For accessories or other items, use additive approach
             prompt = (
-                f"Add the {product_name} from the second image to the person in the first image. "
+                f"Add the {product_type} from the second image to the person in the first image. "
                 f"Keep the person's pose, facial expression, background, and existing clothing. "
                 f"Professional fashion photography with natural styling."
             )
@@ -3654,10 +3656,13 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
         # Fallback to current image
         return current_image_url
 
-def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard", shot_type_prompt: str = None) -> str:
+def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard", shot_type_prompt: str = None, clothing_type: str = None) -> str:
     """ONE-STEP: Model + Product + Scene all in one Qwen call"""
     try:
         print(f"🎬 Running Qwen triple composition...")
+        
+        # Use clothing_type if provided, otherwise fallback to product_name
+        garment_description = clothing_type if clothing_type else product_name
         
         # Convert all local URLs to base64
         if model_image_url.startswith(get_base_url() + "/static/"):
@@ -3677,9 +3682,9 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
 
         # Enhanced integration prompt with shot type - STRONG SCENE INTEGRATION
         if shot_type_prompt:
-            scene_prompt = f"CRITICAL: Create a seamless fashion photograph by COMPLETELY integrating the person from the first image into the EXACT environment and setting from the third image. Dress the person with the {product_name} from the second image. {shot_type_prompt}. The person MUST be placed directly into the third image's environment - use the exact background, lighting, atmosphere, and visual style from the third image. The person should appear as if they were photographed in that exact location. Match the lighting direction, shadows, color temperature, and mood perfectly. The background from the third image should be completely preserved and the person should look naturally placed within it. Professional fashion photography with perfect scene integration."
+            scene_prompt = f"CRITICAL: Create a seamless fashion photograph by COMPLETELY integrating the person from the first image into the EXACT environment and setting from the third image. Dress the person with the {garment_description} from the second image. {shot_type_prompt}. The person MUST be placed directly into the third image's environment - use the exact background, lighting, atmosphere, and visual style from the third image. The person should appear as if they were photographed in that exact location. Match the lighting direction, shadows, color temperature, and mood perfectly. The background from the third image should be completely preserved and the person should look naturally placed within it. Professional fashion photography with perfect scene integration."
         else:
-            scene_prompt = f"CRITICAL: Create a seamless fashion photograph by COMPLETELY integrating the person from the first image into the EXACT environment and setting from the third image. Dress the person with the {product_name} from the second image. The person MUST be placed directly into the third image's environment - use the exact background, lighting, atmosphere, and visual style from the third image. The person should appear as if they were photographed in that exact location. Match the lighting direction, shadows, color temperature, and mood perfectly. The background from the third image should be completely preserved and the person should look naturally placed within it. Professional fashion photography with perfect scene integration."
+            scene_prompt = f"CRITICAL: Create a seamless fashion photograph by COMPLETELY integrating the person from the first image into the EXACT environment and setting from the third image. Dress the person with the {garment_description} from the second image. The person MUST be placed directly into the third image's environment - use the exact background, lighting, atmosphere, and visual style from the third image. The person should appear as if they were photographed in that exact location. Match the lighting direction, shadows, color temperature, and mood perfectly. The background from the third image should be completely preserved and the person should look naturally placed within it. Professional fashion photography with perfect scene integration."
         
         # Strong integration parameters - INCREASED FOR BETTER SCENE INTEGRATION
         num_steps = 45  # More steps for better quality
