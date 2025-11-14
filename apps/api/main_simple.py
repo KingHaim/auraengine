@@ -1091,37 +1091,37 @@ async def create_campaign(
         if not product_id_list or not model_id_list or not scene_id_list:
             raise HTTPException(status_code=400, detail="Please select at least one product, model, and scene")
         
-        # Create campaign
+        # Create campaign with "preview" status
         campaign = Campaign(
             user_id=current_user["user_id"],
             name=name,
             description=description,
-            status="draft",
+            status="preview",  # New: preview status
             generation_status="generating",
             settings={
                 "product_ids": product_id_list,
                 "model_ids": model_id_list,
                 "scene_ids": scene_id_list,
                 "selected_poses": selected_poses_dict,
-                "manikin_pose": manikin_pose,  # Store selected manikin pose
-                "generated_images": []
+                "manikin_pose": manikin_pose,  # Store initial pose for preview
+                "generated_images": [],
+                "preview_generated": False
             }
         )
         db.add(campaign)
         db.commit()
         db.refresh(campaign)
         
-        # Return the campaign immediately so frontend can show it with "generating" status
-        print(f"🎯 Campaign created with ID: {campaign.id}, starting generation...")
+        print(f"🎯 Campaign created with ID: {campaign.id}, generating PREVIEW with pose: {manikin_pose}...")
         
         # Return immediately so frontend can show the campaign with "generating" status
         response_data = {
             "campaign": CampaignResponse.model_validate(campaign),
-            "message": f"Campaign '{name}' created and generation started!",
+            "message": f"Campaign '{name}' created - generating preview!",
             "generated_images": []
         }
         
-        # Start generation in background (this will run after the response is sent)
+        # Start PREVIEW generation in background (only 1 image with selected pose)
         import asyncio
         asyncio.create_task(generate_campaign_images_background(
             campaign.id, 
@@ -1129,8 +1129,8 @@ async def create_campaign(
             model_id_list, 
             scene_id_list, 
             selected_poses_dict, 
-            number_of_images,
-            manikin_pose,  # Pass selected manikin pose
+            1,  # Only 1 preview image
+            manikin_pose,  # Use selected pose
             db
         ))
         
@@ -1390,6 +1390,266 @@ async def generate_campaign_images(
     except Exception as e:
         print(f"❌ Campaign generation failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/campaigns/{campaign_id}/generate-all-poses")
+async def generate_all_pose_variations(
+    campaign_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate images for ALL manikin poses (neutral, handneck, thinking)"""
+    try:
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        # All available poses
+        ALL_POSES = ["Pose-neutral.jpg", "Pose-handneck.jpg", "Pose-thinking.jpg"]
+        
+        # Get the pose that was already used for preview
+        preview_pose = campaign.settings.get("manikin_pose", "Pose-neutral.jpg") if campaign.settings else "Pose-neutral.jpg"
+        
+        # Generate for remaining poses
+        remaining_poses = [pose for pose in ALL_POSES if pose != preview_pose]
+        
+        print(f"🎯 Generating full campaign with {len(remaining_poses)} additional poses...")
+        print(f"📋 Preview pose: {preview_pose}")
+        print(f"📋 Remaining poses: {remaining_poses}")
+        
+        campaign.status = "generating_full"
+        campaign.generation_status = "generating"
+        db.commit()
+        
+        # Get campaign settings
+        product_ids = campaign.settings.get("product_ids", [])
+        model_ids = campaign.settings.get("model_ids", [])
+        scene_ids = campaign.settings.get("scene_ids", [])
+        selected_poses = campaign.settings.get("selected_poses", {})
+        
+        # Generate images for each remaining pose
+        import asyncio
+        asyncio.create_task(generate_multiple_pose_variations(
+            campaign_id,
+            product_ids,
+            model_ids,
+            scene_ids,
+            selected_poses,
+            remaining_poses,
+            db
+        ))
+        
+        return {
+            "message": f"Generating {len(remaining_poses)} additional pose variations",
+            "remaining_poses": remaining_poses,
+            "total_poses": len(ALL_POSES)
+        }
+        
+    except Exception as e:
+        print(f"❌ Failed to start full campaign generation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+async def generate_multiple_pose_variations(
+    campaign_id: str,
+    product_ids: list,
+    model_ids: list,
+    scene_ids: list,
+    selected_poses: dict,
+    poses: list,
+    db: Session
+):
+    """Generate images for multiple poses sequentially"""
+    try:
+        for pose_idx, pose in enumerate(poses, 1):
+            print(f"\n📸 [{pose_idx}/{len(poses)}] Generating image with pose: {pose}")
+            
+            # Generate 1 image for this pose
+            await generate_campaign_images_background(
+                campaign_id,
+                product_ids,
+                model_ids,
+                scene_ids,
+                selected_poses,
+                1,  # 1 image per pose
+                pose,
+                db
+            )
+        
+        # Update campaign status after all poses generated
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+        if campaign:
+            campaign.status = "completed"
+            campaign.generation_status = "completed"
+            db.commit()
+            print(f"🎉 Full campaign completed with {len(poses) + 1} total images!")
+            
+    except Exception as e:
+        print(f"❌ Multiple pose generation failed: {e}")
+        # Update campaign status to failed
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+        if campaign:
+            campaign.generation_status = "failed"
+            db.commit()
+
+@app.post("/campaigns/{campaign_id}/generate-videos")
+async def generate_campaign_videos(
+    campaign_id: str,
+    duration: int = Form(5),
+    cfg_scale: float = Form(0.5),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate videos from all campaign images using Kling 2.5 Turbo Pro"""
+    try:
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        generated_images = campaign.settings.get("generated_images", []) if campaign.settings else []
+        
+        if not generated_images:
+            raise HTTPException(status_code=400, detail="No images to generate videos from")
+        
+        # Update settings
+        new_settings = dict(campaign.settings) if campaign.settings else {}
+        new_settings["video_generation_status"] = "generating"
+        new_settings["videos"] = []
+        campaign.settings = new_settings
+        flag_modified(campaign, "settings")
+        db.commit()
+        
+        print(f"🎬 Generating videos for {len(generated_images)} images...")
+        
+        # Start video generation in background
+        import asyncio
+        asyncio.create_task(generate_videos_background(
+            campaign_id,
+            generated_images,
+            duration,
+            cfg_scale,
+            db
+        ))
+        
+        return {
+            "message": f"Generating videos for {len(generated_images)} images",
+            "image_count": len(generated_images)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Failed to start video generation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+async def generate_videos_background(
+    campaign_id: str,
+    images: list,
+    duration: int,
+    cfg_scale: float,
+    db: Session
+):
+    """Generate videos for each image using Kling 2.5 Turbo Pro"""
+    import replicate
+    from datetime import datetime
+    
+    videos = []
+    
+    for idx, image_data in enumerate(images, 1):
+        try:
+            print(f"\n🎬 [{idx}/{len(images)}] Generating video for {image_data.get('shot_type', 'image')}...")
+            
+            # Build prompt for video
+            product_name = image_data.get('product_name', 'clothing')
+            scene_name = image_data.get('scene_name', 'scene')
+            model_name = image_data.get('model_name', 'model')
+            
+            video_prompt = (
+                f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
+                f"Smooth, subtle camera movement. Cinematic depth. Natural breathing and slight movements. "
+                f"Professional lighting, elegant atmosphere."
+            )
+            
+            print(f"📝 Video prompt: {video_prompt[:150]}...")
+            print(f"🖼️ Image URL: {image_data['image_url'][:80]}...")
+            
+            # Call Kling 2.5 Turbo Pro API
+            output = replicate.run(
+                "kwaivgi/kling-v2.5-turbo-pro",
+                input={
+                    "mode": "image-to-video",
+                    "image": image_data["image_url"],
+                    "duration": duration,
+                    "cfg_scale": cfg_scale,
+                    "prompt": video_prompt,
+                    "aspect_ratio": "16:9",
+                    "negative_prompt": "blurry, distorted, low quality, bad lighting, poor composition, jerky motion"
+                }
+            )
+            
+            # Handle output (Kling returns video URL)
+            if hasattr(output, 'url'):
+                video_url = output.url()
+            elif isinstance(output, str):
+                video_url = output
+            elif isinstance(output, list) and len(output) > 0:
+                video_url = output[0] if isinstance(output[0], str) else output[0].url() if hasattr(output[0], 'url') else str(output[0])
+            else:
+                video_url = str(output)
+            
+            print(f"✅ Video generated: {video_url[:80]}...")
+            
+            # Upload to Cloudinary for stable storage
+            try:
+                stable_video_url = upload_to_cloudinary(video_url, f"video_{idx}")
+                print(f"✅ Video uploaded to Cloudinary: {stable_video_url[:80]}...")
+            except Exception as upload_error:
+                print(f"⚠️ Failed to upload video to Cloudinary: {upload_error}")
+                stable_video_url = video_url  # Use replicate URL as fallback
+            
+            videos.append({
+                **image_data,  # Include all image metadata
+                "video_url": stable_video_url,
+                "duration": duration,
+                "cfg_scale": cfg_scale,
+                "generated_at": datetime.utcnow().isoformat()
+            })
+            
+            print(f"✅ Video {idx}/{len(images)} completed!")
+            
+        except Exception as e:
+            print(f"❌ Failed to generate video {idx}: {e}")
+            import traceback
+            traceback.print_exc()
+            videos.append({
+                **image_data,
+                "video_url": None,
+                "error": str(e),
+                "duration": duration,
+                "cfg_scale": cfg_scale
+            })
+    
+    # Update campaign with videos
+    try:
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+        if campaign:
+            new_settings = dict(campaign.settings) if campaign.settings else {}
+            new_settings["videos"] = videos
+            new_settings["video_generation_status"] = "completed"
+            campaign.settings = new_settings
+            flag_modified(campaign, "settings")
+            db.commit()
+            
+            successful_videos = sum(1 for v in videos if v.get("video_url"))
+            print(f"🎉 Generated {successful_videos}/{len(videos)} videos for campaign {campaign_id}")
+    except Exception as e:
+        print(f"❌ Failed to update campaign with videos: {e}")
 
 @app.put("/campaigns/{campaign_id}")
 async def update_campaign(

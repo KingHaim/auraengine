@@ -177,6 +177,8 @@ export default function CampaignsPage() {
   const [selectedCampaignForProfile, setSelectedCampaignForProfile] =
     useState<Campaign | null>(null);
   const [showEnlargedImage, setShowEnlargedImage] = useState(false);
+  const [generatingFullCampaign, setGeneratingFullCampaign] = useState<string | null>(null);
+  const [generatingCampaignVideos, setGeneratingCampaignVideos] = useState<string | null>(null);
   const [enlargedImageUrl, setEnlargedImageUrl] = useState<string>("");
   const [enlargedImageAlt, setEnlargedImageAlt] = useState<string>("");
   const [showBulkVideoModal, setShowBulkVideoModal] = useState(false);
@@ -732,6 +734,149 @@ export default function CampaignsPage() {
       );
     } finally {
       setGeneratingCampaign(null);
+    }
+  };
+
+  const handleGenerateFullCampaign = async (campaignId: string) => {
+    if (!token) {
+      alert("Please log in to generate full campaign");
+      return;
+    }
+
+    setGeneratingFullCampaign(campaignId);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/generate-all-poses`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("✅ Full campaign generation started:", result);
+        alert(
+          `✅ Generating ${result.remaining_poses.length} additional poses for full campaign!`
+        );
+
+        // Poll for completion
+        const pollInterval = setInterval(async () => {
+          const statusResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/status`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (statusResponse.ok) {
+            const statusData = await statusResponse.json();
+            if (statusData.generation_status === "completed") {
+              clearInterval(pollInterval);
+              setGeneratingFullCampaign(null);
+              await fetchData();
+              alert("🎉 Full campaign completed with all poses!");
+            } else if (statusData.generation_status === "failed") {
+              clearInterval(pollInterval);
+              setGeneratingFullCampaign(null);
+              alert("❌ Full campaign generation failed");
+            }
+          }
+        }, 5000); // Poll every 5 seconds
+
+        // Clear interval after 10 minutes timeout
+        setTimeout(() => {
+          clearInterval(pollInterval);
+          setGeneratingFullCampaign(null);
+        }, 600000);
+      } else {
+        const error = await response.text();
+        throw new Error(error);
+      }
+    } catch (error) {
+      console.error("Full campaign generation failed:", error);
+      alert(
+        "Full campaign generation failed: " +
+          (error instanceof Error ? error.message : String(error))
+      );
+      setGeneratingFullCampaign(null);
+    }
+  };
+
+  const handleGenerateCampaignVideos = async (campaignId: string) => {
+    if (!token) {
+      alert("Please log in to generate videos");
+      return;
+    }
+
+    setGeneratingCampaignVideos(campaignId);
+    try {
+      const formData = new FormData();
+      formData.append("duration", "5"); // 5 seconds
+      formData.append("cfg_scale", "0.5");
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/generate-videos`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("✅ Video generation started:", result);
+        alert(
+          `🎬 Generating videos for ${result.image_count} images! This may take a few minutes...`
+        );
+
+        // Poll for completion
+        const pollInterval = setInterval(async () => {
+          const statusResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/status`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (statusResponse.ok) {
+            const statusData = await statusResponse.json();
+            const videoStatus = statusData.campaign?.settings?.video_generation_status;
+            
+            if (videoStatus === "completed") {
+              clearInterval(pollInterval);
+              setGeneratingCampaignVideos(null);
+              await fetchData();
+              alert("🎉 All campaign videos generated successfully!");
+            }
+          }
+        }, 10000); // Poll every 10 seconds (videos take longer)
+
+        // Clear interval after 30 minutes timeout
+        setTimeout(() => {
+          clearInterval(pollInterval);
+          setGeneratingCampaignVideos(null);
+        }, 1800000);
+      } else {
+        const error = await response.text();
+        throw new Error(error);
+      }
+    } catch (error) {
+      console.error("Video generation failed:", error);
+      alert(
+        "Video generation failed: " +
+          (error instanceof Error ? error.message : String(error))
+      );
+      setGeneratingCampaignVideos(null);
     }
   };
 
