@@ -3763,20 +3763,51 @@ export default function CampaignsPage() {
                   {selectedCampaign.name}
                 </h2>
 
-                {/* DEBUG INFO - At top for visibility */}
-                <div
-                  style={{
-                    padding: "8px 12px",
-                    backgroundColor: "#FEF3C7",
-                    borderRadius: "6px",
-                    fontSize: "11px",
-                    fontFamily: "monospace",
-                    border: "2px solid #F59E0B",
-                  }}
-                >
-                  <strong>🔍 DEBUG:</strong> Status={selectedCampaign.status} | 
-                  GenStatus={selectedCampaign.generation_status} | 
-                  Images={selectedCampaign.settings?.generated_images?.length || 0}
+                {/* WORKFLOW BUTTONS - ALWAYS VISIBLE FOR TESTING */}
+                <div style={{ 
+                  display: "flex", 
+                  gap: "12px", 
+                  marginBottom: "16px",
+                  padding: "16px",
+                  backgroundColor: "#F0F9FF",
+                  borderRadius: "12px",
+                  border: "3px solid #3B82F6"
+                }}>
+                  <button
+                    onClick={() => handleGenerateFullCampaign(selectedCampaign.id)}
+                    disabled={generatingFullCampaign === selectedCampaign.id}
+                    style={{
+                      flex: 1,
+                      padding: "16px",
+                      backgroundColor: generatingFullCampaign === selectedCampaign.id ? "#9CA3AF" : "#10B981",
+                      border: "none",
+                      borderRadius: "8px",
+                      color: "#FFFFFF",
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      cursor: generatingFullCampaign === selectedCampaign.id ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {generatingFullCampaign === selectedCampaign.id ? "⏳ Generating..." : "✨ Generate All Poses"}
+                  </button>
+                  
+                  <button
+                    onClick={() => handleGenerateCampaignVideos(selectedCampaign.id)}
+                    disabled={generatingCampaignVideos === selectedCampaign.id}
+                    style={{
+                      flex: 1,
+                      padding: "16px",
+                      backgroundColor: generatingCampaignVideos === selectedCampaign.id ? "#9CA3AF" : "#8B5CF6",
+                      border: "none",
+                      borderRadius: "8px",
+                      color: "#FFFFFF",
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      cursor: generatingCampaignVideos === selectedCampaign.id ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {generatingCampaignVideos === selectedCampaign.id ? "🎬 Generating..." : "🎬 Generate Videos"}
+                  </button>
                 </div>
 
                 <button
