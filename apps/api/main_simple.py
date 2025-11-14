@@ -1036,6 +1036,9 @@ async def generate_campaign_images_background(
         # Create new settings dict to force SQLAlchemy to detect change
         new_settings = dict(campaign.settings) if campaign.settings else {}
         new_settings["generated_images"] = generated_images
+        # Mark preview as generated if this was a preview generation
+        if campaign.status == "preview":
+            new_settings["preview_generated"] = True
         campaign.settings = new_settings
         
         # Force SQLAlchemy to detect the change

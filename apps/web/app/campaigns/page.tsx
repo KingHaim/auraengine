@@ -679,8 +679,44 @@ export default function CampaignsPage() {
 
         // Show alert after UI has been updated
         alert(
-          `✅ Campaign "${result.campaign.name}" created successfully! ${result.total_combinations} images will be generated. Credits remaining: ${result.credits_remaining}`
+          `✅ Campaign "${result.campaign.name}" created successfully! Generating preview image...`
         );
+
+        // Poll for campaign completion
+        const campaignId = result.campaign.id;
+        const pollInterval = setInterval(async () => {
+          try {
+            const statusResponse = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/status`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            if (statusResponse.ok) {
+              const statusData = await statusResponse.json();
+              console.log("📊 Campaign status:", statusData);
+              
+              if (statusData.generation_status === "completed") {
+                clearInterval(pollInterval);
+                await fetchData(); // Refresh campaigns list
+                alert("✅ Preview image generated! Open the campaign to see it.");
+              } else if (statusData.generation_status === "failed") {
+                clearInterval(pollInterval);
+                alert("❌ Preview generation failed");
+              }
+            }
+          } catch (pollError) {
+            console.error("Error polling campaign status:", pollError);
+          }
+        }, 3000); // Poll every 3 seconds
+
+        // Clear interval after 5 minutes timeout
+        setTimeout(() => {
+          clearInterval(pollInterval);
+        }, 300000);
       } else {
         console.log("❌ Response not OK - Status:", response.status);
         console.log("❌ Response not OK - StatusText:", response.statusText);
@@ -4071,177 +4107,235 @@ export default function CampaignsPage() {
                   </div>
 
                   {/* New Workflow Buttons */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "24px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "12px",
+                      marginTop: "24px",
+                    }}
+                  >
                     {/* Generate Full Campaign Button - Show for preview status */}
-                    {selectedCampaign.status === "preview" && 
-                     selectedCampaign.generation_status === "completed" && (
-                      <button
-                        onClick={() => handleGenerateFullCampaign(selectedCampaign.id)}
-                        disabled={generatingFullCampaign === selectedCampaign.id}
-                        style={{
-                          padding: "16px 24px",
-                          backgroundColor: generatingFullCampaign === selectedCampaign.id ? "#9CA3AF" : "#10B981",
-                          border: "none",
-                          borderRadius: "12px",
-                          color: "#FFFFFF",
-                          fontSize: "16px",
-                          fontWeight: "600",
-                          cursor: generatingFullCampaign === selectedCampaign.id ? "not-allowed" : "pointer",
-                          transition: "all 0.2s ease",
-                          boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (generatingFullCampaign !== selectedCampaign.id) {
-                            e.currentTarget.style.backgroundColor = "#059669";
-                            e.currentTarget.style.transform = "translateY(-2px)";
-                            e.currentTarget.style.boxShadow = "0 6px 16px rgba(16, 185, 129, 0.4)";
+                    {selectedCampaign.status === "preview" &&
+                      selectedCampaign.generation_status === "completed" && (
+                        <button
+                          onClick={() =>
+                            handleGenerateFullCampaign(selectedCampaign.id)
                           }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (generatingFullCampaign !== selectedCampaign.id) {
-                            e.currentTarget.style.backgroundColor = "#10B981";
-                            e.currentTarget.style.transform = "translateY(0)";
-                            e.currentTarget.style.boxShadow = "0 4px 12px rgba(16, 185, 129, 0.3)";
+                          disabled={
+                            generatingFullCampaign === selectedCampaign.id
                           }
-                        }}
-                      >
-                        {generatingFullCampaign === selectedCampaign.id ? (
-                          <>
-                            <div
-                              style={{
-                                display: "inline-block",
-                                width: "16px",
-                                height: "16px",
-                                border: "2px solid #FFFFFF",
-                                borderTop: "2px solid transparent",
-                                borderRadius: "50%",
-                                animation: "spin 1s linear infinite",
-                                marginRight: "8px",
-                              }}
-                            />
-                            Generating All Poses...
-                          </>
-                        ) : (
-                          "✨ Generate Full Campaign (All Poses)"
-                        )}
-                      </button>
-                    )}
+                          style={{
+                            padding: "16px 24px",
+                            backgroundColor:
+                              generatingFullCampaign === selectedCampaign.id
+                                ? "#9CA3AF"
+                                : "#10B981",
+                            border: "none",
+                            borderRadius: "12px",
+                            color: "#FFFFFF",
+                            fontSize: "16px",
+                            fontWeight: "600",
+                            cursor:
+                              generatingFullCampaign === selectedCampaign.id
+                                ? "not-allowed"
+                                : "pointer",
+                            transition: "all 0.2s ease",
+                            boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (
+                              generatingFullCampaign !== selectedCampaign.id
+                            ) {
+                              e.currentTarget.style.backgroundColor = "#059669";
+                              e.currentTarget.style.transform =
+                                "translateY(-2px)";
+                              e.currentTarget.style.boxShadow =
+                                "0 6px 16px rgba(16, 185, 129, 0.4)";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (
+                              generatingFullCampaign !== selectedCampaign.id
+                            ) {
+                              e.currentTarget.style.backgroundColor = "#10B981";
+                              e.currentTarget.style.transform = "translateY(0)";
+                              e.currentTarget.style.boxShadow =
+                                "0 4px 12px rgba(16, 185, 129, 0.3)";
+                            }
+                          }}
+                        >
+                          {generatingFullCampaign === selectedCampaign.id ? (
+                            <>
+                              <div
+                                style={{
+                                  display: "inline-block",
+                                  width: "16px",
+                                  height: "16px",
+                                  border: "2px solid #FFFFFF",
+                                  borderTop: "2px solid transparent",
+                                  borderRadius: "50%",
+                                  animation: "spin 1s linear infinite",
+                                  marginRight: "8px",
+                                }}
+                              />
+                              Generating All Poses...
+                            </>
+                          ) : (
+                            "✨ Generate Full Campaign (All Poses)"
+                          )}
+                        </button>
+                      )}
 
                     {/* Generate Videos Button - Show for completed campaigns */}
-                    {selectedCampaign.status === "completed" && 
-                     !selectedCampaign.settings?.videos && (
-                      <button
-                        onClick={() => handleGenerateCampaignVideos(selectedCampaign.id)}
-                        disabled={generatingCampaignVideos === selectedCampaign.id}
-                        style={{
-                          padding: "16px 24px",
-                          backgroundColor: generatingCampaignVideos === selectedCampaign.id ? "#9CA3AF" : "#8B5CF6",
-                          border: "none",
-                          borderRadius: "12px",
-                          color: "#FFFFFF",
-                          fontSize: "16px",
-                          fontWeight: "600",
-                          cursor: generatingCampaignVideos === selectedCampaign.id ? "not-allowed" : "pointer",
-                          transition: "all 0.2s ease",
-                          boxShadow: "0 4px 12px rgba(139, 92, 246, 0.3)",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (generatingCampaignVideos !== selectedCampaign.id) {
-                            e.currentTarget.style.backgroundColor = "#7C3AED";
-                            e.currentTarget.style.transform = "translateY(-2px)";
-                            e.currentTarget.style.boxShadow = "0 6px 16px rgba(139, 92, 246, 0.4)";
+                    {selectedCampaign.status === "completed" &&
+                      !selectedCampaign.settings?.videos && (
+                        <button
+                          onClick={() =>
+                            handleGenerateCampaignVideos(selectedCampaign.id)
                           }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (generatingCampaignVideos !== selectedCampaign.id) {
-                            e.currentTarget.style.backgroundColor = "#8B5CF6";
-                            e.currentTarget.style.transform = "translateY(0)";
-                            e.currentTarget.style.boxShadow = "0 4px 12px rgba(139, 92, 246, 0.3)";
+                          disabled={
+                            generatingCampaignVideos === selectedCampaign.id
                           }
-                        }}
-                      >
-                        {generatingCampaignVideos === selectedCampaign.id ? (
-                          <>
-                            <div
-                              style={{
-                                display: "inline-block",
-                                width: "16px",
-                                height: "16px",
-                                border: "2px solid #FFFFFF",
-                                borderTop: "2px solid transparent",
-                                borderRadius: "50%",
-                                animation: "spin 1s linear infinite",
-                                marginRight: "8px",
-                              }}
-                            />
-                            Generating Videos...
-                          </>
-                        ) : (
-                          "🎬 Generate Campaign Videos"
-                        )}
-                      </button>
-                    )}
+                          style={{
+                            padding: "16px 24px",
+                            backgroundColor:
+                              generatingCampaignVideos === selectedCampaign.id
+                                ? "#9CA3AF"
+                                : "#8B5CF6",
+                            border: "none",
+                            borderRadius: "12px",
+                            color: "#FFFFFF",
+                            fontSize: "16px",
+                            fontWeight: "600",
+                            cursor:
+                              generatingCampaignVideos === selectedCampaign.id
+                                ? "not-allowed"
+                                : "pointer",
+                            transition: "all 0.2s ease",
+                            boxShadow: "0 4px 12px rgba(139, 92, 246, 0.3)",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (
+                              generatingCampaignVideos !== selectedCampaign.id
+                            ) {
+                              e.currentTarget.style.backgroundColor = "#7C3AED";
+                              e.currentTarget.style.transform =
+                                "translateY(-2px)";
+                              e.currentTarget.style.boxShadow =
+                                "0 6px 16px rgba(139, 92, 246, 0.4)";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (
+                              generatingCampaignVideos !== selectedCampaign.id
+                            ) {
+                              e.currentTarget.style.backgroundColor = "#8B5CF6";
+                              e.currentTarget.style.transform = "translateY(0)";
+                              e.currentTarget.style.boxShadow =
+                                "0 4px 12px rgba(139, 92, 246, 0.3)";
+                            }
+                          }}
+                        >
+                          {generatingCampaignVideos === selectedCampaign.id ? (
+                            <>
+                              <div
+                                style={{
+                                  display: "inline-block",
+                                  width: "16px",
+                                  height: "16px",
+                                  border: "2px solid #FFFFFF",
+                                  borderTop: "2px solid transparent",
+                                  borderRadius: "50%",
+                                  animation: "spin 1s linear infinite",
+                                  marginRight: "8px",
+                                }}
+                              />
+                              Generating Videos...
+                            </>
+                          ) : (
+                            "🎬 Generate Campaign Videos"
+                          )}
+                        </button>
+                      )}
 
                     {/* Show Videos if they exist */}
-                    {selectedCampaign.settings?.videos && selectedCampaign.settings.videos.length > 0 && (
-                      <div style={{ marginTop: "24px" }}>
-                        <h3
-                          style={{
-                            fontSize: "18px",
-                            fontWeight: "600",
-                            color: "#1F2937",
-                            marginBottom: "16px",
-                          }}
-                        >
-                          🎬 Campaign Videos ({selectedCampaign.settings.videos.length})
-                        </h3>
-                        <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                            gap: "16px",
-                          }}
-                        >
-                          {selectedCampaign.settings.videos.map((video: any, idx: number) => (
-                            <div
-                              key={idx}
-                              style={{
-                                border: "1px solid #E5E7EB",
-                                borderRadius: "12px",
-                                overflow: "hidden",
-                                backgroundColor: "#F9FAFB",
-                              }}
-                            >
-                              {video.video_url ? (
-                                <video
-                                  controls
-                                  style={{ width: "100%", height: "auto" }}
-                                  preload="metadata"
-                                >
-                                  <source src={video.video_url} type="video/mp4" />
-                                  Your browser does not support the video tag.
-                                </video>
-                              ) : (
+                    {selectedCampaign.settings?.videos &&
+                      selectedCampaign.settings.videos.length > 0 && (
+                        <div style={{ marginTop: "24px" }}>
+                          <h3
+                            style={{
+                              fontSize: "18px",
+                              fontWeight: "600",
+                              color: "#1F2937",
+                              marginBottom: "16px",
+                            }}
+                          >
+                            🎬 Campaign Videos (
+                            {selectedCampaign.settings.videos.length})
+                          </h3>
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns:
+                                "repeat(auto-fill, minmax(300px, 1fr))",
+                              gap: "16px",
+                            }}
+                          >
+                            {selectedCampaign.settings.videos.map(
+                              (video: any, idx: number) => (
                                 <div
+                                  key={idx}
                                   style={{
-                                    padding: "40px",
-                                    textAlign: "center",
-                                    color: "#6B7280",
+                                    border: "1px solid #E5E7EB",
+                                    borderRadius: "12px",
+                                    overflow: "hidden",
+                                    backgroundColor: "#F9FAFB",
                                   }}
                                 >
-                                  {video.error ? `❌ ${video.error}` : "⏳ Processing..."}
+                                  {video.video_url ? (
+                                    <video
+                                      controls
+                                      style={{ width: "100%", height: "auto" }}
+                                      preload="metadata"
+                                    >
+                                      <source
+                                        src={video.video_url}
+                                        type="video/mp4"
+                                      />
+                                      Your browser does not support the video
+                                      tag.
+                                    </video>
+                                  ) : (
+                                    <div
+                                      style={{
+                                        padding: "40px",
+                                        textAlign: "center",
+                                        color: "#6B7280",
+                                      }}
+                                    >
+                                      {video.error
+                                        ? `❌ ${video.error}`
+                                        : "⏳ Processing..."}
+                                    </div>
+                                  )}
+                                  <div style={{ padding: "12px" }}>
+                                    <p
+                                      style={{
+                                        fontSize: "14px",
+                                        color: "#6B7280",
+                                        margin: 0,
+                                      }}
+                                    >
+                                      {video.shot_type || `Video ${idx + 1}`}
+                                    </p>
+                                  </div>
                                 </div>
-                              )}
-                              <div style={{ padding: "12px" }}>
-                                <p style={{ fontSize: "14px", color: "#6B7280", margin: 0 }}>
-                                  {video.shot_type || `Video ${idx + 1}`}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
+                              )
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                   </div>
                 </div>
               ) : (
