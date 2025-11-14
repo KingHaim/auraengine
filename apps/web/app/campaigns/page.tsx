@@ -3762,6 +3762,23 @@ export default function CampaignsPage() {
                 >
                   {selectedCampaign.name}
                 </h2>
+
+                {/* DEBUG INFO - At top for visibility */}
+                <div
+                  style={{
+                    padding: "8px 12px",
+                    backgroundColor: "#FEF3C7",
+                    borderRadius: "6px",
+                    fontSize: "11px",
+                    fontFamily: "monospace",
+                    border: "2px solid #F59E0B",
+                  }}
+                >
+                  <strong>🔍 DEBUG:</strong> Status={selectedCampaign.status} | 
+                  GenStatus={selectedCampaign.generation_status} | 
+                  Images={selectedCampaign.settings?.generated_images?.length || 0}
+                </div>
+
                 <button
                   onClick={() => generateMoreImages(selectedCampaign)}
                   disabled={generatingMore}
@@ -4118,19 +4135,36 @@ export default function CampaignsPage() {
                     }}
                   >
                     {/* Debug Info - Remove after testing */}
-                    <div style={{ 
-                      padding: "12px", 
-                      backgroundColor: "#FEF3C7", 
-                      borderRadius: "8px",
-                      fontSize: "12px",
-                      fontFamily: "monospace"
-                    }}>
+                    <div
+                      style={{
+                        padding: "12px",
+                        backgroundColor: "#FEF3C7",
+                        borderRadius: "8px",
+                        fontSize: "12px",
+                        fontFamily: "monospace",
+                      }}
+                    >
                       <div>🔍 DEBUG INFO:</div>
                       <div>Status: {selectedCampaign.status}</div>
-                      <div>Generation Status: {selectedCampaign.generation_status}</div>
-                      <div>Images: {selectedCampaign.settings?.generated_images?.length || 0}</div>
-                      <div>Preview Generated: {String(selectedCampaign.settings?.preview_generated)}</div>
-                      <div>Show Button: {String(selectedCampaign.status === "preview" && selectedCampaign.generation_status === "completed")}</div>
+                      <div>
+                        Generation Status: {selectedCampaign.generation_status}
+                      </div>
+                      <div>
+                        Images:{" "}
+                        {selectedCampaign.settings?.generated_images?.length ||
+                          0}
+                      </div>
+                      <div>
+                        Preview Generated:{" "}
+                        {String(selectedCampaign.settings?.preview_generated)}
+                      </div>
+                      <div>
+                        Show Button:{" "}
+                        {String(
+                          selectedCampaign.status === "preview" &&
+                            selectedCampaign.generation_status === "completed"
+                        )}
+                      </div>
                     </div>
 
                     {/* Generate Full Campaign Button - Show for preview status */}
