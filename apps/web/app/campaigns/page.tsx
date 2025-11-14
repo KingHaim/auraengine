@@ -698,11 +698,13 @@ export default function CampaignsPage() {
             if (statusResponse.ok) {
               const statusData = await statusResponse.json();
               console.log("📊 Campaign status:", statusData);
-              
+
               if (statusData.generation_status === "completed") {
                 clearInterval(pollInterval);
                 await fetchData(); // Refresh campaigns list
-                alert("✅ Preview image generated! Open the campaign to see it.");
+                alert(
+                  "✅ Preview image generated! Open the campaign to see it."
+                );
               } else if (statusData.generation_status === "failed") {
                 clearInterval(pollInterval);
                 alert("❌ Preview generation failed");
@@ -4115,6 +4117,22 @@ export default function CampaignsPage() {
                       marginTop: "24px",
                     }}
                   >
+                    {/* Debug Info - Remove after testing */}
+                    <div style={{ 
+                      padding: "12px", 
+                      backgroundColor: "#FEF3C7", 
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                      fontFamily: "monospace"
+                    }}>
+                      <div>🔍 DEBUG INFO:</div>
+                      <div>Status: {selectedCampaign.status}</div>
+                      <div>Generation Status: {selectedCampaign.generation_status}</div>
+                      <div>Images: {selectedCampaign.settings?.generated_images?.length || 0}</div>
+                      <div>Preview Generated: {String(selectedCampaign.settings?.preview_generated)}</div>
+                      <div>Show Button: {String(selectedCampaign.status === "preview" && selectedCampaign.generation_status === "completed")}</div>
+                    </div>
+
                     {/* Generate Full Campaign Button - Show for preview status */}
                     {selectedCampaign.status === "preview" &&
                       selectedCampaign.generation_status === "completed" && (
