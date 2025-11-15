@@ -3745,64 +3745,88 @@ export default function CampaignsPage() {
               onClick={(e) => e.stopPropagation()}
             >
               {/* RED TEST BOX - TO CONFIRM FRONTEND IS UPDATING */}
-              <div style={{
-                backgroundColor: "#EF4444",
-                color: "white",
-                padding: "20px",
-                marginBottom: "20px",
-                borderRadius: "8px",
-                fontSize: "20px",
-                fontWeight: "bold",
-                textAlign: "center",
-                border: "5px solid #991B1B"
-              }}>
+              <div
+                style={{
+                  backgroundColor: "#EF4444",
+                  color: "white",
+                  padding: "20px",
+                  marginBottom: "20px",
+                  borderRadius: "8px",
+                  fontSize: "20px",
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  border: "5px solid #991B1B",
+                }}
+              >
                 🔴 FRONTEND UPDATED! If you see this, the code is working!
               </div>
 
               {/* WORKFLOW BUTTONS - BLUE BOX */}
-              <div style={{
-                display: "flex",
-                gap: "12px",
-                marginBottom: "24px",
-                padding: "20px",
-                backgroundColor: "#DBEAFE",
-                borderRadius: "12px",
-                border: "5px solid #3B82F6"
-              }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  marginBottom: "24px",
+                  padding: "20px",
+                  backgroundColor: "#DBEAFE",
+                  borderRadius: "12px",
+                  border: "5px solid #3B82F6",
+                }}
+              >
                 <button
-                  onClick={() => handleGenerateFullCampaign(selectedCampaign.id)}
+                  onClick={() =>
+                    handleGenerateFullCampaign(selectedCampaign.id)
+                  }
                   disabled={generatingFullCampaign === selectedCampaign.id}
                   style={{
                     flex: 1,
                     padding: "20px",
-                    backgroundColor: generatingFullCampaign === selectedCampaign.id ? "#9CA3AF" : "#10B981",
+                    backgroundColor:
+                      generatingFullCampaign === selectedCampaign.id
+                        ? "#9CA3AF"
+                        : "#10B981",
                     border: "none",
                     borderRadius: "12px",
                     color: "#FFFFFF",
                     fontSize: "18px",
                     fontWeight: "700",
-                    cursor: generatingFullCampaign === selectedCampaign.id ? "not-allowed" : "pointer",
+                    cursor:
+                      generatingFullCampaign === selectedCampaign.id
+                        ? "not-allowed"
+                        : "pointer",
                   }}
                 >
-                  {generatingFullCampaign === selectedCampaign.id ? "⏳ Generating..." : "✨ Generate All Poses"}
+                  {generatingFullCampaign === selectedCampaign.id
+                    ? "⏳ Generating..."
+                    : "✨ Generate All Poses"}
                 </button>
 
                 <button
-                  onClick={() => handleGenerateCampaignVideos(selectedCampaign.id)}
+                  onClick={() =>
+                    handleGenerateCampaignVideos(selectedCampaign.id)
+                  }
                   disabled={generatingCampaignVideos === selectedCampaign.id}
                   style={{
                     flex: 1,
                     padding: "20px",
-                    backgroundColor: generatingCampaignVideos === selectedCampaign.id ? "#9CA3AF" : "#8B5CF6",
+                    backgroundColor:
+                      generatingCampaignVideos === selectedCampaign.id
+                        ? "#9CA3AF"
+                        : "#8B5CF6",
                     border: "none",
                     borderRadius: "12px",
                     color: "#FFFFFF",
                     fontSize: "18px",
                     fontWeight: "700",
-                    cursor: generatingCampaignVideos === selectedCampaign.id ? "not-allowed" : "pointer",
+                    cursor:
+                      generatingCampaignVideos === selectedCampaign.id
+                        ? "not-allowed"
+                        : "pointer",
                   }}
                 >
-                  {generatingCampaignVideos === selectedCampaign.id ? "🎬 Generating..." : "🎬 Generate Videos"}
+                  {generatingCampaignVideos === selectedCampaign.id
+                    ? "🎬 Generating..."
+                    : "🎬 Generate Videos"}
                 </button>
               </div>
 
