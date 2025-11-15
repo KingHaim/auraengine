@@ -51,16 +51,16 @@ export default function Dashboard() {
       try {
         // Fetch stats in parallel (products, models, scenes)
         const [productsRes, modelsRes, scenesRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/models`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/scenes`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/models`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/scenes`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+          ]);
 
         const [products, models, scenes] = await Promise.all([
           productsRes.ok ? productsRes.json() : [],
