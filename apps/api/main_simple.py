@@ -268,7 +268,7 @@ async def startup_event():
         # Don't raise - let the app start even if there are non-critical errors
         # Only raise for truly critical errors that prevent the app from functioning
         if "database" in str(e).lower() or "connection" in str(e).lower():
-        raise
+            raise
 
 # CORS middleware - Allow all origins for deployment
 # When allow_credentials=True, we must explicitly list origins (cannot use "*")
