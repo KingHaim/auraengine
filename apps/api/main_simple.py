@@ -1498,19 +1498,38 @@ async def generate_multiple_pose_variations(
             print(f"\n📸 [{pose_idx}/{len(poses)}] Applying pose: {pose_filename}")
             
             try:
-                # Get manikin pose URL from cache
+                # Get manikin pose URL from cache or upload on-demand
                 cached_url = POSE_IMAGE_URLS.get(pose_filename)
                 if cached_url and cached_url.startswith("https://res.cloudinary.com/"):
                     manikin_pose_url = cached_url
                     print(f"✅ Using Cloudinary URL for {pose_filename}")
                 else:
-                    print(f"⚠️ Pose {pose_filename} not in Cloudinary, skipping")
-                    continue
+                    # Not in cache or not a Cloudinary URL - try to upload
+                    print(f"⚠️ Pose {pose_filename} not in Cloudinary cache, uploading...")
+                    api_dir = os.path.dirname(os.path.abspath(__file__))
+                    static_path = os.path.join(api_dir, "static", "poses", pose_filename)
+                    if os.path.exists(static_path):
+                        import base64
+                        with open(static_path, "rb") as f:
+                            file_content = f.read()
+                            ext = pose_filename.split('.')[-1] if '.' in pose_filename else 'jpg'
+                            data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
+                            manikin_pose_url = upload_to_cloudinary(data_url, "manikin_pose")
+                            # Update cache
+                            POSE_IMAGE_URLS[pose_filename] = manikin_pose_url
+                            print(f"✅ Uploaded {pose_filename} to Cloudinary: {manikin_pose_url[:80]}...")
+                    else:
+                        print(f"❌ Pose file not found: {static_path}")
+                        continue
                 
                 # Use nano-banana to transfer pose
                 print(f"🍌 Transferring pose from {pose_filename} to preview image...")
                 new_pose_image_url = replace_manikin_with_person(manikin_pose_url, preview_image_url)
-                print(f"✅ Pose transfer completed")
+                print(f"✅ Pose transfer completed: {new_pose_image_url[:80]}...")
+                
+                # Check if the result is different from preview
+                if new_pose_image_url == preview_image_url:
+                    print(f"⚠️ Result is same as preview - pose transfer may have failed")
                 
                 # Create new image entry with same metadata but new pose
                 new_image = preview_image.copy()
@@ -1519,9 +1538,12 @@ async def generate_multiple_pose_variations(
                 new_image["shot_name"] = f"pose_{pose_filename.replace('.jpg', '').replace('Pose-', '').lower()}"
                 
                 generated_images.append(new_image)
+                print(f"✅ Added {pose_filename} to campaign (total images: {len(generated_images)})")
                 
             except Exception as pose_error:
                 print(f"❌ Failed to generate pose {pose_filename}: {pose_error}")
+                import traceback
+                traceback.print_exc()
                 continue
         
         # Update campaign with all images
