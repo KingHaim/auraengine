@@ -6336,8 +6336,10 @@ export default function CampaignsPage() {
                 )}
 
                 {/* Campaign Videos Gallery */}
-                {selectedCampaignForProfile.settings?.videos &&
-                  selectedCampaignForProfile.settings.videos.length > 0 && (
+                {selectedCampaignForProfile.settings?.generated_images &&
+                  selectedCampaignForProfile.settings.generated_images.some(
+                    (img: any) => img.video_url
+                  ) && (
                     <div style={{ marginTop: "32px" }}>
                       <h3
                         style={{
@@ -6348,7 +6350,12 @@ export default function CampaignsPage() {
                         }}
                       >
                         🎬 Campaign Videos (
-                        {selectedCampaignForProfile.settings.videos.length})
+                        {
+                          selectedCampaignForProfile.settings.generated_images.filter(
+                            (img: any) => img.video_url
+                          ).length
+                        }
+                        )
                       </h3>
                       <div
                         style={{
@@ -6358,8 +6365,9 @@ export default function CampaignsPage() {
                           gap: "16px",
                         }}
                       >
-                        {selectedCampaignForProfile.settings.videos.map(
-                          (video: any, idx: number) => (
+                        {selectedCampaignForProfile.settings.generated_images
+                          .filter((img: any) => img.video_url)
+                          .map((video: any, idx: number) => (
                             <div
                               key={idx}
                               style={{
@@ -6369,23 +6377,23 @@ export default function CampaignsPage() {
                                 backgroundColor: "#F9FAFB",
                               }}
                             >
-                            {video.video_url ? (
-                              <video
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                controls
-                                style={{ width: "100%", height: "auto" }}
-                                preload="metadata"
-                              >
-                                <source
-                                  src={video.video_url}
-                                  type="video/mp4"
-                                />
-                                Your browser does not support the video tag.
-                              </video>
-                            ) : (
+                              {video.video_url ? (
+                                <video
+                                  autoPlay
+                                  loop
+                                  muted
+                                  playsInline
+                                  controls
+                                  style={{ width: "100%", height: "auto" }}
+                                  preload="metadata"
+                                >
+                                  <source
+                                    src={video.video_url}
+                                    type="video/mp4"
+                                  />
+                                  Your browser does not support the video tag.
+                                </video>
+                              ) : (
                                 <div
                                   style={{
                                     padding: "40px",
