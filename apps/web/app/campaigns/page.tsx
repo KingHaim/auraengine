@@ -6334,6 +6334,83 @@ export default function CampaignsPage() {
                   </div>
                 )}
 
+                {/* Campaign Videos Gallery */}
+                {selectedCampaignForProfile.settings?.videos &&
+                selectedCampaignForProfile.settings.videos.length > 0 && (
+                  <div style={{ marginTop: "32px" }}>
+                    <h3
+                      style={{
+                        fontSize: "18px",
+                        fontWeight: "600",
+                        color: "#1F2937",
+                        marginBottom: "16px",
+                      }}
+                    >
+                      🎬 Campaign Videos (
+                      {selectedCampaignForProfile.settings.videos.length})
+                    </h3>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fill, minmax(300px, 1fr))",
+                        gap: "16px",
+                      }}
+                    >
+                      {selectedCampaignForProfile.settings.videos.map(
+                        (video: any, idx: number) => (
+                          <div
+                            key={idx}
+                            style={{
+                              border: "1px solid #E5E7EB",
+                              borderRadius: "12px",
+                              overflow: "hidden",
+                              backgroundColor: "#F9FAFB",
+                            }}
+                          >
+                            {video.video_url ? (
+                              <video
+                                controls
+                                style={{ width: "100%", height: "auto" }}
+                                preload="metadata"
+                              >
+                                <source
+                                  src={video.video_url}
+                                  type="video/mp4"
+                                />
+                                Your browser does not support the video tag.
+                              </video>
+                            ) : (
+                              <div
+                                style={{
+                                  padding: "40px",
+                                  textAlign: "center",
+                                  color: "#6B7280",
+                                }}
+                              >
+                                {video.error
+                                  ? `❌ ${video.error}`
+                                  : "⏳ Processing..."}
+                              </div>
+                            )}
+                            <div style={{ padding: "12px" }}>
+                              <p
+                                style={{
+                                  fontSize: "14px",
+                                  color: "#6B7280",
+                                  margin: 0,
+                                }}
+                              >
+                                {video.shot_type || `Video ${idx + 1}`}
+                              </p>
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Action Buttons */}
                 <div
                   style={{
