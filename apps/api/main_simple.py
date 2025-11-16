@@ -980,8 +980,10 @@ async def generate_campaign_images_background(
                         # Step 3: For the first image (initial image), replace manikin with person wearing product
                         final_result_url = person_wearing_product_url
                         if shot_idx == 1:
-                            # Get manikin pose from campaign settings or use default
-                            campaign_manikin_pose = campaign.settings.get("manikin_pose", "Pose-neutral.jpg") if campaign.settings else "Pose-neutral.jpg"
+                            # Use the manikin_pose parameter passed to this function (for multi-pose generation)
+                            # This allows different poses to be used for each generation call
+                            campaign_manikin_pose = manikin_pose if manikin_pose else "Pose-neutral.jpg"
+                            print(f"🦴 Manikin pose parameter: {manikin_pose}")
                             # Get URL from cache, or use static URL as fallback
                             cached_url = POSE_IMAGE_URLS.get(campaign_manikin_pose)
                             if cached_url and cached_url.startswith("https://res.cloudinary.com/"):
