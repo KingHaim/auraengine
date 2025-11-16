@@ -783,6 +783,10 @@ export default function CampaignsPage() {
   };
 
   const handleGenerateFullCampaign = async (campaignId: string) => {
+    console.log("🚀 Generate All Poses clicked! Campaign ID:", campaignId);
+    console.log("🔑 Token exists:", !!token);
+    console.log("🌐 API URL:", process.env.NEXT_PUBLIC_API_URL);
+    
     if (!token) {
       alert("Please log in to generate full campaign");
       return;
@@ -790,15 +794,18 @@ export default function CampaignsPage() {
 
     setGeneratingFullCampaign(campaignId);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/generate-all-poses`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/generate-all-poses`;
+      console.log("📡 Calling endpoint:", url);
+      
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      console.log("📬 Response status:", response.status);
+      console.log("📬 Response ok:", response.ok);
 
       if (response.ok) {
         const result = await response.json();
