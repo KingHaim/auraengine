@@ -6336,38 +6336,43 @@ export default function CampaignsPage() {
                 )}
 
                 {/* Campaign Videos Gallery */}
-                {selectedCampaignForProfile.settings?.generated_images &&
-                  selectedCampaignForProfile.settings.generated_images.some(
-                    (img: any) => img.video_url
-                  ) && (
-                    <div style={{ marginTop: "32px" }}>
-                      <h3
-                        style={{
-                          fontSize: "18px",
-                          fontWeight: "600",
-                          color: "#1F2937",
-                          marginBottom: "16px",
-                        }}
-                      >
-                        🎬 Campaign Videos (
-                        {
-                          selectedCampaignForProfile.settings.generated_images.filter(
+                {((selectedCampaignForProfile.settings?.videos &&
+                  selectedCampaignForProfile.settings.videos.length > 0) ||
+                  (selectedCampaignForProfile.settings?.generated_images &&
+                    selectedCampaignForProfile.settings.generated_images.some(
+                      (img: any) => img.video_url
+                    ))) && (
+                  <div style={{ marginTop: "32px" }}>
+                    <h3
+                      style={{
+                        fontSize: "18px",
+                        fontWeight: "600",
+                        color: "#1F2937",
+                        marginBottom: "16px",
+                      }}
+                    >
+                      🎬 Campaign Videos (
+                      {selectedCampaignForProfile.settings?.videos
+                        ? selectedCampaignForProfile.settings.videos.length
+                        : selectedCampaignForProfile.settings.generated_images.filter(
                             (img: any) => img.video_url
-                          ).length
-                        }
+                          ).length}
+                      )
+                    </h3>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fill, minmax(300px, 1fr))",
+                        gap: "16px",
+                      }}
+                    >
+                      {(
+                        selectedCampaignForProfile.settings?.videos ||
+                        selectedCampaignForProfile.settings.generated_images.filter(
+                          (img: any) => img.video_url
                         )
-                      </h3>
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns:
-                            "repeat(auto-fill, minmax(300px, 1fr))",
-                          gap: "16px",
-                        }}
-                      >
-                        {selectedCampaignForProfile.settings.generated_images
-                          .filter((img: any) => img.video_url)
-                          .map((video: any, idx: number) => (
+                      ).map((video: any, idx: number) => (
                             <div
                               key={idx}
                               style={{
@@ -6418,8 +6423,7 @@ export default function CampaignsPage() {
                                 </p>
                               </div>
                             </div>
-                          )
-                        )}
+                          ))}
                       </div>
                     </div>
                   )}
