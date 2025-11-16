@@ -3770,29 +3770,27 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         # Use nano-banana to replace manikin with person
         # nano-banana is better at person replacement than Qwen is at pose transfer
         prompt = (
-            "CRITICAL: ONLY adjust the body pose - PRESERVE EVERYTHING ELSE COMPLETELY. "
-            "REQUIREMENTS: "
-            "1. PRESERVE IDENTITY: Keep the EXACT same person - same face, same hairstyle, same hair color, same facial features, same skin tone "
-            "2. PRESERVE CLOTHING: Keep all clothing items exactly as they are - same colors, same styles, same fit "
-            "3. PRESERVE BACKGROUND: Keep the EXACT background, scene, environment, lighting, and colors from the first image "
-            "4. POSE CHANGE ONLY: Adjust the body position to match the mannequin's standing pose - arms straight down at sides, legs straight together, facing forward "
-            "5. FULL BODY SHOT: Show complete figure from HEAD to FEET - no cropping "
-            "6. The person's identity, appearance, hairstyle, and clothing must remain 100% identical to the first image "
-            "7. This is a pose adjustment ONLY - not a person replacement or style transfer "
-            "Professional fashion photograph, minimal changes, preserve all visual characteristics"
+            "Copy the EXACT body pose from the second image (mannequin) to the first image (person). "
+            "CRITICAL REQUIREMENTS: "
+            "1. POSE TRANSFER: Copy the EXACT arm position, hand position, leg position, and overall body stance from the second image (mannequin) "
+            "2. PRESERVE IDENTITY: Keep the same person - same face, hairstyle, hair color, facial features, skin tone from first image "
+            "3. PRESERVE CLOTHING: Keep all clothing items exactly as they are - same colors, styles, fit from first image "
+            "4. PRESERVE BACKGROUND: Keep the background, scene, environment, lighting from first image "
+            "5. FULL BODY SHOT: Show complete figure from HEAD to FEET - match the framing of the second image "
+            "6. ONLY change the pose - everything else stays from first image "
+            "Professional fashion photograph with accurate pose transfer"
         )
         
         print(f"📝 Manikin replacement prompt: {prompt[:200]}...")
         print(f"🖼️ Image order: [person_wearing_product (base), manikin_pose (pose reference)]")
         
-        # Use nano-banana with multiple images: manikin first (base), person second (to replace with)
-        # Swap image order to use person as base and manikin as reference for pose
+        # Use nano-banana with multiple images: person first (base), manikin second (pose reference)
         out = replicate.run("google/nano-banana", input={
             "prompt": prompt,
             "image_input": [person_wearing_product_url, manikin_pose_url],  # Person first (base), manikin second (pose reference)
-            "num_inference_steps": 35,  # Balanced steps
-            "guidance_scale": 7.0,  # Lower guidance for better identity preservation
-            "strength": 0.55,  # Lower strength to preserve identity (face, hair, etc.)
+            "num_inference_steps": 40,  # More steps for better pose transfer
+            "guidance_scale": 8.0,  # Higher guidance for more accurate pose copying
+            "strength": 0.70,  # Higher strength for more prominent pose transfer
             "seed": None
         })
         
