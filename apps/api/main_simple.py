@@ -871,7 +871,10 @@ async def generate_campaign_images_background(
         models = db.query(Model).filter(Model.id.in_(model_id_list)).all()
         scenes = db.query(Scene).filter(Scene.id.in_(scene_id_list)).all()
         
-        generated_images = []
+        # Load existing images to append to them (for multi-pose generation)
+        existing_images = campaign.settings.get("generated_images", []) if campaign.settings else []
+        generated_images = existing_images.copy()  # Start with existing images
+        print(f"📌 Starting with {len(existing_images)} existing images")
         
         # Clamp requested number of images to available shot types
         try:
