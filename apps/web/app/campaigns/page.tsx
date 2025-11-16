@@ -786,7 +786,7 @@ export default function CampaignsPage() {
     console.log("🚀 Generate All Poses clicked! Campaign ID:", campaignId);
     console.log("🔑 Token exists:", !!token);
     console.log("🌐 API URL:", process.env.NEXT_PUBLIC_API_URL);
-    
+
     if (!token) {
       alert("Please log in to generate full campaign");
       return;
@@ -796,14 +796,14 @@ export default function CampaignsPage() {
     try {
       const url = `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/generate-all-poses`;
       console.log("📡 Calling endpoint:", url);
-      
+
       const response = await fetch(url, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       console.log("📬 Response status:", response.status);
       console.log("📬 Response ok:", response.ok);
 
@@ -4425,6 +4425,10 @@ export default function CampaignsPage() {
                                 >
                                   {video.video_url ? (
                                     <video
+                                      autoPlay
+                                      loop
+                                      muted
+                                      playsInline
                                       controls
                                       style={{ width: "100%", height: "auto" }}
                                       preload="metadata"
@@ -6211,13 +6215,10 @@ export default function CampaignsPage() {
                                       } - Video ${index + 1}`
                                     );
                                   }}
-                                  onMouseEnter={(e) => e.currentTarget.play()}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.pause();
-                                    e.currentTarget.currentTime = 0;
-                                  }}
+                                  autoPlay
                                   muted
                                   loop
+                                  playsInline
                                 />
                               ) : (
                                 // Show image if no video
@@ -6336,40 +6337,44 @@ export default function CampaignsPage() {
 
                 {/* Campaign Videos Gallery */}
                 {selectedCampaignForProfile.settings?.videos &&
-                selectedCampaignForProfile.settings.videos.length > 0 && (
-                  <div style={{ marginTop: "32px" }}>
-                    <h3
-                      style={{
-                        fontSize: "18px",
-                        fontWeight: "600",
-                        color: "#1F2937",
-                        marginBottom: "16px",
-                      }}
-                    >
-                      🎬 Campaign Videos (
-                      {selectedCampaignForProfile.settings.videos.length})
-                    </h3>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns:
-                          "repeat(auto-fill, minmax(300px, 1fr))",
-                        gap: "16px",
-                      }}
-                    >
-                      {selectedCampaignForProfile.settings.videos.map(
-                        (video: any, idx: number) => (
-                          <div
-                            key={idx}
-                            style={{
-                              border: "1px solid #E5E7EB",
-                              borderRadius: "12px",
-                              overflow: "hidden",
-                              backgroundColor: "#F9FAFB",
-                            }}
-                          >
+                  selectedCampaignForProfile.settings.videos.length > 0 && (
+                    <div style={{ marginTop: "32px" }}>
+                      <h3
+                        style={{
+                          fontSize: "18px",
+                          fontWeight: "600",
+                          color: "#1F2937",
+                          marginBottom: "16px",
+                        }}
+                      >
+                        🎬 Campaign Videos (
+                        {selectedCampaignForProfile.settings.videos.length})
+                      </h3>
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns:
+                            "repeat(auto-fill, minmax(300px, 1fr))",
+                          gap: "16px",
+                        }}
+                      >
+                        {selectedCampaignForProfile.settings.videos.map(
+                          (video: any, idx: number) => (
+                            <div
+                              key={idx}
+                              style={{
+                                border: "1px solid #E5E7EB",
+                                borderRadius: "12px",
+                                overflow: "hidden",
+                                backgroundColor: "#F9FAFB",
+                              }}
+                            >
                             {video.video_url ? (
                               <video
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
                                 controls
                                 style={{ width: "100%", height: "auto" }}
                                 preload="metadata"
@@ -6381,35 +6386,35 @@ export default function CampaignsPage() {
                                 Your browser does not support the video tag.
                               </video>
                             ) : (
-                              <div
-                                style={{
-                                  padding: "40px",
-                                  textAlign: "center",
-                                  color: "#6B7280",
-                                }}
-                              >
-                                {video.error
-                                  ? `❌ ${video.error}`
-                                  : "⏳ Processing..."}
+                                <div
+                                  style={{
+                                    padding: "40px",
+                                    textAlign: "center",
+                                    color: "#6B7280",
+                                  }}
+                                >
+                                  {video.error
+                                    ? `❌ ${video.error}`
+                                    : "⏳ Processing..."}
+                                </div>
+                              )}
+                              <div style={{ padding: "12px" }}>
+                                <p
+                                  style={{
+                                    fontSize: "14px",
+                                    color: "#6B7280",
+                                    margin: 0,
+                                  }}
+                                >
+                                  {video.shot_type || `Video ${idx + 1}`}
+                                </p>
                               </div>
-                            )}
-                            <div style={{ padding: "12px" }}>
-                              <p
-                                style={{
-                                  fontSize: "14px",
-                                  color: "#6B7280",
-                                  margin: 0,
-                                }}
-                              >
-                                {video.shot_type || `Video ${idx + 1}`}
-                              </p>
                             </div>
-                          </div>
-                        )
-                      )}
+                          )
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* Action Buttons */}
                 <div
