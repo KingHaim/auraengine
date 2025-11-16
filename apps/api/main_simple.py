@@ -1470,34 +1470,75 @@ async def generate_multiple_pose_variations(
     poses: list,
     db: Session
 ):
-    """Generate images for multiple poses sequentially"""
+    """Generate images for multiple poses by applying pose transfer to preview image"""
     try:
-        for pose_idx, pose in enumerate(poses, 1):
-            print(f"\n📸 [{pose_idx}/{len(poses)}] Generating image with pose: {pose}")
-            
-            # Generate 1 image for this pose
-            await generate_campaign_images_background(
-                campaign_id,
-                product_ids,
-                model_ids,
-                scene_ids,
-                selected_poses,
-                1,  # 1 image per pose
-                pose,
-                db
-            )
-        
-        # Update campaign status after all poses generated
+        # Get campaign and preview image
         campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
-        if campaign:
-            campaign.status = "completed"
-            campaign.generation_status = "completed"
+        if not campaign:
+            print(f"❌ Campaign {campaign_id} not found")
+            return
+        
+        # Get the preview image (first generated image)
+        existing_images = campaign.settings.get("generated_images", []) if campaign.settings else []
+        if not existing_images or len(existing_images) == 0:
+            print(f"❌ No preview image found for campaign {campaign_id}")
+            campaign.generation_status = "failed"
             db.commit()
-            print(f"🎉 Full campaign completed with {len(poses) + 1} total images!")
+            return
+        
+        preview_image = existing_images[0]
+        preview_image_url = preview_image.get("image_url")
+        print(f"🖼️ Using preview image as base: {preview_image_url[:80]}...")
+        
+        # Load existing images to append new poses
+        generated_images = existing_images.copy()
+        
+        # For each remaining pose, use nano-banana to transfer pose
+        for pose_idx, pose_filename in enumerate(poses, 1):
+            print(f"\n📸 [{pose_idx}/{len(poses)}] Applying pose: {pose_filename}")
+            
+            try:
+                # Get manikin pose URL from cache
+                cached_url = POSE_IMAGE_URLS.get(pose_filename)
+                if cached_url and cached_url.startswith("https://res.cloudinary.com/"):
+                    manikin_pose_url = cached_url
+                    print(f"✅ Using Cloudinary URL for {pose_filename}")
+                else:
+                    print(f"⚠️ Pose {pose_filename} not in Cloudinary, skipping")
+                    continue
+                
+                # Use nano-banana to transfer pose
+                print(f"🍌 Transferring pose from {pose_filename} to preview image...")
+                new_pose_image_url = replace_manikin_with_person(manikin_pose_url, preview_image_url)
+                print(f"✅ Pose transfer completed")
+                
+                # Create new image entry with same metadata but new pose
+                new_image = preview_image.copy()
+                new_image["image_url"] = new_pose_image_url
+                new_image["shot_type"] = f"Pose Variation ({pose_filename})"
+                new_image["shot_name"] = f"pose_{pose_filename.replace('.jpg', '').replace('Pose-', '').lower()}"
+                
+                generated_images.append(new_image)
+                
+            except Exception as pose_error:
+                print(f"❌ Failed to generate pose {pose_filename}: {pose_error}")
+                continue
+        
+        # Update campaign with all images
+        if campaign.settings is None:
+            campaign.settings = {}
+        campaign.settings["generated_images"] = generated_images
+        campaign.status = "completed"
+        campaign.generation_status = "completed"
+        flag_modified(campaign, "settings")
+        db.commit()
+        
+        print(f"🎉 Full campaign completed with {len(generated_images)} total images!")
             
     except Exception as e:
         print(f"❌ Multiple pose generation failed: {e}")
-        # Update campaign status to failed
+        import traceback
+        traceback.print_exc()
         campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
         if campaign:
             campaign.generation_status = "failed"
@@ -3768,29 +3809,30 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
                     raise FileNotFoundError(f"Pose file not found: {filename}")
         
         # Use nano-banana to replace manikin with person
-        # nano-banana is better at person replacement than Qwen is at pose transfer
+        # KEY: Manikin is base (has the pose), person is reference (to extract and place)
         prompt = (
-            "Copy the EXACT body pose from the second image (mannequin) to the first image (person). "
+            "Replace the mannequin in the first image with the person from the second image. "
             "CRITICAL REQUIREMENTS: "
-            "1. POSE TRANSFER: Copy the EXACT arm position, hand position, leg position, and overall body stance from the second image (mannequin) "
-            "2. PRESERVE IDENTITY: Keep the same person - same face, hairstyle, hair color, facial features, skin tone from first image "
-            "3. PRESERVE CLOTHING: Keep all clothing items exactly as they are - same colors, styles, fit from first image "
-            "4. PRESERVE BACKGROUND: Keep the background, scene, environment, lighting from first image "
-            "5. FULL BODY SHOT: Show complete figure from HEAD to FEET - match the framing of the second image "
-            "6. ONLY change the pose - everything else stays from first image "
-            "Professional fashion photograph with accurate pose transfer"
+            "1. PRESERVE POSE: Keep the EXACT pose from the first image (mannequin) - same arm position, hand position, leg position, body stance "
+            "2. REPLACE SUBJECT: Replace the mannequin with the person from the second image - ONLY ONE person in final image "
+            "3. EXTRACT FROM SECOND: Take the person's face, hairstyle, hair color, body type, clothing from the second image "
+            "4. PRESERVE SCENE: Keep the background and scene from the second image (not the mannequin's background) "
+            "5. PRESERVE FRAMING: Keep the full body framing from the first image - HEAD to FEET visible "
+            "6. NO OVERLAY: Do not overlay or duplicate - the mannequin must be completely replaced "
+            "7. SINGLE SUBJECT: Final image should have ONLY the person (not mannequin + person) "
+            "Professional fashion photograph with person in mannequin's pose"
         )
         
         print(f"📝 Manikin replacement prompt: {prompt[:200]}...")
-        print(f"🖼️ Image order: [person_wearing_product (base), manikin_pose (pose reference)]")
+        print(f"🖼️ Image order: [manikin_pose (base with pose), person_wearing_product (to extract)]")
         
-        # Use nano-banana with multiple images: person first (base), manikin second (pose reference)
+        # Use nano-banana: manikin first (base with pose), person second (to extract)
         out = replicate.run("google/nano-banana", input={
             "prompt": prompt,
-            "image_input": [person_wearing_product_url, manikin_pose_url],  # Person first (base), manikin second (pose reference)
-            "num_inference_steps": 40,  # More steps for better pose transfer
-            "guidance_scale": 8.0,  # Higher guidance for more accurate pose copying
-            "strength": 0.70,  # Higher strength for more prominent pose transfer
+            "image_input": [manikin_pose_url, person_wearing_product_url],  # Manikin first (pose), person second (to extract)
+            "num_inference_steps": 45,  # More steps for better quality
+            "guidance_scale": 9.0,  # Higher guidance for accurate replacement
+            "strength": 0.75,  # Strong replacement while preserving pose
             "seed": None
         })
         
