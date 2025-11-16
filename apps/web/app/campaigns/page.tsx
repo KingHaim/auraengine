@@ -365,6 +365,20 @@ export default function CampaignsPage() {
           "🔍 fetchData - Number of campaigns:",
           campaignsData.length
         );
+        
+        // Debug: Check if any campaign has videos
+        campaignsData.forEach((campaign: any) => {
+          if (campaign.settings?.videos) {
+            console.log(`📹 Campaign ${campaign.id} (${campaign.name}) has ${campaign.settings.videos.length} videos in settings`);
+          }
+          if (campaign.settings?.generated_images) {
+            const imagesWithVideos = campaign.settings.generated_images.filter((img: any) => img.video_url);
+            if (imagesWithVideos.length > 0) {
+              console.log(`📹 Campaign ${campaign.id} (${campaign.name}) has ${imagesWithVideos.length} images with video_url`);
+            }
+          }
+        });
+        
         // Ensure all campaigns have required properties
         campaignsData = campaignsData.map((campaign: any) => ({
           ...campaign,
@@ -6373,60 +6387,57 @@ export default function CampaignsPage() {
                           (img: any) => img.video_url
                         )
                       ).map((video: any, idx: number) => (
+                        <div
+                          key={idx}
+                          style={{
+                            border: "1px solid #E5E7EB",
+                            borderRadius: "12px",
+                            overflow: "hidden",
+                            backgroundColor: "#F9FAFB",
+                          }}
+                        >
+                          {video.video_url ? (
+                            <video
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              controls
+                              style={{ width: "100%", height: "auto" }}
+                              preload="metadata"
+                            >
+                              <source src={video.video_url} type="video/mp4" />
+                              Your browser does not support the video tag.
+                            </video>
+                          ) : (
                             <div
-                              key={idx}
                               style={{
-                                border: "1px solid #E5E7EB",
-                                borderRadius: "12px",
-                                overflow: "hidden",
-                                backgroundColor: "#F9FAFB",
+                                padding: "40px",
+                                textAlign: "center",
+                                color: "#6B7280",
                               }}
                             >
-                              {video.video_url ? (
-                                <video
-                                  autoPlay
-                                  loop
-                                  muted
-                                  playsInline
-                                  controls
-                                  style={{ width: "100%", height: "auto" }}
-                                  preload="metadata"
-                                >
-                                  <source
-                                    src={video.video_url}
-                                    type="video/mp4"
-                                  />
-                                  Your browser does not support the video tag.
-                                </video>
-                              ) : (
-                                <div
-                                  style={{
-                                    padding: "40px",
-                                    textAlign: "center",
-                                    color: "#6B7280",
-                                  }}
-                                >
-                                  {video.error
-                                    ? `❌ ${video.error}`
-                                    : "⏳ Processing..."}
-                                </div>
-                              )}
-                              <div style={{ padding: "12px" }}>
-                                <p
-                                  style={{
-                                    fontSize: "14px",
-                                    color: "#6B7280",
-                                    margin: 0,
-                                  }}
-                                >
-                                  {video.shot_type || `Video ${idx + 1}`}
-                                </p>
-                              </div>
+                              {video.error
+                                ? `❌ ${video.error}`
+                                : "⏳ Processing..."}
                             </div>
-                          ))}
-                      </div>
+                          )}
+                          <div style={{ padding: "12px" }}>
+                            <p
+                              style={{
+                                fontSize: "14px",
+                                color: "#6B7280",
+                                margin: 0,
+                              }}
+                            >
+                              {video.shot_type || `Video ${idx + 1}`}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                  </div>
+                )}
 
                 {/* Action Buttons */}
                 <div

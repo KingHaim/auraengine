@@ -823,6 +823,10 @@ async def get_campaigns(
                 # if campaign.settings:
                 #     campaign.settings = convert_localhost_video_urls(campaign.settings)
                 
+                # Debug: Log if campaign has videos
+                if campaign.settings and campaign.settings.get("videos"):
+                    print(f"📹 Campaign {campaign.id} has {len(campaign.settings['videos'])} videos in settings")
+                
                 result.append(CampaignResponse.model_validate(campaign))
             except Exception as validation_error:
                 print(f"⚠️ Campaign validation failed for {campaign.id}: {validation_error}")
@@ -1720,8 +1724,17 @@ async def generate_videos_background(
             
             successful_videos = sum(1 for v in videos if v.get("video_url"))
             print(f"🎉 Generated {successful_videos}/{len(videos)} videos for campaign {campaign_id}")
+            print(f"💾 Saved videos to database: {len(videos)} videos")
+            print(f"📊 Video URLs: {[v.get('video_url', 'None')[:50] for v in videos]}")
+            
+            # Verify it was saved
+            db.refresh(campaign)
+            saved_videos = campaign.settings.get("videos", []) if campaign.settings else []
+            print(f"✅ Verification: {len(saved_videos)} videos in database after commit")
     except Exception as e:
         print(f"❌ Failed to update campaign with videos: {e}")
+        import traceback
+        traceback.print_exc()
 
 @app.put("/campaigns/{campaign_id}")
 async def update_campaign(
