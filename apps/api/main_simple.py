@@ -1603,62 +1603,82 @@ async def generate_multiple_pose_variations(
                 traceback.print_exc()
                 continue
         
-        # Generate close-up detail shot after all poses
-        print(f"\n🔍 Generating product close-up shot...")
+        # Generate close-up detail shot after all poses - USE PREVIEW IMAGE AS BASE
+        print(f"\n🔍 Generating product close-up shot from reference image...")
         try:
-            # Get products, models, and scenes from campaign
-            products = db.query(Product).filter(Product.id.in_(product_ids)).all()
-            models = db.query(Model).filter(Model.id.in_(model_ids)).all()
-            scenes = db.query(Scene).filter(Scene.id.in_(scene_ids)).all()
-            
-            if products and models and scenes:
-                product = products[0]
-                model = models[0]
-                scene = scenes[0]
+            # Use the preview/reference image as base for close-up
+            if preview_image_url:
+                print(f"📸 Creating close-up from preview image: {preview_image_url[:80]}...")
                 
-                print(f"🎯 Close-up: {model.name} + {product.name} + {scene.name}")
+                # Get product info for metadata
+                products = db.query(Product).filter(Product.id.in_(product_ids)).all()
+                models = db.query(Model).filter(Model.id.in_(model_ids)).all()
+                scenes = db.query(Scene).filter(Scene.id.in_(scene_ids)).all()
                 
-                # Close-up prompt focused on shirt/upper body but showing all garments
-                closeup_prompt = (
-                    f"Fashion close-up shot of {model.name} wearing {product.name}. "
-                    f"Focus on the upper body and shirt/top garment. Show the complete outfit including all garments worn. "
-                    f"Frame from upper chest to mid-thigh to capture both top and bottom garments. "
-                    f"Emphasize the shirt details, fit, fabric, and styling. Natural depth of field. "
-                    f"Professional fashion photography in the scene environment."
-                )
-                
-                print(f"📝 Close-up prompt: {closeup_prompt[:100]}...")
-                
-                # Generate close-up using Qwen (Model + Product + Scene)
-                closeup_url = run_qwen_triple_composition(
-                    model.image_url,
-                    product.image_url,
-                    scene.image_url,
-                    product.name,
-                    quality_mode="standard",
-                    shot_type_prompt=closeup_prompt,
-                    clothing_type=product.clothing_type if hasattr(product, 'clothing_type') else None
-                )
-                
-                if closeup_url:
-                    closeup_image = {
-                        "image_url": closeup_url,
-                        "shot_type": "Product Close-Up",
-                        "shot_name": "product_closeup",
-                        "model_id": model.id,
-                        "model_name": model.name,
-                        "product_ids": [product.id],
-                        "product_name": product.name,
-                        "scene_id": scene.id,
-                        "scene_name": scene.name,
-                        "generated_at": datetime.utcnow().isoformat()
-                    }
-                    generated_images.append(closeup_image)
-                    print(f"✅ Added close-up shot (total images: {len(generated_images)})")
+                if products and models and scenes:
+                    product = products[0]
+                    model = models[0]
+                    scene = scenes[0]
+                    
+                    print(f"🎯 Close-up of reference image - focusing on shirt/top garment")
+                    
+                    # Close-up prompt - reframe the preview image to focus on upper body/shirt
+                    closeup_prompt = (
+                        f"Reframe this image as a fashion close-up shot. "
+                        f"Focus on the upper body and shirt/top garment area. "
+                        f"Zoom in to show the shirt details, fit, fabric texture, and styling from chest to waist. "
+                        f"Keep the same person, same outfit, same scene background. "
+                        f"Natural depth of field with the shirt in sharp focus. "
+                        f"Professional fashion product photography emphasizing the garment details."
+                    )
+                    
+                    print(f"📝 Close-up prompt: {closeup_prompt[:100]}...")
+                    
+                    # Use nano-banana to reframe/crop the preview image into a close-up
+                    import replicate
+                    out = replicate.run("google/nano-banana", input={
+                        "prompt": closeup_prompt,
+                        "image_input": [preview_image_url],  # Single image - reframe it
+                        "num_inference_steps": 25,  # Standard quality
+                        "guidance_scale": 5.0,  # Moderate guidance
+                        "strength": 0.35,  # Low strength - just reframing, not changing content
+                        "seed": None
+                    })
+                    
+                    # Handle output
+                    if hasattr(out, 'url'):
+                        closeup_url = out.url()
+                    elif isinstance(out, str):
+                        closeup_url = out
+                    elif isinstance(out, list) and len(out) > 0:
+                        closeup_url = out[0] if isinstance(out[0], str) else out[0].url()
+                    else:
+                        closeup_url = str(out)
+                    
+                    # Upload to Cloudinary for persistence
+                    closeup_url = upload_to_cloudinary(closeup_url, "closeup_shot")
+                    
+                    if closeup_url:
+                        closeup_image = {
+                            "image_url": closeup_url,
+                            "shot_type": "Product Close-Up",
+                            "shot_name": "product_closeup",
+                            "model_id": model.id,
+                            "model_name": model.name,
+                            "product_ids": [product.id],
+                            "product_name": product.name,
+                            "scene_id": scene.id,
+                            "scene_name": scene.name,
+                            "generated_at": datetime.utcnow().isoformat()
+                        }
+                        generated_images.append(closeup_image)
+                        print(f"✅ Added close-up shot from reference image (total images: {len(generated_images)})")
+                    else:
+                        print(f"⚠️ Close-up generation returned None")
                 else:
-                    print(f"⚠️ Close-up generation returned None")
+                    print(f"⚠️ Missing products/models/scenes for close-up metadata")
             else:
-                print(f"⚠️ Missing products/models/scenes for close-up generation")
+                print(f"⚠️ No preview image available for close-up generation")
                 
         except Exception as closeup_error:
             print(f"⚠️ Close-up generation failed: {closeup_error}")
