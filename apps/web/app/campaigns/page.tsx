@@ -923,6 +923,12 @@ export default function CampaignsPage() {
               clearInterval(pollInterval);
               setGeneratingCampaignVideos(null);
               await fetchData();
+              
+              // Update the selected campaign modal if it's open for this campaign
+              if (selectedCampaignForProfile?.id === campaignId) {
+                setSelectedCampaignForProfile(statusData.campaign);
+              }
+              
               alert("🎉 All campaign videos generated successfully!");
             }
           }
@@ -988,6 +994,9 @@ export default function CampaignsPage() {
   };
 
   const handleOpenCampaignProfile = (campaign: Campaign) => {
+    console.log("📹 Opening campaign profile:", campaign.name);
+    console.log("📹 Campaign videos:", campaign.settings?.videos);
+    console.log("📹 Video count:", campaign.settings?.videos?.length || 0);
     setSelectedCampaignForProfile(campaign);
     setShowCampaignProfileModal(true);
   };
@@ -4404,6 +4413,13 @@ export default function CampaignsPage() {
                       )}
 
                     {/* Show Videos if they exist */}
+                    {(() => {
+                      console.log("📹 Modal rendering - Checking for videos in selectedCampaign:");
+                      console.log("📹 selectedCampaign.settings:", selectedCampaign.settings);
+                      console.log("📹 videos array:", selectedCampaign.settings?.videos);
+                      console.log("📹 videos length:", selectedCampaign.settings?.videos?.length);
+                      return null;
+                    })()}
                     {selectedCampaign.settings?.videos &&
                       selectedCampaign.settings.videos.length > 0 && (
                         <div style={{ marginTop: "24px" }}>
@@ -6350,6 +6366,16 @@ export default function CampaignsPage() {
                 )}
 
                 {/* Campaign Videos Gallery */}
+                {(() => {
+                  console.log("📹 PROFILE MODAL - Checking for videos:");
+                  console.log("📹 selectedCampaignForProfile:", selectedCampaignForProfile);
+                  console.log("📹 settings:", selectedCampaignForProfile.settings);
+                  console.log("📹 videos array:", selectedCampaignForProfile.settings?.videos);
+                  console.log("📹 videos length:", selectedCampaignForProfile.settings?.videos?.length);
+                  console.log("📹 generated_images:", selectedCampaignForProfile.settings?.generated_images);
+                  console.log("📹 images with video_url:", selectedCampaignForProfile.settings?.generated_images?.filter((img: any) => img.video_url));
+                  return null;
+                })()}
                 {((selectedCampaignForProfile.settings?.videos &&
                   selectedCampaignForProfile.settings.videos.length > 0) ||
                   (selectedCampaignForProfile.settings?.generated_images &&
