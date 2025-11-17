@@ -3843,27 +3843,26 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
                     print(f"❌ Cannot upload to Cloudinary - manikin replacement will fail")
                     raise FileNotFoundError(f"Pose file not found: {filename}")
         
-        # Use nano-banana to adjust person's pose to match manikin
-        # Lower strength to prevent overlay - just adjust pose
+        # Use nano-banana to copy manikin pose exactly onto person
+        # Manikin first = use as pose/framing base, person second = provides appearance
         prompt = (
-            "Adjust the body pose of the person in the first image to match the pose in the second image. "
-            "Only change the arm position, leg position, and body stance. "
-            "Keep everything else exactly the same: same face, same hair, same clothing, same background, same lighting. "
-            "Do not add, overlay, or duplicate anything. Just adjust the existing person's pose. "
-            "Show full body from head to feet."
+            "A person in this exact pose. "
+            "Copy the EXACT body position, arm placement, leg stance, and head angle from the first image. "
+            "Full body shot from head to feet matching the framing of the first image. "
+            "Professional fashion photography."
         )
         
-        print(f"📝 Pose adjustment prompt: {prompt[:200]}...")
-        print(f"🖼️ Image order: [person_wearing_product (to keep), manikin_pose (pose reference)]")
+        print(f"📝 Pose copy prompt: {prompt[:150]}...")
+        print(f"🖼️ Image order: [manikin_pose (POSE BASE), person_wearing_product (appearance)]")
         
-        # Use nano-banana: person first (to keep), manikin second (pose to copy)
-        # Lower strength to prevent overlay
+        # Swap order: Manikin first (pose base), person second (appearance source)
+        # This tells nano-banana: "Use the pose from image 1, apply the person from image 2"
         out = replicate.run("google/nano-banana", input={
             "prompt": prompt,
-            "image_input": [person_wearing_product_url, manikin_pose_url],  # Person first (to keep), manikin second (pose to copy)
-            "num_inference_steps": 40,  # Moderate steps
-            "guidance_scale": 7.5,  # Moderate guidance to prevent over-transformation
-            "strength": 0.60,  # Lower strength - just adjust pose, don't redraw
+            "image_input": [manikin_pose_url, person_wearing_product_url],  # SWAPPED: Manikin first for pose
+            "num_inference_steps": 35,  # Good quality
+            "guidance_scale": 7.0,  # Standard guidance
+            "strength": 0.65,  # Higher strength to fully adopt pose
             "seed": None
         })
         
