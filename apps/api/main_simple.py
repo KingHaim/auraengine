@@ -1780,15 +1780,41 @@ async def generate_videos_background(
             product_name = image_data.get('product_name', 'clothing')
             scene_name = image_data.get('scene_name', 'scene')
             model_name = image_data.get('model_name', 'model')
+            shot_type = image_data.get('shot_type', '')
+            shot_name = image_data.get('shot_name', '')
             
-            video_prompt = (
-                f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
-                f"Smooth, subtle camera movement. Cinematic depth. Natural breathing and slight movements. "
-                f"Professional lighting, elegant atmosphere."
-            )
+            # Special prompt for close-up shots - focus on garment only, no face
+            if 'close' in shot_type.lower() or 'closeup' in shot_name.lower() or 'close-up' in shot_type.lower():
+                video_prompt = (
+                    f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
+                    f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
+                    f"Smooth, slow camera movement: gentle pan across fabric details, subtle zoom emphasizing texture and fit. "
+                    f"Showcase the garment's fabric texture, stitching, color, and style. "
+                    f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
+                    f"Natural subtle movements of fabric. Professional studio lighting on the garment."
+                )
+                print(f"🎬 Using CLOSE-UP video prompt (no face, garment focus)")
+            else:
+                # Standard prompt for full body shots
+                video_prompt = (
+                    f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
+                    f"Smooth, subtle camera movement. Cinematic depth. Natural breathing and slight movements. "
+                    f"Professional lighting, elegant atmosphere."
+                )
+                print(f"🎬 Using STANDARD video prompt (full body)")
             
             print(f"📝 Video prompt: {video_prompt[:150]}...")
             print(f"🖼️ Image URL: {image_data['image_url'][:80]}...")
+            
+            # Build negative prompt - add face exclusion for close-ups
+            if 'close' in shot_type.lower() or 'closeup' in shot_name.lower() or 'close-up' in shot_type.lower():
+                negative_prompt = (
+                    "face, head, neck visible, facial features, eyes, nose, mouth, "
+                    "blurry, distorted, low quality, bad lighting, poor composition, jerky motion, "
+                    "showing face, person's face in frame"
+                )
+            else:
+                negative_prompt = "blurry, distorted, low quality, bad lighting, poor composition, jerky motion"
             
             # Call Kling 2.5 Turbo Pro API
             output = replicate.run(
@@ -1800,7 +1826,7 @@ async def generate_videos_background(
                     "cfg_scale": cfg_scale,
                     "prompt": video_prompt,
                     "aspect_ratio": "16:9",
-                    "negative_prompt": "blurry, distorted, low quality, bad lighting, poor composition, jerky motion"
+                    "negative_prompt": negative_prompt
                 }
             )
             
