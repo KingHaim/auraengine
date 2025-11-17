@@ -4135,17 +4135,17 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # Enhanced integration prompt with shot type - STRONG SCENE INTEGRATION
+        # Enhanced integration prompt - PRESERVE MODEL IDENTITY
         if shot_type_prompt:
-            scene_prompt = f"CRITICAL: Create a seamless fashion photograph by COMPLETELY integrating the person from the first image into the EXACT environment and setting from the third image. Dress the person with the {garment_description} from the second image. {shot_type_prompt}. The person MUST be placed directly into the third image's environment - use the exact background, lighting, atmosphere, and visual style from the third image. The person should appear as if they were photographed in that exact location. Match the lighting direction, shadows, color temperature, and mood perfectly. The background from the third image should be completely preserved and the person should look naturally placed within it. Professional fashion photography with perfect scene integration."
+            scene_prompt = f"Use the EXACT PERSON (face, body, identity) from the first image. Dress them in {garment_description} from the second image. Place them in the environment from the third image. {shot_type_prompt}. IMPORTANT: Keep the person's face, features, and appearance EXACTLY as shown in the first image - do not change their identity or generate a different person. Match the scene lighting and background from the third image. Professional fashion photography."
         else:
-            scene_prompt = f"CRITICAL: Create a seamless fashion photograph by COMPLETELY integrating the person from the first image into the EXACT environment and setting from the third image. Dress the person with the {garment_description} from the second image. The person MUST be placed directly into the third image's environment - use the exact background, lighting, atmosphere, and visual style from the third image. The person should appear as if they were photographed in that exact location. Match the lighting direction, shadows, color temperature, and mood perfectly. The background from the third image should be completely preserved and the person should look naturally placed within it. Professional fashion photography with perfect scene integration."
+            scene_prompt = f"Use the EXACT PERSON (face, body, identity) from the first image. Dress them in {garment_description} from the second image. Place them in the environment from the third image. IMPORTANT: Keep the person's face, features, and appearance EXACTLY as shown in the first image - do not change their identity or generate a different person. Match the scene lighting and background from the third image. Professional fashion photography."
         
-        # Strong integration parameters - INCREASED FOR BETTER SCENE INTEGRATION
-        num_steps = 45  # More steps for better quality
-        guidance = 5.0  # Higher guidance for stronger scene integration
-        strength = 0.65  # Higher strength for better scene integration
-        print("⚡ Using Qwen for STRONG scene integration with increased parameters")
+        # Balanced parameters - PRESERVE MODEL while integrating scene
+        num_steps = 40  # Good quality
+        guidance = 4.5  # Moderate guidance to respect inputs
+        strength = 0.50  # REDUCED to preserve model identity (was 0.65, too high)
+        print("⚡ Using Qwen with balanced parameters (strength=0.50) to preserve model identity")
         
         # Use Qwen with 3 images
         try:
