@@ -1497,15 +1497,15 @@ async def generate_multiple_pose_variations(
         # Load existing images to append new poses
         generated_images = existing_images.copy()
         
-        # Define camera positions WITHIN the scene for each pose
+        # Define dramatic camera positions WITHIN the scene for each pose
         pose_angles = {
             "Pose-handneck.jpg": {
-                "angle": "side view from within the scene",
-                "description": "The photographer is standing 90 degrees to the side (left or right) of the person within the same scene, capturing a side profile view"
+                "angle": "dramatic side profile shot",
+                "description": "Camera repositioned to capture a striking side profile - photographer moved 90 degrees to capture the person's left or right side. The background, lighting, and scene are now viewed from this perpendicular angle. This is a completely different viewpoint showing the side silhouette."
             },
             "Pose-thinking.jpg": {
-                "angle": "three-quarter view from within the scene", 
-                "description": "The photographer is standing at a 45-degree diagonal angle within the same scene, capturing the person from a three-quarter perspective"
+                "angle": "dynamic three-quarter angle shot", 
+                "description": "Camera repositioned at a 45-degree diagonal for an engaging three-quarter view - photographer moved to capture the person from an angular perspective. The scene background, composition, and framing are adjusted to this diagonal viewpoint. This creates depth and dimension."
             }
         }
         
@@ -1553,23 +1553,23 @@ async def generate_multiple_pose_variations(
                     print(f"📐 Applying {angle_info['angle']} camera position...")
                     
                     angle_prompt = (
-                        f"Re-render this scene with the camera positioned at a {angle_info['angle']}. "
-                        f"{angle_info['description']}. "
-                        f"The photographer is physically standing in a different location within the same scene environment. "
-                        f"Show the exact same person, same pose, same clothing, same scene background and lighting. "
-                        f"Only the camera viewpoint within the scene changes - as if moving the photographer to a different spot. "
-                        f"The scene background should adjust to show what's visible from this new camera position. "
-                        f"Full body shot."
+                        f"Transform this into a {angle_info['angle']}. "
+                        f"{angle_info['description']} "
+                        f"IMPORTANT: This is a significantly different camera angle - not just a slight rotation. "
+                        f"The photographer has moved to a completely different position in the scene. "
+                        f"The composition, perspective, and what's visible in frame should dramatically change. "
+                        f"Keep same person, pose, and clothing, but everything else shifts with the new camera position. "
+                        f"Full body shot from this new dynamic angle."
                     )
                     
-                    # Use nano-banana to change camera position/viewpoint
+                    # Use nano-banana to change camera position/viewpoint with HIGHER strength for dramatic change
                     import replicate
                     out = replicate.run("google/nano-banana", input={
                         "prompt": angle_prompt,
                         "image_input": [new_pose_image_url],  # Single image, change camera viewpoint
-                        "num_inference_steps": 25,
-                        "guidance_scale": 6.0,
-                        "strength": 0.40,  # Low strength to just change camera position
+                        "num_inference_steps": 30,  # More steps for quality
+                        "guidance_scale": 7.0,  # Higher guidance for dramatic change
+                        "strength": 0.60,  # INCREASED: Higher strength for dramatic camera repositioning (was 0.40)
                         "seed": None
                     })
                     
