@@ -1565,11 +1565,12 @@ async def generate_multiple_pose_variations(
                 
                 print(f"🎯 Close-up: {model.name} + {product.name} + {scene.name}")
                 
-                # Close-up prompt focused on upper body and product details
+                # Close-up prompt focused on shirt/upper body but showing all garments
                 closeup_prompt = (
-                    f"Upper body close-up shot of {model.name} wearing {product.name}. "
-                    f"Focus on the garment fit, fabric details, and styling. "
-                    f"Show from chest/shoulders to waist. Natural depth of field. "
+                    f"Fashion close-up shot of {model.name} wearing {product.name}. "
+                    f"Focus on the upper body and shirt/top garment. Show the complete outfit including all garments worn. "
+                    f"Frame from upper chest to mid-thigh to capture both top and bottom garments. "
+                    f"Emphasize the shirt details, fit, fabric, and styling. Natural depth of field. "
                     f"Professional fashion photography in the scene environment."
                 )
                 
@@ -3919,13 +3920,13 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         print(f"🖼️ Image order: [person_wearing_product (base to modify), manikin_pose (pose reference)]")
         
         # SWAP BACK: Person first (base to modify), manikin second (pose to reference)
-        # Very low strength to prevent overlay, just adjust pose
+        # Ultra-low strength to prevent overlay, just adjust pose
         out = replicate.run("google/nano-banana", input={
             "prompt": prompt,
             "image_input": [person_wearing_product_url, manikin_pose_url],  # Person = base, Manikin = pose ref
             "num_inference_steps": 30,  # Standard quality
             "guidance_scale": 6.5,  # Lower guidance to stay close to base
-            "strength": 0.45,  # VERY LOW to prevent overlay, just modify pose
+            "strength": 0.35,  # ULTRA-LOW to prevent overlay (was 0.45, still had overlay)
             "seed": None
         })
         
