@@ -1497,19 +1497,19 @@ async def generate_multiple_pose_variations(
         # Load existing images to append new poses
         generated_images = existing_images.copy()
         
-        # Define dramatic camera positions WITHIN the scene for each pose
+        # Define different positions for the model WITHIN the scene for each pose
         pose_angles = {
             "Pose-handneck.jpg": {
-                "angle": "dramatic side profile shot",
-                "description": "Camera repositioned to capture a striking side profile - photographer moved 90 degrees to capture the person's left or right side. The background, lighting, and scene are now viewed from this perpendicular angle. This is a completely different viewpoint showing the side silhouette."
+                "angle": "model repositioned to a different location in the scene",
+                "description": "Move the person to a different spot within the same scene environment. The person is now standing in another area of the location - maybe closer to scene elements, or in a different part of the space. Same pose, same clothing, but different positioning within the scene composition."
             },
             "Pose-thinking.jpg": {
-                "angle": "dynamic three-quarter angle shot", 
-                "description": "Camera repositioned at a 45-degree diagonal for an engaging three-quarter view - photographer moved to capture the person from an angular perspective. The scene background, composition, and framing are adjusted to this diagonal viewpoint. This creates depth and dimension."
+                "angle": "model in an alternate position within the scene", 
+                "description": "Place the person in a different location within the scene. They could be nearer or further from the camera, positioned differently relative to the background elements. Creative repositioning that makes the shot more dynamic while maintaining the same scene environment."
             }
         }
         
-        # For each remaining pose, use nano-banana to transfer pose + change camera position
+        # For each remaining pose, use nano-banana to transfer pose + reposition model in scene
         for pose_idx, pose_filename in enumerate(poses, 1):
             print(f"\n📸 [{pose_idx}/{len(poses)}] Applying pose: {pose_filename}")
             
@@ -1547,29 +1547,29 @@ async def generate_multiple_pose_variations(
                 if new_pose_image_url == preview_image_url:
                     print(f"⚠️ Result is same as preview - pose transfer may have failed")
                 
-                # Apply camera angle variation if defined for this pose
+                # Apply model repositioning if defined for this pose
                 if pose_filename in pose_angles:
                     angle_info = pose_angles[pose_filename]
-                    print(f"📐 Applying {angle_info['angle']} camera position...")
+                    print(f"📐 Repositioning model: {angle_info['angle']}")
                     
                     angle_prompt = (
-                        f"Transform this into a {angle_info['angle']}. "
+                        f"Reposition the person to a different location within the same scene: {angle_info['angle']}. "
                         f"{angle_info['description']} "
-                        f"IMPORTANT: This is a significantly different camera angle - not just a slight rotation. "
-                        f"The photographer has moved to a completely different position in the scene. "
-                        f"The composition, perspective, and what's visible in frame should dramatically change. "
-                        f"Keep same person, pose, and clothing, but everything else shifts with the new camera position. "
-                        f"Full body shot from this new dynamic angle."
+                        f"IMPORTANT: Move the person to a DIFFERENT SPOT in the scene environment. "
+                        f"They should be standing somewhere else - different position relative to background elements. "
+                        f"The scene can be creatively interpreted - add more depth, different placement, varied distance. "
+                        f"Keep the same person, same pose, same clothing, same scene style/environment. "
+                        f"Full body shot with the person repositioned within the scene."
                     )
                     
-                    # Use nano-banana to change camera position/viewpoint with HIGHER strength for dramatic change
+                    # Use nano-banana to reposition model within the scene with HIGHER strength for creative variation
                     import replicate
                     out = replicate.run("google/nano-banana", input={
                         "prompt": angle_prompt,
-                        "image_input": [new_pose_image_url],  # Single image, change camera viewpoint
+                        "image_input": [new_pose_image_url],  # Single image, reposition person in scene
                         "num_inference_steps": 30,  # More steps for quality
-                        "guidance_scale": 7.0,  # Higher guidance for dramatic change
-                        "strength": 0.60,  # INCREASED: Higher strength for dramatic camera repositioning (was 0.40)
+                        "guidance_scale": 7.0,  # Higher guidance for repositioning
+                        "strength": 0.60,  # Higher strength to allow repositioning within scene (was 0.40)
                         "seed": None
                     })
                     
