@@ -1497,15 +1497,15 @@ async def generate_multiple_pose_variations(
         # Load existing images to append new poses
         generated_images = existing_images.copy()
         
-        # Define camera positions for each pose
+        # Define camera positions WITHIN the scene for each pose
         pose_angles = {
             "Pose-handneck.jpg": {
-                "angle": "side view",
-                "description": "Camera positioned at a 90-degree side angle, photographing the person from their left or right side"
+                "angle": "side view from within the scene",
+                "description": "The photographer is standing 90 degrees to the side (left or right) of the person within the same scene, capturing a side profile view"
             },
             "Pose-thinking.jpg": {
-                "angle": "three-quarter view", 
-                "description": "Camera positioned at a 45-degree angle, photographing the person from a diagonal/three-quarter viewpoint"
+                "angle": "three-quarter view from within the scene", 
+                "description": "The photographer is standing at a 45-degree diagonal angle within the same scene, capturing the person from a three-quarter perspective"
             }
         }
         
@@ -1553,11 +1553,13 @@ async def generate_multiple_pose_variations(
                     print(f"📐 Applying {angle_info['angle']} camera position...")
                     
                     angle_prompt = (
-                        f"Photograph the same scene from a different camera position: {angle_info['angle']}. "
+                        f"Re-render this scene with the camera positioned at a {angle_info['angle']}. "
                         f"{angle_info['description']}. "
-                        f"The camera is physically moved to capture from this new viewpoint. "
-                        f"Same person, same pose, same clothing, same scene. "
-                        f"Only the camera position/viewpoint changes. Full body shot."
+                        f"The photographer is physically standing in a different location within the same scene environment. "
+                        f"Show the exact same person, same pose, same clothing, same scene background and lighting. "
+                        f"Only the camera viewpoint within the scene changes - as if moving the photographer to a different spot. "
+                        f"The scene background should adjust to show what's visible from this new camera position. "
+                        f"Full body shot."
                     )
                     
                     # Use nano-banana to change camera position/viewpoint
