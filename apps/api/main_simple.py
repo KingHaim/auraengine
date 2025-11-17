@@ -858,10 +858,11 @@ async def generate_campaign_images_background(
     scene_id_list: list,
     selected_poses_dict: dict,
     number_of_images: int,
-    manikin_pose: str = "Pose-neutral.jpg",
-    db: Session = None
+    manikin_pose: str = "Pose-neutral.jpg"
 ):
     """Generate campaign images in background"""
+    # Create a NEW database session for this background task
+    db = SessionLocal()
     try:
         # Get campaign from database
         campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
@@ -1076,6 +1077,10 @@ async def generate_campaign_images_background(
                 db.commit()
         except Exception as update_error:
             print(f"❌ Failed to update campaign status: {update_error}")
+    finally:
+        # CRITICAL: Close database session to prevent connection pool exhaustion
+        db.close()
+        print(f"✅ Database session closed for campaign {campaign_id}")
 
 @app.post("/campaigns/create")
 async def create_campaign(
@@ -1142,8 +1147,7 @@ async def create_campaign(
             scene_id_list, 
             selected_poses_dict, 
             1,  # Only 1 preview image
-            manikin_pose,  # Use selected pose
-            db
+            manikin_pose  # Use selected pose
         ))
         
         return response_data
@@ -1451,8 +1455,7 @@ async def generate_all_pose_variations(
             model_ids,
             scene_ids,
             selected_poses,
-            remaining_poses,
-            db
+            remaining_poses
         ))
         
         return {
@@ -1471,10 +1474,11 @@ async def generate_multiple_pose_variations(
     model_ids: list,
     scene_ids: list,
     selected_poses: dict,
-    poses: list,
-    db: Session
+    poses: list
 ):
     """Generate images for multiple poses by applying pose transfer to preview image"""
+    # Create a NEW database session for this background task
+    db = SessionLocal()
     try:
         # Get campaign and preview image
         campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
@@ -1704,6 +1708,10 @@ async def generate_multiple_pose_variations(
         if campaign:
             campaign.generation_status = "failed"
             db.commit()
+    finally:
+        # CRITICAL: Close database session to prevent connection pool exhaustion
+        db.close()
+        print(f"✅ Database session closed for pose generation {campaign_id}")
 
 @app.post("/campaigns/{campaign_id}/generate-videos")
 async def generate_campaign_videos(
@@ -1744,8 +1752,7 @@ async def generate_campaign_videos(
             campaign_id,
             generated_images,
             duration,
-            cfg_scale,
-            db
+            cfg_scale
         ))
         
         return {
@@ -1763,117 +1770,118 @@ async def generate_videos_background(
     campaign_id: str,
     images: list,
     duration: int,
-    cfg_scale: float,
-    db: Session
+    cfg_scale: float
 ):
     """Generate videos for each image using Kling 2.5 Turbo Pro"""
     import replicate
     from datetime import datetime
     
-    videos = []
-    
-    for idx, image_data in enumerate(images, 1):
-        try:
-            print(f"\n🎬 [{idx}/{len(images)}] Generating video for {image_data.get('shot_type', 'image')}...")
-            
-            # Build prompt for video
-            product_name = image_data.get('product_name', 'clothing')
-            scene_name = image_data.get('scene_name', 'scene')
-            model_name = image_data.get('model_name', 'model')
-            shot_type = image_data.get('shot_type', '')
-            shot_name = image_data.get('shot_name', '')
-            
-            # Special prompt for close-up shots - focus on garment only, no face
-            if 'close' in shot_type.lower() or 'closeup' in shot_name.lower() or 'close-up' in shot_type.lower():
-                video_prompt = (
-                    f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
-                    f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
-                    f"Smooth, slow camera movement: gentle pan across fabric details, subtle zoom emphasizing texture and fit. "
-                    f"Showcase the garment's fabric texture, stitching, color, and style. "
-                    f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
-                    f"Natural subtle movements of fabric. Professional studio lighting on the garment."
+    # Create a NEW database session for this background task
+    db = SessionLocal()
+    try:
+        videos = []
+        
+        for idx, image_data in enumerate(images, 1):
+            try:
+                print(f"\n🎬 [{idx}/{len(images)}] Generating video for {image_data.get('shot_type', 'image')}...")
+                
+                # Build prompt for video
+                product_name = image_data.get('product_name', 'clothing')
+                scene_name = image_data.get('scene_name', 'scene')
+                model_name = image_data.get('model_name', 'model')
+                shot_type = image_data.get('shot_type', '')
+                shot_name = image_data.get('shot_name', '')
+                
+                # Special prompt for close-up shots - focus on garment only, no face
+                if 'close' in shot_type.lower() or 'closeup' in shot_name.lower() or 'close-up' in shot_type.lower():
+                    video_prompt = (
+                        f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
+                        f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
+                        f"Smooth, slow camera movement: gentle pan across fabric details, subtle zoom emphasizing texture and fit. "
+                        f"Showcase the garment's fabric texture, stitching, color, and style. "
+                        f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
+                        f"Natural subtle movements of fabric. Professional studio lighting on the garment."
+                    )
+                    print(f"🎬 Using CLOSE-UP video prompt (no face, garment focus)")
+                else:
+                    # Standard prompt for full body shots
+                    video_prompt = (
+                        f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
+                        f"Smooth, subtle camera movement. Cinematic depth. Natural breathing and slight movements. "
+                        f"Professional lighting, elegant atmosphere."
+                    )
+                    print(f"🎬 Using STANDARD video prompt (full body)")
+                
+                print(f"📝 Video prompt: {video_prompt[:150]}...")
+                print(f"🖼️ Image URL: {image_data['image_url'][:80]}...")
+                
+                # Build negative prompt - add face exclusion for close-ups
+                if 'close' in shot_type.lower() or 'closeup' in shot_name.lower() or 'close-up' in shot_type.lower():
+                    negative_prompt = (
+                        "face, head, neck visible, facial features, eyes, nose, mouth, "
+                        "blurry, distorted, low quality, bad lighting, poor composition, jerky motion, "
+                        "showing face, person's face in frame"
+                    )
+                else:
+                    negative_prompt = "blurry, distorted, low quality, bad lighting, poor composition, jerky motion"
+                
+                # Call Kling 2.5 Turbo Pro API
+                output = replicate.run(
+                    "kwaivgi/kling-v2.5-turbo-pro",
+                    input={
+                        "mode": "image-to-video",
+                        "image": image_data["image_url"],
+                        "duration": duration,
+                        "cfg_scale": cfg_scale,
+                        "prompt": video_prompt,
+                        "aspect_ratio": "16:9",
+                        "negative_prompt": negative_prompt
+                    }
                 )
-                print(f"🎬 Using CLOSE-UP video prompt (no face, garment focus)")
-            else:
-                # Standard prompt for full body shots
-                video_prompt = (
-                    f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
-                    f"Smooth, subtle camera movement. Cinematic depth. Natural breathing and slight movements. "
-                    f"Professional lighting, elegant atmosphere."
-                )
-                print(f"🎬 Using STANDARD video prompt (full body)")
-            
-            print(f"📝 Video prompt: {video_prompt[:150]}...")
-            print(f"🖼️ Image URL: {image_data['image_url'][:80]}...")
-            
-            # Build negative prompt - add face exclusion for close-ups
-            if 'close' in shot_type.lower() or 'closeup' in shot_name.lower() or 'close-up' in shot_type.lower():
-                negative_prompt = (
-                    "face, head, neck visible, facial features, eyes, nose, mouth, "
-                    "blurry, distorted, low quality, bad lighting, poor composition, jerky motion, "
-                    "showing face, person's face in frame"
-                )
-            else:
-                negative_prompt = "blurry, distorted, low quality, bad lighting, poor composition, jerky motion"
-            
-            # Call Kling 2.5 Turbo Pro API
-            output = replicate.run(
-                "kwaivgi/kling-v2.5-turbo-pro",
-                input={
-                    "mode": "image-to-video",
-                    "image": image_data["image_url"],
+                
+                # Handle output (Kling returns video URL)
+                if hasattr(output, 'url'):
+                    video_url = output.url()
+                elif isinstance(output, str):
+                    video_url = output
+                elif isinstance(output, list) and len(output) > 0:
+                    video_url = output[0] if isinstance(output[0], str) else output[0].url() if hasattr(output[0], 'url') else str(output[0])
+                else:
+                    video_url = str(output)
+                
+                print(f"✅ Video generated: {video_url[:80]}...")
+                
+                # Upload to Cloudinary for stable storage
+                try:
+                    stable_video_url = upload_to_cloudinary(video_url, f"video_{idx}")
+                    print(f"✅ Video uploaded to Cloudinary: {stable_video_url[:80]}...")
+                except Exception as upload_error:
+                    print(f"⚠️ Failed to upload video to Cloudinary: {upload_error}")
+                    stable_video_url = video_url  # Use replicate URL as fallback
+                
+                videos.append({
+                    **image_data,  # Include all image metadata
+                    "video_url": stable_video_url,
                     "duration": duration,
                     "cfg_scale": cfg_scale,
-                    "prompt": video_prompt,
-                    "aspect_ratio": "16:9",
-                    "negative_prompt": negative_prompt
-                }
-            )
-            
-            # Handle output (Kling returns video URL)
-            if hasattr(output, 'url'):
-                video_url = output.url()
-            elif isinstance(output, str):
-                video_url = output
-            elif isinstance(output, list) and len(output) > 0:
-                video_url = output[0] if isinstance(output[0], str) else output[0].url() if hasattr(output[0], 'url') else str(output[0])
-            else:
-                video_url = str(output)
-            
-            print(f"✅ Video generated: {video_url[:80]}...")
-            
-            # Upload to Cloudinary for stable storage
-            try:
-                stable_video_url = upload_to_cloudinary(video_url, f"video_{idx}")
-                print(f"✅ Video uploaded to Cloudinary: {stable_video_url[:80]}...")
-            except Exception as upload_error:
-                print(f"⚠️ Failed to upload video to Cloudinary: {upload_error}")
-                stable_video_url = video_url  # Use replicate URL as fallback
-            
-            videos.append({
-                **image_data,  # Include all image metadata
-                "video_url": stable_video_url,
-                "duration": duration,
-                "cfg_scale": cfg_scale,
-                "generated_at": datetime.utcnow().isoformat()
-            })
-            
-            print(f"✅ Video {idx}/{len(images)} completed!")
-            
-        except Exception as e:
-            print(f"❌ Failed to generate video {idx}: {e}")
-            import traceback
-            traceback.print_exc()
-            videos.append({
-                **image_data,
-                "video_url": None,
-                "error": str(e),
-                "duration": duration,
-                "cfg_scale": cfg_scale
-            })
-    
-    # Update campaign with videos
-    try:
+                    "generated_at": datetime.utcnow().isoformat()
+                })
+                
+                print(f"✅ Video {idx}/{len(images)} completed!")
+                
+            except Exception as e:
+                print(f"❌ Failed to generate video {idx}: {e}")
+                import traceback
+                traceback.print_exc()
+                videos.append({
+                    **image_data,
+                    "video_url": None,
+                    "error": str(e),
+                    "duration": duration,
+                    "cfg_scale": cfg_scale
+                })
+        
+        # Update campaign with videos
         campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
         if campaign:
             new_settings = dict(campaign.settings) if campaign.settings else {}
@@ -1896,6 +1904,10 @@ async def generate_videos_background(
         print(f"❌ Failed to update campaign with videos: {e}")
         import traceback
         traceback.print_exc()
+    finally:
+        # CRITICAL: Close database session to prevent connection pool exhaustion
+        db.close()
+        print(f"✅ Database session closed for video generation {campaign_id}")
 
 @app.put("/campaigns/{campaign_id}")
 async def update_campaign(
