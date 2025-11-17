@@ -1497,7 +1497,19 @@ async def generate_multiple_pose_variations(
         # Load existing images to append new poses
         generated_images = existing_images.copy()
         
-        # For each remaining pose, use nano-banana to transfer pose
+        # Define camera angles for each pose
+        pose_angles = {
+            "Pose-handneck.jpg": {
+                "angle": "side view",
+                "description": "Side profile view, 90-degree angle showing the side of the person"
+            },
+            "Pose-thinking.jpg": {
+                "angle": "three-quarter view", 
+                "description": "Three-quarter angle (45 degrees), showing the person from a diagonal perspective"
+            }
+        }
+        
+        # For each remaining pose, use nano-banana to transfer pose + apply camera angle
         for pose_idx, pose_filename in enumerate(poses, 1):
             print(f"\n📸 [{pose_idx}/{len(poses)}] Applying pose: {pose_filename}")
             
@@ -1534,6 +1546,44 @@ async def generate_multiple_pose_variations(
                 # Check if the result is different from preview
                 if new_pose_image_url == preview_image_url:
                     print(f"⚠️ Result is same as preview - pose transfer may have failed")
+                
+                # Apply camera angle variation if defined for this pose
+                if pose_filename in pose_angles:
+                    angle_info = pose_angles[pose_filename]
+                    print(f"📐 Applying {angle_info['angle']} camera angle...")
+                    
+                    angle_prompt = (
+                        f"Change the camera angle to a {angle_info['angle']} of the same person. "
+                        f"{angle_info['description']}. "
+                        f"Keep the exact same person, same pose, same clothing, same background, same lighting. "
+                        f"Only rotate the camera perspective. Full body shot."
+                    )
+                    
+                    # Use nano-banana to rotate camera angle
+                    import replicate
+                    out = replicate.run("google/nano-banana", input={
+                        "prompt": angle_prompt,
+                        "image_input": [new_pose_image_url],  # Single image to rotate
+                        "num_inference_steps": 25,
+                        "guidance_scale": 6.0,
+                        "strength": 0.40,  # Low strength to just rotate perspective
+                        "seed": None
+                    })
+                    
+                    # Handle output
+                    if hasattr(out, 'url'):
+                        angle_result_url = out.url()
+                    elif isinstance(out, str):
+                        angle_result_url = out
+                    elif isinstance(out, list) and len(out) > 0:
+                        angle_result_url = out[0] if isinstance(out[0], str) else out[0].url()
+                    else:
+                        angle_result_url = str(out)
+                    
+                    # Upload to Cloudinary
+                    if angle_result_url:
+                        new_pose_image_url = upload_to_cloudinary(angle_result_url, "angle_variation")
+                        print(f"✅ Camera angle applied: {angle_info['angle']}")
                 
                 # Create new image entry with same metadata but new pose
                 new_image = preview_image.copy()
