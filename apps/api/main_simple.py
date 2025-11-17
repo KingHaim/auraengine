@@ -1550,7 +1550,68 @@ async def generate_multiple_pose_variations(
                 traceback.print_exc()
                 continue
         
-        # Update campaign with all images
+        # Generate close-up detail shot after all poses
+        print(f"\n🔍 Generating product close-up shot...")
+        try:
+            # Get products, models, and scenes from campaign
+            products = db.query(Product).filter(Product.id.in_(product_ids)).all()
+            models = db.query(Model).filter(Model.id.in_(model_ids)).all()
+            scenes = db.query(Scene).filter(Scene.id.in_(scene_ids)).all()
+            
+            if products and models and scenes:
+                product = products[0]
+                model = models[0]
+                scene = scenes[0]
+                
+                print(f"🎯 Close-up: {model.name} + {product.name} + {scene.name}")
+                
+                # Close-up prompt focused on upper body and product details
+                closeup_prompt = (
+                    f"Upper body close-up shot of {model.name} wearing {product.name}. "
+                    f"Focus on the garment fit, fabric details, and styling. "
+                    f"Show from chest/shoulders to waist. Natural depth of field. "
+                    f"Professional fashion photography in the scene environment."
+                )
+                
+                print(f"📝 Close-up prompt: {closeup_prompt[:100]}...")
+                
+                # Generate close-up using Qwen (Model + Product + Scene)
+                closeup_url = run_qwen_triple_composition(
+                    model.image_url,
+                    product.image_url,
+                    scene.image_url,
+                    product.name,
+                    quality_mode="standard",
+                    shot_type_prompt=closeup_prompt,
+                    clothing_type=product.clothing_type if hasattr(product, 'clothing_type') else None
+                )
+                
+                if closeup_url:
+                    closeup_image = {
+                        "image_url": closeup_url,
+                        "shot_type": "Product Close-Up",
+                        "shot_name": "product_closeup",
+                        "model_id": model.id,
+                        "model_name": model.name,
+                        "product_ids": [product.id],
+                        "product_name": product.name,
+                        "scene_id": scene.id,
+                        "scene_name": scene.name,
+                        "generated_at": datetime.utcnow().isoformat()
+                    }
+                    generated_images.append(closeup_image)
+                    print(f"✅ Added close-up shot (total images: {len(generated_images)})")
+                else:
+                    print(f"⚠️ Close-up generation returned None")
+            else:
+                print(f"⚠️ Missing products/models/scenes for close-up generation")
+                
+        except Exception as closeup_error:
+            print(f"⚠️ Close-up generation failed: {closeup_error}")
+            import traceback
+            traceback.print_exc()
+        
+        # Update campaign with all images (including close-up)
         if campaign.settings is None:
             campaign.settings = {}
         campaign.settings["generated_images"] = generated_images
