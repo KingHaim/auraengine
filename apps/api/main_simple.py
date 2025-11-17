@@ -1497,19 +1497,19 @@ async def generate_multiple_pose_variations(
         # Load existing images to append new poses
         generated_images = existing_images.copy()
         
-        # Define camera angles for each pose
+        # Define camera positions for each pose
         pose_angles = {
             "Pose-handneck.jpg": {
                 "angle": "side view",
-                "description": "Side profile view, 90-degree angle showing the side of the person"
+                "description": "Camera positioned at a 90-degree side angle, photographing the person from their left or right side"
             },
             "Pose-thinking.jpg": {
                 "angle": "three-quarter view", 
-                "description": "Three-quarter angle (45 degrees), showing the person from a diagonal perspective"
+                "description": "Camera positioned at a 45-degree angle, photographing the person from a diagonal/three-quarter viewpoint"
             }
         }
         
-        # For each remaining pose, use nano-banana to transfer pose + apply camera angle
+        # For each remaining pose, use nano-banana to transfer pose + change camera position
         for pose_idx, pose_filename in enumerate(poses, 1):
             print(f"\n📸 [{pose_idx}/{len(poses)}] Applying pose: {pose_filename}")
             
@@ -1550,23 +1550,24 @@ async def generate_multiple_pose_variations(
                 # Apply camera angle variation if defined for this pose
                 if pose_filename in pose_angles:
                     angle_info = pose_angles[pose_filename]
-                    print(f"📐 Applying {angle_info['angle']} camera angle...")
+                    print(f"📐 Applying {angle_info['angle']} camera position...")
                     
                     angle_prompt = (
-                        f"Change the camera angle to a {angle_info['angle']} of the same person. "
+                        f"Photograph the same scene from a different camera position: {angle_info['angle']}. "
                         f"{angle_info['description']}. "
-                        f"Keep the exact same person, same pose, same clothing, same background, same lighting. "
-                        f"Only rotate the camera perspective. Full body shot."
+                        f"The camera is physically moved to capture from this new viewpoint. "
+                        f"Same person, same pose, same clothing, same scene. "
+                        f"Only the camera position/viewpoint changes. Full body shot."
                     )
                     
-                    # Use nano-banana to rotate camera angle
+                    # Use nano-banana to change camera position/viewpoint
                     import replicate
                     out = replicate.run("google/nano-banana", input={
                         "prompt": angle_prompt,
-                        "image_input": [new_pose_image_url],  # Single image to rotate
+                        "image_input": [new_pose_image_url],  # Single image, change camera viewpoint
                         "num_inference_steps": 25,
                         "guidance_scale": 6.0,
-                        "strength": 0.40,  # Low strength to just rotate perspective
+                        "strength": 0.40,  # Low strength to just change camera position
                         "seed": None
                     })
                     
