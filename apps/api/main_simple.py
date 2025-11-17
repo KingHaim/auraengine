@@ -3844,25 +3844,26 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
                     raise FileNotFoundError(f"Pose file not found: {filename}")
         
         # Use nano-banana to apply manikin pose to the person
-        # Clear instruction: take pose from first image, apply it to person in second image
+        # CRITICAL: Must modify existing person, NOT create/overlay a second person
         prompt = (
-            "Apply the body pose from the first image to the person in the second image. "
-            "The person in the second image should adopt the EXACT pose from the first image: "
-            "same arm position, same leg stance, same body angle, same head tilt. "
-            "Keep the person's face, clothing, and background from the second image. "
-            "Only change the pose. Full body from head to feet."
+            "Modify the single person in the second image to match the body pose from the first image. "
+            "IMPORTANT: There is ONE person in the output - the same person from image 2, just with a different pose. "
+            "Change ONLY the pose: arm position, leg position, body stance, head angle. "
+            "DO NOT add, overlay, or create a second person. "
+            "Keep everything else identical: same face, same hair, same clothing, same background, same lighting. "
+            "Full body from head to feet."
         )
         
-        print(f"📝 Apply pose prompt: {prompt[:150]}...")
-        print(f"🖼️ Image order: [manikin_pose (pose to copy), person_wearing_product (person to modify)]")
+        print(f"📝 Modify pose prompt: {prompt[:150]}...")
+        print(f"🖼️ Image order: [manikin_pose (pose reference), person_wearing_product (person to MODIFY)]")
         
-        # Manikin first = pose reference, person second = target to modify
+        # Manikin first = pose reference, person second = target to modify (NOT overlay)
         out = replicate.run("google/nano-banana", input={
             "prompt": prompt,
-            "image_input": [manikin_pose_url, person_wearing_product_url],  # Manikin = pose, person = target
-            "num_inference_steps": 40,  # More steps for accuracy
-            "guidance_scale": 7.5,  # Higher guidance to follow pose closely
-            "strength": 0.70,  # Strong enough to change pose
+            "image_input": [manikin_pose_url, person_wearing_product_url],  # Manikin = pose ref, person = modify target
+            "num_inference_steps": 35,  # Good quality
+            "guidance_scale": 7.0,  # Standard guidance
+            "strength": 0.55,  # LOWER strength to prevent regenerating/overlaying (was 0.70)
             "seed": None
         })
         
