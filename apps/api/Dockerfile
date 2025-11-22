@@ -2,11 +2,12 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies including libwebp for WEBP image support
+# Install system dependencies including libwebp for WEBP image support and FFmpeg for video processing
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     libwebp-dev \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies

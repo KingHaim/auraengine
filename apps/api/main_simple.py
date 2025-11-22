@@ -1992,6 +1992,226 @@ async def generate_videos_background(
         db.close()
         print(f"✅ Database session closed for video generation {campaign_id}")
 
+@app.post("/campaigns/{campaign_id}/generate-unified-video")
+async def generate_unified_campaign_video(
+    campaign_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate a unified campaign video by concatenating all videos in storytelling order"""
+    try:
+        print(f"🎬 UNIFIED VIDEO: Request received for campaign {campaign_id}")
+        
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        videos = campaign.settings.get("videos", []) if campaign.settings else []
+        
+        if not videos or len(videos) < 3:
+            raise HTTPException(status_code=400, detail="Need at least 3 videos to create unified campaign video. Generate videos first.")
+        
+        # Define storytelling order: 1 → 4 → 2 → 5 → 3
+        # Shot 1 (Neutral pose - intro) → Shot 4 (Shirt closeup) → Shot 2 (Pose 1) → Shot 5 (Pants closeup) → Shot 3 (Pose 2)
+        desired_order = [0, 3, 1, 4, 2]  # 0-indexed
+        
+        print(f"🎬 Creating unified video from {len(videos)} clips in order: {[i+1 for i in desired_order]}")
+        
+        # Update settings to track unified video generation
+        new_settings = dict(campaign.settings) if campaign.settings else {}
+        new_settings["unified_video_status"] = "generating"
+        campaign.settings = new_settings
+        flag_modified(campaign, "settings")
+        db.commit()
+        
+        # Start unified video generation in background
+        import asyncio
+        asyncio.create_task(generate_unified_video_background(
+            campaign_id,
+            videos,
+            desired_order
+        ))
+        
+        return {
+            "message": "Creating final campaign video...",
+            "video_count": len(videos),
+            "sequence": [i+1 for i in desired_order],
+            "status": "generating"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Failed to start unified video generation: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def generate_unified_video_background(
+    campaign_id: str,
+    videos: list,
+    order: list
+):
+    """Generate unified video by concatenating individual videos using FFmpeg"""
+    db = SessionLocal()
+    try:
+        import subprocess
+        import tempfile
+        import os
+        
+        print(f"🎬 Starting unified video generation for campaign {campaign_id}...")
+        
+        # Download all video files
+        temp_files = []
+        concat_list_path = None
+        output_path = None
+        
+        try:
+            # Reorder videos according to desired sequence
+            ordered_videos = []
+            for idx in order:
+                if idx < len(videos) and videos[idx].get("video_url"):
+                    ordered_videos.append(videos[idx])
+                else:
+                    print(f"⚠️ Video at index {idx} not found or has no URL")
+            
+            if len(ordered_videos) < 2:
+                raise Exception(f"Not enough videos to create unified video. Found {len(ordered_videos)}, need at least 2")
+            
+            print(f"📋 Creating unified video with {len(ordered_videos)} clips")
+            print(f"📺 Sequence: {[v.get('shot_type', 'unknown') for v in ordered_videos]}")
+            
+            # Download each video to a temporary file
+            for i, video_data in enumerate(ordered_videos):
+                video_url = video_data.get("video_url")
+                shot_name = video_data.get("shot_name", f"shot_{i}")
+                
+                print(f"📥 Downloading clip {i+1}/{len(ordered_videos)}: {shot_name}...")
+                
+                # Download video
+                response = requests.get(video_url, stream=True, timeout=180)
+                response.raise_for_status()
+                
+                # Save to temp file
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4", mode='wb')
+                for chunk in response.iter_content(chunk_size=8192):
+                    temp_file.write(chunk)
+                temp_file.close()
+                temp_files.append(temp_file.name)
+                
+                print(f"✅ Downloaded clip {i+1}: {os.path.getsize(temp_file.name)} bytes")
+            
+            # Create concat list file for FFmpeg
+            concat_list = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".txt")
+            concat_list_path = concat_list.name
+            
+            for temp_file in temp_files:
+                # Use absolute path and escape special characters
+                escaped_path = temp_file.replace("'", "'\\''")
+                concat_list.write(f"file '{escaped_path}'\n")
+            concat_list.close()
+            
+            print(f"📝 Created concat list with {len(temp_files)} files")
+            
+            # Create output file path
+            output_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+            output_path = output_file.name
+            output_file.close()
+            
+            # Run FFmpeg to concatenate videos
+            print(f"🎬 Running FFmpeg to concatenate videos...")
+            cmd = [
+                'ffmpeg',
+                '-f', 'concat',
+                '-safe', '0',
+                '-i', concat_list_path,
+                '-c', 'copy',
+                '-y',  # Overwrite output file
+                output_path
+            ]
+            
+            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+            print(f"✅ FFmpeg completed successfully")
+            print(f"📦 Output file size: {os.path.getsize(output_path)} bytes")
+            
+            # Upload unified video to Cloudinary
+            print(f"☁️ Uploading unified video to Cloudinary...")
+            with open(output_path, 'rb') as f:
+                import cloudinary.uploader
+                result = cloudinary.uploader.upload(
+                    f,
+                    resource_type="video",
+                    folder="unified_campaigns",
+                    public_id=f"campaign_{campaign_id}_unified",
+                    overwrite=True
+                )
+                unified_video_url = result['secure_url']
+            
+            print(f"✅ Unified video uploaded: {unified_video_url[:80]}...")
+            
+            # Update campaign with unified video URL
+            campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+            if campaign:
+                new_settings = dict(campaign.settings) if campaign.settings else {}
+                new_settings["unified_video_url"] = unified_video_url
+                new_settings["unified_video_status"] = "completed"
+                new_settings["unified_video_order"] = order
+                new_settings["unified_video_generated_at"] = datetime.utcnow().isoformat()
+                campaign.settings = new_settings
+                flag_modified(campaign, "settings")
+                db.commit()
+                
+                print(f"🎉 Unified campaign video generated successfully!")
+                print(f"📺 URL: {unified_video_url}")
+        
+        finally:
+            # Clean up temporary files
+            print(f"🧹 Cleaning up temporary files...")
+            for temp_file in temp_files:
+                try:
+                    os.remove(temp_file)
+                except Exception as e:
+                    print(f"⚠️ Failed to remove temp file {temp_file}: {e}")
+            
+            if concat_list_path:
+                try:
+                    os.remove(concat_list_path)
+                except Exception as e:
+                    print(f"⚠️ Failed to remove concat list: {e}")
+            
+            if output_path:
+                try:
+                    os.remove(output_path)
+                except Exception as e:
+                    print(f"⚠️ Failed to remove output file: {e}")
+            
+    except Exception as e:
+        print(f"❌ Unified video generation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Update campaign status to failed
+        try:
+            campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+            if campaign:
+                new_settings = dict(campaign.settings) if campaign.settings else {}
+                new_settings["unified_video_status"] = "failed"
+                new_settings["unified_video_error"] = str(e)
+                campaign.settings = new_settings
+                flag_modified(campaign, "settings")
+                db.commit()
+        except Exception as update_error:
+            print(f"❌ Failed to update campaign status: {update_error}")
+    
+    finally:
+        db.close()
+        print(f"✅ Database session closed for unified video generation {campaign_id}")
+
 @app.put("/campaigns/{campaign_id}")
 async def update_campaign(
     campaign_id: str,

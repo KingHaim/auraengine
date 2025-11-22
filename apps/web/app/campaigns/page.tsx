@@ -186,6 +186,9 @@ export default function CampaignsPage() {
   const [generatingCampaignVideos, setGeneratingCampaignVideos] = useState<
     string | null
   >(null);
+  const [generatingUnifiedVideo, setGeneratingUnifiedVideo] = useState<
+    string | null
+  >(null);
   const [enlargedImageUrl, setEnlargedImageUrl] = useState<string>("");
   const [enlargedImageAlt, setEnlargedImageAlt] = useState<string>("");
   const [showBulkVideoModal, setShowBulkVideoModal] = useState(false);
@@ -956,6 +959,87 @@ export default function CampaignsPage() {
           (error instanceof Error ? error.message : String(error))
       );
       setGeneratingCampaignVideos(null);
+    }
+  };
+
+  const handleGenerateUnifiedVideo = async (campaignId: string) => {
+    if (!token) {
+      alert("Please log in to generate unified video");
+      return;
+    }
+
+    console.log("🎬 Generating unified campaign video for:", campaignId);
+    setGeneratingUnifiedVideo(campaignId);
+    
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/generate-unified-video`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("✅ Unified video generation started:", result);
+        alert(
+          `🎥 Creating final campaign video with ${result.video_count} clips! This may take a few minutes...`
+        );
+
+        // Poll for completion
+        const pollInterval = setInterval(async () => {
+          const statusResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/status`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (statusResponse.ok) {
+            const statusData = await statusResponse.json();
+            const unifiedStatus =
+              statusData.campaign?.settings?.unified_video_status;
+
+            if (unifiedStatus === "completed") {
+              clearInterval(pollInterval);
+              setGeneratingUnifiedVideo(null);
+              await fetchData();
+
+              // Update the selected campaign modal if it's open for this campaign
+              if (selectedCampaignForProfile?.id === campaignId) {
+                setSelectedCampaignForProfile(statusData.campaign);
+              }
+
+              alert("🎉 Final campaign video created successfully!");
+            } else if (unifiedStatus === "failed") {
+              clearInterval(pollInterval);
+              setGeneratingUnifiedVideo(null);
+              alert("❌ Unified video generation failed. Please try again.");
+            }
+          }
+        }, 10000); // Poll every 10 seconds
+
+        // Clear interval after 30 minutes timeout
+        setTimeout(() => {
+          clearInterval(pollInterval);
+          setGeneratingUnifiedVideo(null);
+        }, 1800000);
+      } else {
+        const error = await response.text();
+        throw new Error(error);
+      }
+    } catch (error) {
+      console.error("Unified video generation failed:", error);
+      alert(
+        "Unified video generation failed: " +
+          (error instanceof Error ? error.message : String(error))
+      );
+      setGeneratingUnifiedVideo(null);
     }
   };
 
@@ -6382,6 +6466,63 @@ export default function CampaignsPage() {
                   </div>
                 )}
 
+                {/* Unified Campaign Video */}
+                {selectedCampaignForProfile.settings?.unified_video_url && (
+                  <div style={{ marginTop: "32px" }}>
+                    <h3
+                      style={{
+                        fontSize: "20px",
+                        fontWeight: "700",
+                        color: "#1F2937",
+                        marginBottom: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                      }}
+                    >
+                      🎥 Final Campaign Video
+                    </h3>
+                    <div
+                      style={{
+                        border: "2px solid #10B981",
+                        borderRadius: "16px",
+                        overflow: "hidden",
+                        backgroundColor: "#000",
+                        boxShadow: "0 8px 24px rgba(0, 0, 0, 0.2)",
+                      }}
+                    >
+                      <video
+                        src={selectedCampaignForProfile.settings.unified_video_url}
+                        controls
+                        autoPlay
+                        loop
+                        style={{
+                          width: "100%",
+                          height: "auto",
+                          display: "block",
+                        }}
+                      />
+                      <div
+                        style={{
+                          padding: "12px 16px",
+                          backgroundColor: "#F9FAFB",
+                          borderTop: "1px solid #E5E7EB",
+                        }}
+                      >
+                        <p
+                          style={{
+                            fontSize: "14px",
+                            color: "#6B7280",
+                            margin: 0,
+                          }}
+                        >
+                          Complete campaign showcase combining all shots in storytelling sequence
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Campaign Videos Gallery */}
                 {(() => {
                   console.log("📹 PROFILE MODAL - Checking for videos:");
@@ -6583,6 +6724,66 @@ export default function CampaignsPage() {
                   >
                     🎬 Generate Videos
                   </button>
+
+                  {/* Create Final Campaign Video Button - Show if videos exist */}
+                  {selectedCampaignForProfile?.settings?.videos &&
+                    selectedCampaignForProfile.settings.videos.length >= 3 && (
+                      <button
+                        onClick={() => {
+                          handleGenerateUnifiedVideo(
+                            selectedCampaignForProfile.id
+                          );
+                        }}
+                        disabled={
+                          generatingUnifiedVideo ===
+                          selectedCampaignForProfile.id
+                        }
+                        style={{
+                          padding: "8px 16px",
+                          backgroundColor:
+                            generatingUnifiedVideo ===
+                            selectedCampaignForProfile.id
+                              ? "#9CA3AF"
+                              : "#10B981",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "6px",
+                          fontSize: "14px",
+                          fontWeight: "600",
+                          cursor:
+                            generatingUnifiedVideo ===
+                            selectedCampaignForProfile.id
+                              ? "not-allowed"
+                              : "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "8px",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (
+                            generatingUnifiedVideo !==
+                            selectedCampaignForProfile.id
+                          ) {
+                            e.currentTarget.style.backgroundColor = "#059669";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (
+                            generatingUnifiedVideo !==
+                            selectedCampaignForProfile.id
+                          ) {
+                            e.currentTarget.style.backgroundColor = "#10B981";
+                          }
+                        }}
+                      >
+                        {generatingUnifiedVideo ===
+                        selectedCampaignForProfile.id
+                          ? "🎥 Creating..."
+                          : "🎥 Create Final Campaign Video"}
+                      </button>
+                    )}
 
                   {/* Edit Campaign Button */}
                   <button
