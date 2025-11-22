@@ -4219,17 +4219,34 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # Enhanced integration prompt - PRESERVE MODEL IDENTITY while using scene
+        # ULTRA-EXPLICIT prompt - PRESERVE EVERYTHING from inputs, only dress the person
         if shot_type_prompt:
-            scene_prompt = f"IMAGE 1 provides the EXACT PERSON (copy their face, facial features, body type, skin tone exactly). IMAGE 2 provides the CLOTHING (dress the person in this {garment_description}). IMAGE 3 provides the BACKGROUND/SCENE (place the person in this exact location/environment). {shot_type_prompt}. CRITICAL: The person's face MUST be identical to IMAGE 1 - same eyes, nose, mouth, face shape, hair, everything. Use IMAGE 3's background completely - the entire environment, lighting, and setting from IMAGE 3. Professional fashion photography."
+            scene_prompt = (
+                f"You are compositing 3 reference images. "
+                f"DO NOT CREATE anything new. DO NOT GENERATE a new face or background. "
+                f"IMAGE 1: Copy this EXACT person - their face (eyes, nose, mouth, skin, hair), body type, everything. This is the REFERENCE IDENTITY. "
+                f"IMAGE 2: Take ONLY the {garment_description} clothing/garment and dress the person from IMAGE 1 in it. "
+                f"IMAGE 3: Use this EXACT background/scene/location. Copy the environment completely - walls, floor, lighting, atmosphere. "
+                f"{shot_type_prompt}. "
+                f"RESULT: The person from IMAGE 1 wearing the garment from IMAGE 2, standing in the location from IMAGE 3. "
+                f"DO NOT change the person's face. DO NOT change the background scenery. ONLY dress the person in the new garment."
+            )
         else:
-            scene_prompt = f"IMAGE 1 provides the EXACT PERSON (copy their face, facial features, body type, skin tone exactly). IMAGE 2 provides the CLOTHING (dress the person in this {garment_description}). IMAGE 3 provides the BACKGROUND/SCENE (place the person in this exact location/environment). CRITICAL: The person's face MUST be identical to IMAGE 1 - same eyes, nose, mouth, face shape, hair, everything. Use IMAGE 3's background completely - the entire environment, lighting, and setting from IMAGE 3. Professional fashion photography."
+            scene_prompt = (
+                f"You are compositing 3 reference images. "
+                f"DO NOT CREATE anything new. DO NOT GENERATE a new face or background. "
+                f"IMAGE 1: Copy this EXACT person - their face (eyes, nose, mouth, skin, hair), body type, everything. This is the REFERENCE IDENTITY. "
+                f"IMAGE 2: Take ONLY the {garment_description} clothing/garment and dress the person from IMAGE 1 in it. "
+                f"IMAGE 3: Use this EXACT background/scene/location. Copy the environment completely - walls, floor, lighting, atmosphere. "
+                f"RESULT: The person from IMAGE 1 wearing the garment from IMAGE 2, standing in the location from IMAGE 3. "
+                f"DO NOT change the person's face. DO NOT change the background scenery. ONLY dress the person in the new garment."
+            )
         
-        # Balanced parameters - HIGHER strength for scene integration, explicit prompt for identity
+        # LOWER strength to preserve inputs more faithfully
         num_steps = 40  # Good quality
-        guidance = 4.5  # Moderate guidance to respect inputs
-        strength = 0.60  # INCREASED for scene integration (was 0.50, too low for background)
-        print("⚡ Using Qwen with strength=0.60 for scene integration + explicit identity preservation")
+        guidance = 5.5  # HIGHER guidance to strictly follow inputs
+        strength = 0.45  # REDUCED to preserve face & background (was 0.60, too creative)
+        print("⚡ Using Qwen with strength=0.45 + guidance=5.5 for strict input preservation")
         
         # Use Qwen with 3 images
         try:
