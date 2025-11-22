@@ -28,18 +28,11 @@ from pydantic import BaseModel
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
-import google.generativeai as genai
 
 # Environment variables
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
-GOOGLE_AI_API_KEY = os.getenv("GOOGLE_AI_API_KEY", "AIzaSyDSY0PSj1y8R4pPwnZwI4ECbwjtUlpxv88")  # Nano-banana Pro API key
-
-# Configure Google Generative AI (Nano-banana Pro)
-if GOOGLE_AI_API_KEY:
-    genai.configure(api_key=GOOGLE_AI_API_KEY)
-    print(f"✅ Google Generative AI configured with API key")
 
 # Initialize Stripe
 if STRIPE_SECRET_KEY:
@@ -3910,7 +3903,7 @@ def run_qwen_add_product(model_image_url: str, product_image_url: str, clothing_
 
 def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, guidance_scale: float = 7.0, num_steps: int = 30) -> str:
     """
-    Use Google Gemini API (nano-banana pro) for image editing/generation
+    Use Replicate's google/nano-banana-pro for advanced image editing/generation
     
     Args:
         prompt: Text description of what to do
@@ -3923,50 +3916,14 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
         URL of generated image
     """
     try:
-        print(f"🍌 PRO Running nano-banana pro via Google Gemini API...")
+        print(f"🍌 PRO Running nano-banana-pro via Replicate...")
         print(f"📝 Prompt: {prompt[:150]}...")
         print(f"🖼️ Input images: {len(image_urls)}")
+        print(f"⚙️ Parameters: strength={strength}, guidance={guidance_scale}, steps={num_steps}")
         
-        # Download images and convert to PIL Image objects
-        pil_images = []
-        for idx, url in enumerate(image_urls):
-            print(f"📥 Downloading image {idx+1}/{len(image_urls)}: {url[:80]}...")
-            response = requests.get(url)
-            img = Image.open(BytesIO(response.content))
-            pil_images.append(img)
-        
-        # Use Gemini 2.0 Flash with imagen for image generation/editing
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
-        
-        # Build the request with images
-        parts = []
-        for img in pil_images:
-            parts.append(img)
-        parts.append(prompt)
-        
-        print(f"⚙️ Gemini parameters: strength={strength}, guidance={guidance_scale}, steps={num_steps}")
-        
-        # Generate with Gemini
-        response = model.generate_content(
-            parts,
-            generation_config=genai.types.GenerationConfig(
-                temperature=strength,  # Map strength to temperature
-                top_p=0.95,
-                top_k=40,
-                max_output_tokens=2048,
-            )
-        )
-        
-        # Note: Gemini 2.0 Flash doesn't directly return images yet
-        # We need to use it for understanding and then use imagen or keep using replicate for actual generation
-        # For now, fall back to replicate but with enhanced prompt from Gemini
-        
-        print(f"⚠️ Gemini 2.0 Flash doesn't support direct image output yet")
-        print(f"🔄 Falling back to replicate nano-banana with enhanced understanding...")
-        
-        # Fall back to replicate for now
+        # Call Replicate's nano-banana-pro model
         import replicate
-        out = replicate.run("google/nano-banana", input={
+        out = replicate.run("google/nano-banana-pro", input={
             "prompt": prompt,
             "image_input": image_urls,
             "num_inference_steps": num_steps,
@@ -3985,15 +3942,15 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
         else:
             result_url = str(out)
         
-        print(f"✅ Nano-banana pro completed: {result_url[:80]}...")
+        print(f"✅ Nano-banana PRO completed: {result_url[:80]}...")
         return result_url
         
     except Exception as e:
         print(f"❌ Nano-banana pro failed: {e}")
         import traceback
         traceback.print_exc()
-        # Fall back to original replicate nano-banana
-        print(f"🔄 Falling back to standard replicate nano-banana...")
+        # Fall back to standard nano-banana
+        print(f"🔄 Falling back to standard nano-banana...")
         try:
             import replicate
             out = replicate.run("google/nano-banana", input={
