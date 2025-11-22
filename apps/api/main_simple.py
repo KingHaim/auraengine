@@ -911,19 +911,19 @@ async def generate_campaign_images_background(
 
         # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
         # NEW: Process all products together for each model+scene combination
-            for model in models:
-                for scene in scenes:
-                    # Use model's selected pose if available
-                    model_image = model.image_url
-                    if selected_poses_dict.get(str(model.id)) and len(selected_poses_dict[str(model.id)]) > 0:
-                        import random
-                        model_image = random.choice(selected_poses_dict[str(model.id)])
-                        print(f"🎭 Using selected pose for {model.name}")
-                    elif model.poses and len(model.poses) > 0:
-                        import random
-                        model_image = random.choice(model.poses)
-                        print(f"🎭 Using random pose for {model.name}")
-                    
+        for model in models:
+            for scene in scenes:
+                # Use model's selected pose if available
+                model_image = model.image_url
+                if selected_poses_dict.get(str(model.id)) and len(selected_poses_dict[str(model.id)]) > 0:
+                    import random
+                    model_image = random.choice(selected_poses_dict[str(model.id)])
+                    print(f"🎭 Using selected pose for {model.name}")
+                elif model.poses and len(model.poses) > 0:
+                    import random
+                    model_image = random.choice(model.poses)
+                    print(f"🎭 Using random pose for {model.name}")
+                
                 # Build product list names for logging
                 product_names = ", ".join([p.name for p in products])
                 print(f"🎬 Processing campaign flow: [{product_names}] + {model.name} + {scene.name}")
@@ -1032,11 +1032,11 @@ async def generate_campaign_images_background(
                         print(f"✅ Shot completed: {shot_type['title']}")
                         
                     except Exception as e:
-                            print(f"❌ Failed shot {shot_type['title']}: {e}")
-                            import traceback
-                            traceback.print_exc()
-                            print(f"🔄 Continuing to next shot... (Shot {shot_idx}/{len(shot_types_to_generate)})")
-                            continue
+                        print(f"❌ Failed shot {shot_type['title']}: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        print(f"🔄 Continuing to next shot... (Shot {shot_idx}/{len(shot_types_to_generate)})")
+                        continue
                     
                 print(f"\n🎉 Campaign flow complete: [{product_names}] + {model.name} + {scene.name}")
         
