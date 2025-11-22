@@ -1671,11 +1671,94 @@ async def generate_multiple_pose_variations(
                 print(f"⚠️ No preview image available for close-up generation")
                 
         except Exception as closeup_error:
-            print(f"⚠️ Close-up generation failed: {closeup_error}")
+            print(f"⚠️ Shirt close-up generation failed: {closeup_error}")
             import traceback
             traceback.print_exc()
         
-        # Update campaign with all images (including close-up)
+        # Generate PANTS close-up shot after shirt close-up
+        print(f"\n👖 Generating pants close-up shot from reference image...")
+        try:
+            # Use the preview/reference image as base for pants close-up
+            if preview_image_url:
+                print(f"📸 Creating pants close-up from preview image: {preview_image_url[:80]}...")
+                
+                # Get product info for metadata (reuse from above)
+                products = db.query(Product).filter(Product.id.in_(product_ids)).all()
+                models = db.query(Model).filter(Model.id.in_(model_ids)).all()
+                scenes = db.query(Scene).filter(Scene.id.in_(scene_ids)).all()
+                
+                if products and models and scenes:
+                    model = models[0]
+                    scene = scenes[0]
+                    
+                    # Find the pants/bottom product
+                    pants_product = None
+                    for prod in products:
+                        if hasattr(prod, 'clothing_type') and prod.clothing_type in ['shorts', 'pants', 'bottom']:
+                            pants_product = prod
+                            break
+                    
+                    # Fallback to last product if no pants found
+                    if not pants_product and len(products) > 1:
+                        pants_product = products[-1]
+                    elif not pants_product:
+                        pants_product = products[0]
+                    
+                    print(f"🎯 Pants close-up - focusing on {pants_product.name}")
+                    
+                    # Pants close-up prompt - editorial fashion style
+                    pants_closeup_prompt = (
+                        f"Reframe this fashion editorial image focusing on the lower body and pants/bottom garment. "
+                        f"Fashion editorial style close-up shot showcasing the {pants_product.name}. "
+                        f"Frame from waist to mid-thigh, emphasizing the fit, fabric texture, cut, and styling of the pants. "
+                        f"Keep the same person, same complete outfit, same scene background. "
+                        f"Dynamic fashion editorial composition with artistic depth of field. "
+                        f"The pants should be the hero of this shot - sharp focus on fabric details, seams, and style. "
+                        f"Professional fashion editorial photography with confident, stylish energy."
+                    )
+                    
+                    print(f"📝 Pants close-up prompt: {pants_closeup_prompt[:100]}...")
+                    
+                    # Use nano-banana PRO to reframe/crop into pants close-up
+                    pants_closeup_url = run_nano_banana_pro(
+                        prompt=pants_closeup_prompt,
+                        image_urls=[preview_image_url],  # Single image - reframe it
+                        strength=0.40,  # Slightly higher for editorial reframing
+                        guidance_scale=5.5,  # Higher guidance for precise framing
+                        num_steps=28  # Good quality
+                    )
+                    
+                    # Upload to Cloudinary for persistence
+                    pants_closeup_url = upload_to_cloudinary(pants_closeup_url, "pants_closeup_shot")
+                    
+                    if pants_closeup_url:
+                        pants_closeup_image = {
+                            "image_url": pants_closeup_url,
+                            "shot_type": "Pants Close-Up (Editorial)",
+                            "shot_name": "pants_closeup_editorial",
+                            "model_id": model.id,
+                            "model_name": model.name,
+                            "product_ids": [pants_product.id],
+                            "product_name": pants_product.name,
+                            "scene_id": scene.id,
+                            "scene_name": scene.name,
+                            "generated_at": datetime.utcnow().isoformat()
+                        }
+                        generated_images.append(pants_closeup_image)
+                        print(f"✅ Added pants close-up shot (total images: {len(generated_images)})")
+                    else:
+                        print(f"⚠️ Pants close-up generation returned None")
+                else:
+                    print(f"⚠️ Missing products/models/scenes for pants close-up metadata")
+            else:
+                print(f"⚠️ No preview image available for pants close-up generation")
+                
+        except Exception as pants_closeup_error:
+            print(f"⚠️ Pants close-up generation failed: {pants_closeup_error}")
+            import traceback
+            traceback.print_exc()
+        
+        # Update campaign with all images (including both close-ups)
         if campaign.settings is None:
             campaign.settings = {}
         campaign.settings["generated_images"] = generated_images
@@ -1778,17 +1861,31 @@ async def generate_videos_background(
                 shot_type = image_data.get('shot_type', '')
                 shot_name = image_data.get('shot_name', '')
                 
-                # Special prompt for close-up shots - focus on garment only, no face
+                # Special prompts for close-up shots - distinguish between shirt and pants
                 if 'close' in shot_type.lower() or 'closeup' in shot_name.lower() or 'close-up' in shot_type.lower():
-                    video_prompt = (
-                        f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
-                        f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
-                        f"Smooth, slow camera movement: gentle pan across fabric details, subtle zoom emphasizing texture and fit. "
-                        f"Showcase the garment's fabric texture, stitching, color, and style. "
-                        f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
-                        f"Natural subtle movements of fabric. Professional studio lighting on the garment."
-                    )
-                    print(f"🎬 Using CLOSE-UP video prompt (no face, garment focus)")
+                    # Check if it's a pants close-up
+                    if 'pants' in shot_type.lower() or 'pants' in shot_name.lower():
+                        video_prompt = (
+                            f"Cinematic fashion editorial video focusing on the {product_name} pants/bottom garment. "
+                            f"Frame shows lower body from waist to knees - NO FACE or upper body visible. "
+                            f"Smooth, dynamic camera movement: elegant pan showing the pants fit, subtle tracking shot emphasizing cut and style. "
+                            f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves. "
+                            f"Fashion editorial videography with artistic depth of field. "
+                            f"Natural movement of fabric with model's subtle shifts. Professional fashion lighting on the garment. "
+                            f"Confident, editorial energy focused entirely on the pants."
+                        )
+                        print(f"👖 Using PANTS CLOSE-UP video prompt (editorial style, no face)")
+                    else:
+                        # Shirt/top close-up
+                        video_prompt = (
+                            f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
+                            f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
+                            f"Smooth, slow camera movement: gentle pan across fabric details, subtle zoom emphasizing texture and fit. "
+                            f"Showcase the garment's fabric texture, stitching, color, and style. "
+                            f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
+                            f"Natural subtle movements of fabric. Professional studio lighting on the garment."
+                        )
+                        print(f"👕 Using SHIRT CLOSE-UP video prompt (no face, garment focus)")
                 else:
                     # Standard prompt for full body shots
                     video_prompt = (
