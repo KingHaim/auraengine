@@ -1415,6 +1415,8 @@ async def generate_all_pose_variations(
     db: Session = Depends(get_db)
 ):
     """Generate images for ALL manikin poses (neutral, handneck, thinking)"""
+    print(f"🎯 ENDPOINT HIT: generate-all-poses for campaign {campaign_id}")
+    print(f"👤 User: {current_user.get('user_id', 'unknown')}")
     try:
         campaign = db.query(Campaign).filter(
             Campaign.id == campaign_id,
@@ -1422,6 +1424,7 @@ async def generate_all_pose_variations(
         ).first()
         
         if not campaign:
+            print(f"❌ Campaign {campaign_id} not found for user {current_user['user_id']}")
             raise HTTPException(status_code=404, detail="Campaign not found")
         
         # All available poses
@@ -1458,14 +1461,21 @@ async def generate_all_pose_variations(
             remaining_poses
         ))
         
+        print(f"✅ Background task started for {len(remaining_poses)} poses")
+        
         return {
             "message": f"Generating {len(remaining_poses)} additional pose variations",
             "remaining_poses": remaining_poses,
-            "total_poses": len(ALL_POSES)
+            "total_poses": len(ALL_POSES),
+            "status": "started"
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"❌ Failed to start full campaign generation: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 async def generate_multiple_pose_variations(
