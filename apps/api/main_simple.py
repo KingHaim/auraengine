@@ -4803,36 +4803,32 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # ULTRA-EXPLICIT prompt - PRESERVE EVERYTHING from inputs, only dress the person
+        # ULTRA-EXPLICIT prompt - REPLACE clothing, preserve face and background
         if shot_type_prompt:
             scene_prompt = (
-                f"You are compositing 3 reference images. "
-                f"DO NOT CREATE anything new. DO NOT GENERATE a new face or background. "
-                f"IMAGE 1: Copy this EXACT person - their face (eyes, nose, mouth, skin, hair), body type, everything. This is the REFERENCE IDENTITY. "
-                f"IMAGE 2: Take ONLY the {garment_description} clothing/garment from this image. APPLY IT and DRESS the person from IMAGE 1 in this exact garment. "
-                f"The person MUST be wearing the {garment_description} from IMAGE 2. This is CRITICAL - the garment must be visible on the person. "
-                f"IMAGE 3: Use this EXACT background/scene/location. Copy the environment completely - walls, floor, lighting, atmosphere. "
+                f"CRITICAL INSTRUCTION: You must REPLACE the clothing. "
+                f"IMAGE 1: Take ONLY the person's FACE, HEAD, and BODY SHAPE (NOT their clothes). Copy their face (eyes, nose, mouth, skin, hair) exactly. IGNORE and DISCARD any clothing visible in IMAGE 1. "
+                f"IMAGE 2: This shows the NEW {garment_description} that the person must wear. REPLACE all clothing with this {garment_description}. The person must be dressed in THIS garment, NOT the clothes from IMAGE 1. "
+                f"IMAGE 3: Use this EXACT background/scene/location as the setting. "
                 f"{shot_type_prompt}. "
-                f"RESULT: The person from IMAGE 1 WEARING and DRESSED in the {garment_description} from IMAGE 2, standing in the location from IMAGE 3. "
-                f"DO NOT change the person's face. DO NOT change the background scenery. CRITICALLY IMPORTANT: The person MUST be wearing the {garment_description} from IMAGE 2."
+                f"RESULT: Person's FACE from IMAGE 1 + CLOTHING from IMAGE 2 + BACKGROUND from IMAGE 3. "
+                f"The output MUST show the {garment_description} from IMAGE 2 on the person's body. DO NOT use clothing from IMAGE 1. REPLACE it completely with IMAGE 2's garment."
             )
         else:
             scene_prompt = (
-                f"You are compositing 3 reference images. "
-                f"DO NOT CREATE anything new. DO NOT GENERATE a new face or background. "
-                f"IMAGE 1: Copy this EXACT person - their face (eyes, nose, mouth, skin, hair), body type, everything. This is the REFERENCE IDENTITY. "
-                f"IMAGE 2: Take ONLY the {garment_description} clothing/garment from this image. APPLY IT and DRESS the person from IMAGE 1 in this exact garment. "
-                f"The person MUST be wearing the {garment_description} from IMAGE 2. This is CRITICAL - the garment must be visible on the person. "
-                f"IMAGE 3: Use this EXACT background/scene/location. Copy the environment completely - walls, floor, lighting, atmosphere. "
-                f"RESULT: The person from IMAGE 1 WEARING and DRESSED in the {garment_description} from IMAGE 2, standing in the location from IMAGE 3. "
-                f"DO NOT change the person's face. DO NOT change the background scenery. CRITICALLY IMPORTANT: The person MUST be wearing the {garment_description} from IMAGE 2."
+                f"CRITICAL INSTRUCTION: You must REPLACE the clothing. "
+                f"IMAGE 1: Take ONLY the person's FACE, HEAD, and BODY SHAPE (NOT their clothes). Copy their face (eyes, nose, mouth, skin, hair) exactly. IGNORE and DISCARD any clothing visible in IMAGE 1. "
+                f"IMAGE 2: This shows the NEW {garment_description} that the person must wear. REPLACE all clothing with this {garment_description}. The person must be dressed in THIS garment, NOT the clothes from IMAGE 1. "
+                f"IMAGE 3: Use this EXACT background/scene/location as the setting. "
+                f"RESULT: Person's FACE from IMAGE 1 + CLOTHING from IMAGE 2 + BACKGROUND from IMAGE 3. "
+                f"The output MUST show the {garment_description} from IMAGE 2 on the person's body. DO NOT use clothing from IMAGE 1. REPLACE it completely with IMAGE 2's garment."
             )
         
-        # Slightly higher strength to ensure garment is applied
+        # Higher strength to force clothing replacement
         num_steps = 40  # Good quality
-        guidance = 6.0  # HIGHER guidance to strictly follow prompt
-        strength = 0.55  # Balanced - preserve identity but ensure garment application
-        print("⚡ Using Qwen with strength=0.55 + guidance=6.0 for garment application with identity preservation")
+        guidance = 6.5  # VERY HIGH guidance to strictly follow replacement instruction
+        strength = 0.65  # Higher to ensure clothing replacement happens
+        print("⚡ Using Qwen with strength=0.65 + guidance=6.5 to FORCE clothing replacement")
         
         # Use Qwen with 3 images
         try:
