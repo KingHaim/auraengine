@@ -841,7 +841,7 @@ export default function CampaignsPage() {
         const pollInterval = setInterval(async () => {
           // Fetch updated campaign data to show new images
           await fetchData();
-          
+
           const statusResponse = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/status`,
             {
@@ -4318,12 +4318,19 @@ export default function CampaignsPage() {
                         </div>
                       )
                     )}
-                    
+
                     {/* Show placeholder loading cards for images being generated */}
                     {selectedCampaign.generation_status === "generating" &&
                       generatingFullCampaign === selectedCampaign.id &&
                       // Show 5 total slots minus already generated
-                      Array.from({ length: Math.max(0, 5 - (selectedCampaign.settings.generated_images?.length || 0)) }).map((_, idx) => (
+                      Array.from({
+                        length: Math.max(
+                          0,
+                          5 -
+                            (selectedCampaign.settings.generated_images
+                              ?.length || 0)
+                        ),
+                      }).map((_, idx) => (
                         <div
                           key={`placeholder-${idx}`}
                           style={{
@@ -4359,7 +4366,12 @@ export default function CampaignsPage() {
                               textAlign: "center",
                             }}
                           >
-                            Generating Image {(selectedCampaign.settings.generated_images?.length || 0) + idx + 1}...
+                            Generating Image{" "}
+                            {(selectedCampaign.settings.generated_images
+                              ?.length || 0) +
+                              idx +
+                              1}
+                            ...
                           </p>
                           <p
                             style={{
@@ -4372,8 +4384,7 @@ export default function CampaignsPage() {
                             Please wait
                           </p>
                         </div>
-                      ))
-                    }
+                      ))}
                   </div>
 
                   {/* New Workflow Buttons */}
@@ -6490,12 +6501,21 @@ export default function CampaignsPage() {
                           </div>
                         )
                       )}
-                      
+
                       {/* Show placeholder loading cards for images being generated */}
-                      {selectedCampaignForProfile.generation_status === "generating" &&
-                        generatingFullCampaign === selectedCampaignForProfile.id &&
+                      {selectedCampaignForProfile.generation_status ===
+                        "generating" &&
+                        generatingFullCampaign ===
+                          selectedCampaignForProfile.id &&
                         // Show 5 total slots minus already generated
-                        Array.from({ length: Math.max(0, 5 - (selectedCampaignForProfile.settings.generated_images?.length || 0)) }).map((_, idx) => (
+                        Array.from({
+                          length: Math.max(
+                            0,
+                            5 -
+                              (selectedCampaignForProfile.settings
+                                .generated_images?.length || 0)
+                          ),
+                        }).map((_, idx) => (
                           <div
                             key={`placeholder-${idx}`}
                             style={{
@@ -6531,7 +6551,12 @@ export default function CampaignsPage() {
                                 textAlign: "center",
                               }}
                             >
-                              Generating Image {(selectedCampaignForProfile.settings.generated_images?.length || 0) + idx + 1}...
+                              Generating Image{" "}
+                              {(selectedCampaignForProfile.settings
+                                .generated_images?.length || 0) +
+                                idx +
+                                1}
+                              ...
                             </p>
                             <p
                               style={{
@@ -6544,8 +6569,7 @@ export default function CampaignsPage() {
                               Please wait
                             </p>
                           </div>
-                        ))
-                      }
+                        ))}
                     </div>
                   </div>
                 ) : (

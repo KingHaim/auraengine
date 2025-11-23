@@ -268,7 +268,7 @@ async def startup_event():
         # Don't raise - let the app start even if there are non-critical errors
         # Only raise for truly critical errors that prevent the app from functioning
         if "database" in str(e).lower() or "connection" in str(e).lower():
-            raise
+        raise
 
 # CORS middleware - Allow all origins for deployment
 # When allow_credentials=True, we must explicitly list origins (cannot use "*")
@@ -911,49 +911,49 @@ async def generate_campaign_images_background(
 
         # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
         # NEW: Process all products together for each model+scene combination
-        for model in models:
-            for scene in scenes:
-                # Use model's selected pose if available
-                model_image = model.image_url
-                if selected_poses_dict.get(str(model.id)) and len(selected_poses_dict[str(model.id)]) > 0:
-                    import random
-                    model_image = random.choice(selected_poses_dict[str(model.id)])
-                    print(f"🎭 Using selected pose for {model.name}")
-                elif model.poses and len(model.poses) > 0:
-                    import random
-                    model_image = random.choice(model.poses)
-                    print(f"🎭 Using random pose for {model.name}")
-                
+            for model in models:
+                for scene in scenes:
+                    # Use model's selected pose if available
+                    model_image = model.image_url
+                    if selected_poses_dict.get(str(model.id)) and len(selected_poses_dict[str(model.id)]) > 0:
+                        import random
+                        model_image = random.choice(selected_poses_dict[str(model.id)])
+                        print(f"🎭 Using selected pose for {model.name}")
+                    elif model.poses and len(model.poses) > 0:
+                        import random
+                        model_image = random.choice(model.poses)
+                        print(f"🎭 Using random pose for {model.name}")
+                    
                 # Build product list names for logging
                 product_names = ", ".join([p.name for p in products])
                 print(f"🎬 Processing campaign flow: [{product_names}] + {model.name} + {scene.name}")
                 print(f"📸 Generating {len(shot_types_to_generate)} shots with {len(products)} product(s)...")
-                
-                # Generate the requested shot types for this combination
-                print(f"🎬 Starting generation of {len(shot_types_to_generate)} shots...")
-                for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
-                    try:
-                        print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
+                    
+                    # Generate the requested shot types for this combination
+                    print(f"🎬 Starting generation of {len(shot_types_to_generate)} shots...")
+                    for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
+                        try:
+                            print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
                         print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for [{product_names}] + {model.name} + {scene.name}")
-                        
+                            
                         # NEW MULTI-PRODUCT WORKFLOW
                         # Step 1: Generate base image with first product using Qwen
                         first_product = products[0]
                         first_product_image = first_product.packshot_front_url or first_product.image_url
-                        quality_mode = "standard"
+                            quality_mode = "standard"
 
-                        # Stabilize inputs to /static to avoid replicate 404s
-                        stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
-                        stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
+                            # Stabilize inputs to /static to avoid replicate 404s
+                            stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
+                            stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                         stable_first_product = stabilize_url(first_product_image, "product") if 'stabilize_url' in globals() else first_product_image
-                        
+                            
                         print(f"🎬 Step 1: Qwen base composition - Model + {first_product.name} + Scene...")
                         person_wearing_product_url = run_qwen_triple_composition(
-                            stable_model,
+                                stable_model,
                             stable_first_product,
-                            stable_scene,
+                                stable_scene,
                             first_product.name,
-                            quality_mode,
+                                quality_mode,
                             shot_type_prompt=shot_type['prompt'],
                             clothing_type=first_product.clothing_type
                         )
@@ -1050,22 +1050,22 @@ async def generate_campaign_images_background(
                         combined_product_ids = [str(p.id) for p in products]
                         first_product_image = products[0].packshot_front_url or products[0].image_url
                         first_product_type = products[0].clothing_type if hasattr(products[0], 'clothing_type') and products[0].clothing_type else "outfit"
-                        
-                        # Normalize and store final URL
-                        print(f"💾 Normalizing final result URL...")
-                        final_url = stabilize_url(to_url(final_result_url), f"final_{shot_type['name']}") if 'stabilize_url' in globals() else download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
-                        print(f"✅ Final result saved locally: {final_url[:50]}...")
-                        
-                        generated_images.append({
+                            
+                            # Normalize and store final URL
+                            print(f"💾 Normalizing final result URL...")
+                            final_url = stabilize_url(to_url(final_result_url), f"final_{shot_type['name']}") if 'stabilize_url' in globals() else download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
+                            print(f"✅ Final result saved locally: {final_url[:50]}...")
+                            
+                            generated_images.append({
                             "product_name": combined_product_names,
                             "product_id": combined_product_ids[0] if combined_product_ids else str(products[0].id),  # Use first product ID for compatibility
                             "product_ids": combined_product_ids,  # NEW: Store all product IDs
-                            "model_name": model.name,
-                            "scene_name": scene.name,
-                            "shot_type": shot_type['title'],
-                            "shot_name": shot_type['name'],
-                            "image_url": final_url,
-                            "model_image_url": model_image,
+                                "model_name": model.name,
+                                "scene_name": scene.name,
+                                "shot_type": shot_type['title'],
+                                "shot_name": shot_type['name'],
+                                "image_url": final_url,
+                                "model_image_url": model_image,
                             "product_image_url": first_product_image,
                             "clothing_type": first_product_type
                         })
@@ -1078,15 +1078,15 @@ async def generate_campaign_images_background(
                         db.commit()
                         db.refresh(campaign)
                         print(f"💾 Real-time update: Saved image {len(generated_images)} to database")
-                        
-                        print(f"✅ Shot completed: {shot_type['title']}")
-                        
-                    except Exception as e:
-                        print(f"❌ Failed shot {shot_type['title']}: {e}")
-                        import traceback
-                        traceback.print_exc()
-                        print(f"🔄 Continuing to next shot... (Shot {shot_idx}/{len(shot_types_to_generate)})")
-                        continue
+                            
+                            print(f"✅ Shot completed: {shot_type['title']}")
+                            
+                        except Exception as e:
+                            print(f"❌ Failed shot {shot_type['title']}: {e}")
+                            import traceback
+                            traceback.print_exc()
+                            print(f"🔄 Continuing to next shot... (Shot {shot_idx}/{len(shot_types_to_generate)})")
+                            continue
                     
                 print(f"\n🎉 Campaign flow complete: [{product_names}] + {model.name} + {scene.name}")
         
@@ -1283,26 +1283,26 @@ async def generate_campaign_images(
         
         # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
         # NEW: Process all products together for each model+scene combination
-        for model in models:
-            for scene in scenes:
-                # Use model's pose if available, or select random
-                if model.poses and len(model.poses) > 0:
-                    import random
-                    model_image = random.choice(model.poses)
-                    print(f"🎭 Using random pose for {model.name}")
-                else:
-                    model_image = model.image_url
-                
+            for model in models:
+                for scene in scenes:
+                    # Use model's pose if available, or select random
+                    if model.poses and len(model.poses) > 0:
+                        import random
+                        model_image = random.choice(model.poses)
+                        print(f"🎭 Using random pose for {model.name}")
+                    else:
+                        model_image = model.image_url
+                    
                 # Build product list names for logging
                 product_names = ", ".join([p.name for p in products])
                 print(f"🎬 Processing campaign flow: [{product_names}] + {model.name} + {scene.name}")
                 print(f"📸 Generating {number_of_images} images with {len(products)} product(s)...")
-                
-                # Generate only the requested number of images - RANDOMIZED
-                import random
-                available_shots = CAMPAIGN_SHOT_TYPES.copy()
-                random.shuffle(available_shots)
-                shot_types_to_generate = available_shots[:number_of_images]
+                    
+                    # Generate only the requested number of images - RANDOMIZED
+                    import random
+                    available_shots = CAMPAIGN_SHOT_TYPES.copy()
+                    random.shuffle(available_shots)
+                    shot_types_to_generate = available_shots[:number_of_images]
                 
                 # If manikin pose is set, ensure first shot is full body frontal (not side view or closeup)
                 campaign_manikin_pose = campaign.settings.get("manikin_pose", "") if campaign.settings else ""
@@ -1325,94 +1325,28 @@ async def generate_campaign_images(
                         try:
                             print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
                             
-                            # NEW MULTI-PRODUCT WORKFLOW: Pure Nano-Banana
-                            # Step 1: Place Model in Scene (with Editorial Pose)
+                            # NEW MULTI-PRODUCT WORKFLOW
+                            # Step 1: Generate base image with first product using Qwen
                             first_product = products[0]
                             first_product_image = first_product.packshot_front_url or first_product.image_url
-                            
-                            # Ensure all inputs are public Cloudinary URLs (critical for Replicate)
+                            quality_mode = "standard"
+
+                            # Stabilize inputs to /static to avoid replicate 404s
                             stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                             stable_first_product = stabilize_url(first_product_image, "product") if 'stabilize_url' in globals() else first_product_image
                             
-                            # Helper to force upload local URLs
-                            def ensure_public_url(url, prefix):
-                                if url and (url.startswith("http://localhost") or "/static/" in url) and "cloudinary" not in url:
-                                    try:
-                                        filename = url.split("/")[-1]
-                                        api_dir = os.path.dirname(os.path.abspath(__file__))
-                                        possible_paths = [
-                                            os.path.join(api_dir, "static", filename),
-                                            os.path.join(api_dir, "uploads", filename),
-                                            os.path.join(api_dir, "static", "poses", filename),
-                                            os.path.join(api_dir, "static", "scenes", filename),
-                                            os.path.join(api_dir, "static", "packshot_front", filename),
-                                            os.path.join(api_dir, "static", "models", filename)
-                                        ]
-                                        filepath = next((p for p in possible_paths if os.path.exists(p)), None)
-                                        if filepath:
-                                            import base64
-                                            with open(filepath, "rb") as f:
-                                                file_content = f.read()
-                                                ext = filename.split('.')[-1] if '.' in filename else 'jpg'
-                                                data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
-                                                public_url = upload_to_cloudinary(data_url, prefix)
-                                                print(f"✅ Converted local {prefix} to Cloudinary: {public_url[:50]}...")
-                                                return public_url
-                                    except Exception as e:
-                                        print(f"⚠️ Failed to upload {prefix}: {e}")
-                                return url
-
-                            stable_model = ensure_public_url(stable_model, "model_upload")
-                            stable_scene = ensure_public_url(stable_scene, "scene_upload")
-                            stable_first_product = ensure_public_url(stable_first_product, "product_upload")
-                            
-                            print(f"🎬 Step 1: Nano-Banana - Placing Model in Scene...")
-                            # Prompt for placing model
-                            pose_instruction = shot_type.get('prompt', 'Full body fashion shot')
-                            place_model_prompt = (
-                                f"Place the person from the reference image into this scene. "
-                                f"{pose_instruction}. "
-                                f"Slight fashion editorial pose, confident and stylish. "
-                                f"CRITICAL: Ensure anatomically correct proportions. Head must be small relative to body height (1/8th ratio). "
-                                f"Wide angle shot, zoomed out, full body visible from head to toe. "
-                                f"Scale the person correctly within the scene depth - do not make them too large. "
-                                f"Professional lighting matching the environment. "
-                                f"High quality, photorealistic, 4k."
+                            print(f"🎬 Step 1: Qwen base composition - Model + {first_product.name} + Scene...")
+                            person_wearing_product_url = run_qwen_triple_composition(
+                                stable_model,
+                                stable_first_product,
+                                stable_scene,
+                                first_product.name,
+                                quality_mode,
+                                shot_type_prompt=shot_type['prompt'],
+                                clothing_type=first_product.clothing_type
                             )
-                            
-                            model_in_scene_url = run_nano_banana_pro(
-                                prompt=place_model_prompt,
-                                image_urls=[stable_scene, stable_model], # Scene is base, Model is ref
-                                strength=0.85, # High strength to generate person
-                                guidance_scale=7.5,
-                                num_steps=25,
-                                negative_prompt="big head, large head, giant head, disproportionate body, caricature, cartoon, distorted proportions, macro shot, close up, face too big, bobblehead, weird anatomy, short legs, stubby body"
-                            )
-                            print(f"✅ Model placed in scene: {model_in_scene_url[:50]}...")
-                            
-                            # Step 2: Dress Model
-                            if model_in_scene_url:
-                                print(f"🎬 Step 2: Nano-Banana - Dressing Model in {first_product.name}...")
-                                dress_prompt = (
-                                    f"Dress the person in the {first_product.name} from the reference image. "
-                                    f"Keep the pose, face, and background EXACTLY the same. "
-                                    f"Fit the garment naturally to the body. "
-                                    f"High-end fashion photography details."
-                                )
-                                
-                                person_wearing_product_url = run_nano_banana_pro(
-                                    prompt=dress_prompt,
-                                    image_urls=[model_in_scene_url, stable_first_product], # Step 1 result is base, Product is ref
-                                    strength=0.65, # Medium strength to change clothes but keep pose/scene
-                                    guidance_scale=7.5,
-                                    num_steps=25
-                                )
-                                print(f"✅ Base image with {first_product.name} completed: {person_wearing_product_url[:50]}...")
-                            else:
-                                print("❌ Step 1 failed, skipping Step 2")
-                                person_wearing_product_url = None
-                                raise Exception("Failed to place model in scene (Step 1)")
+                            print(f"✅ Base image with {first_product.name} completed: {person_wearing_product_url[:50]}...")
                             
                             # Step 2: Add additional products sequentially using nano-banana
                             current_image_url = person_wearing_product_url
@@ -1668,113 +1602,86 @@ async def generate_multiple_pose_variations(
         # Load existing images to append new poses
         generated_images = existing_images.copy()
         
-        # Fetch objects for generation
-        products = db.query(Product).filter(Product.id.in_(product_ids)).all()
-        models = db.query(Model).filter(Model.id.in_(model_ids)).all()
-        scenes = db.query(Scene).filter(Scene.id.in_(scene_ids)).all()
+        # Define different positions for the model WITHIN the scene for each pose
+        pose_angles = {
+            "Pose-handneck.jpg": {
+                "angle": "model repositioned to a different location in the scene",
+                "description": "Move the person to a different spot within the same scene environment. The person is now standing in another area of the location - maybe closer to scene elements, or in a different part of the space. Same pose, same clothing, but different positioning within the scene composition."
+            },
+            "Pose-thinking.jpg": {
+                "angle": "model in an alternate position within the scene", 
+                "description": "Place the person in a different location within the scene. They could be nearer or further from the camera, positioned differently relative to the background elements. Creative repositioning that makes the shot more dynamic while maintaining the same scene environment."
+            }
+        }
         
-        if not products or not models or not scenes:
-            print("❌ Missing products, models or scenes")
-            return
-
-        model = models[0]
-        scene = scenes[0]
-        first_product = products[0]
-        first_product_image = first_product.packshot_front_url or first_product.image_url
-        first_product_type = first_product.clothing_type if hasattr(first_product, 'clothing_type') and first_product.clothing_type else "outfit"
-        
-        # Ensure all inputs are public Cloudinary URLs
-        stable_model = stabilize_url(model.image_url, "pose") if 'stabilize_url' in globals() else model.image_url
-        stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-        stable_first_product = stabilize_url(first_product_image, "product") if 'stabilize_url' in globals() else first_product_image
-        
-        # Helper to ensure public URL (re-defined here for safety in async context)
-        def ensure_public_url_local(url, prefix):
-            if url and (url.startswith("http://localhost") or "/static/" in url) and "cloudinary" not in url:
-                try:
-                    filename = url.split("/")[-1]
-                    api_dir = os.path.dirname(os.path.abspath(__file__))
-                    possible_paths = [
-                        os.path.join(api_dir, "static", filename),
-                        os.path.join(api_dir, "uploads", filename),
-                        os.path.join(api_dir, "static", "poses", filename),
-                        os.path.join(api_dir, "static", "scenes", filename),
-                        os.path.join(api_dir, "static", "packshot_front", filename)
-                    ]
-                    filepath = next((p for p in possible_paths if os.path.exists(p)), None)
-                    if filepath:
-                        import base64
-                        with open(filepath, "rb") as f:
-                            file_content = f.read()
-                            data_url = f"data:image/jpeg;base64,{base64.b64encode(file_content).decode()}"
-                            return upload_to_cloudinary(data_url, prefix)
-                except Exception:
-                    pass
-            return url
-
-        stable_model = ensure_public_url_local(stable_model, "model_upload")
-        stable_scene = ensure_public_url_local(stable_scene, "scene_upload")
-        stable_first_product = ensure_public_url_local(stable_first_product, "product_upload")
-
-        # For each remaining pose, generate from scratch using 3-step workflow
+        # For each remaining pose, use nano-banana to transfer pose + reposition model in scene
         for pose_idx, pose_filename in enumerate(poses, 1):
-            print(f"\n📸 [{pose_idx}/{len(poses)}] Generating pose: {pose_filename}")
+            print(f"\n📸 [{pose_idx}/{len(poses)}] Applying pose: {pose_filename}")
             
             try:
-                # Get manikin pose URL
+                # Get manikin pose URL from cache or upload on-demand
                 cached_url = POSE_IMAGE_URLS.get(pose_filename)
                 if cached_url and cached_url.startswith("https://res.cloudinary.com/"):
                     manikin_pose_url = cached_url
+                    print(f"✅ Using Cloudinary URL for {pose_filename}")
                 else:
-                    # Upload on demand
+                    # Not in cache or not a Cloudinary URL - try to upload
+                    print(f"⚠️ Pose {pose_filename} not in Cloudinary cache, uploading...")
                     api_dir = os.path.dirname(os.path.abspath(__file__))
                     static_path = os.path.join(api_dir, "static", "poses", pose_filename)
                     if os.path.exists(static_path):
                         import base64
                         with open(static_path, "rb") as f:
                             file_content = f.read()
-                            data_url = f"data:image/jpeg;base64,{base64.b64encode(file_content).decode()}"
+                            ext = pose_filename.split('.')[-1] if '.' in pose_filename else 'jpg'
+                            data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
                             manikin_pose_url = upload_to_cloudinary(data_url, "manikin_pose")
+                            # Update cache
                             POSE_IMAGE_URLS[pose_filename] = manikin_pose_url
+                            print(f"✅ Uploaded {pose_filename} to Cloudinary: {manikin_pose_url[:80]}...")
                     else:
-                        print(f"❌ Pose file not found: {pose_filename}")
+                        print(f"❌ Pose file not found: {static_path}")
                         continue
                 
-                # 3-STEP GENERATION (Scene -> Pose -> Outfit)
-                print(f"🍌 Step 1: Place Manikin in Scene...")
-                manikin_in_scene = run_nano_banana_pro(
-                    prompt="Place this manikin into the scene. Full body shot from head to toe. Wide angle. Realistic scale - do not make the manikin too large. Small head relative to body.",
-                    image_urls=[stable_scene, manikin_pose_url], # Base=Scene, Ref=Manikin
-                    strength=0.85,
-                    guidance_scale=7.5,
-                    num_steps=25,
-                    negative_prompt="big head, large head, giant head, disproportionate body, caricature, cartoon, distorted proportions, macro shot, close up, face too big, bobblehead, weird anatomy"
-                )
+                # Use nano-banana to transfer pose
+                print(f"🍌 Transferring pose from {pose_filename} to preview image...")
+                new_pose_image_url = replace_manikin_with_person(manikin_pose_url, preview_image_url)
+                print(f"✅ Pose transfer completed: {new_pose_image_url[:80]}...")
                 
-                print(f"🍌 Step 2: Swap Identity (Manikin -> Model)...")
-                model_in_pose = run_nano_banana_pro(
-                    prompt="Replace the manikin with this person. Keep the pose exactly the same. Use the person's face and body. Maintain correct anatomical proportions. Head size 1/8 of body.",
-                    image_urls=[manikin_in_scene, stable_model], # Base=ManikinInScene, Ref=Model
-                    strength=0.65,
-                    guidance_scale=7.5,
-                    num_steps=25,
-                    negative_prompt="manikin face, plastic, dummy, doll face, big head, large head, bobblehead"
-                )
+                # Check if the result is different from preview
+                if new_pose_image_url == preview_image_url:
+                    print(f"⚠️ Result is same as preview - pose transfer may have failed")
                 
-                print(f"🍌 Step 3: Dress Model in {first_product.name}...")
-                new_pose_image_url = run_nano_banana_pro(
-                    prompt=f"Dress the person in {first_product.name}. Keep pose, face and background exactly the same.",
-                    image_urls=[model_in_pose, stable_first_product], # Base=ModelInPose, Ref=Product
-                    strength=0.65,
-                    guidance_scale=7.5,
-                    num_steps=25
-                )
+                # Apply model repositioning if defined for this pose
+                if pose_filename in pose_angles:
+                    angle_info = pose_angles[pose_filename]
+                    print(f"📐 Repositioning model: {angle_info['angle']}")
+                    
+                    angle_prompt = (
+                        f"Reposition the person to a different location within the same scene: {angle_info['angle']}. "
+                        f"{angle_info['description']} "
+                        f"IMPORTANT: Move the person to a DIFFERENT SPOT in the scene environment. "
+                        f"They should be standing somewhere else - different position relative to background elements. "
+                        f"The scene can be creatively interpreted - add more depth, different placement, varied distance. "
+                        f"Keep the same person, same pose, same clothing, same scene style/environment. "
+                        f"Full body shot with the person repositioned within the scene."
+                    )
+                    
+                    # Use nano-banana PRO to reposition model within the scene with HIGHER strength for creative variation
+                    angle_result_url = run_nano_banana_pro(
+                        prompt=angle_prompt,
+                        image_urls=[new_pose_image_url],  # Single image, reposition person in scene
+                        strength=0.60,  # Higher strength to allow repositioning within scene
+                        guidance_scale=7.0,  # Higher guidance for repositioning
+                        num_steps=30  # More steps for quality
+                    )
+                    
+                    # Upload to Cloudinary
+                    if angle_result_url:
+                        new_pose_image_url = upload_to_cloudinary(angle_result_url, "angle_variation")
+                        print(f"✅ Camera angle applied: {angle_info['angle']}")
                 
-                # Upload final result
-                new_pose_image_url = upload_to_cloudinary(new_pose_image_url, f"final_{pose_filename}")
-                print(f"✅ Pose generation completed: {new_pose_image_url[:80]}...")
-                
-                # Create new image entry
+                # Create new image entry with same metadata but new pose
                 new_image = preview_image.copy()
                 new_image["image_url"] = new_pose_image_url
                 new_image["shot_type"] = f"Pose Variation ({pose_filename})"
@@ -1783,7 +1690,7 @@ async def generate_multiple_pose_variations(
                 generated_images.append(new_image)
                 print(f"✅ Added {pose_filename} to campaign (total images: {len(generated_images)})")
                 
-                # 🔄 REAL-TIME UPDATE
+                # 🔄 REAL-TIME UPDATE: Save immediately after each pose
                 new_settings = dict(campaign.settings) if campaign.settings else {}
                 new_settings["generated_images"] = generated_images
                 campaign.settings = new_settings
@@ -3995,7 +3902,7 @@ def rembg_cutout(photo_url: str) -> Image.Image:
             return Image.open(BytesIO(response.content)).convert("RGBA")
         except:
             # Last resort: return blank image
-            return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
+        return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
 
 def postprocess_cutout(img_rgba: Image.Image) -> Image.Image:
     """Clean up the cutout image"""
@@ -4433,7 +4340,7 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 except Exception as conv_error:
                     print(f"⚠️ WEBP→PNG conversion failed: {conv_error}")
                     print(f"⚠️ Using original WEBP packshot (Vella may not use it correctly)")
-                    garment_url = product_image_url
+                garment_url = product_image_url
                     print(f"🧵 Garment URL (WEBP fallback): {garment_url[:80]}...")
             elif has_alpha(product_image_url) and not is_packshot:
                 # Only skip processing if it already has alpha AND it's not a packshot
@@ -4443,11 +4350,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 print("🪄 Processing garment image (removing background)...")
                 print(f"   Input: {product_image_url[:80]}...")
                 try:
-                    cut = rembg_cutout(product_image_url)
+                cut = rembg_cutout(product_image_url)
                     print(f"✅ Background removal complete, image size: {cut.size}")
-                    cut = postprocess_cutout(cut)
+                cut = postprocess_cutout(cut)
                     print(f"✅ Post-processing complete, final size: {cut.size}")
-                    garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
+                garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
                     print(f"🧵 Garment cutout saved: {garment_url[:80]}...")
                 except Exception as rembg_error:
                     print(f"⚠️ Background removal failed: {rembg_error}")
@@ -4695,7 +4602,7 @@ def run_qwen_add_product(model_image_url: str, product_image_url: str, clothing_
         print("↩️ Returning original model image instead of placeholder")
         return model_image_url
 
-def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, guidance_scale: float = 7.0, num_steps: int = 30, negative_prompt: str = None) -> str:
+def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, guidance_scale: float = 7.0, num_steps: int = 30) -> str:
     """
     Use Replicate's google/nano-banana-pro for advanced image editing/generation
     
@@ -4705,7 +4612,6 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
         strength: How much to modify (0.0-1.0)
         guidance_scale: How closely to follow the prompt
         num_steps: Number of inference steps
-        negative_prompt: Things to avoid
     
     Returns:
         URL of generated image
@@ -4713,27 +4619,19 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
     try:
         print(f"🍌 PRO Running nano-banana-pro via Replicate...")
         print(f"📝 Prompt: {prompt[:150]}...")
-        if negative_prompt:
-            print(f"🚫 Negative Prompt: {negative_prompt[:100]}...")
         print(f"🖼️ Input images: {len(image_urls)}")
         print(f"⚙️ Parameters: strength={strength}, guidance={guidance_scale}, steps={num_steps}")
         
-        # Prepare input arguments
-        input_args = {
+        # Call Replicate's nano-banana-pro model
+        import replicate
+        out = replicate.run("google/nano-banana-pro", input={
             "prompt": prompt,
             "image_input": image_urls,
             "num_inference_steps": num_steps,
             "guidance_scale": guidance_scale,
             "strength": strength,
             "seed": None
-        }
-        
-        if negative_prompt:
-            input_args["negative_prompt"] = negative_prompt
-        
-        # Call Replicate's nano-banana-pro model
-        import replicate
-        out = replicate.run("google/nano-banana-pro", input=input_args)
+        })
         
         # Handle output
         if hasattr(out, 'url'):
@@ -4756,18 +4654,14 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
         print(f"🔄 Falling back to standard nano-banana...")
         try:
             import replicate
-            fallback_input = {
+            out = replicate.run("google/nano-banana", input={
                 "prompt": prompt,
                 "image_input": image_urls,
                 "num_inference_steps": num_steps,
                 "guidance_scale": guidance_scale,
                 "strength": strength,
                 "seed": None
-            }
-            if negative_prompt:
-                fallback_input["negative_prompt"] = negative_prompt
-                
-            out = replicate.run("google/nano-banana", input=fallback_input)
+            })
             if hasattr(out, 'url'):
                 return out.url()
             elif isinstance(out, str):
@@ -4875,11 +4769,11 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         # Person first = what to modify, Manikin second = pose to copy
         prompt = (
             "Change the body pose of the person in the first image to match the pose shown in the second image. "
-            "CRITICAL: Copy ONLY the body posture (arms, legs, stance) from the second image. "
-            "DO NOT copy the face, hair, or identity from the second image. "
-            "Keep the EXACT face and identity of the person in the first image. "
             "The person stays in the same location, same scene, same appearance. "
-            "ONLY their body pose changes."
+            "ONLY their body pose changes: arms, legs, torso position, head tilt. "
+            "This is a pose adjustment of ONE person, not adding a second person. "
+            "Keep the same face, same clothing, same background. "
+            "Full body from head to feet."
         )
         
         print(f"📝 In-place pose change prompt: {prompt[:150]}...")
@@ -4890,10 +4784,9 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         result_url = run_nano_banana_pro(
             prompt=prompt,
             image_urls=[person_wearing_product_url, manikin_pose_url],  # Person = base, Manikin = pose ref
-            strength=0.45,  # Increased slightly to allow pose change, but rely on prompt to keep identity
-            guidance_scale=7.5,
-            num_steps=30,
-            negative_prompt="manikin face, dummy face, plastic face, changing face, new face, second person, overlay, ghosting, blending faces"
+            strength=0.35,  # ULTRA-LOW to prevent overlay
+            guidance_scale=6.5,  # Lower guidance to stay close to base
+            num_steps=30  # Standard quality
         )
         
         # Upload to Cloudinary for stability
@@ -5387,8 +5280,8 @@ def run_qwen_packshot_front_back(
             if not (product_image_url.startswith("http://") or product_image_url.startswith("https://")):
                 print(f"⚠️ Unknown URL format, attempting to upload to Cloudinary...")
                 product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
-            else:
-                product_png_url = product_image_url
+        else:
+            product_png_url = product_image_url
                 print(f"✅ Using URL: {product_png_url[:100]}...")
 
         # Step 2: Simple extraction prompt - what Qwen is designed for
@@ -5511,7 +5404,7 @@ async def upload_product(
                 image_url = upload_to_cloudinary(f"file://{image_path}", "products")
             except Exception:
                 # Last resort: use static URL
-                image_url = get_static_url(image_filename)
+            image_url = get_static_url(image_filename)
         
         # Initialize packshot URLs
         packshot_front_url = None
@@ -5956,16 +5849,16 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         print(f"⏱️ Duration: {duration_seconds}s")
         
         try:
-            out = replicate.run(
-                "google/veo-3.1",
-                input={
+        out = replicate.run(
+            "google/veo-3.1",
+            input={
                     "prompt": enhanced_prompt,
                     "reference_images": [final_image_url],  # ✅ Fixed: plural "reference_images" as array
-                    "aspect_ratio": aspect_ratio,
-                    "duration": duration_seconds,
-                    "quality": "high"  # Veo 3.1 always high quality
-                }
-            )
+                "aspect_ratio": aspect_ratio,
+                "duration": duration_seconds,
+                "quality": "high"  # Veo 3.1 always high quality
+            }
+        )
             print(f"✅ Veo API call successful, processing output...")
         except replicate.exceptions.ModelError as model_error:
             # Handle content moderation errors specifically
