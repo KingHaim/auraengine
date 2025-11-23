@@ -970,7 +970,7 @@ export default function CampaignsPage() {
 
     console.log("🎬 Generating unified campaign video for:", campaignId);
     setGeneratingUnifiedVideo(campaignId);
-    
+
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/generate-unified-video`,
@@ -6492,7 +6492,9 @@ export default function CampaignsPage() {
                       }}
                     >
                       <video
-                        src={selectedCampaignForProfile.settings.unified_video_url}
+                        src={
+                          selectedCampaignForProfile.settings.unified_video_url
+                        }
                         controls
                         autoPlay
                         loop
@@ -6507,6 +6509,9 @@ export default function CampaignsPage() {
                           padding: "12px 16px",
                           backgroundColor: "#F9FAFB",
                           borderTop: "1px solid #E5E7EB",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
                         }}
                       >
                         <p
@@ -6516,8 +6521,38 @@ export default function CampaignsPage() {
                             margin: 0,
                           }}
                         >
-                          Complete campaign showcase combining all shots in storytelling sequence
+                          Complete campaign showcase combining all shots in
+                          storytelling sequence
                         </p>
+                        <a
+                          href={
+                            selectedCampaignForProfile.settings.unified_video_url
+                          }
+                          download={`${selectedCampaignForProfile.name}_unified_campaign.mp4`}
+                          style={{
+                            padding: "8px 16px",
+                            backgroundColor: "#10B981",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            textDecoration: "none",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            transition: "all 0.2s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#059669";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "#10B981";
+                          }}
+                        >
+                          💾 Download Video
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -6626,7 +6661,14 @@ export default function CampaignsPage() {
                                 : "⏳ Processing..."}
                             </div>
                           )}
-                          <div style={{ padding: "12px" }}>
+                          <div
+                            style={{
+                              padding: "12px",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
                             <p
                               style={{
                                 fontSize: "14px",
@@ -6636,6 +6678,40 @@ export default function CampaignsPage() {
                             >
                               {video.shot_type || `Video ${idx + 1}`}
                             </p>
+                            {video.video_url && (
+                              <a
+                                href={video.video_url}
+                                download={`${selectedCampaignForProfile.name}_${video.shot_name || `video_${idx + 1}`}.mp4`}
+                                style={{
+                                  padding: "4px 8px",
+                                  backgroundColor: "#10B981",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "4px",
+                                  fontSize: "12px",
+                                  fontWeight: "600",
+                                  cursor: "pointer",
+                                  textDecoration: "none",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                  transition: "all 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor =
+                                    "#059669";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor =
+                                    "#10B981";
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              >
+                                💾
+                              </a>
+                            )}
                           </div>
                         </div>
                       ))}
