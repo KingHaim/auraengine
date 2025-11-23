@@ -1385,7 +1385,8 @@ async def generate_campaign_images(
                                 image_urls=[stable_scene, stable_model], # Scene is base, Model is ref
                                 strength=0.85, # High strength to generate person
                                 guidance_scale=7.5,
-                                num_steps=30
+                                num_steps=30,
+                                negative_prompt="big head, large head, disproportionate body, caricature, cartoon, distorted proportions, macro shot, close up, face too big, bobblehead, weird anatomy"
                             )
                             print(f"✅ Model placed in scene: {model_in_scene_url[:50]}...")
                             
@@ -4666,7 +4667,7 @@ def run_qwen_add_product(model_image_url: str, product_image_url: str, clothing_
         print("↩️ Returning original model image instead of placeholder")
         return model_image_url
 
-def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, guidance_scale: float = 7.0, num_steps: int = 30) -> str:
+def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, guidance_scale: float = 7.0, num_steps: int = 30, negative_prompt: str = None) -> str:
     """
     Use Replicate's google/nano-banana-pro for advanced image editing/generation
     
@@ -4676,6 +4677,7 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
         strength: How much to modify (0.0-1.0)
         guidance_scale: How closely to follow the prompt
         num_steps: Number of inference steps
+        negative_prompt: Things to avoid
     
     Returns:
         URL of generated image
@@ -4683,19 +4685,27 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
     try:
         print(f"🍌 PRO Running nano-banana-pro via Replicate...")
         print(f"📝 Prompt: {prompt[:150]}...")
+        if negative_prompt:
+            print(f"🚫 Negative Prompt: {negative_prompt[:100]}...")
         print(f"🖼️ Input images: {len(image_urls)}")
         print(f"⚙️ Parameters: strength={strength}, guidance={guidance_scale}, steps={num_steps}")
         
-        # Call Replicate's nano-banana-pro model
-        import replicate
-        out = replicate.run("google/nano-banana-pro", input={
+        # Prepare input arguments
+        input_args = {
             "prompt": prompt,
             "image_input": image_urls,
             "num_inference_steps": num_steps,
             "guidance_scale": guidance_scale,
             "strength": strength,
             "seed": None
-        })
+        }
+        
+        if negative_prompt:
+            input_args["negative_prompt"] = negative_prompt
+        
+        # Call Replicate's nano-banana-pro model
+        import replicate
+        out = replicate.run("google/nano-banana-pro", input=input_args)
         
         # Handle output
         if hasattr(out, 'url'):
@@ -4718,14 +4728,18 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
         print(f"🔄 Falling back to standard nano-banana...")
         try:
             import replicate
-            out = replicate.run("google/nano-banana", input={
+            fallback_input = {
                 "prompt": prompt,
                 "image_input": image_urls,
                 "num_inference_steps": num_steps,
                 "guidance_scale": guidance_scale,
                 "strength": strength,
                 "seed": None
-            })
+            }
+            if negative_prompt:
+                fallback_input["negative_prompt"] = negative_prompt
+                
+            out = replicate.run("google/nano-banana", input=fallback_input)
             if hasattr(out, 'url'):
                 return out.url()
             elif isinstance(out, str):
