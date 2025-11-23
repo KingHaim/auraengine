@@ -1968,9 +1968,23 @@ async def generate_videos_background(
     try:
         videos = []
         
+        # Define camera movement signatures for variety
+        CAMERA_SIGNATURES = [
+            "ROTATING LENS: Dynamic orbital camera movement around the subject, creating a 3D volumetric feel.",
+            "FAST ZOOM IN: Energetic crash zoom towards the subject, high-impact fashion music video aesthetic.",
+            "TILTING: Elegant vertical tilt movement scanning the outfit from top to bottom.",
+            "TRACKING SHOT: Smooth sideways dolly movement keeping pace with the subject, cinematic and steady.",
+            "HANDHELD: Organic, slightly shaky handheld camera movement for a raw, edgy editorial look.",
+            "LOW ANGLE: Camera positioned low looking up, empowering the subject with a majestic perspective."
+        ]
+        
         for idx, image_data in enumerate(images, 1):
             try:
                 print(f"\n🎬 [{idx}/{len(images)}] Generating video for {image_data.get('shot_type', 'image')}...")
+                
+                # Select camera signature based on index (cycling)
+                camera_signature = CAMERA_SIGNATURES[(idx - 1) % len(CAMERA_SIGNATURES)]
+                print(f"🎥 Applied camera signature: {camera_signature.split(':')[0]}")
                 
                 # Build prompt for video
                 product_name = image_data.get('product_name', 'clothing')
@@ -1986,7 +2000,7 @@ async def generate_videos_background(
                         video_prompt = (
                             f"Cinematic fashion editorial video focusing on the {product_name} pants/bottom garment. "
                             f"Frame shows lower body from waist to knees - NO FACE or upper body visible. "
-                            f"Smooth, dynamic camera movement: elegant pan showing the pants fit, subtle tracking shot emphasizing cut and style. "
+                            f"CAMERA MOVEMENT: Elegant vertical tilt or smooth tracking shot emphasizing the cut. "
                             f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves. "
                             f"Fashion editorial videography with artistic depth of field. "
                             f"Natural movement of fabric with model's subtle shifts. Professional fashion lighting on the garment. "
@@ -1998,20 +2012,21 @@ async def generate_videos_background(
                         video_prompt = (
                             f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
                             f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
-                            f"Smooth, slow camera movement: gentle pan across fabric details, subtle zoom emphasizing texture and fit. "
+                            f"CAMERA MOVEMENT: Smooth gentle pan or subtle push-in emphasizing texture. "
                             f"Showcase the garment's fabric texture, stitching, color, and style. "
                             f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
                             f"Natural subtle movements of fabric. Professional studio lighting on the garment."
                         )
                         print(f"👕 Using SHIRT CLOSE-UP video prompt (no face, garment focus)")
                 else:
-                    # Standard prompt for full body shots
+                    # Standard prompt for full body shots - Apply dynamic camera signature
                     video_prompt = (
                         f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
-                        f"Smooth, subtle camera movement. Cinematic depth. Natural breathing and slight movements. "
+                        f"CAMERA MOVEMENT: {camera_signature} "
+                        f"Cinematic depth. Natural breathing and slight movements. "
                         f"Professional lighting, elegant atmosphere."
                     )
-                    print(f"🎬 Using STANDARD video prompt (full body)")
+                    print(f"🎬 Using STANDARD video prompt with signature: {camera_signature.split(':')[0]}")
                 
                 print(f"📝 Video prompt: {video_prompt[:150]}...")
                 print(f"🖼️ Image URL: {image_data['image_url'][:80]}...")
@@ -2211,13 +2226,27 @@ async def regenerate_single_video_background(
         
         print(f"📸 Regenerating video for: {shot_type}")
         
+        # Define camera movement signatures for variety
+        CAMERA_SIGNATURES = [
+            "ROTATING LENS: Dynamic orbital camera movement around the subject, creating a 3D volumetric feel.",
+            "FAST ZOOM IN: Energetic crash zoom towards the subject, high-impact fashion music video aesthetic.",
+            "TILTING: Elegant vertical tilt movement scanning the outfit from top to bottom.",
+            "TRACKING SHOT: Smooth sideways dolly movement keeping pace with the subject, cinematic and steady.",
+            "HANDHELD: Organic, slightly shaky handheld camera movement for a raw, edgy editorial look.",
+            "LOW ANGLE: Camera positioned low looking up, empowering the subject with a majestic perspective."
+        ]
+        
+        import random
+        camera_signature = random.choice(CAMERA_SIGNATURES)
+        print(f"🎥 Applied random camera signature for regeneration: {camera_signature.split(':')[0]}")
+        
         # Determine the prompt based on shot type
         if 'close' in shot_type.lower() or 'closeup' in shot_name.lower() or 'close-up' in shot_type.lower():
             if 'pants' in shot_type.lower() or 'pants' in shot_name.lower():
                 video_prompt = (
                     f"Cinematic fashion editorial video focusing on the {product_name} pants/bottom garment. "
                     f"Frame shows lower body from waist to knees - NO FACE or upper body visible. "
-                    f"Smooth, dynamic camera movement: elegant pan showing the pants fit, subtle tracking shot emphasizing cut and style. "
+                    f"CAMERA MOVEMENT: Elegant vertical tilt or smooth tracking shot emphasizing the cut. "
                     f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves. "
                     f"Fashion editorial videography with artistic depth of field. "
                     f"Natural movement of fabric with model's subtle shifts. Professional fashion lighting on the garment. "
@@ -2233,7 +2262,7 @@ async def regenerate_single_video_background(
                 video_prompt = (
                     f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
                     f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
-                    f"Smooth, slow camera movement: gentle pan across fabric details, subtle zoom emphasizing texture and fit. "
+                    f"CAMERA MOVEMENT: Smooth gentle pan or subtle push-in emphasizing texture. "
                     f"Showcase the garment's fabric texture, stitching, color, and style. "
                     f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
                     f"Natural subtle movements of fabric. Professional studio lighting on the garment."
@@ -2247,11 +2276,12 @@ async def regenerate_single_video_background(
         else:
             video_prompt = (
                 f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
-                f"Smooth, subtle camera movement. Cinematic depth. Natural breathing and slight movements. "
+                f"CAMERA MOVEMENT: {camera_signature} "
+                f"Cinematic depth. Natural breathing and slight movements. "
                 f"Professional lighting, elegant atmosphere."
             )
             negative_prompt = "blurry, distorted, low quality, bad lighting, poor composition, jerky motion"
-            print(f"🎬 Using STANDARD video prompt")
+            print(f"🎬 Using STANDARD video prompt with signature: {camera_signature.split(':')[0]}")
         
         print(f"📝 Video prompt: {video_prompt[:150]}...")
         
