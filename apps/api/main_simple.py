@@ -1325,28 +1325,90 @@ async def generate_campaign_images(
                         try:
                             print(f"\n🎥 [{shot_idx}/{number_of_images}] {shot_type['title']}")
                             
-                            # NEW MULTI-PRODUCT WORKFLOW
-                            # Step 1: Generate base image with first product using Qwen
+                            # NEW MULTI-PRODUCT WORKFLOW: Pure Nano-Banana
+                            # Step 1: Place Model in Scene (with Editorial Pose)
                             first_product = products[0]
                             first_product_image = first_product.packshot_front_url or first_product.image_url
-                            quality_mode = "standard"
-
-                            # Stabilize inputs to /static to avoid replicate 404s
+                            
+                            # Ensure all inputs are public Cloudinary URLs (critical for Replicate)
                             stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                             stable_first_product = stabilize_url(first_product_image, "product") if 'stabilize_url' in globals() else first_product_image
                             
-                            print(f"🎬 Step 1: Qwen base composition - Model + {first_product.name} + Scene...")
-                            person_wearing_product_url = run_qwen_triple_composition(
-                                stable_model,
-                                stable_first_product,
-                                stable_scene,
-                                first_product.name,
-                                quality_mode,
-                                shot_type_prompt=shot_type['prompt'],
-                                clothing_type=first_product.clothing_type
+                            # Helper to force upload local URLs
+                            def ensure_public_url(url, prefix):
+                                if url and (url.startswith("http://localhost") or "/static/" in url) and "cloudinary" not in url:
+                                    try:
+                                        filename = url.split("/")[-1]
+                                        api_dir = os.path.dirname(os.path.abspath(__file__))
+                                        possible_paths = [
+                                            os.path.join(api_dir, "static", filename),
+                                            os.path.join(api_dir, "uploads", filename),
+                                            os.path.join(api_dir, "static", "poses", filename),
+                                            os.path.join(api_dir, "static", "scenes", filename),
+                                            os.path.join(api_dir, "static", "packshot_front", filename),
+                                            os.path.join(api_dir, "static", "models", filename)
+                                        ]
+                                        filepath = next((p for p in possible_paths if os.path.exists(p)), None)
+                                        if filepath:
+                                            import base64
+                                            with open(filepath, "rb") as f:
+                                                file_content = f.read()
+                                                ext = filename.split('.')[-1] if '.' in filename else 'jpg'
+                                                data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
+                                                public_url = upload_to_cloudinary(data_url, prefix)
+                                                print(f"✅ Converted local {prefix} to Cloudinary: {public_url[:50]}...")
+                                                return public_url
+                                    except Exception as e:
+                                        print(f"⚠️ Failed to upload {prefix}: {e}")
+                                return url
+
+                            stable_model = ensure_public_url(stable_model, "model_upload")
+                            stable_scene = ensure_public_url(stable_scene, "scene_upload")
+                            stable_first_product = ensure_public_url(stable_first_product, "product_upload")
+                            
+                            print(f"🎬 Step 1: Nano-Banana - Placing Model in Scene...")
+                            # Prompt for placing model
+                            pose_instruction = shot_type.get('prompt', 'Full body fashion shot')
+                            place_model_prompt = (
+                                f"Place the person from the reference image into this scene. "
+                                f"{pose_instruction}. "
+                                f"Slight fashion editorial pose, confident and stylish. "
+                                f"Professional lighting matching the environment. "
+                                f"High quality, photorealistic, 4k."
                             )
-                            print(f"✅ Base image with {first_product.name} completed: {person_wearing_product_url[:50]}...")
+                            
+                            model_in_scene_url = run_nano_banana_pro(
+                                prompt=place_model_prompt,
+                                image_urls=[stable_scene, stable_model], # Scene is base, Model is ref
+                                strength=0.85, # High strength to generate person
+                                guidance_scale=7.5,
+                                num_steps=30
+                            )
+                            print(f"✅ Model placed in scene: {model_in_scene_url[:50]}...")
+                            
+                            # Step 2: Dress Model
+                            if model_in_scene_url:
+                                print(f"🎬 Step 2: Nano-Banana - Dressing Model in {first_product.name}...")
+                                dress_prompt = (
+                                    f"Dress the person in the {first_product.name} from the reference image. "
+                                    f"Keep the pose, face, and background EXACTLY the same. "
+                                    f"Fit the garment naturally to the body. "
+                                    f"High-end fashion photography details."
+                                )
+                                
+                                person_wearing_product_url = run_nano_banana_pro(
+                                    prompt=dress_prompt,
+                                    image_urls=[model_in_scene_url, stable_first_product], # Step 1 result is base, Product is ref
+                                    strength=0.65, # Medium strength to change clothes but keep pose/scene
+                                    guidance_scale=7.5,
+                                    num_steps=30
+                                )
+                                print(f"✅ Base image with {first_product.name} completed: {person_wearing_product_url[:50]}...")
+                            else:
+                                print("❌ Step 1 failed, skipping Step 2")
+                                person_wearing_product_url = None
+                                raise Exception("Failed to place model in scene (Step 1)")
                             
                             # Step 2: Add additional products sequentially using nano-banana
                             current_image_url = person_wearing_product_url
