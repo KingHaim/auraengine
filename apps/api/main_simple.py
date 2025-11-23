@@ -4803,32 +4803,32 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # ULTRA-EXPLICIT prompt - REPLACE clothing, preserve face and background
+        # Clear composition prompt - simple and direct
         if shot_type_prompt:
             scene_prompt = (
-                f"CRITICAL INSTRUCTION: You must REPLACE the clothing. "
-                f"IMAGE 1: Take ONLY the person's FACE, HEAD, and BODY SHAPE (NOT their clothes). Copy their face (eyes, nose, mouth, skin, hair) exactly. IGNORE and DISCARD any clothing visible in IMAGE 1. "
-                f"IMAGE 2: This shows the NEW {garment_description} that the person must wear. REPLACE all clothing with this {garment_description}. The person must be dressed in THIS garment, NOT the clothes from IMAGE 1. "
-                f"IMAGE 3: Use this EXACT background/scene/location as the setting. "
+                f"Fashion product composite photo. "
+                f"Take the person's face and identity from the first image. "
+                f"Dress them in the {garment_description} from the second image. "
+                f"Place them in the environment from the third image. "
                 f"{shot_type_prompt}. "
-                f"RESULT: Person's FACE from IMAGE 1 + CLOTHING from IMAGE 2 + BACKGROUND from IMAGE 3. "
-                f"The output MUST show the {garment_description} from IMAGE 2 on the person's body. DO NOT use clothing from IMAGE 1. REPLACE it completely with IMAGE 2's garment."
+                f"The result shows: same person's face + wearing the {garment_description} + in the background scene. "
+                f"Natural fashion photography composition."
             )
         else:
             scene_prompt = (
-                f"CRITICAL INSTRUCTION: You must REPLACE the clothing. "
-                f"IMAGE 1: Take ONLY the person's FACE, HEAD, and BODY SHAPE (NOT their clothes). Copy their face (eyes, nose, mouth, skin, hair) exactly. IGNORE and DISCARD any clothing visible in IMAGE 1. "
-                f"IMAGE 2: This shows the NEW {garment_description} that the person must wear. REPLACE all clothing with this {garment_description}. The person must be dressed in THIS garment, NOT the clothes from IMAGE 1. "
-                f"IMAGE 3: Use this EXACT background/scene/location as the setting. "
-                f"RESULT: Person's FACE from IMAGE 1 + CLOTHING from IMAGE 2 + BACKGROUND from IMAGE 3. "
-                f"The output MUST show the {garment_description} from IMAGE 2 on the person's body. DO NOT use clothing from IMAGE 1. REPLACE it completely with IMAGE 2's garment."
+                f"Fashion product composite photo. "
+                f"Take the person's face and identity from the first image. "
+                f"Dress them in the {garment_description} from the second image. "
+                f"Place them in the environment from the third image. "
+                f"The result shows: same person's face + wearing the {garment_description} + in the background scene. "
+                f"Natural fashion photography composition."
             )
         
-        # Higher strength to force clothing replacement
-        num_steps = 40  # Good quality
-        guidance = 6.5  # VERY HIGH guidance to strictly follow replacement instruction
-        strength = 0.65  # Higher to ensure clothing replacement happens
-        print("⚡ Using Qwen with strength=0.65 + guidance=6.5 to FORCE clothing replacement")
+        # Lower strength for better input preservation
+        num_steps = 45  # Higher steps for better quality
+        guidance = 5.0  # Moderate guidance
+        strength = 0.50  # Lower strength to respect all 3 inputs equally
+        print("⚡ Using Qwen with strength=0.50 + guidance=5.0 + steps=45 for balanced composition")
         
         # Use Qwen with 3 images
         try:
