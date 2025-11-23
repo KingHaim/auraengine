@@ -1385,7 +1385,7 @@ async def generate_campaign_images(
                                 image_urls=[stable_scene, stable_model], # Scene is base, Model is ref
                                 strength=0.85, # High strength to generate person
                                 guidance_scale=7.5,
-                                num_steps=30,
+                                num_steps=25,
                                 negative_prompt="big head, large head, disproportionate body, caricature, cartoon, distorted proportions, macro shot, close up, face too big, bobblehead, weird anatomy"
                             )
                             print(f"✅ Model placed in scene: {model_in_scene_url[:50]}...")
@@ -1405,7 +1405,7 @@ async def generate_campaign_images(
                                     image_urls=[model_in_scene_url, stable_first_product], # Step 1 result is base, Product is ref
                                     strength=0.65, # Medium strength to change clothes but keep pose/scene
                                     guidance_scale=7.5,
-                                    num_steps=30
+                                    num_steps=25
                                 )
                                 print(f"✅ Base image with {first_product.name} completed: {person_wearing_product_url[:50]}...")
                             else:
