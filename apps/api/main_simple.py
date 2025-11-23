@@ -935,7 +935,7 @@ async def generate_campaign_images_background(
                     try:
                         print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
                         print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for [{product_names}] + {model.name} + {scene.name}")
-                            
+                        
                         # NEW MULTI-PRODUCT WORKFLOW
                         # Step 1: Generate base image with first product using Qwen
                         first_product = products[0]
@@ -967,47 +967,6 @@ async def generate_campaign_images_background(
                                 additional_product_image = additional_product.packshot_front_url or additional_product.image_url
                                 stable_additional_product = stabilize_url(additional_product_image, "product") if 'stabilize_url' in globals() else additional_product_image
                                 
-                                # CRITICAL: Ensure product URL is accessible by Replicate (Cloudinary)
-                                # If it's a localhost/static URL, we MUST upload it to Cloudinary
-                                if stable_additional_product and (stable_additional_product.startswith("http://localhost") or "/static/" in stable_additional_product) and "cloudinary" not in stable_additional_product:
-                                    print(f"⚠️ Found local URL for {additional_product.name}: {stable_additional_product}")
-                                    try:
-                                        # Extract filename
-                                        filename = stable_additional_product.split("/")[-1]
-                                        # Try to find file locally
-                                        api_dir = os.path.dirname(os.path.abspath(__file__))
-                                        # Check various possible locations
-                                        possible_paths = [
-                                            os.path.join(api_dir, "static", filename),
-                                            os.path.join(api_dir, "static", "packshot_front", filename),
-                                            os.path.join(api_dir, "uploads", filename),
-                                            os.path.join(api_dir, "temp", filename)
-                                        ]
-                                        
-                                        filepath = next((p for p in possible_paths if os.path.exists(p)), None)
-                                        
-                                        if filepath:
-                                            print(f"✅ Found local file at {filepath}, uploading to Cloudinary...")
-                                            import base64
-                                            with open(filepath, "rb") as f:
-                                                file_content = f.read()
-                                                ext = filename.split('.')[-1] if '.' in filename else 'png'
-                                                data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
-                                                stable_additional_product = upload_to_cloudinary(data_url, "product_reupload")
-                                                print(f"✅ Uploaded to Cloudinary: {stable_additional_product[:80]}...")
-                                        else:
-                                            print(f"⚠️ Could not find local file for {filename}")
-                                            # FALLBACK: Try using the original product image if packshot is missing
-                                            if additional_product.image_url and additional_product.image_url != additional_product.packshot_front_url:
-                                                print(f"🔄 Falling back to original product image: {additional_product.image_url[:80]}...")
-                                                # If original is Cloudinary, use it. If local, we might still have issues but worth a try.
-                                                if "cloudinary" in additional_product.image_url or additional_product.image_url.startswith("http"):
-                                                    stable_additional_product = additional_product.image_url
-                                            else:
-                                                print(f"⚠️ No fallback image available, sending URL as is (might fail)")
-                                    except Exception as upload_err:
-                                        print(f"⚠️ Failed to upload local file to Cloudinary: {upload_err}")
-
                                 # Get product type from clothing_type field
                                 product_type = additional_product.clothing_type if hasattr(additional_product, 'clothing_type') and additional_product.clothing_type else "garment"
                                 
@@ -1070,17 +1029,8 @@ async def generate_campaign_images_background(
                             "clothing_type": first_product_type
                         })
                         
-                        # 🔄 REAL-TIME UPDATE: Save immediately after each image is generated
-                        new_settings = dict(campaign.settings) if campaign.settings else {}
-                        new_settings["generated_images"] = generated_images
-                        campaign.settings = new_settings
-                        flag_modified(campaign, "settings")
-                        db.commit()
-                        db.refresh(campaign)
-                        print(f"💾 Real-time update: Saved image {len(generated_images)} to database")
-                        
                         print(f"✅ Shot completed: {shot_type['title']}")
-                    
+                        
                     except Exception as e:
                         print(f"❌ Failed shot {shot_type['title']}: {e}")
                         import traceback
@@ -1356,47 +1306,6 @@ async def generate_campaign_images(
                                     additional_product_image = additional_product.packshot_front_url or additional_product.image_url
                                     stable_additional_product = stabilize_url(additional_product_image, "product") if 'stabilize_url' in globals() else additional_product_image
                                     
-                                    # CRITICAL: Ensure product URL is accessible by Replicate (Cloudinary)
-                                    # If it's a localhost/static URL, we MUST upload it to Cloudinary
-                                    if stable_additional_product and (stable_additional_product.startswith("http://localhost") or "/static/" in stable_additional_product) and "cloudinary" not in stable_additional_product:
-                                        print(f"⚠️ Found local URL for {additional_product.name}: {stable_additional_product}")
-                                        try:
-                                            # Extract filename
-                                            filename = stable_additional_product.split("/")[-1]
-                                            # Try to find file locally
-                                            api_dir = os.path.dirname(os.path.abspath(__file__))
-                                            # Check various possible locations
-                                            possible_paths = [
-                                                os.path.join(api_dir, "static", filename),
-                                                os.path.join(api_dir, "static", "packshot_front", filename),
-                                                os.path.join(api_dir, "uploads", filename),
-                                                os.path.join(api_dir, "temp", filename)
-                                            ]
-                                            
-                                            filepath = next((p for p in possible_paths if os.path.exists(p)), None)
-                                            
-                                            if filepath:
-                                                print(f"✅ Found local file at {filepath}, uploading to Cloudinary...")
-                                                import base64
-                                                with open(filepath, "rb") as f:
-                                                    file_content = f.read()
-                                                    ext = filename.split('.')[-1] if '.' in filename else 'png'
-                                                    data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
-                                                    stable_additional_product = upload_to_cloudinary(data_url, "product_reupload")
-                                                    print(f"✅ Uploaded to Cloudinary: {stable_additional_product[:80]}...")
-                                            else:
-                                                print(f"⚠️ Could not find local file for {filename}")
-                                                # FALLBACK: Try using the original product image if packshot is missing
-                                                if additional_product.image_url and additional_product.image_url != additional_product.packshot_front_url:
-                                                    print(f"🔄 Falling back to original product image: {additional_product.image_url[:80]}...")
-                                                    # If original is Cloudinary, use it. If local, we might still have issues but worth a try.
-                                                    if "cloudinary" in additional_product.image_url or additional_product.image_url.startswith("http"):
-                                                        stable_additional_product = additional_product.image_url
-                                                else:
-                                                    print(f"⚠️ No fallback image available, sending URL as is (might fail)")
-                                        except Exception as upload_err:
-                                            print(f"⚠️ Failed to upload local file to Cloudinary: {upload_err}")
-
                                     # Get product type from clothing_type field
                                     product_type = additional_product.clothing_type if hasattr(additional_product, 'clothing_type') and additional_product.clothing_type else "garment"
                                     
