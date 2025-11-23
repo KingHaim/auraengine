@@ -956,16 +956,76 @@ async def generate_campaign_images_background(
                         stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                         stable_first_product = stabilize_url(first_product_image, "product") if 'stabilize_url' in globals() else first_product_image
                         
-                        print(f"🎬 Step 1: Qwen base composition - Model + {first_product.name} + Scene...")
-                        person_wearing_product_url = run_qwen_triple_composition(
-                            stable_model,
-                            stable_first_product,
-                            stable_scene,
-                            first_product.name,
-                            quality_mode,
-                            shot_type_prompt=shot_type['prompt'],
-                            clothing_type=first_product.clothing_type
+                        print(f"🎬 NEW APPROACH: Using nano-banana-pro for better composition...")
+                        print(f"📸 Step 1: Compose model + scene using Qwen (2 images only)...")
+                        
+                        # Step 1: First put the model in the scene (2 images with Qwen - preserves face better)
+                        model_in_scene_prompt = (
+                            f"Place this person in the background scene. "
+                            f"Keep the person's exact face, body, and pose from the first image. "
+                            f"Use the background environment from the second image. "
+                            f"Natural fashion photography. {shot_type['prompt']}"
                         )
+                        
+                        print(f"🔄 Calling Qwen with 2 images (model + scene)...")
+                        out = replicate.run("qwen/qwen-image-edit-plus", input={
+                            "prompt": model_in_scene_prompt,
+                            "image": [stable_model, stable_scene],
+                            "num_inference_steps": 35,
+                            "guidance_scale": 4.5,
+                            "strength": 0.40  # Low strength to preserve face
+                        })
+                        
+                        # Handle Qwen output
+                        if hasattr(out, 'url'):
+                            model_in_scene_url = out.url()
+                        elif isinstance(out, str):
+                            model_in_scene_url = out
+                        elif isinstance(out, list) and len(out) > 0:
+                            model_in_scene_url = out[0] if isinstance(out[0], str) else out[0].url()
+                        else:
+                            model_in_scene_url = str(out)
+                        
+                        print(f"✅ Model placed in scene: {model_in_scene_url[:50]}...")
+                        
+                        # Step 2: Now use nano-banana to dress the person in the product
+                        print(f"👕 Step 2: Using nano-banana-pro to apply {first_product.name}...")
+                        
+                        product_type = first_product.clothing_type if hasattr(first_product, 'clothing_type') and first_product.clothing_type else "garment"
+                        dress_prompt = (
+                            f"Dress this person in the {product_type} from the second image. "
+                            f"The person must be wearing the {first_product.name} from the second image. "
+                            f"Keep the person's face, pose, and background scene exactly the same. "
+                            f"Only change the clothing to match the {product_type} from the second image. "
+                            f"Natural fashion photography."
+                        )
+                        
+                        print(f"🍌 PRO Running nano-banana-pro to apply garment...")
+                        print(f"📝 Prompt: {dress_prompt[:100]}...")
+                        print(f"🖼️ Input 1 (model in scene): {model_in_scene_url[:80]}...")
+                        print(f"🖼️ Input 2 (product): {stable_first_product[:80]}...")
+                        
+                        person_wearing_product_output = replicate.run(
+                            "google/nano-banana-pro",
+                            input={
+                                "prompt": dress_prompt,
+                                "image": [model_in_scene_url, stable_first_product],
+                                "num_inference_steps": 30,
+                                "guidance_scale": 7.0,
+                                "strength": 0.60  # Moderate strength for clothing replacement
+                            }
+                        )
+                        
+                        # Handle nano-banana output
+                        if hasattr(person_wearing_product_output, 'url'):
+                            person_wearing_product_url = person_wearing_product_output.url()
+                        elif isinstance(person_wearing_product_output, str):
+                            person_wearing_product_url = person_wearing_product_output
+                        elif isinstance(person_wearing_product_output, list) and len(person_wearing_product_output) > 0:
+                            person_wearing_product_url = person_wearing_product_output[0] if isinstance(person_wearing_product_output[0], str) else person_wearing_product_output[0].url()
+                        else:
+                            person_wearing_product_url = str(person_wearing_product_output)
+                        
                         print(f"✅ Base image with {first_product.name} completed: {person_wearing_product_url[:50]}...")
                         
                         # Step 2: Add additional products sequentially using nano-banana
@@ -1308,16 +1368,76 @@ async def generate_campaign_images(
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                             stable_first_product = stabilize_url(first_product_image, "product") if 'stabilize_url' in globals() else first_product_image
                             
-                            print(f"🎬 Step 1: Qwen base composition - Model + {first_product.name} + Scene...")
-                            person_wearing_product_url = run_qwen_triple_composition(
-                                stable_model,
-                                stable_first_product,
-                                stable_scene,
-                                first_product.name,
-                                quality_mode,
-                                shot_type_prompt=shot_type['prompt'],
-                                clothing_type=first_product.clothing_type
+                            print(f"🎬 NEW APPROACH: Using nano-banana-pro for better composition...")
+                            print(f"📸 Step 1: Compose model + scene using Qwen (2 images only)...")
+                            
+                            # Step 1: First put the model in the scene (2 images with Qwen - preserves face better)
+                            model_in_scene_prompt = (
+                                f"Place this person in the background scene. "
+                                f"Keep the person's exact face, body, and pose from the first image. "
+                                f"Use the background environment from the second image. "
+                                f"Natural fashion photography. {shot_type['prompt']}"
                             )
+                            
+                            print(f"🔄 Calling Qwen with 2 images (model + scene)...")
+                            out = replicate.run("qwen/qwen-image-edit-plus", input={
+                                "prompt": model_in_scene_prompt,
+                                "image": [stable_model, stable_scene],
+                                "num_inference_steps": 35,
+                                "guidance_scale": 4.5,
+                                "strength": 0.40  # Low strength to preserve face
+                            })
+                            
+                            # Handle Qwen output
+                            if hasattr(out, 'url'):
+                                model_in_scene_url = out.url()
+                            elif isinstance(out, str):
+                                model_in_scene_url = out
+                            elif isinstance(out, list) and len(out) > 0:
+                                model_in_scene_url = out[0] if isinstance(out[0], str) else out[0].url()
+                            else:
+                                model_in_scene_url = str(out)
+                            
+                            print(f"✅ Model placed in scene: {model_in_scene_url[:50]}...")
+                            
+                            # Step 2: Now use nano-banana to dress the person in the product
+                            print(f"👕 Step 2: Using nano-banana-pro to apply {first_product.name}...")
+                            
+                            product_type = first_product.clothing_type if hasattr(first_product, 'clothing_type') and first_product.clothing_type else "garment"
+                            dress_prompt = (
+                                f"Dress this person in the {product_type} from the second image. "
+                                f"The person must be wearing the {first_product.name} from the second image. "
+                                f"Keep the person's face, pose, and background scene exactly the same. "
+                                f"Only change the clothing to match the {product_type} from the second image. "
+                                f"Natural fashion photography."
+                            )
+                            
+                            print(f"🍌 PRO Running nano-banana-pro to apply garment...")
+                            print(f"📝 Prompt: {dress_prompt[:100]}...")
+                            print(f"🖼️ Input 1 (model in scene): {model_in_scene_url[:80]}...")
+                            print(f"🖼️ Input 2 (product): {stable_first_product[:80]}...")
+                            
+                            person_wearing_product_output = replicate.run(
+                                "google/nano-banana-pro",
+                                input={
+                                    "prompt": dress_prompt,
+                                    "image": [model_in_scene_url, stable_first_product],
+                                    "num_inference_steps": 30,
+                                    "guidance_scale": 7.0,
+                                    "strength": 0.60  # Moderate strength for clothing replacement
+                                }
+                            )
+                            
+                            # Handle nano-banana output
+                            if hasattr(person_wearing_product_output, 'url'):
+                                person_wearing_product_url = person_wearing_product_output.url()
+                            elif isinstance(person_wearing_product_output, str):
+                                person_wearing_product_url = person_wearing_product_output
+                            elif isinstance(person_wearing_product_output, list) and len(person_wearing_product_output) > 0:
+                                person_wearing_product_url = person_wearing_product_output[0] if isinstance(person_wearing_product_output[0], str) else person_wearing_product_output[0].url()
+                            else:
+                                person_wearing_product_url = str(person_wearing_product_output)
+                            
                             print(f"✅ Base image with {first_product.name} completed: {person_wearing_product_url[:50]}...")
                             
                             # Step 2: Add additional products sequentially using nano-banana
