@@ -2226,7 +2226,7 @@ async def regenerate_single_video_background(
         
         print(f"📸 Regenerating video for: {shot_type}")
         
-        # Define camera movement signatures for variety
+        # Define camera movement signatures for variety (DETERMINISTIC MAPPING)
         CAMERA_SIGNATURES = [
             "ROTATING LENS: Dynamic orbital camera movement around the subject, creating a 3D volumetric feel.",
             "FAST ZOOM IN: Energetic crash zoom towards the subject, high-impact fashion music video aesthetic.",
@@ -2236,9 +2236,10 @@ async def regenerate_single_video_background(
             "LOW ANGLE: Camera positioned low looking up, empowering the subject with a majestic perspective."
         ]
         
-        import random
-        camera_signature = random.choice(CAMERA_SIGNATURES)
-        print(f"🎥 Applied random camera signature for regeneration: {camera_signature.split(':')[0]}")
+        # Use DETERMINISTIC selection based on video_index
+        # This ensures Shot 1 always gets Signature 1, Shot 2 always gets Signature 2, etc.
+        camera_signature = CAMERA_SIGNATURES[video_index % len(CAMERA_SIGNATURES)]
+        print(f"🎥 Applied deterministic camera signature for regeneration: {camera_signature.split(':')[0]}")
         
         # Determine the prompt based on shot type
         if 'close' in shot_type.lower() or 'closeup' in shot_name.lower() or 'close-up' in shot_type.lower():
