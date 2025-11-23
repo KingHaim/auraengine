@@ -6790,7 +6790,7 @@ export default function CampaignsPage() {
                                   }}
                                 />
                               )}
-                              
+
                               {/* Overlay with spinner and text */}
                               <div
                                 style={{
@@ -6816,7 +6816,7 @@ export default function CampaignsPage() {
                                     marginBottom: "16px",
                                   }}
                                 />
-                                
+
                                 {/* Text */}
                                 <p
                                   style={{
@@ -6832,7 +6832,7 @@ export default function CampaignsPage() {
                                     ? `❌ ${video.error}`
                                     : "Video Generation in Process"}
                                 </p>
-                                
+
                                 {!video.error && (
                                   <p
                                     style={{
@@ -6865,42 +6865,119 @@ export default function CampaignsPage() {
                             >
                               {video.shot_type || `Video ${idx + 1}`}
                             </p>
-                            {video.video_url && (
-                              <a
-                                href={video.video_url}
-                                download={`${selectedCampaignForProfile.name}_${
-                                  video.shot_name || `video_${idx + 1}`
-                                }.mp4`}
-                                style={{
-                                  padding: "4px 8px",
-                                  backgroundColor: "#10B981",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "4px",
-                                  fontSize: "12px",
-                                  fontWeight: "600",
-                                  cursor: "pointer",
-                                  textDecoration: "none",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "4px",
-                                  transition: "all 0.2s ease",
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor =
-                                    "#059669";
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor =
-                                    "#10B981";
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                }}
-                              >
-                                💾
-                              </a>
-                            )}
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: "8px",
+                                alignItems: "center",
+                              }}
+                            >
+                              {video.video_url && (
+                                <>
+                                  {/* Regenerate Button */}
+                                  <button
+                                    onClick={async () => {
+                                      if (
+                                        !confirm(
+                                          `Regenerate this video? This will cost 5 credits.`
+                                        )
+                                      )
+                                        return;
+
+                                      try {
+                                        const response = await fetch(
+                                          `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${selectedCampaignForProfile.id}/regenerate-video/${idx}`,
+                                          {
+                                            method: "POST",
+                                            headers: {
+                                              Authorization: `Bearer ${token}`,
+                                            },
+                                          }
+                                        );
+
+                                        if (response.ok) {
+                                          const result = await response.json();
+                                          alert(
+                                            `🔄 Regenerating ${result.shot_type}...`
+                                          );
+                                          // Refresh to show regenerating state
+                                          await fetchData();
+                                        } else {
+                                          const error = await response.text();
+                                          alert(`Failed to regenerate: ${error}`);
+                                        }
+                                      } catch (error) {
+                                        console.error(
+                                          "Regeneration failed:",
+                                          error
+                                        );
+                                        alert("Failed to start regeneration");
+                                      }
+                                    }}
+                                    style={{
+                                      padding: "4px 8px",
+                                      backgroundColor: "#F59E0B",
+                                      color: "white",
+                                      border: "none",
+                                      borderRadius: "4px",
+                                      fontSize: "12px",
+                                      fontWeight: "600",
+                                      cursor: "pointer",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "4px",
+                                      transition: "all 0.2s ease",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor =
+                                        "#D97706";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor =
+                                        "#F59E0B";
+                                    }}
+                                  >
+                                    🔄
+                                  </button>
+
+                                  {/* Download Button */}
+                                  <a
+                                    href={video.video_url}
+                                    download={`${selectedCampaignForProfile.name}_${
+                                      video.shot_name || `video_${idx + 1}`
+                                    }.mp4`}
+                                    style={{
+                                      padding: "4px 8px",
+                                      backgroundColor: "#10B981",
+                                      color: "white",
+                                      border: "none",
+                                      borderRadius: "4px",
+                                      fontSize: "12px",
+                                      fontWeight: "600",
+                                      cursor: "pointer",
+                                      textDecoration: "none",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "4px",
+                                      transition: "all 0.2s ease",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor =
+                                        "#059669";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor =
+                                        "#10B981";
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                    }}
+                                  >
+                                    💾
+                                  </a>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}

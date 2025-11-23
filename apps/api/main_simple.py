@@ -1992,6 +1992,231 @@ async def generate_videos_background(
         db.close()
         print(f"✅ Database session closed for video generation {campaign_id}")
 
+@app.post("/campaigns/{campaign_id}/regenerate-video/{video_index}")
+async def regenerate_single_video(
+    campaign_id: str,
+    video_index: int,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Regenerate a single video for a specific image in the campaign"""
+    try:
+        print(f"🔄 Regenerate video request for campaign {campaign_id}, video index {video_index}")
+        
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        # Get the videos and generated_images
+        videos = campaign.settings.get("videos", []) if campaign.settings else []
+        generated_images = campaign.settings.get("generated_images", []) if campaign.settings else []
+        
+        if video_index < 0 or video_index >= len(videos):
+            raise HTTPException(status_code=400, detail=f"Invalid video index. Campaign has {len(videos)} videos.")
+        
+        # Check if user has enough credits (5 credits per video)
+        user = db.query(User).filter(User.id == current_user["user_id"]).first()
+        if not user or user.credits < 5:
+            raise HTTPException(
+                status_code=400, 
+                detail="Insufficient credits. Need 5 credits to regenerate a video."
+            )
+        
+        # Get the corresponding image data
+        if video_index < len(generated_images):
+            image_data = generated_images[video_index]
+        else:
+            raise HTTPException(status_code=400, detail="No corresponding image found for this video.")
+        
+        # Mark the video as regenerating
+        video_to_regenerate = videos[video_index]
+        video_to_regenerate["regenerating"] = True
+        video_to_regenerate["video_url"] = None  # Clear the old video URL
+        
+        new_settings = dict(campaign.settings) if campaign.settings else {}
+        new_settings["videos"] = videos
+        campaign.settings = new_settings
+        flag_modified(campaign, "settings")
+        db.commit()
+        
+        # Start regeneration in background
+        import asyncio
+        asyncio.create_task(regenerate_single_video_background(
+            campaign_id,
+            video_index,
+            image_data,
+            current_user["user_id"]
+        ))
+        
+        return {
+            "message": f"Regenerating video {video_index + 1}...",
+            "video_index": video_index,
+            "shot_type": video_to_regenerate.get("shot_type", ""),
+            "status": "regenerating"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Failed to start video regeneration: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def regenerate_single_video_background(
+    campaign_id: str,
+    video_index: int,
+    image_data: dict,
+    user_id: str
+):
+    """Background task to regenerate a single video"""
+    db = SessionLocal()
+    try:
+        print(f"\n🔄 Starting video regeneration for campaign {campaign_id}, index {video_index}...")
+        
+        # Get the image URL
+        image_url = image_data.get("image_url")
+        if not image_url:
+            raise Exception("No image URL found for video regeneration")
+        
+        # Build prompt (reuse the same logic from generate_videos_background)
+        product_name = image_data.get('product_name', 'clothing')
+        scene_name = image_data.get('scene_name', 'scene')
+        model_name = image_data.get('model_name', 'model')
+        shot_type = image_data.get('shot_type', '')
+        shot_name = image_data.get('shot_name', '')
+        
+        print(f"📸 Regenerating video for: {shot_type}")
+        
+        # Determine the prompt based on shot type
+        if 'close' in shot_type.lower() or 'closeup' in shot_name.lower() or 'close-up' in shot_type.lower():
+            if 'pants' in shot_type.lower() or 'pants' in shot_name.lower():
+                video_prompt = (
+                    f"Cinematic fashion editorial video focusing on the {product_name} pants/bottom garment. "
+                    f"Frame shows lower body from waist to knees - NO FACE or upper body visible. "
+                    f"Smooth, dynamic camera movement: elegant pan showing the pants fit, subtle tracking shot emphasizing cut and style. "
+                    f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves. "
+                    f"Fashion editorial videography with artistic depth of field. "
+                    f"Natural movement of fabric with model's subtle shifts. Professional fashion lighting on the garment. "
+                    f"Confident, editorial energy focused entirely on the pants."
+                )
+                negative_prompt = (
+                    "face, head, neck visible, facial features, eyes, nose, mouth, upper body, chest, "
+                    "blurry, distorted, low quality, bad lighting, poor composition, jerky motion, "
+                    "showing face, person's face in frame"
+                )
+                print(f"👖 Using PANTS CLOSE-UP video prompt")
+            else:
+                video_prompt = (
+                    f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
+                    f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
+                    f"Smooth, slow camera movement: gentle pan across fabric details, subtle zoom emphasizing texture and fit. "
+                    f"Showcase the garment's fabric texture, stitching, color, and style. "
+                    f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
+                    f"Natural subtle movements of fabric. Professional studio lighting on the garment."
+                )
+                negative_prompt = (
+                    "face, head, neck visible, facial features, eyes, nose, mouth, "
+                    "blurry, distorted, low quality, bad lighting, poor composition, jerky motion, "
+                    "showing face, person's face in frame"
+                )
+                print(f"👕 Using SHIRT CLOSE-UP video prompt")
+        else:
+            video_prompt = (
+                f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
+                f"Smooth, subtle camera movement. Cinematic depth. Natural breathing and slight movements. "
+                f"Professional lighting, elegant atmosphere."
+            )
+            negative_prompt = "blurry, distorted, low quality, bad lighting, poor composition, jerky motion"
+            print(f"🎬 Using STANDARD video prompt")
+        
+        print(f"📝 Video prompt: {video_prompt[:150]}...")
+        
+        # Call Kling API
+        output = replicate.run(
+            "kwaivgi/kling-v2.5-turbo-pro",
+            input={
+                "mode": "image-to-video",
+                "image": image_url,
+                "duration": "5",
+                "cfg_scale": 0.5,
+                "prompt": video_prompt,
+                "aspect_ratio": "16:9",
+                "negative_prompt": negative_prompt
+            }
+        )
+        
+        # Handle output
+        if hasattr(output, 'url'):
+            video_url = output.url()
+        elif isinstance(output, str):
+            video_url = output
+        else:
+            video_url = str(output)
+        
+        print(f"✅ Video regenerated: {video_url[:80]}...")
+        
+        # Upload to Cloudinary for permanent storage
+        video_url = upload_to_cloudinary(video_url, "campaign_videos")
+        print(f"☁️ Uploaded to Cloudinary: {video_url[:80]}...")
+        
+        # Update the campaign with the new video
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+        if campaign:
+            new_settings = dict(campaign.settings) if campaign.settings else {}
+            videos = new_settings.get("videos", [])
+            
+            if video_index < len(videos):
+                videos[video_index]["video_url"] = video_url
+                videos[video_index]["regenerating"] = False
+                videos[video_index]["regenerated_at"] = datetime.utcnow().isoformat()
+                
+                new_settings["videos"] = videos
+                campaign.settings = new_settings
+                flag_modified(campaign, "settings")
+                db.commit()
+                
+                print(f"✅ Campaign updated with regenerated video at index {video_index}")
+            
+            # Deduct credits
+            user = db.query(User).filter(User.id == user_id).first()
+            if user:
+                user.credits -= 5
+                db.commit()
+                print(f"💰 Deducted 5 credits from user {user_id}. Remaining: {user.credits}")
+        
+        print(f"🎉 Video regeneration completed for index {video_index}")
+        
+    except Exception as e:
+        print(f"❌ Video regeneration failed: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Update campaign to mark regeneration as failed
+        try:
+            campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+            if campaign:
+                new_settings = dict(campaign.settings) if campaign.settings else {}
+                videos = new_settings.get("videos", [])
+                if video_index < len(videos):
+                    videos[video_index]["regenerating"] = False
+                    videos[video_index]["error"] = str(e)
+                    new_settings["videos"] = videos
+                    campaign.settings = new_settings
+                    flag_modified(campaign, "settings")
+                    db.commit()
+        except Exception as update_error:
+            print(f"❌ Failed to update campaign status: {update_error}")
+    
+    finally:
+        db.close()
+        print(f"✅ Database session closed for video regeneration {campaign_id}")
+
 @app.post("/campaigns/{campaign_id}/generate-unified-video")
 async def generate_unified_campaign_video(
     campaign_id: str,
