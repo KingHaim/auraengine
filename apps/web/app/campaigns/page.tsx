@@ -837,8 +837,11 @@ export default function CampaignsPage() {
           `✅ Generating ${result.remaining_poses.length} additional poses for full campaign!`
         );
 
-        // Poll for completion
+        // Poll for completion and fetch data for real-time updates
         const pollInterval = setInterval(async () => {
+          // Fetch updated campaign data to show new images
+          await fetchData();
+          
           const statusResponse = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/status`,
             {
@@ -861,7 +864,7 @@ export default function CampaignsPage() {
               alert("❌ Full campaign generation failed");
             }
           }
-        }, 5000); // Poll every 5 seconds
+        }, 3000); // Poll every 3 seconds for faster updates
 
         // Clear interval after 10 minutes timeout
         setTimeout(() => {
@@ -4104,10 +4107,11 @@ export default function CampaignsPage() {
                       marginBottom: "24px",
                     }}
                   >
+                    {/* Show generated images */}
                     {selectedCampaign.settings.generated_images.map(
                       (img: any, index: number) => (
                         <div
-                          key={index}
+                          key={`generated-${index}`}
                           style={{
                             border: "1px solid #E5E7EB",
                             borderRadius: "12px",
@@ -4314,6 +4318,62 @@ export default function CampaignsPage() {
                         </div>
                       )
                     )}
+                    
+                    {/* Show placeholder loading cards for images being generated */}
+                    {selectedCampaign.generation_status === "generating" &&
+                      generatingFullCampaign === selectedCampaign.id &&
+                      // Show 5 total slots minus already generated
+                      Array.from({ length: Math.max(0, 5 - (selectedCampaign.settings.generated_images?.length || 0)) }).map((_, idx) => (
+                        <div
+                          key={`placeholder-${idx}`}
+                          style={{
+                            border: "2px dashed #D1D5DB",
+                            borderRadius: "12px",
+                            overflow: "hidden",
+                            backgroundColor: "#F9FAFB",
+                            position: "relative",
+                            aspectRatio: "1",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: "20px",
+                          }}
+                        >
+                          {/* Beating heart spinner */}
+                          <img
+                            src="/beating.gif"
+                            alt="Loading"
+                            style={{
+                              width: "80px",
+                              height: "80px",
+                              marginBottom: "16px",
+                            }}
+                          />
+                          <p
+                            style={{
+                              fontSize: "14px",
+                              fontWeight: "600",
+                              color: "#6B7280",
+                              margin: 0,
+                              textAlign: "center",
+                            }}
+                          >
+                            Generating Image {(selectedCampaign.settings.generated_images?.length || 0) + idx + 1}...
+                          </p>
+                          <p
+                            style={{
+                              fontSize: "12px",
+                              color: "#9CA3AF",
+                              margin: "8px 0 0 0",
+                              textAlign: "center",
+                            }}
+                          >
+                            Please wait
+                          </p>
+                        </div>
+                      ))
+                    }
                   </div>
 
                   {/* New Workflow Buttons */}
@@ -6229,12 +6289,9 @@ export default function CampaignsPage() {
                 }}
               >
                 {/* Campaign Images Gallery */}
-                {(selectedCampaignForProfile.settings?.generated_images &&
-                  selectedCampaignForProfile.settings.generated_images.length >
-                    0) ||
-                (selectedCampaignForProfile.generation_status === "generating" &&
-                  selectedCampaignForProfile.settings?.expected_images_count >
-                    0) ? (
+                {selectedCampaignForProfile.settings?.generated_images &&
+                selectedCampaignForProfile.settings.generated_images.length >
+                  0 ? (
                   <div>
                     <h3
                       style={{
@@ -6246,16 +6303,9 @@ export default function CampaignsPage() {
                     >
                       Campaign Images (
                       {
-                        selectedCampaignForProfile.settings?.generated_images
-                          ?.length || 0
+                        selectedCampaignForProfile.settings.generated_images
+                          .length
                       }
-                      {selectedCampaignForProfile.settings
-                        ?.expected_images_count &&
-                        selectedCampaignForProfile.settings
-                          .expected_images_count >
-                          (selectedCampaignForProfile.settings?.generated_images
-                            ?.length || 0) &&
-                        ` / ${selectedCampaignForProfile.settings.expected_images_count}`}
                       )
                     </h3>
                     <div
@@ -6269,11 +6319,10 @@ export default function CampaignsPage() {
                         padding: "8px",
                       }}
                     >
-                      {/* Render generated images */}
-                      {selectedCampaignForProfile.settings?.generated_images?.map(
+                      {selectedCampaignForProfile.settings.generated_images.map(
                         (img: any, index: number) => (
                           <div
-                            key={`generated-${index}`}
+                            key={index}
                             style={{
                               aspectRatio: "1",
                               borderRadius: "12px",
@@ -6441,86 +6490,62 @@ export default function CampaignsPage() {
                           </div>
                         )
                       )}
-
-                      {/* Render placeholder images for images being generated */}
-                      {selectedCampaignForProfile.generation_status ===
-                        "generating" &&
-                        selectedCampaignForProfile.settings
-                          ?.expected_images_count &&
-                        Array.from({
-                          length:
-                            selectedCampaignForProfile.settings
-                              .expected_images_count -
-                            (selectedCampaignForProfile.settings
-                              ?.generated_images?.length || 0),
-                        }).map((_, placeholderIndex) => {
-                          const actualIndex =
-                            (selectedCampaignForProfile.settings
-                              ?.generated_images?.length || 0) +
-                            placeholderIndex;
-                          return (
-                            <div
-                              key={`placeholder-${placeholderIndex}`}
+                      
+                      {/* Show placeholder loading cards for images being generated */}
+                      {selectedCampaignForProfile.generation_status === "generating" &&
+                        generatingFullCampaign === selectedCampaignForProfile.id &&
+                        // Show 5 total slots minus already generated
+                        Array.from({ length: Math.max(0, 5 - (selectedCampaignForProfile.settings.generated_images?.length || 0)) }).map((_, idx) => (
+                          <div
+                            key={`placeholder-${idx}`}
+                            style={{
+                              border: "2px dashed #D1D5DB",
+                              borderRadius: "12px",
+                              overflow: "hidden",
+                              backgroundColor: "#F9FAFB",
+                              position: "relative",
+                              aspectRatio: "1",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              padding: "20px",
+                            }}
+                          >
+                            {/* Beating heart spinner */}
+                            <img
+                              src="/beating.gif"
+                              alt="Loading"
                               style={{
-                                aspectRatio: "1",
-                                borderRadius: "12px",
-                                overflow: "hidden",
-                                backgroundColor: "#F3F4F6",
-                                border: "2px dashed #D1D5DB",
-                                position: "relative",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
+                                width: "80px",
+                                height: "80px",
+                                marginBottom: "16px",
+                              }}
+                            />
+                            <p
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                color: "#6B7280",
+                                margin: 0,
+                                textAlign: "center",
                               }}
                             >
-                              {/* Beating Heart Spinner */}
-                              <div
-                                style={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  alignItems: "center",
-                                  gap: "16px",
-                                }}
-                              >
-                                <img
-                                  src="/beating.gif"
-                                  alt="Loading"
-                                  style={{
-                                    width: "80px",
-                                    height: "80px",
-                                  }}
-                                />
-                                <p
-                                  style={{
-                                    fontSize: "14px",
-                                    fontWeight: "600",
-                                    color: "#6B7280",
-                                    margin: 0,
-                                  }}
-                                >
-                                  Generating Image {actualIndex + 1}...
-                                </p>
-                              </div>
-
-                              {/* Image number label */}
-                              <div
-                                style={{
-                                  position: "absolute",
-                                  bottom: "8px",
-                                  left: "8px",
-                                  backgroundColor: "rgba(156, 163, 175, 0.8)",
-                                  color: "white",
-                                  padding: "4px 8px",
-                                  borderRadius: "6px",
-                                  fontSize: "11px",
-                                  fontWeight: "600",
-                                }}
-                              >
-                                #{actualIndex + 1}
-                              </div>
-                            </div>
-                          );
-                        })}
+                              Generating Image {(selectedCampaignForProfile.settings.generated_images?.length || 0) + idx + 1}...
+                            </p>
+                            <p
+                              style={{
+                                fontSize: "12px",
+                                color: "#9CA3AF",
+                                margin: "8px 0 0 0",
+                                textAlign: "center",
+                              }}
+                            >
+                              Please wait
+                            </p>
+                          </div>
+                        ))
+                      }
                     </div>
                   </div>
                 ) : (

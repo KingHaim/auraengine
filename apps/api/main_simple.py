@@ -893,15 +893,6 @@ async def generate_campaign_images_background(
         random.shuffle(available_shots)
         shot_types_to_generate = available_shots[:shots_to_generate_count]
         
-        # Set expected images count at the start
-        new_settings = dict(campaign.settings) if campaign.settings else {}
-        new_settings["expected_images_count"] = shots_to_generate_count
-        new_settings["generated_images"] = generated_images
-        campaign.settings = new_settings
-        flag_modified(campaign, "settings")
-        db.commit()
-        print(f"📊 Expected to generate {shots_to_generate_count} images")
-        
         # If manikin pose is set, ensure first shot is full body frontal (not side view or closeup)
         if manikin_pose and manikin_pose != "":
             # Find a FULL BODY frontal shot type (not profile/side/closeup/detail)
@@ -920,49 +911,49 @@ async def generate_campaign_images_background(
 
         # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
         # NEW: Process all products together for each model+scene combination
-            for model in models:
-                for scene in scenes:
-                    # Use model's selected pose if available
-                    model_image = model.image_url
-                    if selected_poses_dict.get(str(model.id)) and len(selected_poses_dict[str(model.id)]) > 0:
-                        import random
-                        model_image = random.choice(selected_poses_dict[str(model.id)])
-                        print(f"🎭 Using selected pose for {model.name}")
-                    elif model.poses and len(model.poses) > 0:
-                        import random
-                        model_image = random.choice(model.poses)
-                        print(f"🎭 Using random pose for {model.name}")
-                    
+        for model in models:
+            for scene in scenes:
+                # Use model's selected pose if available
+                model_image = model.image_url
+                if selected_poses_dict.get(str(model.id)) and len(selected_poses_dict[str(model.id)]) > 0:
+                    import random
+                    model_image = random.choice(selected_poses_dict[str(model.id)])
+                    print(f"🎭 Using selected pose for {model.name}")
+                elif model.poses and len(model.poses) > 0:
+                    import random
+                    model_image = random.choice(model.poses)
+                    print(f"🎭 Using random pose for {model.name}")
+                
                 # Build product list names for logging
                 product_names = ", ".join([p.name for p in products])
                 print(f"🎬 Processing campaign flow: [{product_names}] + {model.name} + {scene.name}")
                 print(f"📸 Generating {len(shot_types_to_generate)} shots with {len(products)} product(s)...")
-                    
-                    # Generate the requested shot types for this combination
-                    print(f"🎬 Starting generation of {len(shot_types_to_generate)} shots...")
-                    for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
-                        try:
-                            print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
+                
+                # Generate the requested shot types for this combination
+                print(f"🎬 Starting generation of {len(shot_types_to_generate)} shots...")
+                for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
+                    try:
+                        print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
                         print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for [{product_names}] + {model.name} + {scene.name}")
-                            
+                        
                         # NEW MULTI-PRODUCT WORKFLOW
                         # Step 1: Generate base image with first product using Qwen
                         first_product = products[0]
                         first_product_image = first_product.packshot_front_url or first_product.image_url
-                            quality_mode = "standard"
+                        quality_mode = "standard"
 
-                            # Stabilize inputs to /static to avoid replicate 404s
-                            stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
-                            stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
+                        # Stabilize inputs to /static to avoid replicate 404s
+                        stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
+                        stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                         stable_first_product = stabilize_url(first_product_image, "product") if 'stabilize_url' in globals() else first_product_image
-                            
+                        
                         print(f"🎬 Step 1: Qwen base composition - Model + {first_product.name} + Scene...")
                         person_wearing_product_url = run_qwen_triple_composition(
-                                stable_model,
+                            stable_model,
                             stable_first_product,
-                                stable_scene,
+                            stable_scene,
                             first_product.name,
-                                quality_mode,
+                            quality_mode,
                             shot_type_prompt=shot_type['prompt'],
                             clothing_type=first_product.clothing_type
                         )
@@ -1018,44 +1009,43 @@ async def generate_campaign_images_background(
                         combined_product_ids = [str(p.id) for p in products]
                         first_product_image = products[0].packshot_front_url or products[0].image_url
                         first_product_type = products[0].clothing_type if hasattr(products[0], 'clothing_type') and products[0].clothing_type else "outfit"
-                            
-                            # Normalize and store final URL
-                            print(f"💾 Normalizing final result URL...")
-                            final_url = stabilize_url(to_url(final_result_url), f"final_{shot_type['name']}") if 'stabilize_url' in globals() else download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
-                            print(f"✅ Final result saved locally: {final_url[:50]}...")
-                            
-                            generated_images.append({
+                        
+                        # Normalize and store final URL
+                        print(f"💾 Normalizing final result URL...")
+                        final_url = stabilize_url(to_url(final_result_url), f"final_{shot_type['name']}") if 'stabilize_url' in globals() else download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
+                        print(f"✅ Final result saved locally: {final_url[:50]}...")
+                        
+                        generated_images.append({
                             "product_name": combined_product_names,
                             "product_id": combined_product_ids[0] if combined_product_ids else str(products[0].id),  # Use first product ID for compatibility
                             "product_ids": combined_product_ids,  # NEW: Store all product IDs
-                                "model_name": model.name,
-                                "scene_name": scene.name,
-                                "shot_type": shot_type['title'],
-                                "shot_name": shot_type['name'],
-                                "image_url": final_url,
-                                "model_image_url": model_image,
+                            "model_name": model.name,
+                            "scene_name": scene.name,
+                            "shot_type": shot_type['title'],
+                            "shot_name": shot_type['name'],
+                            "image_url": final_url,
+                            "model_image_url": model_image,
                             "product_image_url": first_product_image,
                             "clothing_type": first_product_type
                         })
                         
-                        # 🔄 REALTIME UPDATE: Save immediately after each image is generated
+                        # 🔄 REAL-TIME UPDATE: Save immediately after each image is generated
                         new_settings = dict(campaign.settings) if campaign.settings else {}
                         new_settings["generated_images"] = generated_images
-                        new_settings["expected_images_count"] = shots_to_generate_count
                         campaign.settings = new_settings
                         flag_modified(campaign, "settings")
                         db.commit()
                         db.refresh(campaign)
-                        print(f"💾 Real-time update: Saved {len(generated_images)}/{shots_to_generate_count} images to database")
-                            
-                            print(f"✅ Shot completed: {shot_type['title']}")
-                            
-                        except Exception as e:
-                            print(f"❌ Failed shot {shot_type['title']}: {e}")
-                            import traceback
-                            traceback.print_exc()
-                            print(f"🔄 Continuing to next shot... (Shot {shot_idx}/{len(shot_types_to_generate)})")
-                            continue
+                        print(f"💾 Real-time update: Saved image {len(generated_images)} to database")
+                        
+                        print(f"✅ Shot completed: {shot_type['title']}")
+                        
+                    except Exception as e:
+                        print(f"❌ Failed shot {shot_type['title']}: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        print(f"🔄 Continuing to next shot... (Shot {shot_idx}/{len(shot_types_to_generate)})")
+                        continue
                     
                 print(f"\n🎉 Campaign flow complete: [{product_names}] + {model.name} + {scene.name}")
         
@@ -1196,10 +1186,7 @@ async def get_campaign_generation_status(
             "generation_status": campaign.generation_status,
             "status": campaign.status,
             "generated_images_count": len(campaign.settings.get("generated_images", [])) if campaign.settings else 0,
-            "expected_images_count": campaign.settings.get("expected_images_count", 0) if campaign.settings else 0,
-            "generated_images": campaign.settings.get("generated_images", []) if campaign.settings else [],
-            "updated_at": campaign.updated_at,
-            "campaign": campaign
+            "updated_at": campaign.updated_at
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1255,26 +1242,26 @@ async def generate_campaign_images(
         
         # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
         # NEW: Process all products together for each model+scene combination
-            for model in models:
-                for scene in scenes:
-                    # Use model's pose if available, or select random
-                    if model.poses and len(model.poses) > 0:
-                        import random
-                        model_image = random.choice(model.poses)
-                        print(f"🎭 Using random pose for {model.name}")
-                    else:
-                        model_image = model.image_url
-                    
+        for model in models:
+            for scene in scenes:
+                # Use model's pose if available, or select random
+                if model.poses and len(model.poses) > 0:
+                    import random
+                    model_image = random.choice(model.poses)
+                    print(f"🎭 Using random pose for {model.name}")
+                else:
+                    model_image = model.image_url
+                
                 # Build product list names for logging
                 product_names = ", ".join([p.name for p in products])
                 print(f"🎬 Processing campaign flow: [{product_names}] + {model.name} + {scene.name}")
                 print(f"📸 Generating {number_of_images} images with {len(products)} product(s)...")
-                    
-                    # Generate only the requested number of images - RANDOMIZED
-                    import random
-                    available_shots = CAMPAIGN_SHOT_TYPES.copy()
-                    random.shuffle(available_shots)
-                    shot_types_to_generate = available_shots[:number_of_images]
+                
+                # Generate only the requested number of images - RANDOMIZED
+                import random
+                available_shots = CAMPAIGN_SHOT_TYPES.copy()
+                random.shuffle(available_shots)
+                shot_types_to_generate = available_shots[:number_of_images]
                 
                 # If manikin pose is set, ensure first shot is full body frontal (not side view or closeup)
                 campaign_manikin_pose = campaign.settings.get("manikin_pose", "") if campaign.settings else ""
@@ -1621,6 +1608,15 @@ async def generate_multiple_pose_variations(
                 generated_images.append(new_image)
                 print(f"✅ Added {pose_filename} to campaign (total images: {len(generated_images)})")
                 
+                # 🔄 REAL-TIME UPDATE: Save immediately after each pose
+                new_settings = dict(campaign.settings) if campaign.settings else {}
+                new_settings["generated_images"] = generated_images
+                campaign.settings = new_settings
+                flag_modified(campaign, "settings")
+                db.commit()
+                db.refresh(campaign)
+                print(f"💾 Real-time update: Saved pose image {len(generated_images)} to database")
+                
             except Exception as pose_error:
                 print(f"❌ Failed to generate pose {pose_filename}: {pose_error}")
                 import traceback
@@ -1685,6 +1681,15 @@ async def generate_multiple_pose_variations(
                         }
                         generated_images.append(closeup_image)
                         print(f"✅ Added close-up shot from reference image (total images: {len(generated_images)})")
+                        
+                        # 🔄 REAL-TIME UPDATE: Save immediately after close-up
+                        new_settings = dict(campaign.settings) if campaign.settings else {}
+                        new_settings["generated_images"] = generated_images
+                        campaign.settings = new_settings
+                        flag_modified(campaign, "settings")
+                        db.commit()
+                        db.refresh(campaign)
+                        print(f"💾 Real-time update: Saved close-up image {len(generated_images)} to database")
                     else:
                         print(f"⚠️ Close-up generation returned None")
                 else:
@@ -1768,6 +1773,15 @@ async def generate_multiple_pose_variations(
                         }
                         generated_images.append(pants_closeup_image)
                         print(f"✅ Added pants close-up shot (total images: {len(generated_images)})")
+                        
+                        # 🔄 REAL-TIME UPDATE: Save immediately after pants close-up
+                        new_settings = dict(campaign.settings) if campaign.settings else {}
+                        new_settings["generated_images"] = generated_images
+                        campaign.settings = new_settings
+                        flag_modified(campaign, "settings")
+                        db.commit()
+                        db.refresh(campaign)
+                        print(f"💾 Real-time update: Saved pants close-up image {len(generated_images)} to database")
                     else:
                         print(f"⚠️ Pants close-up generation returned None")
                 else:
@@ -1890,37 +1904,32 @@ async def generate_videos_background(
                         video_prompt = (
                             f"Cinematic fashion editorial video focusing on the {product_name} pants/bottom garment. "
                             f"Frame shows lower body from waist to knees - NO FACE or upper body visible. "
-                            f"DYNAMIC CAMERA MOVEMENT: Smooth vertical tilt from waist down, elegant side-to-side pan revealing fit and drape, subtle dolly movement showcasing garment details. "
-                            f"MODEL MOVEMENT: Subtle weight shifts, walking steps, fabric flowing naturally with body movement. "
-                            f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves with the body. "
-                            f"Fashion editorial videography with artistic depth of field and dramatic lighting. "
-                            f"High-fashion commercial aesthetic with confident, editorial energy focused entirely on the pants."
+                            f"Smooth, dynamic camera movement: elegant pan showing the pants fit, subtle tracking shot emphasizing cut and style. "
+                            f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves. "
+                            f"Fashion editorial videography with artistic depth of field. "
+                            f"Natural movement of fabric with model's subtle shifts. Professional fashion lighting on the garment. "
+                            f"Confident, editorial energy focused entirely on the pants."
                         )
-                        print(f"👖 Using CINEMATIC PANTS CLOSE-UP video prompt (editorial style with movement, no face)")
+                        print(f"👖 Using PANTS CLOSE-UP video prompt (editorial style, no face)")
                     else:
-                        # Shirt/top close-up with cinematic movement
+                        # Shirt/top close-up
                         video_prompt = (
                             f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
                             f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
-                            f"DYNAMIC CAMERA MOVEMENT: Smooth horizontal pan across chest and torso, subtle push-in revealing fabric details, elegant tracking movement showcasing fit and drape. "
-                            f"MODEL MOVEMENT: Subtle torso rotations, shoulder adjustments, natural breathing creating fabric movement. "
-                            f"Showcase the garment's fabric texture, stitching, color, cut, and how it fits and moves. "
-                            f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography with dramatic lighting. "
-                            f"High-end fashion commercial aesthetic."
+                            f"Smooth, slow camera movement: gentle pan across fabric details, subtle zoom emphasizing texture and fit. "
+                            f"Showcase the garment's fabric texture, stitching, color, and style. "
+                            f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
+                            f"Natural subtle movements of fabric. Professional studio lighting on the garment."
                         )
-                        print(f"👕 Using CINEMATIC SHIRT CLOSE-UP video prompt (no face, garment focus with movement)")
+                        print(f"👕 Using SHIRT CLOSE-UP video prompt (no face, garment focus)")
                 else:
-                    # Standard prompt for full body shots with cinematic movement
+                    # Standard prompt for full body shots
                     video_prompt = (
-                        f"High-end fashion editorial video: {model_name} wearing {product_name} in {scene_name}. "
-                        f"CINEMATIC CAMERA MOVEMENT: Smooth dolly push-in or elegant orbit around subject, subtle crane movement revealing the outfit. "
-                        f"MODEL PERFORMANCE: Confident fashion editorial poses - transitioning between poses with grace, slight head turns, hand movements, shifts in posture. "
-                        f"Model strikes dynamic fashion poses with natural flow and editorial confidence. "
-                        f"Professional fashion videography with cinematic depth of field. Dramatic lighting with soft shadows. "
-                        f"Vogue-style editorial energy. Smooth, fluid camera motion capturing the garment from multiple angles. "
-                        f"Luxury fashion commercial aesthetic."
+                        f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
+                        f"Smooth, subtle camera movement. Cinematic depth. Natural breathing and slight movements. "
+                        f"Professional lighting, elegant atmosphere."
                     )
-                    print(f"🎬 Using CINEMATIC EDITORIAL video prompt (full body with camera movement)")
+                    print(f"🎬 Using STANDARD video prompt (full body)")
                 
                 print(f"📝 Video prompt: {video_prompt[:150]}...")
                 print(f"🖼️ Image URL: {image_data['image_url'][:80]}...")
@@ -2126,43 +2135,38 @@ async def regenerate_single_video_background(
                 video_prompt = (
                     f"Cinematic fashion editorial video focusing on the {product_name} pants/bottom garment. "
                     f"Frame shows lower body from waist to knees - NO FACE or upper body visible. "
-                    f"DYNAMIC CAMERA MOVEMENT: Smooth vertical tilt from waist down, elegant side-to-side pan revealing fit and drape, subtle dolly movement showcasing garment details. "
-                    f"MODEL MOVEMENT: Subtle weight shifts, walking steps, fabric flowing naturally with body movement. "
-                    f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves with the body. "
-                    f"Fashion editorial videography with artistic depth of field and dramatic lighting. "
-                    f"High-fashion commercial aesthetic with confident, editorial energy focused entirely on the pants."
+                    f"Smooth, dynamic camera movement: elegant pan showing the pants fit, subtle tracking shot emphasizing cut and style. "
+                    f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves. "
+                    f"Fashion editorial videography with artistic depth of field. "
+                    f"Natural movement of fabric with model's subtle shifts. Professional fashion lighting on the garment. "
+                    f"Confident, editorial energy focused entirely on the pants."
                 )
                 negative_prompt = (
                     "face, head, neck visible, facial features, eyes, nose, mouth, upper body, chest, "
                     "blurry, distorted, low quality, bad lighting, poor composition, jerky motion, "
                     "showing face, person's face in frame"
                 )
-                print(f"👖 Using CINEMATIC PANTS CLOSE-UP video prompt")
+                print(f"👖 Using PANTS CLOSE-UP video prompt")
             else:
                 video_prompt = (
                     f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
                     f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
-                    f"DYNAMIC CAMERA MOVEMENT: Smooth horizontal pan across chest and torso, subtle push-in revealing fabric details, elegant tracking movement showcasing fit and drape. "
-                    f"MODEL MOVEMENT: Subtle torso rotations, shoulder adjustments, natural breathing creating fabric movement. "
-                    f"Showcase the garment's fabric texture, stitching, color, cut, and how it fits and moves. "
-                    f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography with dramatic lighting. "
-                    f"High-end fashion commercial aesthetic."
+                    f"Smooth, slow camera movement: gentle pan across fabric details, subtle zoom emphasizing texture and fit. "
+                    f"Showcase the garment's fabric texture, stitching, color, and style. "
+                    f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
+                    f"Natural subtle movements of fabric. Professional studio lighting on the garment."
                 )
                 negative_prompt = (
                     "face, head, neck visible, facial features, eyes, nose, mouth, "
                     "blurry, distorted, low quality, bad lighting, poor composition, jerky motion, "
                     "showing face, person's face in frame"
                 )
-                print(f"👕 Using CINEMATIC SHIRT CLOSE-UP video prompt")
+                print(f"👕 Using SHIRT CLOSE-UP video prompt")
         else:
             video_prompt = (
-                f"High-end fashion editorial video: {model_name} wearing {product_name} in {scene_name}. "
-                f"CINEMATIC CAMERA MOVEMENT: Smooth dolly push-in or elegant orbit around subject, subtle crane movement revealing the outfit. "
-                f"MODEL PERFORMANCE: Confident fashion editorial poses - transitioning between poses with grace, slight head turns, hand movements, shifts in posture. "
-                f"Model strikes dynamic fashion poses with natural flow and editorial confidence. "
-                f"Professional fashion videography with cinematic depth of field. Dramatic lighting with soft shadows. "
-                f"Vogue-style editorial energy. Smooth, fluid camera motion capturing the garment from multiple angles. "
-                f"Luxury fashion commercial aesthetic."
+                f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
+                f"Smooth, subtle camera movement. Cinematic depth. Natural breathing and slight movements. "
+                f"Professional lighting, elegant atmosphere."
             )
             negative_prompt = "blurry, distorted, low quality, bad lighting, poor composition, jerky motion"
             print(f"🎬 Using STANDARD video prompt")
@@ -3785,7 +3789,7 @@ def rembg_cutout(photo_url: str) -> Image.Image:
             return Image.open(BytesIO(response.content)).convert("RGBA")
         except:
             # Last resort: return blank image
-        return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
+            return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
 
 def postprocess_cutout(img_rgba: Image.Image) -> Image.Image:
     """Clean up the cutout image"""
@@ -4223,7 +4227,7 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 except Exception as conv_error:
                     print(f"⚠️ WEBP→PNG conversion failed: {conv_error}")
                     print(f"⚠️ Using original WEBP packshot (Vella may not use it correctly)")
-                garment_url = product_image_url
+                    garment_url = product_image_url
                     print(f"🧵 Garment URL (WEBP fallback): {garment_url[:80]}...")
             elif has_alpha(product_image_url) and not is_packshot:
                 # Only skip processing if it already has alpha AND it's not a packshot
@@ -4233,11 +4237,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 print("🪄 Processing garment image (removing background)...")
                 print(f"   Input: {product_image_url[:80]}...")
                 try:
-                cut = rembg_cutout(product_image_url)
+                    cut = rembg_cutout(product_image_url)
                     print(f"✅ Background removal complete, image size: {cut.size}")
-                cut = postprocess_cutout(cut)
+                    cut = postprocess_cutout(cut)
                     print(f"✅ Post-processing complete, final size: {cut.size}")
-                garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
+                    garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
                     print(f"🧵 Garment cutout saved: {garment_url[:80]}...")
                 except Exception as rembg_error:
                     print(f"⚠️ Background removal failed: {rembg_error}")
@@ -4803,30 +4807,34 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # Clear composition prompt - simple and direct
+        # ULTRA-EXPLICIT prompt - PRESERVE EVERYTHING from inputs, only dress the person
         if shot_type_prompt:
             scene_prompt = (
-                f"Composite photo using 3 reference images. "
-                f"First image: Use this person's face and body. "
-                f"Second image: The person wears this {garment_description}. "
-                f"Third image: Background scene location. "
+                f"You are compositing 3 reference images. "
+                f"DO NOT CREATE anything new. DO NOT GENERATE a new face or background. "
+                f"IMAGE 1: Copy this EXACT person - their face (eyes, nose, mouth, skin, hair), body type, everything. This is the REFERENCE IDENTITY. "
+                f"IMAGE 2: Take ONLY the {garment_description} clothing/garment and dress the person from IMAGE 1 in it. "
+                f"IMAGE 3: Use this EXACT background/scene/location. Copy the environment completely - walls, floor, lighting, atmosphere. "
                 f"{shot_type_prompt}. "
-                f"Natural fashion photography."
+                f"RESULT: The person from IMAGE 1 wearing the garment from IMAGE 2, standing in the location from IMAGE 3. "
+                f"DO NOT change the person's face. DO NOT change the background scenery. ONLY dress the person in the new garment."
             )
         else:
             scene_prompt = (
-                f"Composite photo using 3 reference images. "
-                f"First image: Use this person's face and body. "
-                f"Second image: The person wears this {garment_description}. "
-                f"Third image: Background scene location. "
-                f"Natural fashion photography."
+                f"You are compositing 3 reference images. "
+                f"DO NOT CREATE anything new. DO NOT GENERATE a new face or background. "
+                f"IMAGE 1: Copy this EXACT person - their face (eyes, nose, mouth, skin, hair), body type, everything. This is the REFERENCE IDENTITY. "
+                f"IMAGE 2: Take ONLY the {garment_description} clothing/garment and dress the person from IMAGE 1 in it. "
+                f"IMAGE 3: Use this EXACT background/scene/location. Copy the environment completely - walls, floor, lighting, atmosphere. "
+                f"RESULT: The person from IMAGE 1 wearing the garment from IMAGE 2, standing in the location from IMAGE 3. "
+                f"DO NOT change the person's face. DO NOT change the background scenery. ONLY dress the person in the new garment."
             )
         
-        # Optimized parameters for 3-image composition
-        num_steps = 40
-        guidance = 4.0  # Lower guidance for more natural blend
-        strength = 0.48  # Sweet spot - not too high, not too low
-        print("⚡ Using Qwen with strength=0.48 + guidance=4.0 + steps=40 for 3-image composition")
+        # LOWER strength to preserve inputs more faithfully
+        num_steps = 40  # Good quality
+        guidance = 5.5  # HIGHER guidance to strictly follow inputs
+        strength = 0.45  # REDUCED to preserve face & background (was 0.60, too creative)
+        print("⚡ Using Qwen with strength=0.45 + guidance=5.5 for strict input preservation")
         
         # Use Qwen with 3 images
         try:
@@ -5132,8 +5140,8 @@ def run_qwen_packshot_front_back(
             if not (product_image_url.startswith("http://") or product_image_url.startswith("https://")):
                 print(f"⚠️ Unknown URL format, attempting to upload to Cloudinary...")
                 product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
-        else:
-            product_png_url = product_image_url
+            else:
+                product_png_url = product_image_url
                 print(f"✅ Using URL: {product_png_url[:100]}...")
 
         # Step 2: Simple extraction prompt - what Qwen is designed for
@@ -5256,7 +5264,7 @@ async def upload_product(
                 image_url = upload_to_cloudinary(f"file://{image_path}", "products")
             except Exception:
                 # Last resort: use static URL
-            image_url = get_static_url(image_filename)
+                image_url = get_static_url(image_filename)
         
         # Initialize packshot URLs
         packshot_front_url = None
@@ -5701,16 +5709,16 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         print(f"⏱️ Duration: {duration_seconds}s")
         
         try:
-        out = replicate.run(
-            "google/veo-3.1",
-            input={
+            out = replicate.run(
+                "google/veo-3.1",
+                input={
                     "prompt": enhanced_prompt,
                     "reference_images": [final_image_url],  # ✅ Fixed: plural "reference_images" as array
-                "aspect_ratio": aspect_ratio,
-                "duration": duration_seconds,
-                "quality": "high"  # Veo 3.1 always high quality
-            }
-        )
+                    "aspect_ratio": aspect_ratio,
+                    "duration": duration_seconds,
+                    "quality": "high"  # Veo 3.1 always high quality
+                }
+            )
             print(f"✅ Veo API call successful, processing output...")
         except replicate.exceptions.ModelError as model_error:
             # Handle content moderation errors specifically
