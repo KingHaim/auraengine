@@ -4847,11 +4847,11 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         # Person first = what to modify, Manikin second = pose to copy
         prompt = (
             "Change the body pose of the person in the first image to match the pose shown in the second image. "
+            "CRITICAL: Copy ONLY the body posture (arms, legs, stance) from the second image. "
+            "DO NOT copy the face, hair, or identity from the second image. "
+            "Keep the EXACT face and identity of the person in the first image. "
             "The person stays in the same location, same scene, same appearance. "
-            "ONLY their body pose changes: arms, legs, torso position, head tilt. "
-            "This is a pose adjustment of ONE person, not adding a second person. "
-            "Keep the same face, same clothing, same background. "
-            "Full body from head to feet."
+            "ONLY their body pose changes."
         )
         
         print(f"📝 In-place pose change prompt: {prompt[:150]}...")
@@ -4862,9 +4862,10 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         result_url = run_nano_banana_pro(
             prompt=prompt,
             image_urls=[person_wearing_product_url, manikin_pose_url],  # Person = base, Manikin = pose ref
-            strength=0.35,  # ULTRA-LOW to prevent overlay
-            guidance_scale=6.5,  # Lower guidance to stay close to base
-            num_steps=30  # Standard quality
+            strength=0.45,  # Increased slightly to allow pose change, but rely on prompt to keep identity
+            guidance_scale=7.5,
+            num_steps=30,
+            negative_prompt="manikin face, dummy face, plastic face, changing face, new face, second person, overlay, ghosting, blending faces"
         )
         
         # Upload to Cloudinary for stability
