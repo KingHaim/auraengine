@@ -268,7 +268,7 @@ async def startup_event():
         # Don't raise - let the app start even if there are non-critical errors
         # Only raise for truly critical errors that prevent the app from functioning
         if "database" in str(e).lower() or "connection" in str(e).lower():
-            raise
+        raise
 
 # CORS middleware - Allow all origins for deployment
 # When allow_credentials=True, we must explicitly list origins (cannot use "*")
@@ -920,112 +920,52 @@ async def generate_campaign_images_background(
 
         # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
         # NEW: Process all products together for each model+scene combination
-        for model in models:
-            for scene in scenes:
-                # Use model's selected pose if available
-                model_image = model.image_url
-                if selected_poses_dict.get(str(model.id)) and len(selected_poses_dict[str(model.id)]) > 0:
-                    import random
-                    model_image = random.choice(selected_poses_dict[str(model.id)])
-                    print(f"🎭 Using selected pose for {model.name}")
-                elif model.poses and len(model.poses) > 0:
-                    import random
-                    model_image = random.choice(model.poses)
-                    print(f"🎭 Using random pose for {model.name}")
-                
+            for model in models:
+                for scene in scenes:
+                    # Use model's selected pose if available
+                    model_image = model.image_url
+                    if selected_poses_dict.get(str(model.id)) and len(selected_poses_dict[str(model.id)]) > 0:
+                        import random
+                        model_image = random.choice(selected_poses_dict[str(model.id)])
+                        print(f"🎭 Using selected pose for {model.name}")
+                    elif model.poses and len(model.poses) > 0:
+                        import random
+                        model_image = random.choice(model.poses)
+                        print(f"🎭 Using random pose for {model.name}")
+                    
                 # Build product list names for logging
                 product_names = ", ".join([p.name for p in products])
                 print(f"🎬 Processing campaign flow: [{product_names}] + {model.name} + {scene.name}")
                 print(f"📸 Generating {len(shot_types_to_generate)} shots with {len(products)} product(s)...")
-                
-                # Generate the requested shot types for this combination
-                print(f"🎬 Starting generation of {len(shot_types_to_generate)} shots...")
-                for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
-                    try:
-                        print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
+                    
+                    # Generate the requested shot types for this combination
+                    print(f"🎬 Starting generation of {len(shot_types_to_generate)} shots...")
+                    for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
+                        try:
+                            print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
                         print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for [{product_names}] + {model.name} + {scene.name}")
-                        
+                            
                         # NEW MULTI-PRODUCT WORKFLOW
                         # Step 1: Generate base image with first product using Qwen
                         first_product = products[0]
                         first_product_image = first_product.packshot_front_url or first_product.image_url
-                        quality_mode = "standard"
+                            quality_mode = "standard"
 
-                        # Stabilize inputs to /static to avoid replicate 404s
-                        stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
-                        stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
+                            # Stabilize inputs to /static to avoid replicate 404s
+                            stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
+                            stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                         stable_first_product = stabilize_url(first_product_image, "product") if 'stabilize_url' in globals() else first_product_image
-                        
-                        print(f"🎬 NEW APPROACH: Using nano-banana-pro for better composition...")
-                        print(f"📸 Step 1: Compose model + scene using Qwen (2 images only)...")
-                        
-                        # Step 1: First put the model in the scene (2 images with Qwen - preserves face better)
-                        model_in_scene_prompt = (
-                            f"Place this person in the background scene. "
-                            f"Keep the person's exact face, body, and pose from the first image. "
-                            f"Use the background environment from the second image. "
-                            f"Natural fashion photography. {shot_type['prompt']}"
+                            
+                        print(f"🎬 Step 1: Qwen base composition - Model + {first_product.name} + Scene...")
+                        person_wearing_product_url = run_qwen_triple_composition(
+                                stable_model,
+                            stable_first_product,
+                                stable_scene,
+                            first_product.name,
+                                quality_mode,
+                            shot_type_prompt=shot_type['prompt'],
+                            clothing_type=first_product.clothing_type
                         )
-                        
-                        print(f"🔄 Calling Qwen with 2 images (model + scene)...")
-                        out = replicate.run("qwen/qwen-image-edit-plus", input={
-                            "prompt": model_in_scene_prompt,
-                            "image": [stable_model, stable_scene],
-                            "num_inference_steps": 35,
-                            "guidance_scale": 4.5,
-                            "strength": 0.40  # Low strength to preserve face
-                        })
-                        
-                        # Handle Qwen output
-                        if hasattr(out, 'url'):
-                            model_in_scene_url = out.url()
-                        elif isinstance(out, str):
-                            model_in_scene_url = out
-                        elif isinstance(out, list) and len(out) > 0:
-                            model_in_scene_url = out[0] if isinstance(out[0], str) else out[0].url()
-                        else:
-                            model_in_scene_url = str(out)
-                        
-                        print(f"✅ Model placed in scene: {model_in_scene_url[:50]}...")
-                        
-                        # Step 2: Now use nano-banana to dress the person in the product
-                        print(f"👕 Step 2: Using nano-banana-pro to apply {first_product.name}...")
-                        
-                        product_type = first_product.clothing_type if hasattr(first_product, 'clothing_type') and first_product.clothing_type else "garment"
-                        dress_prompt = (
-                            f"Dress this person in the {product_type} from the second image. "
-                            f"The person must be wearing the {first_product.name} from the second image. "
-                            f"Keep the person's face, pose, and background scene exactly the same. "
-                            f"Only change the clothing to match the {product_type} from the second image. "
-                            f"Natural fashion photography."
-                        )
-                        
-                        print(f"🍌 PRO Running nano-banana-pro to apply garment...")
-                        print(f"📝 Prompt: {dress_prompt[:100]}...")
-                        print(f"🖼️ Input 1 (model in scene): {model_in_scene_url[:80]}...")
-                        print(f"🖼️ Input 2 (product): {stable_first_product[:80]}...")
-                        
-                        person_wearing_product_output = replicate.run(
-                            "google/nano-banana-pro",
-                            input={
-                                "prompt": dress_prompt,
-                                "image": [model_in_scene_url, stable_first_product],
-                                "num_inference_steps": 30,
-                                "guidance_scale": 7.0,
-                                "strength": 0.60  # Moderate strength for clothing replacement
-                            }
-                        )
-                        
-                        # Handle nano-banana output
-                        if hasattr(person_wearing_product_output, 'url'):
-                            person_wearing_product_url = person_wearing_product_output.url()
-                        elif isinstance(person_wearing_product_output, str):
-                            person_wearing_product_url = person_wearing_product_output
-                        elif isinstance(person_wearing_product_output, list) and len(person_wearing_product_output) > 0:
-                            person_wearing_product_url = person_wearing_product_output[0] if isinstance(person_wearing_product_output[0], str) else person_wearing_product_output[0].url()
-                        else:
-                            person_wearing_product_url = str(person_wearing_product_output)
-                        
                         print(f"✅ Base image with {first_product.name} completed: {person_wearing_product_url[:50]}...")
                         
                         # Step 2: Add additional products sequentially using nano-banana
@@ -1078,22 +1018,22 @@ async def generate_campaign_images_background(
                         combined_product_ids = [str(p.id) for p in products]
                         first_product_image = products[0].packshot_front_url or products[0].image_url
                         first_product_type = products[0].clothing_type if hasattr(products[0], 'clothing_type') and products[0].clothing_type else "outfit"
-                        
-                        # Normalize and store final URL
-                        print(f"💾 Normalizing final result URL...")
-                        final_url = stabilize_url(to_url(final_result_url), f"final_{shot_type['name']}") if 'stabilize_url' in globals() else download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
-                        print(f"✅ Final result saved locally: {final_url[:50]}...")
-                        
-                        generated_images.append({
+                            
+                            # Normalize and store final URL
+                            print(f"💾 Normalizing final result URL...")
+                            final_url = stabilize_url(to_url(final_result_url), f"final_{shot_type['name']}") if 'stabilize_url' in globals() else download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
+                            print(f"✅ Final result saved locally: {final_url[:50]}...")
+                            
+                            generated_images.append({
                             "product_name": combined_product_names,
                             "product_id": combined_product_ids[0] if combined_product_ids else str(products[0].id),  # Use first product ID for compatibility
                             "product_ids": combined_product_ids,  # NEW: Store all product IDs
-                            "model_name": model.name,
-                            "scene_name": scene.name,
-                            "shot_type": shot_type['title'],
-                            "shot_name": shot_type['name'],
-                            "image_url": final_url,
-                            "model_image_url": model_image,
+                                "model_name": model.name,
+                                "scene_name": scene.name,
+                                "shot_type": shot_type['title'],
+                                "shot_name": shot_type['name'],
+                                "image_url": final_url,
+                                "model_image_url": model_image,
                             "product_image_url": first_product_image,
                             "clothing_type": first_product_type
                         })
@@ -1107,15 +1047,15 @@ async def generate_campaign_images_background(
                         db.commit()
                         db.refresh(campaign)
                         print(f"💾 Real-time update: Saved {len(generated_images)}/{shots_to_generate_count} images to database")
-                        
-                        print(f"✅ Shot completed: {shot_type['title']}")
-                        
-                    except Exception as e:
-                        print(f"❌ Failed shot {shot_type['title']}: {e}")
-                        import traceback
-                        traceback.print_exc()
-                        print(f"🔄 Continuing to next shot... (Shot {shot_idx}/{len(shot_types_to_generate)})")
-                        continue
+                            
+                            print(f"✅ Shot completed: {shot_type['title']}")
+                            
+                        except Exception as e:
+                            print(f"❌ Failed shot {shot_type['title']}: {e}")
+                            import traceback
+                            traceback.print_exc()
+                            print(f"🔄 Continuing to next shot... (Shot {shot_idx}/{len(shot_types_to_generate)})")
+                            continue
                     
                 print(f"\n🎉 Campaign flow complete: [{product_names}] + {model.name} + {scene.name}")
         
@@ -1315,26 +1255,26 @@ async def generate_campaign_images(
         
         # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
         # NEW: Process all products together for each model+scene combination
-        for model in models:
-            for scene in scenes:
-                # Use model's pose if available, or select random
-                if model.poses and len(model.poses) > 0:
-                    import random
-                    model_image = random.choice(model.poses)
-                    print(f"🎭 Using random pose for {model.name}")
-                else:
-                    model_image = model.image_url
-                
+            for model in models:
+                for scene in scenes:
+                    # Use model's pose if available, or select random
+                    if model.poses and len(model.poses) > 0:
+                        import random
+                        model_image = random.choice(model.poses)
+                        print(f"🎭 Using random pose for {model.name}")
+                    else:
+                        model_image = model.image_url
+                    
                 # Build product list names for logging
                 product_names = ", ".join([p.name for p in products])
                 print(f"🎬 Processing campaign flow: [{product_names}] + {model.name} + {scene.name}")
                 print(f"📸 Generating {number_of_images} images with {len(products)} product(s)...")
-                
-                # Generate only the requested number of images - RANDOMIZED
-                import random
-                available_shots = CAMPAIGN_SHOT_TYPES.copy()
-                random.shuffle(available_shots)
-                shot_types_to_generate = available_shots[:number_of_images]
+                    
+                    # Generate only the requested number of images - RANDOMIZED
+                    import random
+                    available_shots = CAMPAIGN_SHOT_TYPES.copy()
+                    random.shuffle(available_shots)
+                    shot_types_to_generate = available_shots[:number_of_images]
                 
                 # If manikin pose is set, ensure first shot is full body frontal (not side view or closeup)
                 campaign_manikin_pose = campaign.settings.get("manikin_pose", "") if campaign.settings else ""
@@ -1368,76 +1308,16 @@ async def generate_campaign_images(
                             stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
                             stable_first_product = stabilize_url(first_product_image, "product") if 'stabilize_url' in globals() else first_product_image
                             
-                            print(f"🎬 NEW APPROACH: Using nano-banana-pro for better composition...")
-                            print(f"📸 Step 1: Compose model + scene using Qwen (2 images only)...")
-                            
-                            # Step 1: First put the model in the scene (2 images with Qwen - preserves face better)
-                            model_in_scene_prompt = (
-                                f"Place this person in the background scene. "
-                                f"Keep the person's exact face, body, and pose from the first image. "
-                                f"Use the background environment from the second image. "
-                                f"Natural fashion photography. {shot_type['prompt']}"
+                            print(f"🎬 Step 1: Qwen base composition - Model + {first_product.name} + Scene...")
+                            person_wearing_product_url = run_qwen_triple_composition(
+                                stable_model,
+                                stable_first_product,
+                                stable_scene,
+                                first_product.name,
+                                quality_mode,
+                                shot_type_prompt=shot_type['prompt'],
+                                clothing_type=first_product.clothing_type
                             )
-                            
-                            print(f"🔄 Calling Qwen with 2 images (model + scene)...")
-                            out = replicate.run("qwen/qwen-image-edit-plus", input={
-                                "prompt": model_in_scene_prompt,
-                                "image": [stable_model, stable_scene],
-                                "num_inference_steps": 35,
-                                "guidance_scale": 4.5,
-                                "strength": 0.40  # Low strength to preserve face
-                            })
-                            
-                            # Handle Qwen output
-                            if hasattr(out, 'url'):
-                                model_in_scene_url = out.url()
-                            elif isinstance(out, str):
-                                model_in_scene_url = out
-                            elif isinstance(out, list) and len(out) > 0:
-                                model_in_scene_url = out[0] if isinstance(out[0], str) else out[0].url()
-                            else:
-                                model_in_scene_url = str(out)
-                            
-                            print(f"✅ Model placed in scene: {model_in_scene_url[:50]}...")
-                            
-                            # Step 2: Now use nano-banana to dress the person in the product
-                            print(f"👕 Step 2: Using nano-banana-pro to apply {first_product.name}...")
-                            
-                            product_type = first_product.clothing_type if hasattr(first_product, 'clothing_type') and first_product.clothing_type else "garment"
-                            dress_prompt = (
-                                f"Dress this person in the {product_type} from the second image. "
-                                f"The person must be wearing the {first_product.name} from the second image. "
-                                f"Keep the person's face, pose, and background scene exactly the same. "
-                                f"Only change the clothing to match the {product_type} from the second image. "
-                                f"Natural fashion photography."
-                            )
-                            
-                            print(f"🍌 PRO Running nano-banana-pro to apply garment...")
-                            print(f"📝 Prompt: {dress_prompt[:100]}...")
-                            print(f"🖼️ Input 1 (model in scene): {model_in_scene_url[:80]}...")
-                            print(f"🖼️ Input 2 (product): {stable_first_product[:80]}...")
-                            
-                            person_wearing_product_output = replicate.run(
-                                "google/nano-banana-pro",
-                                input={
-                                    "prompt": dress_prompt,
-                                    "image": [model_in_scene_url, stable_first_product],
-                                    "num_inference_steps": 30,
-                                    "guidance_scale": 7.0,
-                                    "strength": 0.60  # Moderate strength for clothing replacement
-                                }
-                            )
-                            
-                            # Handle nano-banana output
-                            if hasattr(person_wearing_product_output, 'url'):
-                                person_wearing_product_url = person_wearing_product_output.url()
-                            elif isinstance(person_wearing_product_output, str):
-                                person_wearing_product_url = person_wearing_product_output
-                            elif isinstance(person_wearing_product_output, list) and len(person_wearing_product_output) > 0:
-                                person_wearing_product_url = person_wearing_product_output[0] if isinstance(person_wearing_product_output[0], str) else person_wearing_product_output[0].url()
-                            else:
-                                person_wearing_product_url = str(person_wearing_product_output)
-                            
                             print(f"✅ Base image with {first_product.name} completed: {person_wearing_product_url[:50]}...")
                             
                             # Step 2: Add additional products sequentially using nano-banana
@@ -3905,7 +3785,7 @@ def rembg_cutout(photo_url: str) -> Image.Image:
             return Image.open(BytesIO(response.content)).convert("RGBA")
         except:
             # Last resort: return blank image
-            return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
+        return Image.new("RGBA", (800, 800), (255, 255, 255, 0))
 
 def postprocess_cutout(img_rgba: Image.Image) -> Image.Image:
     """Clean up the cutout image"""
@@ -4343,7 +4223,7 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 except Exception as conv_error:
                     print(f"⚠️ WEBP→PNG conversion failed: {conv_error}")
                     print(f"⚠️ Using original WEBP packshot (Vella may not use it correctly)")
-                    garment_url = product_image_url
+                garment_url = product_image_url
                     print(f"🧵 Garment URL (WEBP fallback): {garment_url[:80]}...")
             elif has_alpha(product_image_url) and not is_packshot:
                 # Only skip processing if it already has alpha AND it's not a packshot
@@ -4353,11 +4233,11 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 print("🪄 Processing garment image (removing background)...")
                 print(f"   Input: {product_image_url[:80]}...")
                 try:
-                    cut = rembg_cutout(product_image_url)
+                cut = rembg_cutout(product_image_url)
                     print(f"✅ Background removal complete, image size: {cut.size}")
-                    cut = postprocess_cutout(cut)
+                cut = postprocess_cutout(cut)
                     print(f"✅ Post-processing complete, final size: {cut.size}")
-                    garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
+                garment_url = upload_pil_to_cloudinary(cut, "garment_cutout")  # -> Cloudinary URL
                     print(f"🧵 Garment cutout saved: {garment_url[:80]}...")
                 except Exception as rembg_error:
                     print(f"⚠️ Background removal failed: {rembg_error}")
@@ -4926,29 +4806,27 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
         # Clear composition prompt - simple and direct
         if shot_type_prompt:
             scene_prompt = (
-                f"Fashion product composite photo. "
-                f"Take the person's face and identity from the first image. "
-                f"Dress them in the {garment_description} from the second image. "
-                f"Place them in the environment from the third image. "
+                f"Composite photo using 3 reference images. "
+                f"First image: Use this person's face and body. "
+                f"Second image: The person wears this {garment_description}. "
+                f"Third image: Background scene location. "
                 f"{shot_type_prompt}. "
-                f"The result shows: same person's face + wearing the {garment_description} + in the background scene. "
-                f"Natural fashion photography composition."
+                f"Natural fashion photography."
             )
         else:
             scene_prompt = (
-                f"Fashion product composite photo. "
-                f"Take the person's face and identity from the first image. "
-                f"Dress them in the {garment_description} from the second image. "
-                f"Place them in the environment from the third image. "
-                f"The result shows: same person's face + wearing the {garment_description} + in the background scene. "
-                f"Natural fashion photography composition."
+                f"Composite photo using 3 reference images. "
+                f"First image: Use this person's face and body. "
+                f"Second image: The person wears this {garment_description}. "
+                f"Third image: Background scene location. "
+                f"Natural fashion photography."
             )
         
-        # Lower strength for better input preservation
-        num_steps = 45  # Higher steps for better quality
-        guidance = 5.0  # Moderate guidance
-        strength = 0.50  # Lower strength to respect all 3 inputs equally
-        print("⚡ Using Qwen with strength=0.50 + guidance=5.0 + steps=45 for balanced composition")
+        # Optimized parameters for 3-image composition
+        num_steps = 40
+        guidance = 4.0  # Lower guidance for more natural blend
+        strength = 0.48  # Sweet spot - not too high, not too low
+        print("⚡ Using Qwen with strength=0.48 + guidance=4.0 + steps=40 for 3-image composition")
         
         # Use Qwen with 3 images
         try:
@@ -5254,8 +5132,8 @@ def run_qwen_packshot_front_back(
             if not (product_image_url.startswith("http://") or product_image_url.startswith("https://")):
                 print(f"⚠️ Unknown URL format, attempting to upload to Cloudinary...")
                 product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
-            else:
-                product_png_url = product_image_url
+        else:
+            product_png_url = product_image_url
                 print(f"✅ Using URL: {product_png_url[:100]}...")
 
         # Step 2: Simple extraction prompt - what Qwen is designed for
@@ -5378,7 +5256,7 @@ async def upload_product(
                 image_url = upload_to_cloudinary(f"file://{image_path}", "products")
             except Exception:
                 # Last resort: use static URL
-                image_url = get_static_url(image_filename)
+            image_url = get_static_url(image_filename)
         
         # Initialize packshot URLs
         packshot_front_url = None
@@ -5823,16 +5701,16 @@ def run_veo_video_generation(image_url: str, video_quality: str = "480p", durati
         print(f"⏱️ Duration: {duration_seconds}s")
         
         try:
-            out = replicate.run(
-                "google/veo-3.1",
-                input={
+        out = replicate.run(
+            "google/veo-3.1",
+            input={
                     "prompt": enhanced_prompt,
                     "reference_images": [final_image_url],  # ✅ Fixed: plural "reference_images" as array
-                    "aspect_ratio": aspect_ratio,
-                    "duration": duration_seconds,
-                    "quality": "high"  # Veo 3.1 always high quality
-                }
-            )
+                "aspect_ratio": aspect_ratio,
+                "duration": duration_seconds,
+                "quality": "high"  # Veo 3.1 always high quality
+            }
+        )
             print(f"✅ Veo API call successful, processing output...")
         except replicate.exceptions.ModelError as model_error:
             # Handle content moderation errors specifically
