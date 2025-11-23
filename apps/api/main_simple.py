@@ -1599,15 +1599,6 @@ async def generate_multiple_pose_variations(
                 generated_images.append(new_image)
                 print(f"✅ Added {pose_filename} to campaign (total images: {len(generated_images)})")
                 
-                # 🔄 REAL-TIME UPDATE: Save immediately after each pose
-                new_settings = dict(campaign.settings) if campaign.settings else {}
-                new_settings["generated_images"] = generated_images
-                campaign.settings = new_settings
-                flag_modified(campaign, "settings")
-                db.commit()
-                db.refresh(campaign)
-                print(f"💾 Real-time update: Saved pose image {len(generated_images)} to database")
-                
             except Exception as pose_error:
                 print(f"❌ Failed to generate pose {pose_filename}: {pose_error}")
                 import traceback
@@ -1672,15 +1663,6 @@ async def generate_multiple_pose_variations(
                         }
                         generated_images.append(closeup_image)
                         print(f"✅ Added close-up shot from reference image (total images: {len(generated_images)})")
-                        
-                        # 🔄 REAL-TIME UPDATE: Save immediately after close-up
-                        new_settings = dict(campaign.settings) if campaign.settings else {}
-                        new_settings["generated_images"] = generated_images
-                        campaign.settings = new_settings
-                        flag_modified(campaign, "settings")
-                        db.commit()
-                        db.refresh(campaign)
-                        print(f"💾 Real-time update: Saved close-up image {len(generated_images)} to database")
                     else:
                         print(f"⚠️ Close-up generation returned None")
                 else:
@@ -1764,15 +1746,6 @@ async def generate_multiple_pose_variations(
                         }
                         generated_images.append(pants_closeup_image)
                         print(f"✅ Added pants close-up shot (total images: {len(generated_images)})")
-                        
-                        # 🔄 REAL-TIME UPDATE: Save immediately after pants close-up
-                        new_settings = dict(campaign.settings) if campaign.settings else {}
-                        new_settings["generated_images"] = generated_images
-                        campaign.settings = new_settings
-                        flag_modified(campaign, "settings")
-                        db.commit()
-                        db.refresh(campaign)
-                        print(f"💾 Real-time update: Saved pants close-up image {len(generated_images)} to database")
                     else:
                         print(f"⚠️ Pants close-up generation returned None")
                 else:
@@ -1877,9 +1850,23 @@ async def generate_videos_background(
     try:
         videos = []
         
+        # Define camera movement signatures for variety
+        CAMERA_SIGNATURES = [
+            "ROTATING LENS: Dynamic orbital camera movement around the subject, creating a 3D volumetric feel.",
+            "FAST ZOOM IN: Energetic crash zoom towards the subject, high-impact fashion music video aesthetic.",
+            "TILTING: Elegant vertical tilt movement scanning the outfit from top to bottom.",
+            "TRACKING SHOT: Smooth sideways dolly movement keeping pace with the subject, cinematic and steady.",
+            "HANDHELD: Organic, slightly shaky handheld camera movement for a raw, edgy editorial look.",
+            "LOW ANGLE: Camera positioned low looking up, empowering the subject with a majestic perspective."
+        ]
+        
         for idx, image_data in enumerate(images, 1):
             try:
                 print(f"\n🎬 [{idx}/{len(images)}] Generating video for {image_data.get('shot_type', 'image')}...")
+                
+                # Select camera signature based on index (cycling)
+                camera_signature = CAMERA_SIGNATURES[(idx - 1) % len(CAMERA_SIGNATURES)]
+                print(f"🎥 Applied camera signature: {camera_signature.split(':')[0]}")
                 
                 # Build prompt for video
                 product_name = image_data.get('product_name', 'clothing')
@@ -1895,7 +1882,7 @@ async def generate_videos_background(
                         video_prompt = (
                             f"Cinematic fashion editorial video focusing on the {product_name} pants/bottom garment. "
                             f"Frame shows lower body from waist to knees - NO FACE or upper body visible. "
-                            f"Smooth, dynamic camera movement: elegant pan showing the pants fit, subtle tracking shot emphasizing cut and style. "
+                            f"CAMERA MOVEMENT: Elegant vertical tilt or smooth tracking shot emphasizing the cut. "
                             f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves. "
                             f"Fashion editorial videography with artistic depth of field. "
                             f"Natural movement of fabric with model's subtle shifts. Professional fashion lighting on the garment. "
@@ -1907,20 +1894,21 @@ async def generate_videos_background(
                         video_prompt = (
                             f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
                             f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
-                            f"Smooth, slow camera movement: gentle pan across fabric details, subtle zoom emphasizing texture and fit. "
+                            f"CAMERA MOVEMENT: Smooth gentle pan or subtle push-in emphasizing texture. "
                             f"Showcase the garment's fabric texture, stitching, color, and style. "
                             f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
                             f"Natural subtle movements of fabric. Professional studio lighting on the garment."
                         )
                         print(f"👕 Using SHIRT CLOSE-UP video prompt (no face, garment focus)")
                 else:
-                    # Standard prompt for full body shots
+                    # Standard prompt for full body shots - Apply dynamic camera signature
                     video_prompt = (
                         f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
-                        f"Smooth, subtle camera movement. Cinematic depth. Natural breathing and slight movements. "
+                        f"CAMERA MOVEMENT: {camera_signature} "
+                        f"Cinematic depth. Natural breathing and slight movements. "
                         f"Professional lighting, elegant atmosphere."
                     )
-                    print(f"🎬 Using STANDARD video prompt (full body)")
+                    print(f"🎬 Using STANDARD video prompt with signature: {camera_signature.split(':')[0]}")
                 
                 print(f"📝 Video prompt: {video_prompt[:150]}...")
                 print(f"🖼️ Image URL: {image_data['image_url'][:80]}...")
@@ -2018,235 +2006,6 @@ async def generate_videos_background(
         # CRITICAL: Close database session to prevent connection pool exhaustion
         db.close()
         print(f"✅ Database session closed for video generation {campaign_id}")
-
-
-@app.post("/campaigns/{campaign_id}/regenerate-video/{video_index}")
-async def regenerate_single_video(
-    campaign_id: str,
-    video_index: int,
-    current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Regenerate a single video for a specific image in the campaign"""
-    try:
-        print(f"🔄 Regenerate video request for campaign {campaign_id}, video index {video_index}")
-        
-        campaign = db.query(Campaign).filter(
-            Campaign.id == campaign_id,
-            Campaign.user_id == current_user["user_id"]
-        ).first()
-        
-        if not campaign:
-            raise HTTPException(status_code=404, detail="Campaign not found")
-        
-        # Get the videos and generated_images
-        videos = campaign.settings.get("videos", []) if campaign.settings else []
-        generated_images = campaign.settings.get("generated_images", []) if campaign.settings else []
-        
-        if video_index < 0 or video_index >= len(videos):
-            raise HTTPException(status_code=400, detail=f"Invalid video index. Campaign has {len(videos)} videos.")
-        
-        # Check if user has enough credits (5 credits per video)
-        user = db.query(User).filter(User.id == current_user["user_id"]).first()
-        if not user or user.credits < 5:
-            raise HTTPException(
-                status_code=400, 
-                detail="Insufficient credits. Need 5 credits to regenerate a video."
-            )
-        
-        # Get the corresponding image data
-        if video_index < len(generated_images):
-            image_data = generated_images[video_index]
-        else:
-            raise HTTPException(status_code=400, detail="No corresponding image found for this video.")
-        
-        # Mark the video as regenerating
-        video_to_regenerate = videos[video_index]
-        video_to_regenerate["regenerating"] = True
-        video_to_regenerate["video_url"] = None  # Clear the old video URL
-        
-        new_settings = dict(campaign.settings) if campaign.settings else {}
-        new_settings["videos"] = videos
-        campaign.settings = new_settings
-        flag_modified(campaign, "settings")
-        db.commit()
-        
-        # Start regeneration in background
-        import asyncio
-        asyncio.create_task(regenerate_single_video_background(
-            campaign_id,
-            video_index,
-            image_data,
-            current_user["user_id"]
-        ))
-        
-        return {
-            "message": f"Regenerating video {video_index + 1}...",
-            "video_index": video_index,
-            "shot_type": video_to_regenerate.get("shot_type", ""),
-            "status": "regenerating"
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"❌ Failed to start video regeneration: {e}")
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-async def regenerate_single_video_background(
-    campaign_id: str,
-    video_index: int,
-    image_data: dict,
-    user_id: str
-):
-    """Background task to regenerate a single video"""
-    db = SessionLocal()
-    try:
-        print(f"\n🔄 Starting video regeneration for campaign {campaign_id}, index {video_index}...")
-        
-        # Get the image URL
-        image_url = image_data.get("image_url")
-        if not image_url:
-            raise Exception("No image URL found for video regeneration")
-        
-        # Build prompt (reuse the same logic from generate_videos_background)
-        product_name = image_data.get('product_name', 'clothing')
-        scene_name = image_data.get('scene_name', 'scene')
-        model_name = image_data.get('model_name', 'model')
-        shot_type = image_data.get('shot_type', '')
-        shot_name = image_data.get('shot_name', '')
-        
-        print(f"📸 Regenerating video for: {shot_type}")
-        
-        # Special prompts for close-up shots - distinguish between shirt and pants
-        if 'close' in shot_type.lower() or 'closeup' in shot_name.lower() or 'close-up' in shot_type.lower():
-            # Check if it's a pants close-up
-            if 'pants' in shot_type.lower() or 'pants' in shot_name.lower():
-                video_prompt = (
-                    f"Cinematic fashion editorial video focusing on the {product_name} pants/bottom garment. "
-                    f"Frame shows lower body from waist to knees - NO FACE or upper body visible. "
-                    f"Smooth, dynamic camera movement: elegant pan showing the pants fit, subtle tracking shot emphasizing cut and style. "
-                    f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves. "
-                    f"Fashion editorial videography with artistic depth of field. "
-                    f"Natural movement of fabric with model's subtle shifts. Professional fashion lighting on the garment. "
-                    f"Confident, editorial energy focused entirely on the pants."
-                )
-                negative_prompt = (
-                    "face, head, neck visible, facial features, eyes, nose, mouth, upper body, chest, "
-                    "blurry, distorted, low quality, bad lighting, poor composition, jerky motion, "
-                    "showing face, person's face in frame"
-                )
-                print(f"👖 Using PANTS CLOSE-UP video prompt (editorial style, no face)")
-            else:
-                # Shirt/top close-up
-                video_prompt = (
-                    f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
-                    f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
-                    f"Smooth, slow camera movement: gentle pan across fabric details, subtle zoom emphasizing texture and fit. "
-                    f"Showcase the garment's fabric texture, stitching, color, and style. "
-                    f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
-                    f"Natural subtle movements of fabric. Professional studio lighting on the garment."
-                )
-                negative_prompt = (
-                    "face, head, neck visible, facial features, eyes, nose, mouth, "
-                    "blurry, distorted, low quality, bad lighting, poor composition, jerky motion, "
-                    "showing face, person's face in frame"
-                )
-                print(f"👕 Using SHIRT CLOSE-UP video prompt (no face, garment focus)")
-        else:
-            # Standard prompt for full body shots
-            video_prompt = (
-                f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
-                f"Smooth, subtle camera movement. Cinematic depth. Natural breathing and slight movements. "
-                f"Professional lighting, elegant atmosphere."
-            )
-            negative_prompt = "blurry, distorted, low quality, bad lighting, poor composition, jerky motion"
-            print(f"🎬 Using STANDARD video prompt (full body)")
-        
-        print(f"📝 Video prompt: {video_prompt[:150]}...")
-        
-        # Call Kling API
-        output = replicate.run(
-            "kwaivgi/kling-v2.5-turbo-pro",
-            input={
-                "mode": "image-to-video",
-                "image": image_url,
-                "duration": "5",
-                "cfg_scale": 0.5,
-                "prompt": video_prompt,
-                "aspect_ratio": "16:9",
-                "negative_prompt": negative_prompt
-            }
-        )
-        
-        # Handle output
-        if hasattr(output, 'url'):
-            video_url = output.url()
-        elif isinstance(output, str):
-            video_url = output
-        else:
-            video_url = str(output)
-        
-        print(f"✅ Video regenerated: {video_url[:80]}...")
-        
-        # Upload to Cloudinary for permanent storage
-        video_url = upload_to_cloudinary(video_url, "campaign_videos")
-        print(f"☁️ Uploaded to Cloudinary: {video_url[:80]}...")
-        
-        # Update the campaign with the new video
-        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
-        if campaign:
-            new_settings = dict(campaign.settings) if campaign.settings else {}
-            videos = new_settings.get("videos", [])
-            
-            if video_index < len(videos):
-                videos[video_index]["video_url"] = video_url
-                videos[video_index]["regenerating"] = False
-                videos[video_index]["regenerated_at"] = datetime.utcnow().isoformat()
-                
-                new_settings["videos"] = videos
-                campaign.settings = new_settings
-                flag_modified(campaign, "settings")
-                db.commit()
-                
-                print(f"✅ Campaign updated with regenerated video at index {video_index}")
-            
-            # Deduct credits
-            user = db.query(User).filter(User.id == user_id).first()
-            if user:
-                user.credits -= 5
-                db.commit()
-                print(f"💰 Deducted 5 credits from user {user_id}. Remaining: {user.credits}")
-        
-        print(f"🎉 Video regeneration completed for index {video_index}")
-        
-    except Exception as e:
-        print(f"❌ Video regeneration failed: {e}")
-        import traceback
-        traceback.print_exc()
-        
-        # Update campaign to mark regeneration as failed
-        try:
-            campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
-            if campaign:
-                new_settings = dict(campaign.settings) if campaign.settings else {}
-                videos = new_settings.get("videos", [])
-                if video_index < len(videos):
-                    videos[video_index]["regenerating"] = False
-                    videos[video_index]["error"] = str(e)
-                    new_settings["videos"] = videos
-                    campaign.settings = new_settings
-                    flag_modified(campaign, "settings")
-                    db.commit()
-        except Exception as update_error:
-            print(f"❌ Failed to update campaign status: {update_error}")
-    
-    finally:
-        db.close()
-        print(f"✅ Database session closed for video regeneration {campaign_id}")
 
 @app.post("/campaigns/{campaign_id}/generate-unified-video")
 async def generate_unified_campaign_video(
@@ -4222,8 +3981,8 @@ def run_vella_try_on(model_image_url: str, product_image_url: str, quality_mode:
                 except Exception as conv_error:
                     print(f"⚠️ WEBP→PNG conversion failed: {conv_error}")
                     print(f"⚠️ Using original WEBP packshot (Vella may not use it correctly)")
-                garment_url = product_image_url
-                print(f"🧵 Garment URL (WEBP fallback): {garment_url[:80]}...")
+                    garment_url = product_image_url
+                    print(f"🧵 Garment URL (WEBP fallback): {garment_url[:80]}...")
             elif has_alpha(product_image_url) and not is_packshot:
                 # Only skip processing if it already has alpha AND it's not a packshot
                 garment_url = product_image_url
@@ -4709,44 +4468,17 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
                     data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
                     current_image_url = upload_to_cloudinary(data_url, "current_image")
         
-        if product_image_url.startswith(get_base_url() + "/static/") or "localhost" in product_image_url:
-            # Handle localhost URLs that might not match get_base_url() exactly
-            if "/static/" in product_image_url:
-                filename = product_image_url.split("/static/")[-1]
-            else:
-                filename = product_image_url.split("/")[-1]
-            
-            # Search for file in multiple locations
-            api_dir = os.path.dirname(os.path.abspath(__file__))
-            possible_paths = [
-                os.path.join(api_dir, "static", filename),
-                os.path.join(api_dir, "uploads", filename),
-                os.path.join(api_dir, "static", "packshot_front", filename),
-                os.path.join(api_dir, "uploads", os.path.basename(filename)), # Try basename only in uploads
-                filename, # Try relative to cwd
-                f"uploads/{filename}"
-            ]
-            
-            filepath = next((p for p in possible_paths if os.path.exists(p)), None)
-            
-            if filepath:
+        if product_image_url.startswith(get_base_url() + "/static/"):
+            filename = product_image_url.replace(get_base_url() + "/static/", "")
+            filepath = f"static/{filename}" if os.path.exists(f"static/{filename}") else f"uploads/{filename}"
+            if os.path.exists(filepath):
                 import base64
                 with open(filepath, "rb") as f:
                     file_content = f.read()
                     ext = filename.split('.')[-1] if '.' in filename else 'jpg'
                     data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
                     product_image_url = upload_to_cloudinary(data_url, "additional_product")
-                    print(f"✅ Uploaded local product to Cloudinary: {product_image_url[:80]}...")
-            else:
-                print(f"❌ Could not find local file for {filename}")
-                
-        # Final check: If URL is still local, we can't proceed with Replicate
-        if product_image_url.startswith("http://localhost") or "127.0.0.1" in product_image_url or "/static/" in product_image_url:
-             if not product_image_url.startswith("https://res.cloudinary.com") and not product_image_url.startswith("https://replicate.delivery"):
-                 print(f"❌ CRITICAL: Cannot send local URL to Replicate: {product_image_url}")
-                 print(f"⏭️ Skipping addition of {product_name}")
-                 return current_image_url
-
+        
         # Create prompt for adding the garment
         # Use product_type field to determine garment category (more reliable than parsing name)
         product_type_lower = product_type.lower() if product_type else ""
@@ -5164,7 +4896,7 @@ def run_qwen_packshot_front_back(
                 product_png_url = upload_to_cloudinary(product_image_url, "product_temp")
             else:
                 product_png_url = product_image_url
-            print(f"✅ Using URL: {product_png_url[:100]}...")
+                print(f"✅ Using URL: {product_png_url[:100]}...")
 
         # Step 2: Simple extraction prompt - what Qwen is designed for
         print("Generating front packshot...")
