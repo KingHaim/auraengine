@@ -6229,9 +6229,12 @@ export default function CampaignsPage() {
                 }}
               >
                 {/* Campaign Images Gallery */}
-                {selectedCampaignForProfile.settings?.generated_images &&
-                selectedCampaignForProfile.settings.generated_images.length >
-                  0 ? (
+                {(selectedCampaignForProfile.settings?.generated_images &&
+                  selectedCampaignForProfile.settings.generated_images.length >
+                    0) ||
+                (selectedCampaignForProfile.generation_status === "generating" &&
+                  selectedCampaignForProfile.settings?.expected_images_count >
+                    0) ? (
                   <div>
                     <h3
                       style={{
@@ -6243,9 +6246,16 @@ export default function CampaignsPage() {
                     >
                       Campaign Images (
                       {
-                        selectedCampaignForProfile.settings.generated_images
-                          .length
+                        selectedCampaignForProfile.settings?.generated_images
+                          ?.length || 0
                       }
+                      {selectedCampaignForProfile.settings
+                        ?.expected_images_count &&
+                        selectedCampaignForProfile.settings
+                          .expected_images_count >
+                          (selectedCampaignForProfile.settings?.generated_images
+                            ?.length || 0) &&
+                        ` / ${selectedCampaignForProfile.settings.expected_images_count}`}
                       )
                     </h3>
                     <div
@@ -6259,10 +6269,11 @@ export default function CampaignsPage() {
                         padding: "8px",
                       }}
                     >
-                      {selectedCampaignForProfile.settings.generated_images.map(
+                      {/* Render generated images */}
+                      {selectedCampaignForProfile.settings?.generated_images?.map(
                         (img: any, index: number) => (
                           <div
-                            key={index}
+                            key={`generated-${index}`}
                             style={{
                               aspectRatio: "1",
                               borderRadius: "12px",
@@ -6430,6 +6441,86 @@ export default function CampaignsPage() {
                           </div>
                         )
                       )}
+
+                      {/* Render placeholder images for images being generated */}
+                      {selectedCampaignForProfile.generation_status ===
+                        "generating" &&
+                        selectedCampaignForProfile.settings
+                          ?.expected_images_count &&
+                        Array.from({
+                          length:
+                            selectedCampaignForProfile.settings
+                              .expected_images_count -
+                            (selectedCampaignForProfile.settings
+                              ?.generated_images?.length || 0),
+                        }).map((_, placeholderIndex) => {
+                          const actualIndex =
+                            (selectedCampaignForProfile.settings
+                              ?.generated_images?.length || 0) +
+                            placeholderIndex;
+                          return (
+                            <div
+                              key={`placeholder-${placeholderIndex}`}
+                              style={{
+                                aspectRatio: "1",
+                                borderRadius: "12px",
+                                overflow: "hidden",
+                                backgroundColor: "#F3F4F6",
+                                border: "2px dashed #D1D5DB",
+                                position: "relative",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              {/* Beating Heart Spinner */}
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  alignItems: "center",
+                                  gap: "16px",
+                                }}
+                              >
+                                <img
+                                  src="/beating.gif"
+                                  alt="Loading"
+                                  style={{
+                                    width: "80px",
+                                    height: "80px",
+                                  }}
+                                />
+                                <p
+                                  style={{
+                                    fontSize: "14px",
+                                    fontWeight: "600",
+                                    color: "#6B7280",
+                                    margin: 0,
+                                  }}
+                                >
+                                  Generating Image {actualIndex + 1}...
+                                </p>
+                              </div>
+
+                              {/* Image number label */}
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  bottom: "8px",
+                                  left: "8px",
+                                  backgroundColor: "rgba(156, 163, 175, 0.8)",
+                                  color: "white",
+                                  padding: "4px 8px",
+                                  borderRadius: "6px",
+                                  fontSize: "11px",
+                                  fontWeight: "600",
+                                }}
+                              >
+                                #{actualIndex + 1}
+                              </div>
+                            </div>
+                          );
+                        })}
                     </div>
                   </div>
                 ) : (
@@ -6904,7 +6995,9 @@ export default function CampaignsPage() {
                                           await fetchData();
                                         } else {
                                           const error = await response.text();
-                                          alert(`Failed to regenerate: ${error}`);
+                                          alert(
+                                            `Failed to regenerate: ${error}`
+                                          );
                                         }
                                       } catch (error) {
                                         console.error(
@@ -6943,7 +7036,9 @@ export default function CampaignsPage() {
                                   {/* Download Button */}
                                   <a
                                     href={video.video_url}
-                                    download={`${selectedCampaignForProfile.name}_${
+                                    download={`${
+                                      selectedCampaignForProfile.name
+                                    }_${
                                       video.shot_name || `video_${idx + 1}`
                                     }.mp4`}
                                     style={{

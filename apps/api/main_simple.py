@@ -893,6 +893,15 @@ async def generate_campaign_images_background(
         random.shuffle(available_shots)
         shot_types_to_generate = available_shots[:shots_to_generate_count]
         
+        # Set expected images count at the start
+        new_settings = dict(campaign.settings) if campaign.settings else {}
+        new_settings["expected_images_count"] = shots_to_generate_count
+        new_settings["generated_images"] = generated_images
+        campaign.settings = new_settings
+        flag_modified(campaign, "settings")
+        db.commit()
+        print(f"📊 Expected to generate {shots_to_generate_count} images")
+        
         # If manikin pose is set, ensure first shot is full body frontal (not side view or closeup)
         if manikin_pose and manikin_pose != "":
             # Find a FULL BODY frontal shot type (not profile/side/closeup/detail)
@@ -1028,6 +1037,16 @@ async def generate_campaign_images_background(
                             "product_image_url": first_product_image,
                             "clothing_type": first_product_type
                         })
+                        
+                        # 🔄 REALTIME UPDATE: Save immediately after each image is generated
+                        new_settings = dict(campaign.settings) if campaign.settings else {}
+                        new_settings["generated_images"] = generated_images
+                        new_settings["expected_images_count"] = shots_to_generate_count
+                        campaign.settings = new_settings
+                        flag_modified(campaign, "settings")
+                        db.commit()
+                        db.refresh(campaign)
+                        print(f"💾 Real-time update: Saved {len(generated_images)}/{shots_to_generate_count} images to database")
                         
                         print(f"✅ Shot completed: {shot_type['title']}")
                         
@@ -1177,7 +1196,10 @@ async def get_campaign_generation_status(
             "generation_status": campaign.generation_status,
             "status": campaign.status,
             "generated_images_count": len(campaign.settings.get("generated_images", [])) if campaign.settings else 0,
-            "updated_at": campaign.updated_at
+            "expected_images_count": campaign.settings.get("expected_images_count", 0) if campaign.settings else 0,
+            "generated_images": campaign.settings.get("generated_images", []) if campaign.settings else [],
+            "updated_at": campaign.updated_at,
+            "campaign": campaign
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1868,32 +1890,37 @@ async def generate_videos_background(
                         video_prompt = (
                             f"Cinematic fashion editorial video focusing on the {product_name} pants/bottom garment. "
                             f"Frame shows lower body from waist to knees - NO FACE or upper body visible. "
-                            f"Smooth, dynamic camera movement: elegant pan showing the pants fit, subtle tracking shot emphasizing cut and style. "
-                            f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves. "
-                            f"Fashion editorial videography with artistic depth of field. "
-                            f"Natural movement of fabric with model's subtle shifts. Professional fashion lighting on the garment. "
-                            f"Confident, editorial energy focused entirely on the pants."
+                            f"DYNAMIC CAMERA MOVEMENT: Smooth vertical tilt from waist down, elegant side-to-side pan revealing fit and drape, subtle dolly movement showcasing garment details. "
+                            f"MODEL MOVEMENT: Subtle weight shifts, walking steps, fabric flowing naturally with body movement. "
+                            f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves with the body. "
+                            f"Fashion editorial videography with artistic depth of field and dramatic lighting. "
+                            f"High-fashion commercial aesthetic with confident, editorial energy focused entirely on the pants."
                         )
-                        print(f"👖 Using PANTS CLOSE-UP video prompt (editorial style, no face)")
+                        print(f"👖 Using CINEMATIC PANTS CLOSE-UP video prompt (editorial style with movement, no face)")
                     else:
-                        # Shirt/top close-up
+                        # Shirt/top close-up with cinematic movement
                         video_prompt = (
                             f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
                             f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
-                            f"Smooth, slow camera movement: gentle pan across fabric details, subtle zoom emphasizing texture and fit. "
-                            f"Showcase the garment's fabric texture, stitching, color, and style. "
-                            f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
-                            f"Natural subtle movements of fabric. Professional studio lighting on the garment."
+                            f"DYNAMIC CAMERA MOVEMENT: Smooth horizontal pan across chest and torso, subtle push-in revealing fabric details, elegant tracking movement showcasing fit and drape. "
+                            f"MODEL MOVEMENT: Subtle torso rotations, shoulder adjustments, natural breathing creating fabric movement. "
+                            f"Showcase the garment's fabric texture, stitching, color, cut, and how it fits and moves. "
+                            f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography with dramatic lighting. "
+                            f"High-end fashion commercial aesthetic."
                         )
-                        print(f"👕 Using SHIRT CLOSE-UP video prompt (no face, garment focus)")
+                        print(f"👕 Using CINEMATIC SHIRT CLOSE-UP video prompt (no face, garment focus with movement)")
                 else:
-                    # Standard prompt for full body shots
+                    # Standard prompt for full body shots with cinematic movement
                     video_prompt = (
-                        f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
-                        f"Smooth, subtle camera movement. Cinematic depth. Natural breathing and slight movements. "
-                        f"Professional lighting, elegant atmosphere."
+                        f"High-end fashion editorial video: {model_name} wearing {product_name} in {scene_name}. "
+                        f"CINEMATIC CAMERA MOVEMENT: Smooth dolly push-in or elegant orbit around subject, subtle crane movement revealing the outfit. "
+                        f"MODEL PERFORMANCE: Confident fashion editorial poses - transitioning between poses with grace, slight head turns, hand movements, shifts in posture. "
+                        f"Model strikes dynamic fashion poses with natural flow and editorial confidence. "
+                        f"Professional fashion videography with cinematic depth of field. Dramatic lighting with soft shadows. "
+                        f"Vogue-style editorial energy. Smooth, fluid camera motion capturing the garment from multiple angles. "
+                        f"Luxury fashion commercial aesthetic."
                     )
-                    print(f"🎬 Using STANDARD video prompt (full body)")
+                    print(f"🎬 Using CINEMATIC EDITORIAL video prompt (full body with camera movement)")
                 
                 print(f"📝 Video prompt: {video_prompt[:150]}...")
                 print(f"🖼️ Image URL: {image_data['image_url'][:80]}...")
@@ -2099,38 +2126,43 @@ async def regenerate_single_video_background(
                 video_prompt = (
                     f"Cinematic fashion editorial video focusing on the {product_name} pants/bottom garment. "
                     f"Frame shows lower body from waist to knees - NO FACE or upper body visible. "
-                    f"Smooth, dynamic camera movement: elegant pan showing the pants fit, subtle tracking shot emphasizing cut and style. "
-                    f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves. "
-                    f"Fashion editorial videography with artistic depth of field. "
-                    f"Natural movement of fabric with model's subtle shifts. Professional fashion lighting on the garment. "
-                    f"Confident, editorial energy focused entirely on the pants."
+                    f"DYNAMIC CAMERA MOVEMENT: Smooth vertical tilt from waist down, elegant side-to-side pan revealing fit and drape, subtle dolly movement showcasing garment details. "
+                    f"MODEL MOVEMENT: Subtle weight shifts, walking steps, fabric flowing naturally with body movement. "
+                    f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves with the body. "
+                    f"Fashion editorial videography with artistic depth of field and dramatic lighting. "
+                    f"High-fashion commercial aesthetic with confident, editorial energy focused entirely on the pants."
                 )
                 negative_prompt = (
                     "face, head, neck visible, facial features, eyes, nose, mouth, upper body, chest, "
                     "blurry, distorted, low quality, bad lighting, poor composition, jerky motion, "
                     "showing face, person's face in frame"
                 )
-                print(f"👖 Using PANTS CLOSE-UP video prompt")
+                print(f"👖 Using CINEMATIC PANTS CLOSE-UP video prompt")
             else:
                 video_prompt = (
                     f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
                     f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
-                    f"Smooth, slow camera movement: gentle pan across fabric details, subtle zoom emphasizing texture and fit. "
-                    f"Showcase the garment's fabric texture, stitching, color, and style. "
-                    f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
-                    f"Natural subtle movements of fabric. Professional studio lighting on the garment."
+                    f"DYNAMIC CAMERA MOVEMENT: Smooth horizontal pan across chest and torso, subtle push-in revealing fabric details, elegant tracking movement showcasing fit and drape. "
+                    f"MODEL MOVEMENT: Subtle torso rotations, shoulder adjustments, natural breathing creating fabric movement. "
+                    f"Showcase the garment's fabric texture, stitching, color, cut, and how it fits and moves. "
+                    f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography with dramatic lighting. "
+                    f"High-end fashion commercial aesthetic."
                 )
                 negative_prompt = (
                     "face, head, neck visible, facial features, eyes, nose, mouth, "
                     "blurry, distorted, low quality, bad lighting, poor composition, jerky motion, "
                     "showing face, person's face in frame"
                 )
-                print(f"👕 Using SHIRT CLOSE-UP video prompt")
+                print(f"👕 Using CINEMATIC SHIRT CLOSE-UP video prompt")
         else:
             video_prompt = (
-                f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
-                f"Smooth, subtle camera movement. Cinematic depth. Natural breathing and slight movements. "
-                f"Professional lighting, elegant atmosphere."
+                f"High-end fashion editorial video: {model_name} wearing {product_name} in {scene_name}. "
+                f"CINEMATIC CAMERA MOVEMENT: Smooth dolly push-in or elegant orbit around subject, subtle crane movement revealing the outfit. "
+                f"MODEL PERFORMANCE: Confident fashion editorial poses - transitioning between poses with grace, slight head turns, hand movements, shifts in posture. "
+                f"Model strikes dynamic fashion poses with natural flow and editorial confidence. "
+                f"Professional fashion videography with cinematic depth of field. Dramatic lighting with soft shadows. "
+                f"Vogue-style editorial energy. Smooth, fluid camera motion capturing the garment from multiple angles. "
+                f"Luxury fashion commercial aesthetic."
             )
             negative_prompt = "blurry, distorted, low quality, bad lighting, poor composition, jerky motion"
             print(f"🎬 Using STANDARD video prompt")
@@ -4777,28 +4809,30 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
                 f"You are compositing 3 reference images. "
                 f"DO NOT CREATE anything new. DO NOT GENERATE a new face or background. "
                 f"IMAGE 1: Copy this EXACT person - their face (eyes, nose, mouth, skin, hair), body type, everything. This is the REFERENCE IDENTITY. "
-                f"IMAGE 2: Take ONLY the {garment_description} clothing/garment and dress the person from IMAGE 1 in it. "
+                f"IMAGE 2: Take ONLY the {garment_description} clothing/garment from this image. APPLY IT and DRESS the person from IMAGE 1 in this exact garment. "
+                f"The person MUST be wearing the {garment_description} from IMAGE 2. This is CRITICAL - the garment must be visible on the person. "
                 f"IMAGE 3: Use this EXACT background/scene/location. Copy the environment completely - walls, floor, lighting, atmosphere. "
                 f"{shot_type_prompt}. "
-                f"RESULT: The person from IMAGE 1 wearing the garment from IMAGE 2, standing in the location from IMAGE 3. "
-                f"DO NOT change the person's face. DO NOT change the background scenery. ONLY dress the person in the new garment."
+                f"RESULT: The person from IMAGE 1 WEARING and DRESSED in the {garment_description} from IMAGE 2, standing in the location from IMAGE 3. "
+                f"DO NOT change the person's face. DO NOT change the background scenery. CRITICALLY IMPORTANT: The person MUST be wearing the {garment_description} from IMAGE 2."
             )
         else:
             scene_prompt = (
                 f"You are compositing 3 reference images. "
                 f"DO NOT CREATE anything new. DO NOT GENERATE a new face or background. "
                 f"IMAGE 1: Copy this EXACT person - their face (eyes, nose, mouth, skin, hair), body type, everything. This is the REFERENCE IDENTITY. "
-                f"IMAGE 2: Take ONLY the {garment_description} clothing/garment and dress the person from IMAGE 1 in it. "
+                f"IMAGE 2: Take ONLY the {garment_description} clothing/garment from this image. APPLY IT and DRESS the person from IMAGE 1 in this exact garment. "
+                f"The person MUST be wearing the {garment_description} from IMAGE 2. This is CRITICAL - the garment must be visible on the person. "
                 f"IMAGE 3: Use this EXACT background/scene/location. Copy the environment completely - walls, floor, lighting, atmosphere. "
-                f"RESULT: The person from IMAGE 1 wearing the garment from IMAGE 2, standing in the location from IMAGE 3. "
-                f"DO NOT change the person's face. DO NOT change the background scenery. ONLY dress the person in the new garment."
+                f"RESULT: The person from IMAGE 1 WEARING and DRESSED in the {garment_description} from IMAGE 2, standing in the location from IMAGE 3. "
+                f"DO NOT change the person's face. DO NOT change the background scenery. CRITICALLY IMPORTANT: The person MUST be wearing the {garment_description} from IMAGE 2."
             )
         
-        # LOWER strength to preserve inputs more faithfully
+        # Slightly higher strength to ensure garment is applied
         num_steps = 40  # Good quality
-        guidance = 5.5  # HIGHER guidance to strictly follow inputs
-        strength = 0.45  # REDUCED to preserve face & background (was 0.60, too creative)
-        print("⚡ Using Qwen with strength=0.45 + guidance=5.5 for strict input preservation")
+        guidance = 6.0  # HIGHER guidance to strictly follow prompt
+        strength = 0.55  # Balanced - preserve identity but ensure garment application
+        print("⚡ Using Qwen with strength=0.55 + guidance=6.0 for garment application with identity preservation")
         
         # Use Qwen with 3 images
         try:
