@@ -6526,7 +6526,8 @@ export default function CampaignsPage() {
                         </p>
                         <a
                           href={
-                            selectedCampaignForProfile.settings.unified_video_url
+                            selectedCampaignForProfile.settings
+                              .unified_video_url
                           }
                           download={`${selectedCampaignForProfile.name}_unified_campaign.mp4`}
                           style={{
@@ -6553,6 +6554,124 @@ export default function CampaignsPage() {
                         >
                           💾 Download Video
                         </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Unified Video Generation in Progress */}
+                {selectedCampaignForProfile.settings?.unified_video_status ===
+                  "generating" && (
+                  <div style={{ marginTop: "32px" }}>
+                    <h3
+                      style={{
+                        fontSize: "20px",
+                        fontWeight: "700",
+                        color: "#1F2937",
+                        marginBottom: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                      }}
+                    >
+                      🎥 Final Campaign Video
+                    </h3>
+                    <div
+                      style={{
+                        border: "2px solid #10B981",
+                        borderRadius: "16px",
+                        overflow: "hidden",
+                        backgroundColor: "#000",
+                        boxShadow: "0 8px 24px rgba(0, 0, 0, 0.2)",
+                        position: "relative",
+                        height: "400px",
+                      }}
+                    >
+                      {/* Blurred preview from first video */}
+                      {selectedCampaignForProfile.settings?.videos?.[0]
+                        ?.video_url && (
+                        <video
+                          src={
+                            selectedCampaignForProfile.settings.videos[0]
+                              .video_url
+                          }
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            filter: "blur(10px)",
+                            transform: "scale(1.1)",
+                          }}
+                          muted
+                          loop
+                          autoPlay
+                        />
+                      )}
+
+                      {/* Overlay with spinner and text */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: "rgba(0, 0, 0, 0.6)",
+                        }}
+                      >
+                        {/* Beating heart spinner */}
+                        <img
+                          src="/beating.gif"
+                          alt="Loading..."
+                          style={{
+                            width: "120px",
+                            height: "120px",
+                            marginBottom: "24px",
+                          }}
+                        />
+
+                        {/* Text */}
+                        <p
+                          style={{
+                            color: "white",
+                            fontSize: "24px",
+                            fontWeight: "700",
+                            margin: 0,
+                            textAlign: "center",
+                            textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                          }}
+                        >
+                          Creating Final Campaign Video
+                        </p>
+
+                        <p
+                          style={{
+                            color: "rgba(255,255,255,0.9)",
+                            fontSize: "16px",
+                            margin: "12px 0 0 0",
+                            textAlign: "center",
+                          }}
+                        >
+                          Stitching{" "}
+                          {selectedCampaignForProfile.settings?.videos
+                            ?.length || 5}{" "}
+                          clips together...
+                        </p>
+
+                        <p
+                          style={{
+                            color: "rgba(255,255,255,0.7)",
+                            fontSize: "14px",
+                            margin: "8px 0 0 0",
+                            textAlign: "center",
+                          }}
+                        >
+                          This may take 2-3 minutes
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -6651,14 +6770,82 @@ export default function CampaignsPage() {
                           ) : (
                             <div
                               style={{
-                                padding: "40px",
-                                textAlign: "center",
-                                color: "#6B7280",
+                                position: "relative",
+                                width: "100%",
+                                height: "250px",
+                                overflow: "hidden",
                               }}
                             >
-                              {video.error
-                                ? `❌ ${video.error}`
-                                : "⏳ Processing..."}
+                              {/* Blurred thumbnail */}
+                              {video.image_url && (
+                                <img
+                                  src={video.image_url}
+                                  alt="Generating video..."
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    filter: "blur(8px)",
+                                    transform: "scale(1.1)",
+                                  }}
+                                />
+                              )}
+                              
+                              {/* Overlay with spinner and text */}
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  backgroundColor: "rgba(0, 0, 0, 0.5)",
+                                }}
+                              >
+                                {/* Beating heart spinner */}
+                                <img
+                                  src="/beating.gif"
+                                  alt="Loading..."
+                                  style={{
+                                    width: "80px",
+                                    height: "80px",
+                                    marginBottom: "16px",
+                                  }}
+                                />
+                                
+                                {/* Text */}
+                                <p
+                                  style={{
+                                    color: "white",
+                                    fontSize: "16px",
+                                    fontWeight: "600",
+                                    margin: 0,
+                                    textAlign: "center",
+                                    textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                                  }}
+                                >
+                                  {video.error
+                                    ? `❌ ${video.error}`
+                                    : "Video Generation in Process"}
+                                </p>
+                                
+                                {!video.error && (
+                                  <p
+                                    style={{
+                                      color: "rgba(255,255,255,0.8)",
+                                      fontSize: "14px",
+                                      margin: "8px 0 0 0",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    This may take 2-3 minutes...
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           )}
                           <div
@@ -6681,7 +6868,9 @@ export default function CampaignsPage() {
                             {video.video_url && (
                               <a
                                 href={video.video_url}
-                                download={`${selectedCampaignForProfile.name}_${video.shot_name || `video_${idx + 1}`}.mp4`}
+                                download={`${selectedCampaignForProfile.name}_${
+                                  video.shot_name || `video_${idx + 1}`
+                                }.mp4`}
                                 style={{
                                   padding: "4px 8px",
                                   backgroundColor: "#10B981",
