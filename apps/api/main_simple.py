@@ -1374,8 +1374,9 @@ async def generate_campaign_images(
                                 f"Place the person from the reference image into this scene. "
                                 f"{pose_instruction}. "
                                 f"Slight fashion editorial pose, confident and stylish. "
-                                f"CRITICAL: Ensure anatomically correct proportions. The head size must be realistic relative to the body. "
-                                f"Scale the person correctly within the scene depth. "
+                                f"CRITICAL: Ensure anatomically correct proportions. Head must be small relative to body height (1/8th ratio). "
+                                f"Wide angle shot, zoomed out, full body visible from head to toe. "
+                                f"Scale the person correctly within the scene depth - do not make them too large. "
                                 f"Professional lighting matching the environment. "
                                 f"High quality, photorealistic, 4k."
                             )
@@ -1386,7 +1387,7 @@ async def generate_campaign_images(
                                 strength=0.85, # High strength to generate person
                                 guidance_scale=7.5,
                                 num_steps=25,
-                                negative_prompt="big head, large head, disproportionate body, caricature, cartoon, distorted proportions, macro shot, close up, face too big, bobblehead, weird anatomy"
+                                negative_prompt="big head, large head, giant head, disproportionate body, caricature, cartoon, distorted proportions, macro shot, close up, face too big, bobblehead, weird anatomy, short legs, stubby body"
                             )
                             print(f"✅ Model placed in scene: {model_in_scene_url[:50]}...")
                             
@@ -1742,21 +1743,22 @@ async def generate_multiple_pose_variations(
                 # 3-STEP GENERATION (Scene -> Pose -> Outfit)
                 print(f"🍌 Step 1: Place Manikin in Scene...")
                 manikin_in_scene = run_nano_banana_pro(
-                    prompt="Place this manikin into the scene. Full body shot. Realistic scale and lighting.",
+                    prompt="Place this manikin into the scene. Full body shot from head to toe. Wide angle. Realistic scale - do not make the manikin too large. Small head relative to body.",
                     image_urls=[stable_scene, manikin_pose_url], # Base=Scene, Ref=Manikin
                     strength=0.85,
                     guidance_scale=7.5,
-                    num_steps=25
+                    num_steps=25,
+                    negative_prompt="big head, large head, giant head, disproportionate body, caricature, cartoon, distorted proportions, macro shot, close up, face too big, bobblehead, weird anatomy"
                 )
                 
                 print(f"🍌 Step 2: Swap Identity (Manikin -> Model)...")
                 model_in_pose = run_nano_banana_pro(
-                    prompt="Replace the manikin with this person. Keep the pose exactly the same. Use the person's face and body.",
+                    prompt="Replace the manikin with this person. Keep the pose exactly the same. Use the person's face and body. Maintain correct anatomical proportions. Head size 1/8 of body.",
                     image_urls=[manikin_in_scene, stable_model], # Base=ManikinInScene, Ref=Model
                     strength=0.65,
                     guidance_scale=7.5,
                     num_steps=25,
-                    negative_prompt="manikin face, plastic, dummy, doll face"
+                    negative_prompt="manikin face, plastic, dummy, doll face, big head, large head, bobblehead"
                 )
                 
                 print(f"🍌 Step 3: Dress Model in {first_product.name}...")
