@@ -996,7 +996,15 @@ async def generate_campaign_images_background(
                                                 stable_additional_product = upload_to_cloudinary(data_url, "product_reupload")
                                                 print(f"✅ Uploaded to Cloudinary: {stable_additional_product[:80]}...")
                                         else:
-                                            print(f"⚠️ Could not find local file for {filename}, sending URL as is (might fail)")
+                                            print(f"⚠️ Could not find local file for {filename}")
+                                            # FALLBACK: Try using the original product image if packshot is missing
+                                            if additional_product.image_url and additional_product.image_url != additional_product.packshot_front_url:
+                                                print(f"🔄 Falling back to original product image: {additional_product.image_url[:80]}...")
+                                                # If original is Cloudinary, use it. If local, we might still have issues but worth a try.
+                                                if "cloudinary" in additional_product.image_url or additional_product.image_url.startswith("http"):
+                                                    stable_additional_product = additional_product.image_url
+                                            else:
+                                                print(f"⚠️ No fallback image available, sending URL as is (might fail)")
                                     except Exception as upload_err:
                                         print(f"⚠️ Failed to upload local file to Cloudinary: {upload_err}")
 
@@ -1377,7 +1385,15 @@ async def generate_campaign_images(
                                                     stable_additional_product = upload_to_cloudinary(data_url, "product_reupload")
                                                     print(f"✅ Uploaded to Cloudinary: {stable_additional_product[:80]}...")
                                             else:
-                                                print(f"⚠️ Could not find local file for {filename}, sending URL as is (might fail)")
+                                                print(f"⚠️ Could not find local file for {filename}")
+                                                # FALLBACK: Try using the original product image if packshot is missing
+                                                if additional_product.image_url and additional_product.image_url != additional_product.packshot_front_url:
+                                                    print(f"🔄 Falling back to original product image: {additional_product.image_url[:80]}...")
+                                                    # If original is Cloudinary, use it. If local, we might still have issues but worth a try.
+                                                    if "cloudinary" in additional_product.image_url or additional_product.image_url.startswith("http"):
+                                                        stable_additional_product = additional_product.image_url
+                                                else:
+                                                    print(f"⚠️ No fallback image available, sending URL as is (might fail)")
                                         except Exception as upload_err:
                                             print(f"⚠️ Failed to upload local file to Cloudinary: {upload_err}")
 
