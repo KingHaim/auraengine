@@ -1374,6 +1374,8 @@ async def generate_campaign_images(
                                 f"Place the person from the reference image into this scene. "
                                 f"{pose_instruction}. "
                                 f"Slight fashion editorial pose, confident and stylish. "
+                                f"CRITICAL: Ensure anatomically correct proportions. The head size must be realistic relative to the body. "
+                                f"Scale the person correctly within the scene depth. "
                                 f"Professional lighting matching the environment. "
                                 f"High quality, photorealistic, 4k."
                             )
