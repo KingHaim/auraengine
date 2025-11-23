@@ -1667,86 +1667,112 @@ async def generate_multiple_pose_variations(
         # Load existing images to append new poses
         generated_images = existing_images.copy()
         
-        # Define different positions for the model WITHIN the scene for each pose
-        pose_angles = {
-            "Pose-handneck.jpg": {
-                "angle": "model repositioned to a different location in the scene",
-                "description": "Move the person to a different spot within the same scene environment. The person is now standing in another area of the location - maybe closer to scene elements, or in a different part of the space. Same pose, same clothing, but different positioning within the scene composition."
-            },
-            "Pose-thinking.jpg": {
-                "angle": "model in an alternate position within the scene", 
-                "description": "Place the person in a different location within the scene. They could be nearer or further from the camera, positioned differently relative to the background elements. Creative repositioning that makes the shot more dynamic while maintaining the same scene environment."
-            }
-        }
+        # Fetch objects for generation
+        products = db.query(Product).filter(Product.id.in_(product_ids)).all()
+        models = db.query(Model).filter(Model.id.in_(model_ids)).all()
+        scenes = db.query(Scene).filter(Scene.id.in_(scene_ids)).all()
         
-        # For each remaining pose, use nano-banana to transfer pose + reposition model in scene
+        if not products or not models or not scenes:
+            print("❌ Missing products, models or scenes")
+            return
+
+        model = models[0]
+        scene = scenes[0]
+        first_product = products[0]
+        first_product_image = first_product.packshot_front_url or first_product.image_url
+        first_product_type = first_product.clothing_type if hasattr(first_product, 'clothing_type') and first_product.clothing_type else "outfit"
+        
+        # Ensure all inputs are public Cloudinary URLs
+        stable_model = stabilize_url(model.image_url, "pose") if 'stabilize_url' in globals() else model.image_url
+        stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
+        stable_first_product = stabilize_url(first_product_image, "product") if 'stabilize_url' in globals() else first_product_image
+        
+        # Helper to ensure public URL (re-defined here for safety in async context)
+        def ensure_public_url_local(url, prefix):
+            if url and (url.startswith("http://localhost") or "/static/" in url) and "cloudinary" not in url:
+                try:
+                    filename = url.split("/")[-1]
+                    api_dir = os.path.dirname(os.path.abspath(__file__))
+                    possible_paths = [
+                        os.path.join(api_dir, "static", filename),
+                        os.path.join(api_dir, "uploads", filename),
+                        os.path.join(api_dir, "static", "poses", filename),
+                        os.path.join(api_dir, "static", "scenes", filename),
+                        os.path.join(api_dir, "static", "packshot_front", filename)
+                    ]
+                    filepath = next((p for p in possible_paths if os.path.exists(p)), None)
+                    if filepath:
+                        import base64
+                        with open(filepath, "rb") as f:
+                            file_content = f.read()
+                            data_url = f"data:image/jpeg;base64,{base64.b64encode(file_content).decode()}"
+                            return upload_to_cloudinary(data_url, prefix)
+                except Exception:
+                    pass
+            return url
+
+        stable_model = ensure_public_url_local(stable_model, "model_upload")
+        stable_scene = ensure_public_url_local(stable_scene, "scene_upload")
+        stable_first_product = ensure_public_url_local(stable_first_product, "product_upload")
+
+        # For each remaining pose, generate from scratch using 3-step workflow
         for pose_idx, pose_filename in enumerate(poses, 1):
-            print(f"\n📸 [{pose_idx}/{len(poses)}] Applying pose: {pose_filename}")
+            print(f"\n📸 [{pose_idx}/{len(poses)}] Generating pose: {pose_filename}")
             
             try:
-                # Get manikin pose URL from cache or upload on-demand
+                # Get manikin pose URL
                 cached_url = POSE_IMAGE_URLS.get(pose_filename)
                 if cached_url and cached_url.startswith("https://res.cloudinary.com/"):
                     manikin_pose_url = cached_url
-                    print(f"✅ Using Cloudinary URL for {pose_filename}")
                 else:
-                    # Not in cache or not a Cloudinary URL - try to upload
-                    print(f"⚠️ Pose {pose_filename} not in Cloudinary cache, uploading...")
+                    # Upload on demand
                     api_dir = os.path.dirname(os.path.abspath(__file__))
                     static_path = os.path.join(api_dir, "static", "poses", pose_filename)
                     if os.path.exists(static_path):
                         import base64
                         with open(static_path, "rb") as f:
                             file_content = f.read()
-                            ext = pose_filename.split('.')[-1] if '.' in pose_filename else 'jpg'
-                            data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
+                            data_url = f"data:image/jpeg;base64,{base64.b64encode(file_content).decode()}"
                             manikin_pose_url = upload_to_cloudinary(data_url, "manikin_pose")
-                            # Update cache
                             POSE_IMAGE_URLS[pose_filename] = manikin_pose_url
-                            print(f"✅ Uploaded {pose_filename} to Cloudinary: {manikin_pose_url[:80]}...")
                     else:
-                        print(f"❌ Pose file not found: {static_path}")
+                        print(f"❌ Pose file not found: {pose_filename}")
                         continue
                 
-                # Use nano-banana to transfer pose
-                print(f"🍌 Transferring pose from {pose_filename} to preview image...")
-                new_pose_image_url = replace_manikin_with_person(manikin_pose_url, preview_image_url)
-                print(f"✅ Pose transfer completed: {new_pose_image_url[:80]}...")
+                # 3-STEP GENERATION (Scene -> Pose -> Outfit)
+                print(f"🍌 Step 1: Place Manikin in Scene...")
+                manikin_in_scene = run_nano_banana_pro(
+                    prompt="Place this manikin into the scene. Full body shot. Realistic scale and lighting.",
+                    image_urls=[stable_scene, manikin_pose_url], # Base=Scene, Ref=Manikin
+                    strength=0.85,
+                    guidance_scale=7.5,
+                    num_steps=25
+                )
                 
-                # Check if the result is different from preview
-                if new_pose_image_url == preview_image_url:
-                    print(f"⚠️ Result is same as preview - pose transfer may have failed")
+                print(f"🍌 Step 2: Swap Identity (Manikin -> Model)...")
+                model_in_pose = run_nano_banana_pro(
+                    prompt="Replace the manikin with this person. Keep the pose exactly the same. Use the person's face and body.",
+                    image_urls=[manikin_in_scene, stable_model], # Base=ManikinInScene, Ref=Model
+                    strength=0.65,
+                    guidance_scale=7.5,
+                    num_steps=25,
+                    negative_prompt="manikin face, plastic, dummy, doll face"
+                )
                 
-                # Apply model repositioning if defined for this pose
-                if pose_filename in pose_angles:
-                    angle_info = pose_angles[pose_filename]
-                    print(f"📐 Repositioning model: {angle_info['angle']}")
-                    
-                    angle_prompt = (
-                        f"Reposition the person to a different location within the same scene: {angle_info['angle']}. "
-                        f"{angle_info['description']} "
-                        f"IMPORTANT: Move the person to a DIFFERENT SPOT in the scene environment. "
-                        f"They should be standing somewhere else - different position relative to background elements. "
-                        f"The scene can be creatively interpreted - add more depth, different placement, varied distance. "
-                        f"Keep the same person, same pose, same clothing, same scene style/environment. "
-                        f"Full body shot with the person repositioned within the scene."
-                    )
-                    
-                    # Use nano-banana PRO to reposition model within the scene with HIGHER strength for creative variation
-                    angle_result_url = run_nano_banana_pro(
-                        prompt=angle_prompt,
-                        image_urls=[new_pose_image_url],  # Single image, reposition person in scene
-                        strength=0.60,  # Higher strength to allow repositioning within scene
-                        guidance_scale=7.0,  # Higher guidance for repositioning
-                        num_steps=30  # More steps for quality
-                    )
-                    
-                    # Upload to Cloudinary
-                    if angle_result_url:
-                        new_pose_image_url = upload_to_cloudinary(angle_result_url, "angle_variation")
-                        print(f"✅ Camera angle applied: {angle_info['angle']}")
+                print(f"🍌 Step 3: Dress Model in {first_product.name}...")
+                new_pose_image_url = run_nano_banana_pro(
+                    prompt=f"Dress the person in {first_product.name}. Keep pose, face and background exactly the same.",
+                    image_urls=[model_in_pose, stable_first_product], # Base=ModelInPose, Ref=Product
+                    strength=0.65,
+                    guidance_scale=7.5,
+                    num_steps=25
+                )
                 
-                # Create new image entry with same metadata but new pose
+                # Upload final result
+                new_pose_image_url = upload_to_cloudinary(new_pose_image_url, f"final_{pose_filename}")
+                print(f"✅ Pose generation completed: {new_pose_image_url[:80]}...")
+                
+                # Create new image entry
                 new_image = preview_image.copy()
                 new_image["image_url"] = new_pose_image_url
                 new_image["shot_type"] = f"Pose Variation ({pose_filename})"
@@ -1755,7 +1781,7 @@ async def generate_multiple_pose_variations(
                 generated_images.append(new_image)
                 print(f"✅ Added {pose_filename} to campaign (total images: {len(generated_images)})")
                 
-                # 🔄 REAL-TIME UPDATE: Save immediately after each pose
+                # 🔄 REAL-TIME UPDATE
                 new_settings = dict(campaign.settings) if campaign.settings else {}
                 new_settings["generated_images"] = generated_images
                 campaign.settings = new_settings
