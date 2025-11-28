@@ -4701,11 +4701,11 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
                 f"DO NOT copy the person's pose or expression from IMAGE 1. DO NOT change the background scenery. ONLY use their identity and dress them in the new garment."
             )
         
-        # LOWER strength to preserve inputs more faithfully
+        # Balance strength to apply scene while preserving person identity
         num_steps = 40  # Good quality
-        guidance = 5.5  # HIGHER guidance to strictly follow inputs
-        strength = 0.45  # REDUCED to preserve face & background (was 0.60, too creative)
-        print("⚡ Using Qwen with strength=0.45 + guidance=5.5 for strict input preservation")
+        guidance = 6.0  # Higher guidance to follow the 3-image composition instructions
+        strength = 0.55  # Increased to apply scene more strongly (was 0.45, too weak for scene)
+        print("⚡ Using Qwen with strength=0.55 + guidance=6.0 for scene application while preserving identity")
         
         # Use Qwen with 3 images
         try:
