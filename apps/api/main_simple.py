@@ -2344,11 +2344,13 @@ async def update_product(
                 content = await product_image.read()
                 f.write(content)
             
-            # Upload to Cloudinary if available, otherwise use static URL
+            # ALWAYS upload to Cloudinary - no local URLs
             try:
                 product.image_url = upload_to_cloudinary(image_path, f"product_{product.id}")
-            except Exception:
-                product.image_url = get_static_url(image_filename)
+                print(f"✅ Product image uploaded to Cloudinary: {product.image_url[:80]}...")
+            except Exception as e:
+                print(f"❌ Failed to upload product image to Cloudinary: {e}")
+                raise HTTPException(status_code=500, detail=f"Failed to upload product image to Cloudinary: {str(e)}")
         
         # Update updated_at timestamp
         product.updated_at = datetime.utcnow()
@@ -3714,13 +3716,13 @@ def upload_to_cloudinary(url: str, folder: str = "auraengine") -> str:
     - data:video/* base64
     - http(s) URLs (replicate.delivery, etc.)
     - local file paths
-    Falls back to returning the original url on failure.
+    
+    NO LOCAL FALLBACK - Always uploads to Cloudinary or raises exception.
     """
     try:
         # Check if Cloudinary is configured
         if not (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
-            print("⚠️ Cloudinary not configured, falling back to local storage")
-            return download_and_save_image(url, folder)
+            raise Exception("Cloudinary is not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.")
         
         # Handle data URL
         if isinstance(url, str) and url.startswith("data:image/"):
@@ -3742,7 +3744,7 @@ def upload_to_cloudinary(url: str, folder: str = "auraengine") -> str:
                 return cloudinary_url
             except Exception as e:
                 print(f"❌ Failed to upload data URL to Cloudinary: {e}")
-                return download_and_save_image(url, folder)
+                raise
 
         # Handle http(s) URL
         if isinstance(url, str) and (url.startswith("http://") or url.startswith("https://")):
@@ -3764,7 +3766,7 @@ def upload_to_cloudinary(url: str, folder: str = "auraengine") -> str:
                 return cloudinary_url
             except Exception as e:
                 print(f"❌ Failed to upload URL to Cloudinary: {e}")
-                return download_and_save_image(url, folder)
+                raise
 
         # Handle local file path
         try:
@@ -3779,11 +3781,13 @@ def upload_to_cloudinary(url: str, folder: str = "auraengine") -> str:
             return cloudinary_url
         except Exception as e:
             print(f"❌ Failed to upload local file to Cloudinary: {e}")
-            return download_and_save_image(url, folder)
+            raise
 
     except Exception as e:
-        print(f"❌ Failed to process image with Cloudinary: {e}")
-        return download_and_save_image(url, folder)
+        print(f"❌ CRITICAL: Failed to upload to Cloudinary: {e}")
+        print(f"   URL: {url[:100] if isinstance(url, str) else url}")
+        print(f"   Folder: {folder}")
+        raise Exception(f"Cloudinary upload failed: {str(e)}")
 
 def download_and_save_image(url: str, prefix: str = "packshot") -> str:
     """
@@ -5122,16 +5126,15 @@ async def upload_product(
             content = await product_image.read()
             f.write(content)
         
-        # Upload to Cloudinary first (ensures public URL for packshot generation)
+        # ALWAYS upload to Cloudinary - no local URLs allowed
+        print(f"📤 Uploading product image to Cloudinary...")
         try:
-            image_url = upload_to_cloudinary(f"data:image/{product_image.filename.split('.')[-1]};base64,{base64.b64encode(content).decode()}", "products")
-        except Exception:
-            try:
-                # Fallback: upload file path to Cloudinary
-                image_url = upload_to_cloudinary(f"file://{image_path}", "products")
-            except Exception:
-                # Last resort: use static URL
-                image_url = get_static_url(image_filename)
+            ext = product_image.filename.split('.')[-1] if '.' in product_image.filename else 'jpg'
+            image_url = upload_to_cloudinary(f"data:image/{ext};base64,{base64.b64encode(content).decode()}", "products")
+            print(f"✅ Product image uploaded: {image_url[:80]}...")
+        except Exception as e:
+            print(f"❌ Failed to upload product image to Cloudinary: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to upload product image to Cloudinary. Please check your Cloudinary configuration. Error: {str(e)}")
         
         # Initialize packshot URLs
         packshot_front_url = None
@@ -5154,24 +5157,24 @@ async def upload_product(
                 detail=f"Insufficient credits. Need {credits_needed} credits for packshot generation."
             )
         
-        # Handle uploaded packshots
+        # Handle uploaded packshots - ALWAYS upload to Cloudinary
         if packshot_front:
-            front_filename = f"packshot_front_{hash(name + str(datetime.now()))}.{packshot_front.filename.split('.')[-1]}"
-            front_path = os.path.join("uploads", front_filename)
-            with open(front_path, "wb") as f:
-                content = await packshot_front.read()
-                f.write(content)
-            packshot_front_url = get_static_url(front_filename)
+            print(f"📤 Uploading front packshot to Cloudinary...")
+            content = await packshot_front.read()
+            ext = packshot_front.filename.split('.')[-1] if '.' in packshot_front.filename else 'png'
+            data_url = f"data:image/{ext};base64,{base64.b64encode(content).decode()}"
+            packshot_front_url = upload_to_cloudinary(data_url, "packshot_front")
             packshots.append(packshot_front_url)
+            print(f"✅ Front packshot uploaded: {packshot_front_url[:80]}...")
         
         if packshot_back:
-            back_filename = f"packshot_back_{hash(name + str(datetime.now()))}.{packshot_back.filename.split('.')[-1]}"
-            back_path = os.path.join("uploads", back_filename)
-            with open(back_path, "wb") as f:
-                content = await packshot_back.read()
-                f.write(content)
-            packshot_back_url = get_static_url(back_filename)
+            print(f"📤 Uploading back packshot to Cloudinary...")
+            content = await packshot_back.read()
+            ext = packshot_back.filename.split('.')[-1] if '.' in packshot_back.filename else 'png'
+            data_url = f"data:image/{ext};base64,{base64.b64encode(content).decode()}"
+            packshot_back_url = upload_to_cloudinary(data_url, "packshot_back")
             packshots.append(packshot_back_url)
+            print(f"✅ Back packshot uploaded: {packshot_back_url[:80]}...")
         
         # Generate missing packshots using Replicate
         if not packshot_front_url or not packshot_back_url:
