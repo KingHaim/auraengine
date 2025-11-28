@@ -4492,27 +4492,71 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
         print(f"📦 Product type: {product_type}")
         
         # Ensure URLs are accessible (convert local paths to Cloudinary if needed)
-        if current_image_url.startswith(get_base_url() + "/static/"):
-            filename = current_image_url.replace(get_base_url() + "/static/", "")
-            filepath = f"static/{filename}" if os.path.exists(f"static/{filename}") else f"uploads/{filename}"
-            if os.path.exists(filepath):
+        # Handle current image URL
+        if current_image_url.startswith(get_base_url() + "/static/") or \
+           (current_image_url.startswith("http://localhost") and "/static/" in current_image_url) or \
+           (current_image_url.startswith("http://127.0.0.1") and "/static/" in current_image_url):
+            print(f"🔄 Converting local current image URL to Cloudinary...")
+            if "/static/" in current_image_url:
+                filename = current_image_url.split("/static/")[-1]
+            else:
+                filename = current_image_url.split("/")[-1]
+            
+            # Try multiple possible paths
+            api_dir = os.path.dirname(os.path.abspath(__file__))
+            possible_paths = [
+                os.path.join(api_dir, "static", filename),
+                os.path.join(api_dir, "uploads", filename),
+                os.path.join(api_dir, "static", "packshot_front", filename),
+                f"static/{filename}",
+                f"uploads/{filename}"
+            ]
+            
+            filepath = next((p for p in possible_paths if os.path.exists(p)), None)
+            if filepath:
                 import base64
                 with open(filepath, "rb") as f:
                     file_content = f.read()
                     ext = filename.split('.')[-1] if '.' in filename else 'jpg'
                     data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
                     current_image_url = upload_to_cloudinary(data_url, "current_image")
+                    print(f"✅ Uploaded current image to Cloudinary: {current_image_url[:80]}...")
+            else:
+                print(f"❌ Could not find local file: {filename}")
+                raise ValueError(f"Current image file not found: {filename}")
         
-        if product_image_url.startswith(get_base_url() + "/static/"):
-            filename = product_image_url.replace(get_base_url() + "/static/", "")
-            filepath = f"static/{filename}" if os.path.exists(f"static/{filename}") else f"uploads/{filename}"
-            if os.path.exists(filepath):
+        # Handle product image URL
+        if product_image_url.startswith(get_base_url() + "/static/") or \
+           (product_image_url.startswith("http://localhost") and "/static/" in product_image_url) or \
+           (product_image_url.startswith("http://127.0.0.1") and "/static/" in product_image_url):
+            print(f"🔄 Converting local product image URL to Cloudinary...")
+            if "/static/" in product_image_url:
+                filename = product_image_url.split("/static/")[-1]
+            else:
+                filename = product_image_url.split("/")[-1]
+            
+            # Try multiple possible paths
+            api_dir = os.path.dirname(os.path.abspath(__file__))
+            possible_paths = [
+                os.path.join(api_dir, "static", filename),
+                os.path.join(api_dir, "uploads", filename),
+                os.path.join(api_dir, "static", "packshot_front", filename),
+                f"static/{filename}",
+                f"uploads/{filename}"
+            ]
+            
+            filepath = next((p for p in possible_paths if os.path.exists(p)), None)
+            if filepath:
                 import base64
                 with open(filepath, "rb") as f:
                     file_content = f.read()
                     ext = filename.split('.')[-1] if '.' in filename else 'jpg'
                     data_url = f"data:image/{ext};base64,{base64.b64encode(file_content).decode()}"
                     product_image_url = upload_to_cloudinary(data_url, "additional_product")
+                    print(f"✅ Uploaded product image to Cloudinary: {product_image_url[:80]}...")
+            else:
+                print(f"❌ Could not find local file: {filename}")
+                raise ValueError(f"Product image file not found: {filename}")
         
         # Create prompt for adding the garment
         # Use product_type field to determine garment category (more reliable than parsing name)
