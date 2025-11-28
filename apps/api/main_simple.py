@@ -4561,27 +4561,27 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # ULTRA-EXPLICIT prompt - PRESERVE EVERYTHING from inputs, only dress the person
+        # ULTRA-EXPLICIT prompt - Use person's IDENTITY but not their pose/expression
         if shot_type_prompt:
             scene_prompt = (
                 f"You are compositing 3 reference images. "
                 f"DO NOT CREATE anything new. DO NOT GENERATE a new face or background. "
-                f"IMAGE 1: Copy this EXACT person - their face (eyes, nose, mouth, skin, hair), body type, everything. This is the REFERENCE IDENTITY. "
+                f"IMAGE 1: Use this person's IDENTITY ONLY - facial features (eyes, nose, mouth structure), skin tone, hair color and style, body type. DO NOT copy their facial expression, head angle, or pose. The person should have a natural, neutral expression. "
                 f"IMAGE 2: Take ONLY the {garment_description} clothing/garment and dress the person from IMAGE 1 in it. "
                 f"IMAGE 3: Use this EXACT background/scene/location. Copy the environment completely - walls, floor, lighting, atmosphere. "
                 f"{shot_type_prompt}. "
-                f"RESULT: The person from IMAGE 1 wearing the garment from IMAGE 2, standing in the location from IMAGE 3. "
-                f"DO NOT change the person's face. DO NOT change the background scenery. ONLY dress the person in the new garment."
+                f"RESULT: The person from IMAGE 1 (identity only, neutral expression) wearing the garment from IMAGE 2, standing in the location from IMAGE 3. "
+                f"DO NOT copy the person's pose or expression from IMAGE 1. DO NOT change the background scenery. ONLY use their identity and dress them in the new garment."
             )
         else:
             scene_prompt = (
                 f"You are compositing 3 reference images. "
                 f"DO NOT CREATE anything new. DO NOT GENERATE a new face or background. "
-                f"IMAGE 1: Copy this EXACT person - their face (eyes, nose, mouth, skin, hair), body type, everything. This is the REFERENCE IDENTITY. "
+                f"IMAGE 1: Use this person's IDENTITY ONLY - facial features (eyes, nose, mouth structure), skin tone, hair color and style, body type. DO NOT copy their facial expression, head angle, or pose. The person should have a natural, neutral expression. "
                 f"IMAGE 2: Take ONLY the {garment_description} clothing/garment and dress the person from IMAGE 1 in it. "
                 f"IMAGE 3: Use this EXACT background/scene/location. Copy the environment completely - walls, floor, lighting, atmosphere. "
-                f"RESULT: The person from IMAGE 1 wearing the garment from IMAGE 2, standing in the location from IMAGE 3. "
-                f"DO NOT change the person's face. DO NOT change the background scenery. ONLY dress the person in the new garment."
+                f"RESULT: The person from IMAGE 1 (identity only, neutral expression) wearing the garment from IMAGE 2, standing in the location from IMAGE 3. "
+                f"DO NOT copy the person's pose or expression from IMAGE 1. DO NOT change the background scenery. ONLY use their identity and dress them in the new garment."
             )
         
         # LOWER strength to preserve inputs more faithfully
