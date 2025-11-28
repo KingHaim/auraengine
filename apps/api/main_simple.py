@@ -4247,7 +4247,7 @@ def run_qwen_add_product(model_image_url: str, product_image_url: str, clothing_
         print("↩️ Returning original model image instead of placeholder")
         return model_image_url
 
-def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, guidance_scale: float = 7.0, num_steps: int = 30) -> str:
+def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, guidance_scale: float = 7.0, num_steps: int = 30, negative_prompt: str = None) -> str:
     """
     Use Replicate's google/nano-banana-pro for advanced image editing/generation
     
@@ -4257,6 +4257,7 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
         strength: How much to modify (0.0-1.0)
         guidance_scale: How closely to follow the prompt
         num_steps: Number of inference steps
+        negative_prompt: Optional negative prompt to avoid unwanted features
     
     Returns:
         URL of generated image
@@ -4264,6 +4265,8 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
     try:
         print(f"🍌 PRO Running nano-banana-pro via Replicate...")
         print(f"📝 Prompt: {prompt[:150]}...")
+        if negative_prompt:
+            print(f"🚫 Negative prompt: {negative_prompt[:100]}...")
         print(f"🖼️ Input images: {len(image_urls)}")
         for idx, url in enumerate(image_urls):
             print(f"   Image {idx+1}: {url[:100]}...")
@@ -4281,14 +4284,22 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
         # Call Replicate's nano-banana-pro model
         import replicate
         print(f"🔄 Calling Replicate API...")
-        out = replicate.run("google/nano-banana-pro", input={
+        
+        # Build input dict
+        input_dict = {
             "prompt": prompt,
             "image_input": image_urls,
             "num_inference_steps": num_steps,
             "guidance_scale": guidance_scale,
             "strength": strength,
             "seed": None
-        })
+        }
+        
+        # Add negative prompt if provided
+        if negative_prompt:
+            input_dict["negative_prompt"] = negative_prompt
+        
+        out = replicate.run("google/nano-banana-pro", input=input_dict)
         
         # Handle output
         if hasattr(out, 'url'):
@@ -4445,25 +4456,30 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         # Use nano-banana to modify person's pose without overlay
         # Person first = what to modify, Manikin second = pose to copy
         prompt = (
-            "Change the body pose of the person in the first image to match the pose shown in the second image. "
-            "The person stays in the same location, same scene, same appearance. "
-            "ONLY their body pose changes: arms, legs, torso position, head tilt. "
-            "This is a pose adjustment of ONE person, not adding a second person. "
-            "Keep the same face, same clothing, same background. "
-            "Full body from head to feet."
+            "Change ONLY the body pose and position of the person in the first image to match the pose in the second image. "
+            "CRITICAL: Keep the person's REAL human body, skin, legs, arms - DO NOT copy the wooden/mannequin appearance from the reference. "
+            "ONLY copy the POSE (body position, arm position, leg position, stance, head angle). "
+            "The person must remain a real human with real skin, real legs, real arms, and natural body. "
+            "Keep the same face, same clothing, same background, same scene. "
+            "DO NOT transfer the mannequin's wooden texture or artificial appearance. "
+            "Full body from head to feet with natural human appearance."
         )
         
+        negative_prompt = "wooden legs, mannequin legs, wooden body, artificial limbs, doll legs, plastic body, mannequin appearance, wooden texture, artificial skin, doll appearance, puppet legs"
+        
         print(f"📝 In-place pose change prompt: {prompt[:150]}...")
+        print(f"🚫 Negative prompt: {negative_prompt[:100]}...")
         print(f"🖼️ Image order: [person_wearing_product (base to modify), manikin_pose (pose reference)]")
         
         # SWAP BACK: Person first (base to modify), manikin second (pose to reference)
-        # Ultra-low strength to prevent overlay, just adjust pose - NOW USING NANO-BANANA PRO
+        # VERY low strength to prevent copying manikin's appearance - ONLY pose
         result_url = run_nano_banana_pro(
             prompt=prompt,
             image_urls=[person_wearing_product_url, manikin_pose_url],  # Person = base, Manikin = pose ref
-            strength=0.35,  # ULTRA-LOW to prevent overlay
-            guidance_scale=6.5,  # Lower guidance to stay close to base
-            num_steps=30  # Standard quality
+            strength=0.25,  # VERY LOW to prevent copying wooden appearance - was 0.35, too high
+            guidance_scale=7.0,  # Higher guidance to follow prompt strictly
+            num_steps=30,  # Standard quality
+            negative_prompt=negative_prompt  # Prevent wooden/mannequin appearance
         )
         
         # Upload to Cloudinary for stability
