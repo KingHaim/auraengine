@@ -4261,10 +4261,22 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
         print(f"🍌 PRO Running nano-banana-pro via Replicate...")
         print(f"📝 Prompt: {prompt[:150]}...")
         print(f"🖼️ Input images: {len(image_urls)}")
+        for idx, url in enumerate(image_urls):
+            print(f"   Image {idx+1}: {url[:100]}...")
         print(f"⚙️ Parameters: strength={strength}, guidance={guidance_scale}, steps={num_steps}")
+        
+        # Validate image URLs before calling Replicate
+        for idx, url in enumerate(image_urls):
+            if not url or not isinstance(url, str):
+                raise ValueError(f"Image {idx+1} is invalid: {url}")
+            if url.startswith("http://localhost") or url.startswith("http://127.0.0.1"):
+                raise ValueError(f"Image {idx+1} is a local URL that Replicate cannot access: {url[:100]}")
+            if "/static/" in url and "cloudinary" not in url and "replicate.delivery" not in url:
+                raise ValueError(f"Image {idx+1} appears to be a local static file: {url[:100]}")
         
         # Call Replicate's nano-banana-pro model
         import replicate
+        print(f"🔄 Calling Replicate API...")
         out = replicate.run("google/nano-banana-pro", input={
             "prompt": prompt,
             "image_input": image_urls,
@@ -4287,12 +4299,24 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
         print(f"✅ Nano-banana PRO completed: {result_url[:80]}...")
         return result_url
         
-    except Exception as e:
-        print(f"❌ Nano-banana pro failed: {e}")
+    except ValueError as ve:
+        print(f"❌ INPUT VALIDATION ERROR: {ve}")
+        print(f"🚫 Cannot proceed with nano-banana-pro - invalid input")
         import traceback
         traceback.print_exc()
+        raise  # Re-raise to propagate the error
+        
+    except Exception as e:
+        print(f"❌ NANO-BANANA-PRO FAILED: {type(e).__name__}: {e}")
+        print(f"📋 Error details:")
+        print(f"   - Prompt length: {len(prompt)}")
+        print(f"   - Number of images: {len(image_urls)}")
+        print(f"   - Image URLs valid: {all(isinstance(url, str) and url.startswith('http') for url in image_urls)}")
+        import traceback
+        traceback.print_exc()
+        
         # Fall back to standard nano-banana
-        print(f"🔄 Falling back to standard nano-banana...")
+        print(f"🔄 Attempting fallback to standard nano-banana...")
         try:
             import replicate
             out = replicate.run("google/nano-banana", input={
@@ -4304,15 +4328,23 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
                 "seed": None
             })
             if hasattr(out, 'url'):
-                return out.url()
+                result = out.url()
+                print(f"✅ Fallback succeeded: {result[:80]}...")
+                return result
             elif isinstance(out, str):
+                print(f"✅ Fallback succeeded: {out[:80]}...")
                 return out
             elif isinstance(out, list) and len(out) > 0:
-                return out[0] if isinstance(out[0], str) else out[0].url()
+                result = out[0] if isinstance(out[0], str) else out[0].url()
+                print(f"✅ Fallback succeeded: {result[:80]}...")
+                return result
             return str(out)
         except Exception as fallback_error:
-            print(f"❌ Fallback also failed: {fallback_error}")
+            print(f"❌ FALLBACK ALSO FAILED: {type(fallback_error).__name__}: {fallback_error}")
+            import traceback
+            traceback.print_exc()
             # Return first image as last resort
+            print(f"⚠️ Returning original image as last resort")
             return image_urls[0] if image_urls else ""
 
 def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_url: str) -> str:
@@ -4452,9 +4484,12 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
     try:
         # Trim whitespace from product name to avoid Cloudinary folder issues
         product_name = product_name.strip()
-        print(f"👕 Adding {product_name} to existing image using nano-banana...")
-        print(f"🖼️ Current image: {current_image_url[:80]}...")
-        print(f"🧵 Product to add: {product_image_url[:80]}...")
+        print(f"\n{'='*80}")
+        print(f"👕 ADDING PRODUCT: {product_name} ({product_type})")
+        print(f"{'='*80}")
+        print(f"🖼️ Current image: {current_image_url[:100]}...")
+        print(f"🧵 Product to add: {product_image_url[:100]}...")
+        print(f"📦 Product type: {product_type}")
         
         # Ensure URLs are accessible (convert local paths to Cloudinary if needed)
         if current_image_url.startswith(get_base_url() + "/static/"):
@@ -4510,30 +4545,52 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
                 f"Professional fashion photography with natural styling."
             )
         
-        print(f"📝 Add product prompt: {prompt[:150]}...")
+        print(f"📝 Add product prompt: {prompt[:200]}...")
+        print(f"🎯 Calling nano-banana-pro to add {product_name}...")
         
         # Use nano-banana PRO to add the product
-        result_url = run_nano_banana_pro(
-            prompt=prompt,
-            image_urls=[current_image_url, product_image_url],  # Current image first, new product second
-            strength=0.65,  # Moderate strength to add garment while preserving scene
-            guidance_scale=7.5,
-            num_steps=30
-        )
-        
-        # Upload to Cloudinary for stability
-        if result_url and result_url != current_image_url:
-            stable_url = upload_to_cloudinary(result_url, f"with_{product_name}")
-            print(f"✅ Added {product_name} successfully: {stable_url[:80]}...")
-            return stable_url
-        else:
-            print(f"⚠️ Product addition returned same image, using current")
-            return current_image_url
+        try:
+            result_url = run_nano_banana_pro(
+                prompt=prompt,
+                image_urls=[current_image_url, product_image_url],  # Current image first, new product second
+                strength=0.65,  # Moderate strength to add garment while preserving scene
+                guidance_scale=7.5,
+                num_steps=30
+            )
+            
+            # Upload to Cloudinary for stability
+            if result_url and result_url != current_image_url:
+                print(f"✅ Nano-banana returned new image, uploading to Cloudinary...")
+                stable_url = upload_to_cloudinary(result_url, f"with_{product_name}")
+                print(f"✅ SUCCESS: Added {product_name} successfully!")
+                print(f"   Result URL: {stable_url[:100]}...")
+                print(f"{'='*80}\n")
+                return stable_url
+            else:
+                print(f"⚠️ WARNING: Product addition returned same image")
+                print(f"   This means nano-banana-pro didn't modify the image")
+                print(f"   Returning current image without {product_name}")
+                print(f"{'='*80}\n")
+                return current_image_url
+                
+        except ValueError as ve:
+            # Input validation error - this is critical
+            print(f"❌ CRITICAL ERROR: Invalid input for nano-banana-pro")
+            print(f"   Error: {ve}")
+            print(f"   Cannot add {product_name} - returning current image")
+            print(f"{'='*80}\n")
+            raise  # Re-raise to stop the workflow
     
     except Exception as e:
-        print(f"❌ Failed to add {product_name}: {e}")
+        print(f"❌ FAILED TO ADD {product_name}")
+        print(f"   Error type: {type(e).__name__}")
+        print(f"   Error message: {e}")
+        print(f"   Current image: {current_image_url[:100]}")
+        print(f"   Product image: {product_image_url[:100]}")
         import traceback
         traceback.print_exc()
+        print(f"⚠️ Returning current image without {product_name}")
+        print(f"{'='*80}\n")
         # Fallback to current image
         return current_image_url
 
