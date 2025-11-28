@@ -4535,18 +4535,28 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
             else:
                 filename = product_image_url.split("/")[-1]
             
+            print(f"📁 Looking for file: {filename}")
+            
             # Try multiple possible paths
             api_dir = os.path.dirname(os.path.abspath(__file__))
             possible_paths = [
                 os.path.join(api_dir, "static", filename),
                 os.path.join(api_dir, "uploads", filename),
                 os.path.join(api_dir, "static", "packshot_front", filename),
+                os.path.join(api_dir, "temp", filename),
                 f"static/{filename}",
-                f"uploads/{filename}"
+                f"uploads/{filename}",
+                f"temp/{filename}"
             ]
+            
+            print(f"🔍 Searching in {len(possible_paths)} locations:")
+            for path in possible_paths:
+                exists = os.path.exists(path)
+                print(f"   {'✅' if exists else '❌'} {path}")
             
             filepath = next((p for p in possible_paths if os.path.exists(p)), None)
             if filepath:
+                print(f"✅ Found file at: {filepath}")
                 import base64
                 with open(filepath, "rb") as f:
                     file_content = f.read()
@@ -4556,7 +4566,9 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
                     print(f"✅ Uploaded product image to Cloudinary: {product_image_url[:80]}...")
             else:
                 print(f"❌ Could not find local file: {filename}")
-                raise ValueError(f"Product image file not found: {filename}")
+                print(f"⚠️ Product URL in database is local but file doesn't exist")
+                print(f"⚠️ This product's packshot may not have been uploaded to Cloudinary properly")
+                raise ValueError(f"Product image file not found: {filename}. The packshot_front_url in the database is a local URL but the file doesn't exist on disk. This product needs to be re-uploaded or its packshot regenerated.")
         
         # Create prompt for adding the garment
         # Use product_type field to determine garment category (more reliable than parsing name)
