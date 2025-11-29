@@ -4456,28 +4456,29 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         # Use nano-banana to modify person's pose without overlay
         # Person first = what to modify, Manikin second = pose to copy
         prompt = (
-            "Change ONLY the body pose and position of the person in the first image to match the pose in the second image. "
+            "Subtly adjust the body pose of the person in the first image to be INSPIRED BY the pose in the second image. "
+            "This should be a loose approximation, NOT an exact copy. "
             "CRITICAL: Keep the person's REAL human body, skin, legs, arms - DO NOT copy the wooden/mannequin appearance from the reference. "
-            "ONLY copy the POSE (body position, arm position, leg position, stance, head angle). "
+            "Adjust the general stance, body angle, and positioning in a natural way. "
             "The person must remain a real human with real skin, real legs, real arms, and natural body. "
             "Keep the same face, same clothing, same background, same scene. "
             "DO NOT transfer the mannequin's wooden texture or artificial appearance. "
-            "Full body from head to feet with natural human appearance."
+            "Full body from head to feet with natural human appearance and natural pose variation."
         )
         
-        negative_prompt = "wooden legs, mannequin legs, wooden body, artificial limbs, doll legs, plastic body, mannequin appearance, wooden texture, artificial skin, doll appearance, puppet legs"
+        negative_prompt = "wooden legs, mannequin legs, wooden body, artificial limbs, doll legs, plastic body, mannequin appearance, wooden texture, artificial skin, doll appearance, puppet legs, stiff pose, rigid pose, unnatural stance"
         
         print(f"📝 In-place pose change prompt: {prompt[:150]}...")
         print(f"🚫 Negative prompt: {negative_prompt[:100]}...")
         print(f"🖼️ Image order: [person_wearing_product (base to modify), manikin_pose (pose reference)]")
         
         # SWAP BACK: Person first (base to modify), manikin second (pose to reference)
-        # VERY low strength to prevent copying manikin's appearance - ONLY pose
+        # VERY low strength for loose approximation - NOT exact copy
         result_url = run_nano_banana_pro(
             prompt=prompt,
             image_urls=[person_wearing_product_url, manikin_pose_url],  # Person = base, Manikin = pose ref
-            strength=0.25,  # VERY LOW to prevent copying wooden appearance - was 0.35, too high
-            guidance_scale=7.0,  # Higher guidance to follow prompt strictly
+            strength=0.18,  # VERY LOW for loose approximation - was 0.25, too strict
+            guidance_scale=6.5,  # Moderate guidance for natural variation
             num_steps=30,  # Standard quality
             negative_prompt=negative_prompt  # Prevent wooden/mannequin appearance
         )
