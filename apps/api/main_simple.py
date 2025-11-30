@@ -4678,9 +4678,10 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
                 f"IMAGE 1: Use this person's IDENTITY ONLY - facial features (eyes, nose, mouth structure), skin tone, hair color and style, body type. DO NOT copy their facial expression, head angle, or pose. The person should have a natural, neutral expression. "
                 f"IMAGE 2: Take ONLY the {garment_description} clothing/garment and dress the person from IMAGE 1 in it. "
                 f"IMAGE 3: Use this EXACT background/scene/location. Copy the environment completely - walls, floor, lighting, atmosphere. "
+                f"FRAMING: Show FULL BODY from head to feet - the entire person must be visible including head, torso, arms, legs, and feet. DO NOT crop at waist or chest. "
                 f"{shot_type_prompt}. "
-                f"RESULT: The person from IMAGE 1 (identity only, neutral expression) wearing the garment from IMAGE 2, standing in the location from IMAGE 3. "
-                f"DO NOT copy the person's pose or expression from IMAGE 1. DO NOT change the background scenery. ONLY use their identity and dress them in the new garment."
+                f"RESULT: The person from IMAGE 1 (identity only, neutral expression) wearing the garment from IMAGE 2, standing in the location from IMAGE 3. Full body visible from head to feet. "
+                f"DO NOT copy the person's pose or expression from IMAGE 1. DO NOT change the background scenery. DO NOT crop the body. ONLY use their identity and dress them in the new garment."
             )
         else:
             scene_prompt = (
@@ -4689,8 +4690,9 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
                 f"IMAGE 1: Use this person's IDENTITY ONLY - facial features (eyes, nose, mouth structure), skin tone, hair color and style, body type. DO NOT copy their facial expression, head angle, or pose. The person should have a natural, neutral expression. "
                 f"IMAGE 2: Take ONLY the {garment_description} clothing/garment and dress the person from IMAGE 1 in it. "
                 f"IMAGE 3: Use this EXACT background/scene/location. Copy the environment completely - walls, floor, lighting, atmosphere. "
-                f"RESULT: The person from IMAGE 1 (identity only, neutral expression) wearing the garment from IMAGE 2, standing in the location from IMAGE 3. "
-                f"DO NOT copy the person's pose or expression from IMAGE 1. DO NOT change the background scenery. ONLY use their identity and dress them in the new garment."
+                f"FRAMING: Show FULL BODY from head to feet - the entire person must be visible including head, torso, arms, legs, and feet. DO NOT crop at waist or chest. "
+                f"RESULT: The person from IMAGE 1 (identity only, neutral expression) wearing the garment from IMAGE 2, standing in the location from IMAGE 3. Full body visible from head to feet. "
+                f"DO NOT copy the person's pose or expression from IMAGE 1. DO NOT change the background scenery. DO NOT crop the body. ONLY use their identity and dress them in the new garment."
             )
         
         # Balance strength to apply scene while preserving person identity
