@@ -4670,36 +4670,36 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # ULTRA-EXPLICIT prompt - Use person's IDENTITY but not their pose/expression
+        # ULTRA-EXPLICIT prompt - EXACT face from IMAGE 1
         if shot_type_prompt:
             scene_prompt = (
                 f"You are compositing 3 reference images. "
                 f"DO NOT CREATE anything new. DO NOT GENERATE a new face or background. "
-                f"IMAGE 1: Use this person's IDENTITY ONLY - facial features (eyes, nose, mouth structure), skin tone, hair color and style, body type. DO NOT copy their facial expression, head angle, or pose. The person should have a natural, neutral expression. "
+                f"IMAGE 1: Copy this person's EXACT FACE AND IDENTITY - their exact eyes, nose, mouth, facial structure, skin tone, hair. This face must be PRESERVED EXACTLY. The person should have a natural, relaxed, neutral expression. "
                 f"IMAGE 2: Take ONLY the {garment_description} clothing/garment and dress the person from IMAGE 1 in it. "
                 f"IMAGE 3: Use this EXACT background/scene/location. Copy the environment completely - walls, floor, lighting, atmosphere. "
                 f"FRAMING: Show FULL BODY from head to feet - the entire person must be visible including head, torso, arms, legs, and feet. DO NOT crop at waist or chest. "
                 f"{shot_type_prompt}. "
-                f"RESULT: The person from IMAGE 1 (identity only, neutral expression) wearing the garment from IMAGE 2, standing in the location from IMAGE 3. Full body visible from head to feet. "
-                f"DO NOT copy the person's pose or expression from IMAGE 1. DO NOT change the background scenery. DO NOT crop the body. ONLY use their identity and dress them in the new garment."
+                f"RESULT: The EXACT person from IMAGE 1 (same face, natural expression) wearing the garment from IMAGE 2, standing in the location from IMAGE 3. Full body visible from head to feet. "
+                f"CRITICAL: The face MUST be the same person from IMAGE 1. DO NOT change facial features. DO NOT create a different face. DO NOT change the background scenery. DO NOT crop the body."
             )
         else:
             scene_prompt = (
                 f"You are compositing 3 reference images. "
                 f"DO NOT CREATE anything new. DO NOT GENERATE a new face or background. "
-                f"IMAGE 1: Use this person's IDENTITY ONLY - facial features (eyes, nose, mouth structure), skin tone, hair color and style, body type. DO NOT copy their facial expression, head angle, or pose. The person should have a natural, neutral expression. "
+                f"IMAGE 1: Copy this person's EXACT FACE AND IDENTITY - their exact eyes, nose, mouth, facial structure, skin tone, hair. This face must be PRESERVED EXACTLY. The person should have a natural, relaxed, neutral expression. "
                 f"IMAGE 2: Take ONLY the {garment_description} clothing/garment and dress the person from IMAGE 1 in it. "
                 f"IMAGE 3: Use this EXACT background/scene/location. Copy the environment completely - walls, floor, lighting, atmosphere. "
                 f"FRAMING: Show FULL BODY from head to feet - the entire person must be visible including head, torso, arms, legs, and feet. DO NOT crop at waist or chest. "
-                f"RESULT: The person from IMAGE 1 (identity only, neutral expression) wearing the garment from IMAGE 2, standing in the location from IMAGE 3. Full body visible from head to feet. "
-                f"DO NOT copy the person's pose or expression from IMAGE 1. DO NOT change the background scenery. DO NOT crop the body. ONLY use their identity and dress them in the new garment."
+                f"RESULT: The EXACT person from IMAGE 1 (same face, natural expression) wearing the garment from IMAGE 2, standing in the location from IMAGE 3. Full body visible from head to feet. "
+                f"CRITICAL: The face MUST be the same person from IMAGE 1. DO NOT change facial features. DO NOT create a different face. DO NOT change the background scenery. DO NOT crop the body."
             )
         
-        # Balance strength to apply scene while preserving person identity
+        # Balance strength to apply scene while preserving face identity strongly
         num_steps = 40  # Good quality
-        guidance = 6.0  # Higher guidance to follow the 3-image composition instructions
-        strength = 0.55  # Increased to apply scene more strongly (was 0.45, too weak for scene)
-        print("⚡ Using Qwen with strength=0.55 + guidance=6.0 for scene application while preserving identity")
+        guidance = 7.0  # HIGHER guidance to strictly follow identity preservation
+        strength = 0.50  # Balanced - not too high to change face, not too low to miss scene
+        print("⚡ Using Qwen with strength=0.50 + guidance=7.0 for strict face preservation + scene application")
         
         # Use Qwen with 3 images
         try:
