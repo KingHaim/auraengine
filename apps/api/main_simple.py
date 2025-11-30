@@ -4670,36 +4670,34 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # ULTRA-EXPLICIT prompt - FRAMING FIRST, then exact face, clothing, and scene
+        # Balanced prompt - clear instructions without overwhelming the model
         if shot_type_prompt:
             scene_prompt = (
-                f"MANDATORY FRAMING: FULL BODY SHOT - The image MUST show the COMPLETE person from HEAD to FEET. DO NOT crop at waist, chest, or knees. The ENTIRE body must be visible including head, torso, arms, legs, and feet. This is NOT a portrait. This is a FULL LENGTH fashion shot. "
-                f"You are compositing 3 reference images into ONE FULL BODY final image. "
-                f"DO NOT CREATE anything new. DO NOT GENERATE a new face, clothing, or background. "
-                f"IMAGE 1: Copy this person's EXACT FACE AND IDENTITY - their exact eyes, nose, mouth, facial structure, skin tone, hair. This face must be PRESERVED EXACTLY. The person should have a natural, relaxed, neutral expression. Position the person to show their FULL BODY from head to feet. "
-                f"IMAGE 2: Copy the EXACT {garment_description} as shown - preserve the exact color, design, pattern, style, fit, and all details. DO NOT modify the clothing design. DO NOT change colors. DO NOT add or remove any design elements. The garment must look IDENTICAL to IMAGE 2. Show the COMPLETE garment on the full body. "
-                f"IMAGE 3: Copy this EXACT background/scene/location/environment - the walls, floor, ceiling, lighting, colors, atmosphere, architectural details, everything visible in the background. DO NOT generate a generic background. DO NOT create a new scene. The background MUST be IDENTICAL to IMAGE 3. "
+                f"Create a FULL BODY fashion photograph (head to feet visible). "
+                f"Composite these 3 reference images: "
+                f"IMAGE 1 (PERSON): Use this person's exact face, skin tone, body type. Copy their identity but with a natural, neutral expression. DO NOT copy pose. DO NOT add tattoos. DO NOT change their skin. "
+                f"IMAGE 2 (CLOTHING): Dress the person in this exact {garment_description}. Keep the exact colors, design, and style from this image. "
+                f"IMAGE 3 (BACKGROUND): Place the person in this exact scene/location. Use the same walls, floor, lighting, and atmosphere from this image. DO NOT use a white background. DO NOT create a generic background. "
                 f"{shot_type_prompt}. "
-                f"RESULT: FULL BODY SHOT showing the COMPLETE person from head to feet. The EXACT person from IMAGE 1 (same face, natural expression) wearing the EXACT garment from IMAGE 2 (same colors and design), standing in the EXACT location/scene from IMAGE 3 (same background, same environment). ENTIRE body visible - NOT cropped. "
-                f"CRITICAL: FULL LENGTH SHOT - head to feet visible. The face MUST match IMAGE 1. The clothing MUST match IMAGE 2 exactly. The background/scene MUST match IMAGE 3 exactly. DO NOT change facial features. DO NOT modify the garment. DO NOT create a different background. DO NOT crop to portrait or waist-up. SHOW COMPLETE BODY."
+                f"Final image: Full body shot (head to feet), person from IMAGE 1 wearing garment from IMAGE 2, in the scene from IMAGE 3. "
+                f"DO NOT: add tattoos, change skin, use white background, crop the body, modify the clothing colors."
             )
         else:
             scene_prompt = (
-                f"MANDATORY FRAMING: FULL BODY SHOT - The image MUST show the COMPLETE person from HEAD to FEET. DO NOT crop at waist, chest, or knees. The ENTIRE body must be visible including head, torso, arms, legs, and feet. This is NOT a portrait. This is a FULL LENGTH fashion shot. "
-                f"You are compositing 3 reference images into ONE FULL BODY final image. "
-                f"DO NOT CREATE anything new. DO NOT GENERATE a new face, clothing, or background. "
-                f"IMAGE 1: Copy this person's EXACT FACE AND IDENTITY - their exact eyes, nose, mouth, facial structure, skin tone, hair. This face must be PRESERVED EXACTLY. The person should have a natural, relaxed, neutral expression. Position the person to show their FULL BODY from head to feet. "
-                f"IMAGE 2: Copy the EXACT {garment_description} as shown - preserve the exact color, design, pattern, style, fit, and all details. DO NOT modify the clothing design. DO NOT change colors. DO NOT add or remove any design elements. The garment must look IDENTICAL to IMAGE 2. Show the COMPLETE garment on the full body. "
-                f"IMAGE 3: Copy this EXACT background/scene/location/environment - the walls, floor, ceiling, lighting, colors, atmosphere, architectural details, everything visible in the background. DO NOT generate a generic background. DO NOT create a new scene. The background MUST be IDENTICAL to IMAGE 3. "
-                f"RESULT: FULL BODY SHOT showing the COMPLETE person from head to feet. The EXACT person from IMAGE 1 (same face, natural expression) wearing the EXACT garment from IMAGE 2 (same colors and design), standing in the EXACT location/scene from IMAGE 3 (same background, same environment). ENTIRE body visible - NOT cropped. "
-                f"CRITICAL: FULL LENGTH SHOT - head to feet visible. The face MUST match IMAGE 1. The clothing MUST match IMAGE 2 exactly. The background/scene MUST match IMAGE 3 exactly. DO NOT change facial features. DO NOT modify the garment. DO NOT create a different background. DO NOT crop to portrait or waist-up. SHOW COMPLETE BODY."
+                f"Create a FULL BODY fashion photograph (head to feet visible). "
+                f"Composite these 3 reference images: "
+                f"IMAGE 1 (PERSON): Use this person's exact face, skin tone, body type. Copy their identity but with a natural, neutral expression. DO NOT copy pose. DO NOT add tattoos. DO NOT change their skin. "
+                f"IMAGE 2 (CLOTHING): Dress the person in this exact {garment_description}. Keep the exact colors, design, and style from this image. "
+                f"IMAGE 3 (BACKGROUND): Place the person in this exact scene/location. Use the same walls, floor, lighting, and atmosphere from this image. DO NOT use a white background. DO NOT create a generic background. "
+                f"Final image: Full body shot (head to feet), person from IMAGE 1 wearing garment from IMAGE 2, in the scene from IMAGE 3. "
+                f"DO NOT: add tattoos, change skin, use white background, crop the body, modify the clothing colors."
             )
         
-        # Balance strength to apply scene while preserving face+clothing
+        # More conservative parameters for better quality and fewer artifacts
         num_steps = 40  # Good quality
-        guidance = 7.5  # VERY HIGH guidance to strictly follow all 3 image preservation
-        strength = 0.52  # Slightly higher to ensure scene applies (was 0.50)
-        print("⚡ Using Qwen with strength=0.52 + guidance=7.5 for strict preservation of face+clothing+scene")
+        guidance = 6.5  # Moderate guidance - not too high to cause artifacts
+        strength = 0.48  # Lower for better face quality and fewer hallucinations
+        print("⚡ Using Qwen with strength=0.48 + guidance=6.5 for quality preservation + full body framing")
         
         # Use Qwen with 3 images
         try:
