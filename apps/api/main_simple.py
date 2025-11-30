@@ -982,27 +982,14 @@ async def generate_campaign_images_background(
                         # Update reference to final image with all products
                         person_wearing_product_url = current_image_url
                         
-                        # Step 3: For the first image (initial image), replace manikin with person wearing product
+                        # Step 3: SKIP manikin pose replacement - it causes unnatural results
+                        # Just use the Qwen output directly
                         final_result_url = person_wearing_product_url
-                        if shot_idx == 1:
-                            # Use the manikin_pose parameter passed to this function (for multi-pose generation)
-                            # This allows different poses to be used for each generation call
-                            campaign_manikin_pose = manikin_pose if manikin_pose else "Pose-neutral.jpg"
-                            print(f"🦴 Manikin pose parameter: {manikin_pose}")
-                            # Get URL from cache, or use static URL as fallback
-                            cached_url = POSE_IMAGE_URLS.get(campaign_manikin_pose)
-                            if cached_url and cached_url.startswith("https://res.cloudinary.com/"):
-                                manikin_pose_url = cached_url
-                            elif cached_url is None or not cached_url.startswith("https://"):
-                                # Need to upload on-demand or use static URL
-                                manikin_pose_url = get_static_url(f"poses/{campaign_manikin_pose}")
-                            else:
-                                manikin_pose_url = cached_url
-                            
-                            print(f"🍌 First image: Replacing manikin with person wearing product ({campaign_manikin_pose})...")
-                            print(f"🖼️ Using manikin pose URL: {manikin_pose_url[:80] if manikin_pose_url else 'None'}...")
-                            final_result_url = replace_manikin_with_person(manikin_pose_url, person_wearing_product_url)
-                            print(f"✅ Manikin replaced for initial image")
+                        print(f"✅ Using Qwen output directly (skipping pose replacement for more natural look)")
+                        
+                        # OLD CODE - Causing unnatural poses:
+                        # if shot_idx == 1:
+                        #     final_result_url = replace_manikin_with_person(manikin_pose_url, person_wearing_product_url)
                         
                         # Store all product info for the result (combined names)
                         combined_product_names = ", ".join([p.name for p in products])
@@ -1321,26 +1308,14 @@ async def generate_campaign_images(
                             # Update reference to final image with all products
                             person_wearing_product_url = current_image_url
                             
-                            # Step 3: For the first image (initial image), replace manikin with person wearing product
+                            # Step 3: SKIP manikin pose replacement - it causes unnatural results
+                            # Just use the Qwen output directly
                             final_result_url = person_wearing_product_url
-                            if shot_idx == 1:
-                                # Use the manikin pose passed as parameter (for multi-pose generation)
-                                campaign_manikin_pose = manikin_pose  # Use parameter, not campaign settings
-                                print(f"🦴 Using manikin pose from parameter: {campaign_manikin_pose}")
-                                # Get URL from cache, or use static URL as fallback
-                                cached_url = POSE_IMAGE_URLS.get(campaign_manikin_pose)
-                                if cached_url and cached_url.startswith("https://res.cloudinary.com/"):
-                                    manikin_pose_url = cached_url
-                                elif cached_url is None or not cached_url.startswith("https://"):
-                                    # Need to upload on-demand or use static URL
-                                    manikin_pose_url = get_static_url(f"poses/{campaign_manikin_pose}")
-                                else:
-                                    manikin_pose_url = cached_url
-                                
-                                print(f"🍌 First image: Replacing manikin with person wearing product ({campaign_manikin_pose})...")
-                                print(f"🖼️ Using manikin pose URL: {manikin_pose_url[:80] if manikin_pose_url else 'None'}...")
-                                final_result_url = replace_manikin_with_person(manikin_pose_url, person_wearing_product_url)
-                                print(f"✅ Manikin replaced for initial image")
+                            print(f"✅ Using Qwen output directly (skipping pose replacement for more natural look)")
+                            
+                            # OLD CODE - Causing unnatural poses:
+                            # if shot_idx == 1:
+                            #     final_result_url = replace_manikin_with_person(manikin_pose_url, person_wearing_product_url)
                             
                             # Store all product info for the result (combined names)
                             combined_product_names = ", ".join([p.name for p in products])
