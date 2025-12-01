@@ -4647,9 +4647,9 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
         return current_image_url
 
 def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard", shot_type_prompt: str = None, clothing_type: str = None) -> str:
-    """TWO-STEP: 1) Qwen for Model + Product, 2) Nano-banana for Scene placement"""
+    """SINGLE-STEP: Qwen with all 3 images, optimized for face preservation"""
     try:
-        print(f"🎬 Running TWO-STEP composition: Qwen (person+clothing) → Nano-banana (scene)")
+        print(f"🎬 Running SINGLE-STEP Qwen composition with face-priority parameters")
         
         # Use clothing_type if provided, otherwise fallback to product_name
         garment_description = clothing_type if clothing_type else product_name
@@ -4670,29 +4670,28 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # STEP 1: Qwen composition - Person + Clothing ONLY (no scene yet)
-        print("📸 STEP 1: Qwen composing person + clothing...")
-        person_clothing_prompt = (
-            f"Create a FULL BODY fashion photograph (head to feet visible) on a neutral background. "
-            f"Composite these 2 reference images: "
-            f"IMAGE 1 (PERSON): Use this person's exact face, skin tone, body type. Copy their identity with a natural, neutral expression. DO NOT add tattoos. DO NOT change their skin. "
-            f"IMAGE 2 (CLOTHING): Dress the person in this exact {garment_description}. Keep the exact colors, design, and style from this image. "
-            f"Final image: Full body shot (head to feet) of the person from IMAGE 1 wearing the garment from IMAGE 2. Clean neutral background. "
-            f"DO NOT: add tattoos, change skin, crop the body, modify the clothing colors."
+        # Face-priority prompt - emphasize identity preservation first
+        composition_prompt = (
+            f"Full body fashion photo (head to feet visible). "
+            f"IMAGE 1 is the IDENTITY REFERENCE - copy this person's EXACT face (eyes, nose, mouth, facial structure, skin). This face is the PRIMARY constraint. "
+            f"IMAGE 2 shows the {garment_description} - dress the person in this exact garment with same colors and design. "
+            f"IMAGE 3 shows the location - place the person in this scene with similar lighting. "
+            f"Priority order: 1) Preserve face from IMAGE 1, 2) Apply clothing from IMAGE 2, 3) Use background from IMAGE 3. "
+            f"DO NOT change the person's face, add tattoos, or modify clothing colors."
         )
         
-        # Conservative parameters for Qwen - prioritize face preservation
-        num_steps = 40
-        guidance = 7.0  # Higher guidance for better instruction following
-        strength = 0.45  # Lower strength for better face similarity
-        print("⚡ Qwen: strength=0.45, guidance=7.0 for maximum face preservation")
+        # VERY conservative parameters - prioritize face preservation over everything
+        num_steps = 35  # Slightly fewer steps
+        guidance = 7.5  # High guidance for strict instruction following
+        strength = 0.42  # Very low strength for minimal face variation
+        print("⚡ Qwen SINGLE-STEP: strength=0.42, guidance=7.5, steps=35 (face-priority mode)")
         
-        # STEP 1: Qwen with 2 images (person + clothing)
+        # Single Qwen call with all 3 images
         try:
-            print("🔄 Calling Qwen with person + clothing...")
+            print("🔄 Calling Qwen with all 3 images (face-priority)...")
             out = replicate.run("qwen/qwen-image-edit-plus", input={
-                "prompt": person_clothing_prompt,
-                "image": [model_image_url, product_image_url],
+                "prompt": composition_prompt,
+                "image": [model_image_url, product_image_url, scene_image_url],
                 "num_inference_steps": num_steps,
                 "guidance_scale": guidance,
                 "strength": strength
@@ -4700,53 +4699,24 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             
             # Handle Qwen output
             if hasattr(out, 'url'):
-                person_clothing_url = out.url()
+                result_url = out.url()
             elif isinstance(out, str):
-                person_clothing_url = out
+                result_url = out
             elif isinstance(out, list) and len(out) > 0:
-                person_clothing_url = out[0] if isinstance(out[0], str) else out[0].url()
+                result_url = out[0] if isinstance(out[0], str) else out[0].url()
             else:
-                person_clothing_url = str(out)
+                result_url = str(out)
             
-            print(f"✅ STEP 1 complete: Person+clothing composed: {person_clothing_url[:50]}...")
+            print(f"✅ Single-step composition complete: {result_url[:50]}...")
+            return result_url
             
         except Exception as e:
-            print(f"❌ Qwen (person+clothing) failed: {e}")
+            print(f"❌ Qwen single-step failed: {e}")
             if DISABLE_PLACEHOLDERS:
                 print("↩️ Returning model image instead of placeholder")
                 return model_image_url
             fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url) % 10000}"
             return fallback_url
-        
-        # STEP 2: Nano-banana - Place composed person into the scene
-        print("🌄 STEP 2: Nano-banana placing person into scene...")
-        try:
-            scene_placement_prompt = (
-                f"Background replacement: Place this person into the reference scene. "
-                f"PRESERVE the person EXACTLY - same face, same clothing, same body, same pose. "
-                f"ONLY change the background to match the reference scene/location. "
-                f"DO NOT modify the person's face, skin, clothing, or body. "
-                f"Match the lighting and atmosphere of the scene to the person. "
-                f"Keep the full body visible (head to feet)."
-            )
-            
-            print("🔄 Calling nano-banana for scene placement...")
-            scene_result = run_nano_banana_pro(
-                image_urls=[person_clothing_url, scene_image_url],
-                prompt=scene_placement_prompt,
-                num_steps=25,  # Reduced from 30 for less variation
-                guidance_scale=5.5,  # Reduced from 6.0 for softer application
-                strength=0.35,  # Reduced from 0.45 - lower strength preserves person better
-                negative_prompt="changed face, different face, modified clothing, wrong colors, cropped body, portrait mode, altered skin, added tattoos"
-            )
-            
-            print(f"✅ STEP 2 complete: Final image with scene: {scene_result[:50]}...")
-            return scene_result
-            
-        except Exception as e:
-            print(f"❌ Nano-banana (scene placement) failed: {e}")
-            print(f"↩️ Returning person+clothing image without scene")
-            return person_clothing_url
             
     except Exception as e:
         print(f"❌ Two-step composition failed: {e}")
