@@ -4694,17 +4694,17 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
         print(f"👕 Reference 2 (Clothing): {product_image_url[:60]}...")
         print(f"🌄 Reference 3 (Scene): {scene_image_url[:60]}...")
         
-        # Balanced parameters - equal weight to all 3 references
+        # Higher strength to force adherence to all 3 reference images
         try:
-            print("🔄 Calling Qwen with balanced parameters for all 3 elements...")
+            print("🔄 Calling Qwen with HIGH strength for strict reference adherence...")
             out = replicate.run(
                 "qwen/qwen-image-edit-plus",
                 input={
                     "prompt": qwen_prompt,
                     "image": [model_image_url, product_image_url, scene_image_url],
                     "num_inference_steps": 40,
-                    "guidance_scale": 7.0,  # High guidance for strict adherence
-                    "strength": 0.50  # Balanced for all 3 elements
+                    "guidance_scale": 7.5,  # Very high guidance for strict adherence
+                    "strength": 0.65  # Higher strength = more adherence to reference images
                 }
             )
             
