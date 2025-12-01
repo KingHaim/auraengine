@@ -4647,14 +4647,14 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
         return current_image_url
 
 def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard", shot_type_prompt: str = None, clothing_type: str = None) -> str:
-    """SINGLE-STEP: Qwen with all 3 images, optimized for face preservation"""
+    """FLUX 2 PRO: High-quality composition with multiple reference images"""
     try:
-        print(f"🎬 Running SINGLE-STEP Qwen composition with face-priority parameters")
+        print(f"🎬 Running FLUX 2 PRO composition with 3 reference images")
         
         # Use clothing_type if provided, otherwise fallback to product_name
         garment_description = clothing_type if clothing_type else product_name
         
-        # Convert all local URLs to base64
+        # Convert all local URLs to public URLs (Flux needs accessible URLs)
         if model_image_url.startswith(get_base_url() + "/static/"):
             filename = model_image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
@@ -4670,35 +4670,40 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # Balanced prompt - natural composition with face identity preservation
-        composition_prompt = (
-            f"Create a professional full body fashion photograph (head to feet visible). "
-            f"Reference IMAGE 1 for the person's face identity - use their facial features, skin tone, and overall look with a natural expression. "
-            f"Reference IMAGE 2 for the {garment_description} - dress them in this exact garment with the same colors and design. "
-            f"Reference IMAGE 3 for the scene/location - place them in this environment with appropriate lighting. "
-            f"Create a natural, well-proportioned full body shot with proper anatomy. "
-            f"The person should look realistic and proportional, not distorted or disproportionate. "
-            f"Keep the face similar to IMAGE 1, clothing from IMAGE 2, and background from IMAGE 3."
+        # Flux 2 Pro prompt - designed for multi-reference composition
+        flux_prompt = (
+            f"Professional full body fashion photograph, head to feet visible. "
+            f"A person with the face and identity from the first reference image, "
+            f"wearing the {garment_description} shown in the second reference image with exact colors and design, "
+            f"standing in the location and scene from the third reference image. "
+            f"Natural lighting, well-proportioned body, realistic and professional fashion photography. "
+            f"High quality, sharp focus, full body shot."
         )
         
-        # Balanced parameters - enough strength for proper composition, not too much to lose face
-        num_steps = 40  # Standard quality
-        guidance = 6.8  # Moderate-high guidance
-        strength = 0.50  # Balanced - allows proper body composition while preserving identity
-        print("⚡ Qwen SINGLE-STEP: strength=0.50, guidance=6.8, steps=40 (balanced quality mode)")
+        print(f"📸 Flux prompt: {flux_prompt[:100]}...")
+        print(f"🖼️  Reference 1 (Person): {model_image_url[:60]}...")
+        print(f"👕 Reference 2 (Clothing): {product_image_url[:60]}...")
+        print(f"🌄 Reference 3 (Scene): {scene_image_url[:60]}...")
         
-        # Single Qwen call with all 3 images
+        # Call Flux 2 Pro with reference images
         try:
-            print("🔄 Calling Qwen with all 3 images (face-priority)...")
-            out = replicate.run("qwen/qwen-image-edit-plus", input={
-                "prompt": composition_prompt,
-                "image": [model_image_url, product_image_url, scene_image_url],
-                "num_inference_steps": num_steps,
-                "guidance_scale": guidance,
-                "strength": strength
-            })
+            print("🔄 Calling Flux 2 Pro with 3 reference images...")
+            out = replicate.run(
+                "black-forest-labs/flux-2-pro",
+                input={
+                    "prompt": flux_prompt,
+                    "reference_images": [model_image_url, product_image_url, scene_image_url],
+                    "reference_strength": 0.75,  # Strong reference adherence
+                    "guidance": 3.5,  # Flux uses lower guidance values
+                    "num_inference_steps": 30,
+                    "aspect_ratio": "9:16",  # Vertical for full body fashion shot
+                    "output_format": "jpg",
+                    "output_quality": 90,
+                    "safety_tolerance": 2
+                }
+            )
             
-            # Handle Qwen output
+            # Handle Flux output
             if hasattr(out, 'url'):
                 result_url = out.url()
             elif isinstance(out, str):
@@ -4708,11 +4713,13 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             else:
                 result_url = str(out)
             
-            print(f"✅ Single-step composition complete: {result_url[:50]}...")
+            print(f"✅ Flux 2 Pro composition complete: {result_url[:50]}...")
             return result_url
             
         except Exception as e:
-            print(f"❌ Qwen single-step failed: {e}")
+            print(f"❌ Flux 2 Pro failed: {e}")
+            import traceback
+            traceback.print_exc()
             if DISABLE_PLACEHOLDERS:
                 print("↩️ Returning model image instead of placeholder")
                 return model_image_url
