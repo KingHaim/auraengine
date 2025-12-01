@@ -4681,11 +4681,11 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             f"DO NOT: add tattoos, change skin, crop the body, modify the clothing colors."
         )
         
-        # Conservative parameters for Qwen
+        # Conservative parameters for Qwen - prioritize face preservation
         num_steps = 40
-        guidance = 6.5
-        strength = 0.48
-        print("⚡ Qwen: strength=0.48, guidance=6.5 for person+clothing composition")
+        guidance = 7.0  # Higher guidance for better instruction following
+        strength = 0.45  # Lower strength for better face similarity
+        print("⚡ Qwen: strength=0.45, guidance=7.0 for maximum face preservation")
         
         # STEP 1: Qwen with 2 images (person + clothing)
         try:
@@ -4722,10 +4722,11 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
         print("🌄 STEP 2: Nano-banana placing person into scene...")
         try:
             scene_placement_prompt = (
-                f"Place this person into the reference scene/location. "
-                f"Keep the person exactly as shown (face, clothing, body). "
-                f"Replace ONLY the background with the scene from the reference image. "
-                f"Match the lighting and atmosphere of the scene. "
+                f"Background replacement: Place this person into the reference scene. "
+                f"PRESERVE the person EXACTLY - same face, same clothing, same body, same pose. "
+                f"ONLY change the background to match the reference scene/location. "
+                f"DO NOT modify the person's face, skin, clothing, or body. "
+                f"Match the lighting and atmosphere of the scene to the person. "
                 f"Keep the full body visible (head to feet)."
             )
             
@@ -4733,10 +4734,10 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             scene_result = run_nano_banana_pro(
                 image_urls=[person_clothing_url, scene_image_url],
                 prompt=scene_placement_prompt,
-                num_steps=30,
-                guidance_scale=6.0,
-                strength=0.45,  # Moderate - enough to apply scene, not too much to change person
-                negative_prompt="cropped body, portrait mode, changed face, modified clothing, wrong colors"
+                num_steps=25,  # Reduced from 30 for less variation
+                guidance_scale=5.5,  # Reduced from 6.0 for softer application
+                strength=0.35,  # Reduced from 0.45 - lower strength preserves person better
+                negative_prompt="changed face, different face, modified clothing, wrong colors, cropped body, portrait mode, altered skin, added tattoos"
             )
             
             print(f"✅ STEP 2 complete: Final image with scene: {scene_result[:50]}...")
