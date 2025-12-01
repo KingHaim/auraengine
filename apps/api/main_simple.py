@@ -4647,14 +4647,14 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
         return current_image_url
 
 def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard", shot_type_prompt: str = None, clothing_type: str = None) -> str:
-    """FLUX 2 PRO: High-quality composition with multiple reference images"""
+    """QWEN: Optimized for equal emphasis on face, clothing, and scene"""
     try:
-        print(f"🎬 Running FLUX 2 PRO composition with 3 reference images")
+        print(f"🎬 Running Qwen composition with EQUAL emphasis on all 3 references")
         
         # Use clothing_type if provided, otherwise fallback to product_name
         garment_description = clothing_type if clothing_type else product_name
         
-        # Convert all local URLs to public URLs (Flux needs accessible URLs)
+        # Convert all local URLs to public URLs
         if model_image_url.startswith(get_base_url() + "/static/"):
             filename = model_image_url.replace(get_base_url() + "/static/", "")
             filepath = f"uploads/{filename}"
@@ -4670,40 +4670,45 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # Flux 2 Pro prompt - designed for multi-reference composition
-        flux_prompt = (
-            f"Professional full body fashion photograph, head to feet visible. "
-            f"A person with the face and identity from the first reference image, "
-            f"wearing the {garment_description} shown in the second reference image with exact colors and design, "
-            f"standing in the location and scene from the third reference image. "
-            f"Natural lighting, well-proportioned body, realistic and professional fashion photography. "
-            f"High quality, sharp focus, full body shot."
+        # Ultra-detailed prompt with EQUAL weight on all 3 elements
+        qwen_prompt = (
+            f"Create a full body fashion photograph (head to feet visible). "
+            f"This is a 3-image composition task - ALL THREE images are EQUALLY important: "
+            f"\n\n"
+            f"IMAGE 1 (PERSON/FACE): Copy the EXACT face from this image - the eyes, nose, mouth, facial structure, skin tone, hair style. "
+            f"This person's face MUST be recognizable and preserved. Natural neutral expression. "
+            f"\n\n"
+            f"IMAGE 2 (CLOTHING): The person must wear this EXACT {garment_description}. "
+            f"Copy the precise colors, design, patterns, and style from this garment image. DO NOT change the clothing colors or design. "
+            f"\n\n"
+            f"IMAGE 3 (SCENE/BACKGROUND): Place the person in this EXACT location/scene. "
+            f"Copy the background environment - the walls, floor, architecture, lighting, colors, atmosphere. "
+            f"The background MUST match this scene image. DO NOT use a generic or white background. "
+            f"\n\n"
+            f"RESULT: Full body shot (head to feet) of the person from IMAGE 1, wearing the garment from IMAGE 2, in the scene from IMAGE 3. "
+            f"All three elements must be present and recognizable."
         )
         
-        print(f"📸 Flux prompt: {flux_prompt[:100]}...")
+        print(f"📸 Qwen prompt length: {len(qwen_prompt)} chars")
         print(f"🖼️  Reference 1 (Person): {model_image_url[:60]}...")
         print(f"👕 Reference 2 (Clothing): {product_image_url[:60]}...")
         print(f"🌄 Reference 3 (Scene): {scene_image_url[:60]}...")
         
-        # Call Flux 2 Pro with reference images
+        # Balanced parameters - equal weight to all 3 references
         try:
-            print("🔄 Calling Flux 2 Pro with 3 reference images...")
+            print("🔄 Calling Qwen with balanced parameters for all 3 elements...")
             out = replicate.run(
-                "black-forest-labs/flux-2-pro",
+                "qwen/qwen-image-edit-plus",
                 input={
-                    "prompt": flux_prompt,
-                    "reference_images": [model_image_url, product_image_url, scene_image_url],
-                    "reference_strength": 0.75,  # Strong reference adherence
-                    "guidance": 3.5,  # Flux uses lower guidance values
-                    "num_inference_steps": 30,
-                    "aspect_ratio": "9:16",  # Vertical for full body fashion shot
-                    "output_format": "jpg",
-                    "output_quality": 90,
-                    "safety_tolerance": 2
+                    "prompt": qwen_prompt,
+                    "image": [model_image_url, product_image_url, scene_image_url],
+                    "num_inference_steps": 40,
+                    "guidance_scale": 7.0,  # High guidance for strict adherence
+                    "strength": 0.50  # Balanced for all 3 elements
                 }
             )
             
-            # Handle Flux output
+            # Handle Qwen output
             if hasattr(out, 'url'):
                 result_url = out.url()
             elif isinstance(out, str):
@@ -4713,11 +4718,11 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             else:
                 result_url = str(out)
             
-            print(f"✅ Flux 2 Pro composition complete: {result_url[:50]}...")
+            print(f"✅ Qwen composition complete: {result_url[:50]}...")
             return result_url
             
         except Exception as e:
-            print(f"❌ Flux 2 Pro failed: {e}")
+            print(f"❌ Qwen failed: {e}")
             import traceback
             traceback.print_exc()
             if DISABLE_PLACEHOLDERS:
