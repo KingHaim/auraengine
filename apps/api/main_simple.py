@@ -4670,21 +4670,22 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # Face-priority prompt - emphasize identity preservation first
+        # Balanced prompt - natural composition with face identity preservation
         composition_prompt = (
-            f"Full body fashion photo (head to feet visible). "
-            f"IMAGE 1 is the IDENTITY REFERENCE - copy this person's EXACT face (eyes, nose, mouth, facial structure, skin). This face is the PRIMARY constraint. "
-            f"IMAGE 2 shows the {garment_description} - dress the person in this exact garment with same colors and design. "
-            f"IMAGE 3 shows the location - place the person in this scene with similar lighting. "
-            f"Priority order: 1) Preserve face from IMAGE 1, 2) Apply clothing from IMAGE 2, 3) Use background from IMAGE 3. "
-            f"DO NOT change the person's face, add tattoos, or modify clothing colors."
+            f"Create a professional full body fashion photograph (head to feet visible). "
+            f"Reference IMAGE 1 for the person's face identity - use their facial features, skin tone, and overall look with a natural expression. "
+            f"Reference IMAGE 2 for the {garment_description} - dress them in this exact garment with the same colors and design. "
+            f"Reference IMAGE 3 for the scene/location - place them in this environment with appropriate lighting. "
+            f"Create a natural, well-proportioned full body shot with proper anatomy. "
+            f"The person should look realistic and proportional, not distorted or disproportionate. "
+            f"Keep the face similar to IMAGE 1, clothing from IMAGE 2, and background from IMAGE 3."
         )
         
-        # VERY conservative parameters - prioritize face preservation over everything
-        num_steps = 35  # Slightly fewer steps
-        guidance = 7.5  # High guidance for strict instruction following
-        strength = 0.42  # Very low strength for minimal face variation
-        print("⚡ Qwen SINGLE-STEP: strength=0.42, guidance=7.5, steps=35 (face-priority mode)")
+        # Balanced parameters - enough strength for proper composition, not too much to lose face
+        num_steps = 40  # Standard quality
+        guidance = 6.8  # Moderate-high guidance
+        strength = 0.50  # Balanced - allows proper body composition while preserving identity
+        print("⚡ Qwen SINGLE-STEP: strength=0.50, guidance=6.8, steps=40 (balanced quality mode)")
         
         # Single Qwen call with all 3 images
         try:
