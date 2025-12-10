@@ -1,6 +1,6 @@
 "use client";
 // Force rebuild - workflow buttons deployment v2
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import AppLayout from "../../components/AppLayout";
 
@@ -121,6 +121,7 @@ export default function CampaignsPage() {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [selectedScenes, setSelectedScenes] = useState<string[]>([]);
+  const scenesSliderRef = useRef<HTMLDivElement>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isGeneratingInModal, setIsGeneratingInModal] = useState(false);
   const [generatingCampaign, setGeneratingCampaign] = useState<string | null>(
@@ -2957,91 +2958,190 @@ export default function CampaignsPage() {
                       </span>
                     )}
                   </h3>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "12px",
-                      overflowX: "auto",
-                      paddingBottom: "8px",
-                      scrollbarWidth: "thin",
-                      scrollbarColor: "#4B5563 #374151",
-                    }}
-                  >
-                    {scenes.length === 0 ? (
-                      <div
+                  {/* Scenes Slider with Navigation Arrows */}
+                  <div style={{ position: "relative" }}>
+                    {/* Left Arrow */}
+                    {scenes.length > 3 && (
+                      <button
+                        onClick={() => {
+                          if (scenesSliderRef.current) {
+                            scenesSliderRef.current.scrollBy({ left: -264, behavior: "smooth" });
+                          }
+                        }}
                         style={{
-                          color: "#9CA3AF",
-                          fontSize: "14px",
-                          padding: "20px",
-                          textAlign: "center",
-                          width: "100%",
+                          position: "absolute",
+                          left: "-12px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          zIndex: 10,
+                          width: "32px",
+                          height: "32px",
+                          borderRadius: "50%",
+                          backgroundColor: "rgba(212, 47, 72, 0.9)",
+                          border: "none",
+                          color: "#FFFFFF",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "18px",
+                          fontWeight: "bold",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#d42f48";
+                          e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "rgba(212, 47, 72, 0.9)";
+                          e.currentTarget.style.transform = "translateY(-50%) scale(1)";
                         }}
                       >
-                        No scenes available
-                      </div>
-                    ) : (
-                      scenes.map((scene) => {
-                        console.log("🎬 Rendering scene:", scene);
-                        return (
-                          <div
-                            key={scene.id}
-                            onClick={() => toggleSelection(scene.id, "scenes")}
-                            style={{
-                              minWidth: "120px",
-                              height: "80px",
-                              backgroundColor: "#4B5563",
-                              borderRadius: "8px",
-                              backgroundImage: `url(${scene.image_url})`,
-                              backgroundSize: "cover",
-                              backgroundPosition: "center",
-                              cursor: "pointer",
-                              border: selectedScenes.includes(scene.id)
-                                ? "2px solid #d42f48"
-                                : "1px solid #6B7280",
-                              position: "relative",
-                              overflow: "hidden",
-                              flexShrink: 0,
-                            }}
-                          >
+                        ‹
+                      </button>
+                    )}
+                    
+                    {/* Scenes Container */}
+                    <div
+                      ref={scenesSliderRef}
+                      style={{
+                        display: "flex",
+                        gap: "12px",
+                        overflowX: "auto",
+                        paddingBottom: "8px",
+                        scrollbarWidth: "thin",
+                        scrollbarColor: "#4B5563 #374151",
+                        scrollBehavior: "smooth",
+                        paddingLeft: scenes.length > 3 ? "24px" : "0",
+                        paddingRight: scenes.length > 3 ? "24px" : "0",
+                      }}
+                    >
+                      {scenes.length === 0 ? (
+                        <div
+                          style={{
+                            color: "#9CA3AF",
+                            fontSize: "14px",
+                            padding: "20px",
+                            textAlign: "center",
+                            width: "100%",
+                          }}
+                        >
+                          No scenes available
+                        </div>
+                      ) : (
+                        scenes.map((scene) => {
+                          console.log("🎬 Rendering scene:", scene);
+                          return (
                             <div
+                              key={scene.id}
+                              onClick={() => toggleSelection(scene.id, "scenes")}
                               style={{
-                                position: "absolute",
-                                bottom: "0",
-                                left: "0",
-                                right: "0",
-                                backgroundColor: "rgba(9, 10, 12, 0.7)",
-                                color: "#FFFFFF",
-                                padding: "4px 8px",
-                                fontSize: "12px",
-                                fontWeight: "500",
+                                minWidth: "120px",
+                                height: "80px",
+                                backgroundColor: "#4B5563",
+                                borderRadius: "8px",
+                                backgroundImage: `url(${scene.image_url})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                                cursor: "pointer",
+                                border: selectedScenes.includes(scene.id)
+                                  ? "2px solid #d42f48"
+                                  : "1px solid #6B7280",
+                                position: "relative",
+                                overflow: "hidden",
+                                flexShrink: 0,
+                                transition: "transform 0.2s ease, border-color 0.2s ease",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = "scale(1.05)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = "scale(1)";
                               }}
                             >
-                              {scene.name}
-                            </div>
-                            {selectedScenes.includes(scene.id) && (
                               <div
                                 style={{
                                   position: "absolute",
-                                  top: "6px",
-                                  right: "6px",
-                                  width: "20px",
-                                  height: "20px",
-                                  backgroundColor: "#d42f48",
-                                  borderRadius: "50%",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  fontSize: "12px",
+                                  bottom: "0",
+                                  left: "0",
+                                  right: "0",
+                                  backgroundColor: "rgba(9, 10, 12, 0.7)",
                                   color: "#FFFFFF",
-                                  fontWeight: "bold",
+                                  padding: "4px 8px",
+                                  fontSize: "12px",
+                                  fontWeight: "500",
                                 }}
                               >
-                                ✓
+                                {scene.name}
                               </div>
-                            )}
-                          </div>
-                        );
-                      })
+                              {selectedScenes.includes(scene.id) && (
+                                <div
+                                  style={{
+                                    position: "absolute",
+                                    top: "6px",
+                                    right: "6px",
+                                    width: "20px",
+                                    height: "20px",
+                                    backgroundColor: "#d42f48",
+                                    borderRadius: "50%",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontSize: "12px",
+                                    color: "#FFFFFF",
+                                    fontWeight: "bold",
+                                  }}
+                                >
+                                  ✓
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                    
+                    {/* Right Arrow */}
+                    {scenes.length > 3 && (
+                      <button
+                        onClick={() => {
+                          if (scenesSliderRef.current) {
+                            scenesSliderRef.current.scrollBy({ left: 264, behavior: "smooth" });
+                          }
+                        }}
+                        style={{
+                          position: "absolute",
+                          right: "-12px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          zIndex: 10,
+                          width: "32px",
+                          height: "32px",
+                          borderRadius: "50%",
+                          backgroundColor: "rgba(212, 47, 72, 0.9)",
+                          border: "none",
+                          color: "#FFFFFF",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "18px",
+                          fontWeight: "bold",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#d42f48";
+                          e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "rgba(212, 47, 72, 0.9)";
+                          e.currentTarget.style.transform = "translateY(-50%) scale(1)";
+                        }}
+                      >
+                        ›
+                      </button>
                     )}
                   </div>
                 </div>
