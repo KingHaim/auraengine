@@ -4647,9 +4647,11 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
         return current_image_url
 
 def run_qwen_triple_composition(model_image_url: str, product_image_url: str, scene_image_url: str, product_name: str, quality_mode: str = "standard", shot_type_prompt: str = None, clothing_type: str = None) -> str:
-    """QWEN: Optimized for equal emphasis on face, clothing, and scene"""
+    """TWO-STEP WORKFLOW: Qwen for person+clothing, Nano-banana for background"""
     try:
-        print(f"🎬 Running Qwen composition with EQUAL emphasis on all 3 references")
+        print(f"🎬 Running TWO-STEP composition workflow")
+        print(f"   Step 1: Qwen - Person + Clothing")
+        print(f"   Step 2: Nano-banana - Add Scene Background")
         
         # Use clothing_type if provided, otherwise fallback to product_name
         garment_description = clothing_type if clothing_type else product_name
@@ -4670,66 +4672,91 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             filepath = f"uploads/{filename}"
             scene_image_url = upload_to_replicate(filepath)
 
-        # Ultra-detailed prompt with EQUAL weight on all 3 elements
+        # ============================================================
+        # STEP 1: QWEN - Person + Clothing ONLY (no scene)
+        # ============================================================
         qwen_prompt = (
             f"Create a full body fashion photograph (head to feet visible). "
-            f"This is a 3-image composition task - ALL THREE images are EQUALLY important: "
-            f"\n\n"
-            f"IMAGE 1 (PERSON/FACE): Copy the EXACT face from this image - the eyes, nose, mouth, facial structure, skin tone, hair style. "
-            f"This person's face MUST be recognizable and preserved. Natural neutral expression. "
-            f"\n\n"
-            f"IMAGE 2 (CLOTHING): The person must wear this EXACT {garment_description}. "
-            f"Copy the precise colors, design, patterns, and style from this garment image. DO NOT change the clothing colors or design. "
-            f"\n\n"
-            f"IMAGE 3 (SCENE/BACKGROUND): Place the person in this EXACT location/scene. "
-            f"Copy the background environment - the walls, floor, architecture, lighting, colors, atmosphere. "
-            f"The background MUST match this scene image. DO NOT use a generic or white background. "
-            f"\n\n"
-            f"RESULT: Full body shot (head to feet) of the person from IMAGE 1, wearing the garment from IMAGE 2, in the scene from IMAGE 3. "
-            f"All three elements must be present and recognizable."
+            f"IMAGE 1 (PERSON): Copy this person's EXACT face - eyes, nose, mouth, facial structure, skin tone, hair style. "
+            f"This person's face and identity MUST be perfectly preserved. "
+            f"IMAGE 2 (CLOTHING): Dress the person in this EXACT {garment_description}. "
+            f"Copy the precise colors, design, patterns, and style. DO NOT change the clothing. "
+            f"OUTPUT: Full body shot (head to feet) of the person from IMAGE 1 wearing the garment from IMAGE 2. "
+            f"Use a simple neutral background - the background will be replaced in next step."
         )
         
-        print(f"📸 Qwen prompt length: {len(qwen_prompt)} chars")
-        print(f"🖼️  Reference 1 (Person): {model_image_url[:60]}...")
-        print(f"👕 Reference 2 (Clothing): {product_image_url[:60]}...")
-        print(f"🌄 Reference 3 (Scene): {scene_image_url[:60]}...")
+        print(f"📸 STEP 1 - Qwen: Person + Clothing")
+        print(f"🖼️  Person: {model_image_url[:60]}...")
+        print(f"👕 Clothing: {product_image_url[:60]}...")
         
-        # Higher strength to force adherence to all 3 reference images
         try:
-            print("🔄 Calling Qwen with HIGH strength for strict reference adherence...")
+            print("🔄 Calling Qwen for person+clothing composition...")
             out = replicate.run(
                 "qwen/qwen-image-edit-plus",
                 input={
                     "prompt": qwen_prompt,
-                    "image": [model_image_url, product_image_url, scene_image_url],
+                    "image": [model_image_url, product_image_url],  # Only 2 images!
                     "num_inference_steps": 40,
-                    "guidance_scale": 7.5,  # Very high guidance for strict adherence
-                    "strength": 0.65  # Higher strength = more adherence to reference images
+                    "guidance_scale": 7.5,
+                    "strength": 0.55  # Good balance for face+clothing
                 }
             )
             
             # Handle Qwen output
             if hasattr(out, 'url'):
-                result_url = out.url()
+                person_clothing_url = out.url()
             elif isinstance(out, str):
-                result_url = out
+                person_clothing_url = out
             elif isinstance(out, list) and len(out) > 0:
-                result_url = out[0] if isinstance(out[0], str) else out[0].url()
+                person_clothing_url = out[0] if isinstance(out[0], str) else out[0].url()
             else:
-                result_url = str(out)
+                person_clothing_url = str(out)
             
-            print(f"✅ Qwen composition complete: {result_url[:50]}...")
-            return result_url
+            print(f"✅ Step 1 complete: {person_clothing_url[:50]}...")
             
         except Exception as e:
-            print(f"❌ Qwen failed: {e}")
+            print(f"❌ Step 1 (Qwen) failed: {e}")
             import traceback
             traceback.print_exc()
             if DISABLE_PLACEHOLDERS:
-                print("↩️ Returning model image instead of placeholder")
                 return model_image_url
-            fallback_url = f"https://picsum.photos/800/600?random={hash(model_image_url) % 10000}"
-            return fallback_url
+            return f"https://picsum.photos/800/600?random={hash(model_image_url) % 10000}"
+        
+        # ============================================================
+        # STEP 2: NANO-BANANA - Add Scene Background
+        # ============================================================
+        print(f"🌄 STEP 2 - Nano-banana: Adding scene background")
+        print(f"🖼️  Composed person: {person_clothing_url[:60]}...")
+        print(f"🌄 Scene to apply: {scene_image_url[:60]}...")
+        
+        background_prompt = (
+            f"Replace the background of this image. "
+            f"Keep the person EXACTLY as they are - same face, same clothing, same pose, same body. "
+            f"ONLY change the background to match the reference scene image. "
+            f"The person must remain unchanged - only the background environment changes. "
+            f"Full body must remain visible (head to feet)."
+        )
+        
+        try:
+            final_result = run_nano_banana_pro(
+                prompt=background_prompt,
+                image_urls=[person_clothing_url, scene_image_url],  # Person first, scene second
+                strength=0.45,  # Moderate - enough to change background but preserve person
+                guidance_scale=6.5,
+                num_steps=30,
+                negative_prompt="changed face, modified clothing, cropped body, altered skin, different pose"
+            )
+            
+            print(f"✅ Step 2 complete - Final image: {final_result[:50]}...")
+            return final_result
+            
+        except Exception as e:
+            print(f"❌ Step 2 (Nano-banana) failed: {e}")
+            import traceback
+            traceback.print_exc()
+            # Return the person+clothing image without scene as fallback
+            print(f"⚠️ Returning Step 1 result (without scene)")
+            return person_clothing_url
             
     except Exception as e:
         print(f"❌ Two-step composition failed: {e}")
