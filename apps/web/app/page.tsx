@@ -54,6 +54,13 @@ export default function Home() {
               objectFit: "contain",
               margin: "0 auto 12px",
             }}
+            onError={(e) => {
+              // Fallback to CSS spinner if GIF fails to load
+              e.currentTarget.style.display = "none";
+              const spinner = document.createElement("div");
+              spinner.style.cssText = "width: 60px; height: 60px; border: 4px solid #1F2630; border-top-color: #d42f48; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px;";
+              e.currentTarget.parentNode?.insertBefore(spinner, e.currentTarget);
+            }}
           />
           <div style={{ fontSize: "14px", color: "#9BA3AF" }}>Loading...</div>
         </div>
