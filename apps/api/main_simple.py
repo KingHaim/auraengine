@@ -3683,6 +3683,88 @@ def upload_pil_to_cloudinary(img: Image.Image, folder: str = "auraengine") -> st
         print(f"❌ Failed to upload PIL image to Cloudinary: {e}")
         return upload_png(img)
 
+def _save_to_local_storage(url: str, folder: str = "auraengine") -> str:
+    """
+    Save image/video to local storage when Cloudinary is not configured.
+    Returns a local static URL that works for the frontend but NOT for AI models.
+    """
+    import requests
+    
+    # Ensure static directory exists
+    static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", folder)
+    os.makedirs(static_dir, exist_ok=True)
+    
+    filename = f"{folder}_{uuid.uuid4().hex}"
+    
+    # Handle data URL (base64)
+    if isinstance(url, str) and url.startswith("data:"):
+        try:
+            header, b64 = url.split(",", 1)
+            if "video" in header:
+                ext = "mp4"
+            elif "png" in header:
+                ext = "png"
+            elif "webp" in header:
+                ext = "webp"
+            else:
+                ext = "jpg"
+            
+            filepath = os.path.join(static_dir, f"{filename}.{ext}")
+            with open(filepath, "wb") as f:
+                f.write(base64.b64decode(b64))
+            
+            local_url = f"{get_base_url()}/static/{folder}/{filename}.{ext}"
+            print(f"📁 Saved to local storage: {local_url}")
+            return local_url
+        except Exception as e:
+            print(f"❌ Failed to save data URL locally: {e}")
+            raise
+    
+    # Handle http(s) URL - download and save
+    if isinstance(url, str) and (url.startswith("http://") or url.startswith("https://")):
+        try:
+            response = requests.get(url, timeout=30)
+            response.raise_for_status()
+            
+            # Detect extension from content type or URL
+            content_type = response.headers.get('content-type', '')
+            if 'video' in content_type:
+                ext = "mp4"
+            elif 'png' in content_type or url.endswith('.png'):
+                ext = "png"
+            elif 'webp' in content_type or url.endswith('.webp'):
+                ext = "webp"
+            else:
+                ext = "jpg"
+            
+            filepath = os.path.join(static_dir, f"{filename}.{ext}")
+            with open(filepath, "wb") as f:
+                f.write(response.content)
+            
+            local_url = f"{get_base_url()}/static/{folder}/{filename}.{ext}"
+            print(f"📁 Downloaded and saved to local storage: {local_url}")
+            return local_url
+        except Exception as e:
+            print(f"❌ Failed to download and save URL locally: {e}")
+            raise
+    
+    # Handle local file path - copy to static
+    if isinstance(url, str) and os.path.exists(url):
+        try:
+            ext = url.split('.')[-1] if '.' in url else 'jpg'
+            filepath = os.path.join(static_dir, f"{filename}.{ext}")
+            import shutil
+            shutil.copy(url, filepath)
+            
+            local_url = f"{get_base_url()}/static/{folder}/{filename}.{ext}"
+            print(f"📁 Copied to local storage: {local_url}")
+            return local_url
+        except Exception as e:
+            print(f"❌ Failed to copy file locally: {e}")
+            raise
+    
+    raise Exception(f"Unknown URL format for local storage: {url[:100] if isinstance(url, str) else type(url)}")
+
 def upload_to_cloudinary(url: str, folder: str = "auraengine") -> str:
     """
     Upload an image or video to Cloudinary and return the public URL.
@@ -3692,12 +3774,13 @@ def upload_to_cloudinary(url: str, folder: str = "auraengine") -> str:
     - http(s) URLs (replicate.delivery, etc.)
     - local file paths
     
-    NO LOCAL FALLBACK - Always uploads to Cloudinary or raises exception.
+    Falls back to local storage when Cloudinary is not configured (development mode).
     """
     try:
-        # Check if Cloudinary is configured
+        # Check if Cloudinary is configured - if not, use local storage fallback
         if not (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
-            raise Exception("Cloudinary is not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.")
+            print(f"⚠️ Cloudinary not configured - using local storage fallback")
+            return _save_to_local_storage(url, folder)
         
         # Handle data URL
         if isinstance(url, str) and url.startswith("data:image/"):
