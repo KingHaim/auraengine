@@ -2081,6 +2081,10 @@ export default function CampaignsPage() {
               )}
               <button
                 onClick={() => {
+                  if (products.length === 0) {
+                    alert("Please upload at least one product before creating a campaign. Go to Products page to add products.");
+                    return;
+                  }
                   console.log("🎯 Create Campaign button clicked!");
                   console.log(
                     "Current showCreateModal state:",
@@ -2091,28 +2095,33 @@ export default function CampaignsPage() {
                   setShowCreateModal(true);
                   console.log("Set showCreateModal to true");
                 }}
+                disabled={products.length === 0}
+                title={products.length === 0 ? "Upload products first" : "Create new campaign"}
                 style={{
                   width: "48px",
                   height: "48px",
-                  backgroundColor: "#d42f48",
+                  backgroundColor: products.length === 0 ? "#4B5563" : "#d42f48",
                   border: "none",
                   borderRadius: "50%",
                   color: "#FFFFFF",
                   fontSize: "24px",
                   fontWeight: "500",
-                  cursor: "pointer",
+                  cursor: products.length === 0 ? "not-allowed" : "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   transition: "all 0.2s ease",
+                  opacity: products.length === 0 ? 0.6 : 1,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.05)";
-                  e.currentTarget.style.backgroundColor = "#b0263c";
+                  if (products.length > 0) {
+                    e.currentTarget.style.transform = "scale(1.05)";
+                    e.currentTarget.style.backgroundColor = "#b0263c";
+                  }
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "scale(1)";
-                  e.currentTarget.style.backgroundColor = "#d42f48";
+                  e.currentTarget.style.backgroundColor = products.length === 0 ? "#4B5563" : "#d42f48";
                 }}
               >
                 +
@@ -2217,14 +2226,22 @@ export default function CampaignsPage() {
                 No campaigns yet
               </h3>
               <p style={{ marginBottom: "24px" }}>
-                Create your first campaign by selecting products, models, and
-                scenes
+                {products.length === 0 
+                  ? "First, upload products in the Products page, then come back to create your campaign"
+                  : "Create your first campaign by selecting products, models, and scenes"
+                }
               </p>
               <button
-                onClick={() => setShowCreateModal(true)}
+                onClick={() => {
+                  if (products.length === 0) {
+                    window.location.href = "/products";
+                  } else {
+                    setShowCreateModal(true);
+                  }
+                }}
                 style={{
                   padding: "12px 24px",
-                  backgroundColor: "#d42f48",
+                  backgroundColor: products.length === 0 ? "#3B82F6" : "#d42f48",
                   border: "none",
                   borderRadius: "8px",
                   color: "#FFFFFF",
@@ -2233,7 +2250,7 @@ export default function CampaignsPage() {
                   cursor: "pointer",
                 }}
               >
-                Create Campaign
+                {products.length === 0 ? "Go to Products" : "Create Campaign"}
               </button>
             </div>
           ) : (
