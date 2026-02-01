@@ -6387,16 +6387,16 @@ export default function CampaignsPage() {
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                   {[
                     { icon: "👀", name: "Looking Away" },
+                    { icon: "👕", name: "Shirt Close-up" },
                     { icon: "🪑", name: "Sitting in Scene" },
+                    { icon: "👖", name: "Pants Close-up" },
                     { icon: "🧱", name: "Leaning Casual" },
+                    { icon: "✨", name: "Outfit Detail" },
                     { icon: "💭", name: "Lost in Thought" },
                     { icon: "🚶", name: "Exploring Space" },
-                    { icon: "⬆️", name: "Low Angle Hero" },
-                    { icon: "⬇️", name: "High Angle View" },
+                    { icon: "⬆️", name: "Low Angle" },
+                    { icon: "⬇️", name: "High Angle" },
                     { icon: "👤", name: "Side Profile" },
-                    { icon: "👕", name: "Shirt Close-up" },
-                    { icon: "👖", name: "Pants Close-up" },
-                    { icon: "✨", name: "Outfit Detail" },
                   ].map((kf, idx) => (
                     <div
                       key={idx}
