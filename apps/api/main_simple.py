@@ -1406,6 +1406,30 @@ async def generate_keyframes_background(
                 "prompt": "Same person, same exact outfit. SIDE PROFILE: Camera positioned to the SIDE. Person shown in profile view. Different wall/section of the environment visible. 90-degree angle from original shot. Show the outfit from a completely different angle. Architectural elements on one side. Fashion editorial profile.",
                 "strength": 0.58,
                 "negative_prompt": "frontal, same angle, centered, identical perspective, flat"
+            },
+            {
+                "key": "closeup_shirt",
+                "name": "Shirt Close-up",
+                "title": "Shirt Detail Shot",
+                "prompt": "Same person, same outfit. PRODUCT CLOSE-UP: Tight shot focusing on the SHIRT/TOP. Show fabric texture, print details, stitching, and fit around torso. Shoulders and chest visible. Blurred background showing hint of the scene. Fashion product photography. High detail on garment.",
+                "strength": 0.42,
+                "negative_prompt": "full body, legs visible, wide shot, different clothes, changed design"
+            },
+            {
+                "key": "closeup_pants",
+                "name": "Pants Close-up", 
+                "title": "Pants Detail Shot",
+                "prompt": "Same person, same outfit. PRODUCT CLOSE-UP: Tight shot focusing on the PANTS/BOTTOM. Show fabric texture, fit around waist and legs, details and styling. Waist to knees or feet visible. Blurred background showing hint of the scene. Fashion product photography. High detail on garment.",
+                "strength": 0.42,
+                "negative_prompt": "full body, face visible, portrait, wide shot, different clothes"
+            },
+            {
+                "key": "closeup_outfit_detail",
+                "name": "Outfit Detail",
+                "title": "Outfit Styling Close-up",
+                "prompt": "Same person, same outfit. STYLING DETAIL: Focus on how the outfit comes together - the transition between top and bottom, tucking, belt area, or accessory details. Mid-body crop showing the outfit coordination. Fashion styling photography. Blurred scene in background.",
+                "strength": 0.42,
+                "negative_prompt": "full body, wide shot, face focus, different clothes, changed styling"
             }
         ]
         

@@ -6394,6 +6394,9 @@ export default function CampaignsPage() {
                     { icon: "🏛️", name: "Deep in Scene" },
                     { icon: "🚶", name: "Walking Through" },
                     { icon: "👤", name: "Side Profile" },
+                    { icon: "👕", name: "Shirt Close-up" },
+                    { icon: "👖", name: "Pants Close-up" },
+                    { icon: "✨", name: "Outfit Detail" },
                   ].map((kf, idx) => (
                     <div
                       key={idx}
