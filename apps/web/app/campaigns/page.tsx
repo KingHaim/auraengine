@@ -187,6 +187,11 @@ export default function CampaignsPage() {
   const [generatingCampaignVideos, setGeneratingCampaignVideos] = useState<
     string | null
   >(null);
+  
+  // NEW: Keyframe generation modal state
+  const [showKeyframeModal, setShowKeyframeModal] = useState(false);
+  const [keyframeCount, setKeyframeCount] = useState(4);
+  const [generatingKeyframes, setGeneratingKeyframes] = useState(false);
   const [generatingUnifiedVideo, setGeneratingUnifiedVideo] = useState<
     string | null
   >(null);
@@ -1662,13 +1667,61 @@ export default function CampaignsPage() {
       return;
     }
 
-    // Set the campaign and initialize with campaign's current settings
+    // Check if campaign has a base image - if yes, show keyframe modal
+    const generatedImages = campaign.settings?.generated_images || [];
+    if (generatedImages.length > 0) {
+      // Campaign has images - show simpler keyframe generation modal
+      setSelectedCampaignForGeneration(campaign);
+      setShowKeyframeModal(true);
+      return;
+    }
+
+    // No base image yet - show full parameter modal
     setSelectedCampaignForGeneration(campaign);
     setSelectedProductsForGeneration(campaign.settings?.product_ids || []);
     setSelectedModelForGeneration(campaign.settings?.model_ids?.[0] || "");
     setSelectedScenesForGeneration(campaign.settings?.scene_ids || []);
     setSelectedPosesForGeneration(campaign.settings?.selected_poses || {});
     setShowParameterModal(true);
+  };
+  
+  // NEW: Generate keyframe variations from existing base image
+  const executeKeyframeGeneration = async () => {
+    if (!selectedCampaignForGeneration || !token) {
+      return;
+    }
+
+    setGeneratingKeyframes(true);
+    try {
+      const formData = new FormData();
+      formData.append("number_of_keyframes", keyframeCount.toString());
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${selectedCampaignForGeneration.id}/generate-keyframes`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        alert(`Generating ${keyframeCount} keyframe variations! This will take a few moments.`);
+        setShowKeyframeModal(false);
+        // Start polling for status
+        pollCampaignStatus(selectedCampaignForGeneration.id);
+      } else {
+        const error = await response.json();
+        alert(`Failed to generate keyframes: ${error.detail || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Error generating keyframes:", error);
+      alert("Failed to generate keyframes. Please try again.");
+    } finally {
+      setGeneratingKeyframes(false);
+    }
   };
 
   const executeImageGeneration = async () => {
@@ -6240,6 +6293,191 @@ export default function CampaignsPage() {
           </div>
         )}
 
+        {/* NEW: Keyframe Generation Modal */}
+        {showKeyframeModal && selectedCampaignForGeneration && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(9, 10, 12, 0.8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+            }}
+            onClick={() => setShowKeyframeModal(false)}
+          >
+            <div
+              style={{
+                backgroundColor: "white",
+                borderRadius: "16px",
+                padding: "32px",
+                maxWidth: "500px",
+                width: "90%",
+                position: "relative",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setShowKeyframeModal(false)}
+                style={{
+                  position: "absolute",
+                  top: "16px",
+                  right: "16px",
+                  background: "none",
+                  border: "none",
+                  fontSize: "20px",
+                  cursor: "pointer",
+                  color: "#6B7280",
+                }}
+              >
+                ✕
+              </button>
+
+              <h2
+                style={{
+                  margin: "0 0 16px 0",
+                  fontSize: "22px",
+                  fontWeight: "600",
+                  color: "#1F2937",
+                }}
+              >
+                🎬 Generate Keyframe Variations
+              </h2>
+              
+              <p
+                style={{
+                  margin: "0 0 24px 0",
+                  color: "#6B7280",
+                  fontSize: "15px",
+                  lineHeight: "1.6",
+                }}
+              >
+                Generate additional keyframes from your base image for <strong>{selectedCampaignForGeneration.name}</strong>.
+                <br /><br />
+                <span style={{ color: "#059669", fontWeight: "500" }}>
+                  ✓ Same person, same clothes, same scene
+                </span>
+                <br />
+                <span style={{ color: "#059669", fontWeight: "500" }}>
+                  ✓ Different poses and angles
+                </span>
+              </p>
+
+              {/* Keyframe Types Preview */}
+              <div
+                style={{
+                  backgroundColor: "#F9FAFB",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  marginBottom: "24px",
+                }}
+              >
+                <div style={{ fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "12px" }}>
+                  Available Keyframes:
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {[
+                    { icon: "👕", name: "Shirt Close-up" },
+                    { icon: "👖", name: "Pants Close-up" },
+                    { icon: "🚶", name: "Walking Pose" },
+                    { icon: "🧍", name: "Casual Pose" },
+                    { icon: "💪", name: "Confident Pose" },
+                    { icon: "📐", name: "3/4 Angle" },
+                  ].map((kf, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        backgroundColor: idx < keyframeCount ? "#DCFCE7" : "#E5E7EB",
+                        color: idx < keyframeCount ? "#166534" : "#6B7280",
+                        padding: "6px 12px",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      {kf.icon} {kf.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Number of Keyframes Selector */}
+              <div style={{ marginBottom: "24px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    marginBottom: "8px",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    color: "#374151",
+                  }}
+                >
+                  Number of Keyframes
+                </label>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  {[2, 3, 4, 5, 6].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => setKeyframeCount(num)}
+                      style={{
+                        flex: 1,
+                        padding: "12px",
+                        border: keyframeCount === num ? "2px solid #d42f48" : "1px solid #E5E7EB",
+                        borderRadius: "8px",
+                        backgroundColor: keyframeCount === num ? "#FEF2F2" : "white",
+                        color: keyframeCount === num ? "#d42f48" : "#374151",
+                        fontWeight: keyframeCount === num ? "600" : "500",
+                        fontSize: "16px",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Generate Button */}
+              <button
+                onClick={executeKeyframeGeneration}
+                disabled={generatingKeyframes}
+                style={{
+                  width: "100%",
+                  padding: "14px",
+                  backgroundColor: generatingKeyframes ? "#9CA3AF" : "#d42f48",
+                  border: "none",
+                  borderRadius: "10px",
+                  color: "white",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                  cursor: generatingKeyframes ? "not-allowed" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                }}
+              >
+                {generatingKeyframes ? (
+                  <>
+                    <img src="/beating.gif" alt="Loading" style={{ width: "20px", height: "20px" }} />
+                    Generating Keyframes...
+                  </>
+                ) : (
+                  <>
+                    🎬 Generate {keyframeCount} Keyframes
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Campaign Profile Modal */}
         {showCampaignProfileModal && selectedCampaignForProfile && (
           <div
@@ -7258,12 +7496,14 @@ export default function CampaignsPage() {
                   <button
                     onClick={() => {
                       setShowCampaignProfileModal(false);
-                      // TODO: Open generate more images modal
-                      // For now, open the parameter selection modal
-                      setSelectedCampaignForGeneration(
-                        selectedCampaignForProfile
-                      );
-                      setShowParameterModal(true);
+                      // Check if campaign has base image - show keyframe modal
+                      const hasBaseImage = (selectedCampaignForProfile?.settings?.generated_images?.length || 0) > 0;
+                      setSelectedCampaignForGeneration(selectedCampaignForProfile);
+                      if (hasBaseImage) {
+                        setShowKeyframeModal(true);
+                      } else {
+                        setShowParameterModal(true);
+                      }
                     }}
                     style={{
                       padding: "8px 12px",

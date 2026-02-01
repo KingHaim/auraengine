@@ -1232,6 +1232,282 @@ async def get_campaign_generation_status(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ============================================================
+# NEW: Generate Keyframe Variations from Base Image
+# ============================================================
+@app.post("/campaigns/{campaign_id}/generate-keyframes")
+async def generate_keyframe_variations(
+    campaign_id: str,
+    number_of_keyframes: int = Form(4),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate keyframe variations from an existing base image.
+    
+    This endpoint:
+    1. Finds the base image from the campaign's generated images
+    2. Generates keyframe variations (close-ups, poses) using nano-banana
+    3. Appends them to the campaign's generated images
+    
+    The model, clothes, and scene remain IDENTICAL - only the framing/pose changes.
+    """
+    try:
+        # Get campaign
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        # Get existing generated images
+        generated_images = campaign.settings.get("generated_images", []) if campaign.settings else []
+        
+        if not generated_images:
+            raise HTTPException(status_code=400, detail="No base image found. Generate a campaign image first.")
+        
+        # Find the base image (first image or one marked as is_base_image)
+        base_image = None
+        for img in generated_images:
+            if img.get("is_base_image", False):
+                base_image = img
+                break
+        
+        # If no explicit base image, use the first one
+        if not base_image:
+            base_image = generated_images[0]
+        
+        base_image_url = base_image.get("base_image_url") or base_image.get("image_url")
+        
+        if not base_image_url:
+            raise HTTPException(status_code=400, detail="Base image URL not found")
+        
+        print(f"🎬 KEYFRAME GENERATION: Using base image: {base_image_url[:60]}...")
+        print(f"📸 Generating {number_of_keyframes} keyframe variations...")
+        
+        # Update campaign status
+        campaign.generation_status = "generating"
+        new_settings = dict(campaign.settings) if campaign.settings else {}
+        campaign.settings = new_settings
+        flag_modified(campaign, "settings")
+        db.commit()
+        
+        # Start keyframe generation in background
+        import asyncio
+        asyncio.create_task(generate_keyframes_background(
+            campaign_id,
+            base_image_url,
+            base_image,  # Pass full base image data for metadata
+            number_of_keyframes
+        ))
+        
+        return {
+            "message": f"Generating {number_of_keyframes} keyframe variations from base image...",
+            "campaign_id": campaign_id,
+            "base_image_url": base_image_url,
+            "status": "generating"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def generate_keyframes_background(
+    campaign_id: str,
+    base_image_url: str,
+    base_image_data: dict,
+    number_of_keyframes: int
+):
+    """
+    Background task to generate keyframe variations from a base image.
+    Uses nano-banana-pro to create variations while preserving identity.
+    """
+    db = SessionLocal()
+    try:
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+        if not campaign:
+            print(f"❌ Campaign {campaign_id} not found")
+            return
+        
+        print(f"\n{'='*60}")
+        print(f"🎬 KEYFRAME GENERATION for campaign: {campaign.name}")
+        print(f"{'='*60}")
+        print(f"📷 Base image: {base_image_url[:60]}...")
+        
+        # Define all available keyframe variations
+        KEYFRAME_VARIATIONS = [
+            {
+                "key": "shirt_closeup",
+                "name": "Shirt Close-up",
+                "title": "Shirt Close-up",
+                "prompt": "Close-up shot focusing on the shirt/top. Show the fabric texture, design details, and fit. Same person, same outfit. Crop to show upper body - chest, shoulders, and arms. Fashion product photography style.",
+                "strength": 0.38,
+                "negative_prompt": "different person, different clothes, changed colors, full body, legs visible, different face"
+            },
+            {
+                "key": "pants_closeup",
+                "name": "Pants Close-up", 
+                "title": "Pants Close-up",
+                "prompt": "Close-up shot focusing on the pants/bottom. Show the fabric texture, fit, and style. Same person, same outfit. Crop to show lower body - waist to feet. Fashion product photography style.",
+                "strength": 0.38,
+                "negative_prompt": "different person, different clothes, changed colors, face visible, portrait, upper body only"
+            },
+            {
+                "key": "pose_walking",
+                "name": "Walking Pose",
+                "title": "Dynamic Walking Pose",
+                "prompt": "Same person, same exact outfit, same scene. Confident walking pose with natural stride. Full body from head to feet. One foot slightly forward as if taking a step. Fashion editorial photography.",
+                "strength": 0.42,
+                "negative_prompt": "different person, different clothes, different face, static pose, stiff, cropped"
+            },
+            {
+                "key": "pose_casual",
+                "name": "Casual Pose",
+                "title": "Relaxed Casual Pose", 
+                "prompt": "Same person, same exact outfit, same scene. Relaxed casual pose - hands in pockets or arms loosely at sides. Full body from head to feet. Natural and approachable stance. Fashion lifestyle photography.",
+                "strength": 0.42,
+                "negative_prompt": "different person, different clothes, different face, formal pose, stiff, cropped"
+            },
+            {
+                "key": "pose_confident",
+                "name": "Confident Pose",
+                "title": "Confident Power Pose",
+                "prompt": "Same person, same exact outfit, same scene. Confident pose with good posture - shoulders back, slight hip tilt. Full body from head to feet. Strong and stylish stance. Fashion editorial photography.",
+                "strength": 0.42,
+                "negative_prompt": "different person, different clothes, different face, slouching, weak pose, cropped"
+            },
+            {
+                "key": "angle_threequarter",
+                "name": "3/4 Angle",
+                "title": "Three-Quarter View",
+                "prompt": "Same person, same exact outfit, same scene. Three-quarter angle view showing depth and dimension. Full body from head to feet. Slight turn to show outfit from a different angle. Fashion photography.",
+                "strength": 0.40,
+                "negative_prompt": "different person, different clothes, different face, frontal only, back view, cropped"
+            }
+        ]
+        
+        # Get existing images to append to
+        existing_images = campaign.settings.get("generated_images", []) if campaign.settings else []
+        
+        # Find which variations are already generated
+        existing_keys = set()
+        for img in existing_images:
+            if img.get("shot_name"):
+                existing_keys.add(img["shot_name"])
+        
+        print(f"📌 Already generated: {existing_keys}")
+        
+        # Filter out variations that are already generated
+        variations_to_generate = [v for v in KEYFRAME_VARIATIONS if v["name"] not in existing_keys]
+        
+        # Limit to requested number
+        variations_to_generate = variations_to_generate[:number_of_keyframes]
+        
+        if not variations_to_generate:
+            print(f"⚠️ All keyframe variations already generated!")
+            campaign.generation_status = "completed"
+            db.commit()
+            return
+        
+        print(f"🎬 Generating {len(variations_to_generate)} new keyframe variations...")
+        
+        # Extract metadata from base image
+        product_name = base_image_data.get("product_name", "outfit")
+        product_ids = base_image_data.get("product_ids", [base_image_data.get("product_id", "")])
+        model_name = base_image_data.get("model_name", "model")
+        scene_name = base_image_data.get("scene_name", "scene")
+        model_image_url = base_image_data.get("model_image_url", "")
+        product_image_url = base_image_data.get("product_image_url", "")
+        clothing_type = base_image_data.get("clothing_type", "outfit")
+        
+        new_images = []
+        
+        for var_idx, variation in enumerate(variations_to_generate, 1):
+            try:
+                print(f"\n🎥 [{var_idx}/{len(variations_to_generate)}] {variation['title']}")
+                print(f"   📝 Prompt: {variation['prompt'][:80]}...")
+                print(f"   ⚙️ Strength: {variation['strength']}")
+                
+                # Generate variation using nano-banana-pro
+                variation_url = run_nano_banana_pro(
+                    prompt=variation['prompt'],
+                    image_urls=[base_image_url],
+                    strength=variation['strength'],
+                    guidance_scale=7.0,
+                    num_steps=30,
+                    negative_prompt=variation['negative_prompt']
+                )
+                
+                # Stabilize the URL
+                if 'stabilize_url' in globals():
+                    final_url = stabilize_url(to_url(variation_url), f"keyframe_{variation['key']}")
+                else:
+                    final_url = download_and_save_image(to_url(variation_url), f"keyframe_{variation['key']}")
+                
+                print(f"   ✅ Keyframe saved: {final_url[:60]}...")
+                
+                # Create image entry
+                new_images.append({
+                    "product_name": product_name,
+                    "product_id": product_ids[0] if product_ids else "",
+                    "product_ids": product_ids,
+                    "model_name": model_name,
+                    "scene_name": scene_name,
+                    "shot_type": variation['title'],
+                    "shot_name": variation['name'],
+                    "image_url": final_url,
+                    "base_image_url": base_image_url,
+                    "model_image_url": model_image_url,
+                    "product_image_url": product_image_url,
+                    "clothing_type": clothing_type,
+                    "is_base_image": False,
+                    "is_keyframe_variation": True
+                })
+                
+            except Exception as e:
+                print(f"❌ Failed keyframe {variation['title']}: {e}")
+                import traceback
+                traceback.print_exc()
+                continue
+        
+        # Append new images to existing ones
+        all_images = existing_images + new_images
+        
+        # Update campaign
+        campaign.generation_status = "completed"
+        new_settings = dict(campaign.settings) if campaign.settings else {}
+        new_settings["generated_images"] = all_images
+        campaign.settings = new_settings
+        flag_modified(campaign, "settings")
+        db.commit()
+        
+        print(f"\n🎉 Keyframe generation complete!")
+        print(f"   📸 Generated {len(new_images)} new keyframes")
+        print(f"   📊 Total images: {len(all_images)}")
+        
+    except Exception as e:
+        print(f"❌ Keyframe generation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        try:
+            campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+            if campaign:
+                campaign.generation_status = "failed"
+                db.commit()
+        except Exception as update_error:
+            print(f"❌ Failed to update campaign status: {update_error}")
+    finally:
+        db.close()
+        print(f"✅ Database session closed for keyframe generation {campaign_id}")
+
+
 @app.post("/campaigns/{campaign_id}/generate")
 async def generate_campaign_images(
     campaign_id: str,
