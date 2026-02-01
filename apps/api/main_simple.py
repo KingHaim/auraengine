@@ -860,7 +860,18 @@ async def generate_campaign_images_background(
     number_of_images: int,
     manikin_pose: str = "Pose-neutral.jpg"
 ):
-    """Generate campaign images in background"""
+    """
+    Generate campaign images using BASE IMAGE + VARIATIONS workflow.
+    
+    NEW ARCHITECTURE:
+    1. Generate ONE base image (model + all clothes + scene) - full body frontal
+    2. Use that base image to generate keyframe variations with nano-banana:
+       - Close-ups (shirt, pants)
+       - Different poses
+       - Different angles
+    
+    This ensures CONSISTENCY across all video keyframes.
+    """
     # Create a NEW database session for this background task
     db = SessionLocal()
     try:
@@ -871,6 +882,7 @@ async def generate_campaign_images_background(
             return
         
         print(f"🎯 Starting background generation for campaign: {campaign.name}")
+        print(f"📐 NEW WORKFLOW: Base Image → Keyframe Variations")
         
         products = db.query(Product).filter(Product.id.in_(product_id_list)).all()
         models = db.query(Model).filter(Model.id.in_(model_id_list)).all()
@@ -887,30 +899,60 @@ async def generate_campaign_images_background(
         except Exception:
             shots_to_generate_count = 1
 
-        # Randomize shot types for variety
-        import random
-        available_shots = CAMPAIGN_SHOT_TYPES.copy()
-        random.shuffle(available_shots)
-        shot_types_to_generate = available_shots[:shots_to_generate_count]
+        # Define KEYFRAME VARIATIONS to generate from base image
+        # These are applied AFTER the base image is created
+        KEYFRAME_VARIATIONS = [
+            {
+                "key": "base_fullbody",
+                "name": "Full Body - Base",
+                "title": "Full Body Shot (Base)",
+                "prompt": "Same person, same outfit, same scene. Full body shot from head to feet. Professional fashion photography.",
+                "is_base": True,  # This is the base image, no modification needed
+                "strength": 0.0  # No modification
+            },
+            {
+                "key": "shirt_closeup",
+                "name": "Shirt Close-up",
+                "title": "Shirt Close-up",
+                "prompt": "Close-up shot of the shirt/top. Focus on the fabric, texture, and design details. Same person wearing the same outfit. Crop to show torso and arms only.",
+                "is_base": False,
+                "strength": 0.35,
+                "negative_prompt": "different person, different clothes, changed outfit, full body, legs visible"
+            },
+            {
+                "key": "pants_closeup",
+                "name": "Pants Close-up", 
+                "title": "Pants Close-up",
+                "prompt": "Close-up shot of the pants/bottom. Focus on the fabric, texture, and fit. Same person wearing the same outfit. Crop to show waist to feet only.",
+                "is_base": False,
+                "strength": 0.35,
+                "negative_prompt": "different person, different clothes, changed outfit, face visible, portrait"
+            },
+            {
+                "key": "pose_dynamic",
+                "name": "Dynamic Pose",
+                "title": "Dynamic Pose",
+                "prompt": "Same person, same outfit, same scene. Confident walking pose with natural movement. Full body from head to feet. Fashion editorial style.",
+                "is_base": False,
+                "strength": 0.40,
+                "negative_prompt": "different person, different clothes, different face, static pose, stiff"
+            },
+            {
+                "key": "pose_casual",
+                "name": "Casual Pose",
+                "title": "Casual Relaxed Pose",
+                "prompt": "Same person, same outfit, same scene. Relaxed casual pose with hands in pockets or arms crossed. Full body from head to feet. Natural and approachable.",
+                "is_base": False,
+                "strength": 0.40,
+                "negative_prompt": "different person, different clothes, different face, formal pose"
+            }
+        ]
         
-        # If manikin pose is set, ensure first shot is full body frontal (not side view or closeup)
-        if manikin_pose and manikin_pose != "":
-            # Find a FULL BODY frontal shot type (not profile/side/closeup/detail)
-            excluded_keywords = ['side', 'profile', 'close', 'closeup', 'detail', 'macro', 'upper', 'lower']
-            full_body_frontal_shots = [s for s in available_shots if not any(keyword in s['name'].lower() for keyword in excluded_keywords)]
-            if full_body_frontal_shots and len(shot_types_to_generate) > 0:
-                # Replace first shot with a full body frontal one
-                shot_types_to_generate[0] = full_body_frontal_shots[0]
-                print(f"🎯 Using full body frontal shot for manikin pose: {full_body_frontal_shots[0]['title']}")
-            elif len(shot_types_to_generate) > 0:
-                # Fallback to any frontal shot if no full body found
-                frontal_shots = [s for s in available_shots if 'side' not in s['name'].lower() and 'profile' not in s['name'].lower()]
-                if frontal_shots:
-                    shot_types_to_generate[0] = frontal_shots[0]
-                    print(f"🎯 Using frontal shot for manikin pose: {frontal_shots[0]['title']}")
-
-        # Generate each combination with MULTIPLE SHOT TYPES for campaign flow
-        # NEW: Process all products together for each model+scene combination
+        # Select which variations to generate based on number_of_images
+        import random
+        variations_to_use = KEYFRAME_VARIATIONS[:shots_to_generate_count]
+        
+        # Generate each combination with BASE IMAGE + VARIATIONS workflow
         for model in models:
             for scene in scenes:
                 # Use model's selected pose if available
@@ -926,106 +968,127 @@ async def generate_campaign_images_background(
                 
                 # Build product list names for logging
                 product_names = ", ".join([p.name for p in products])
-                print(f"🎬 Processing campaign flow: [{product_names}] + {model.name} + {scene.name}")
-                print(f"📸 Generating {len(shot_types_to_generate)} shots with {len(products)} product(s)...")
+                print(f"\n{'='*60}")
+                print(f"🎬 Processing: [{product_names}] + {model.name} + {scene.name}")
+                print(f"{'='*60}")
                 
-                # Generate the requested shot types for this combination
-                print(f"🎬 Starting generation of {len(shot_types_to_generate)} shots...")
-                for shot_idx, shot_type in enumerate(shot_types_to_generate, 1):
-                    try:
-                        print(f"\n🎥 [{shot_idx}/{len(shot_types_to_generate)}] {shot_type['title']}")
-                        print(f"📊 Progress: {shot_idx}/{len(shot_types_to_generate)} shots for [{product_names}] + {model.name} + {scene.name}")
-                        
-                        # NEW MULTI-PRODUCT WORKFLOW
-                        # Step 1: Generate base image with first product using Qwen
-                        first_product = products[0]
-                        first_product_image = first_product.packshot_front_url or first_product.image_url
-                        quality_mode = "standard"
+                # ============================================================
+                # STEP 1: GENERATE BASE IMAGE (model + all clothes + scene)
+                # ============================================================
+                print(f"\n🎨 STEP 1: Generating BASE IMAGE...")
+                print(f"   📷 Model: {model.name}")
+                print(f"   👕 Products: {product_names}")
+                print(f"   🏞️ Scene: {scene.name}")
+                
+                first_product = products[0]
+                first_product_image = first_product.packshot_front_url or first_product.image_url
+                quality_mode = "standard"
 
-                        # Stabilize inputs to /static to avoid replicate 404s
-                        stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
-                        stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
-                        stable_first_product = stabilize_url(first_product_image, "product") if 'stabilize_url' in globals() else first_product_image
+                # Stabilize inputs to /static to avoid replicate 404s
+                stable_model = stabilize_url(model_image, "pose") if 'stabilize_url' in globals() else model_image
+                stable_scene = stabilize_url(scene.image_url, "scene") if 'stabilize_url' in globals() else scene.image_url
+                stable_first_product = stabilize_url(first_product_image, "product") if 'stabilize_url' in globals() else first_product_image
+                
+                # Generate base composition with Qwen (model + first product + scene)
+                base_image_url = run_qwen_triple_composition(
+                    stable_model,
+                    stable_first_product,
+                    stable_scene,
+                    first_product.name,
+                    quality_mode,
+                    shot_type_prompt="Full body shot from head to feet. Professional fashion photography. Natural standing pose.",
+                    clothing_type=first_product.clothing_type
+                )
+                print(f"✅ Base composition created: {base_image_url[:60]}...")
+                
+                # Add additional products to base image
+                current_base_url = base_image_url
+                if len(products) > 1:
+                    print(f"👕 Adding {len(products) - 1} additional product(s) to base image...")
+                    for additional_product in products[1:]:
+                        additional_product_image = additional_product.packshot_front_url or additional_product.image_url
+                        stable_additional_product = stabilize_url(additional_product_image, "product") if 'stabilize_url' in globals() else additional_product_image
                         
-                        print(f"🎬 Step 1: Qwen base composition - Model + {first_product.name} + Scene...")
-                        person_wearing_product_url = run_qwen_triple_composition(
-                            stable_model,
-                            stable_first_product,
-                            stable_scene,
-                            first_product.name,
-                            quality_mode,
-                            shot_type_prompt=shot_type['prompt'],
-                            clothing_type=first_product.clothing_type
+                        product_type = additional_product.clothing_type if hasattr(additional_product, 'clothing_type') and additional_product.clothing_type else "garment"
+                        
+                        print(f"   ➕ Adding {additional_product.name} ({product_type})...")
+                        current_base_url = add_product_to_image(
+                            current_base_url,
+                            stable_additional_product,
+                            additional_product.name,
+                            product_type
                         )
-                        print(f"✅ Base image with {first_product.name} completed: {person_wearing_product_url[:50]}...")
+                    print(f"✅ All {len(products)} products added to base image!")
+                
+                # Store stabilized base image URL
+                base_image_url = current_base_url
+                stable_base_url = stabilize_url(to_url(base_image_url), "base_image") if 'stabilize_url' in globals() else download_and_save_image(to_url(base_image_url), "campaign_base")
+                print(f"📦 Base image saved: {stable_base_url[:60]}...")
+                
+                # Store product info for results
+                combined_product_names = ", ".join([p.name for p in products])
+                combined_product_ids = [str(p.id) for p in products]
+                first_product_type = products[0].clothing_type if hasattr(products[0], 'clothing_type') and products[0].clothing_type else "outfit"
+                
+                # ============================================================
+                # STEP 2: GENERATE KEYFRAME VARIATIONS FROM BASE IMAGE
+                # ============================================================
+                print(f"\n🎬 STEP 2: Generating {len(variations_to_use)} KEYFRAME VARIATIONS from base image...")
+                
+                for var_idx, variation in enumerate(variations_to_use, 1):
+                    try:
+                        print(f"\n🎥 [{var_idx}/{len(variations_to_use)}] {variation['title']}")
                         
-                        # Step 2: Add additional products sequentially using nano-banana
-                        current_image_url = person_wearing_product_url
-                        if len(products) > 1:
-                            print(f"👕 Adding {len(products) - 1} additional product(s) using nano-banana...")
-                            for additional_product in products[1:]:
-                                additional_product_image = additional_product.packshot_front_url or additional_product.image_url
-                                stable_additional_product = stabilize_url(additional_product_image, "product") if 'stabilize_url' in globals() else additional_product_image
-                                
-                                # Get product type from clothing_type field
-                                product_type = additional_product.clothing_type if hasattr(additional_product, 'clothing_type') and additional_product.clothing_type else "garment"
-                                
-                                print(f"➕ Adding {additional_product.name} ({product_type}) to current image...")
-                                current_image_url = add_product_to_image(
-                                    current_image_url,
-                                    stable_additional_product,
-                                    additional_product.name,
-                                    product_type
-                                )
-                            print(f"✅ All {len(products)} products added successfully!")
+                        if variation.get("is_base", False):
+                            # Base image - no modification needed, just use it directly
+                            final_url = stable_base_url
+                            print(f"   ✅ Using base image directly (no modification)")
+                        else:
+                            # Generate variation from base image using nano-banana
+                            print(f"   🔄 Generating variation with nano-banana...")
+                            print(f"   📝 Prompt: {variation['prompt'][:80]}...")
+                            print(f"   ⚙️ Strength: {variation['strength']}")
+                            
+                            variation_url = run_nano_banana_pro(
+                                prompt=variation['prompt'],
+                                image_urls=[stable_base_url],
+                                strength=variation['strength'],
+                                guidance_scale=7.0,
+                                num_steps=30,
+                                negative_prompt=variation.get('negative_prompt', 'different person, different clothes')
+                            )
+                            
+                            # Stabilize the variation URL
+                            final_url = stabilize_url(to_url(variation_url), f"variation_{variation['key']}") if 'stabilize_url' in globals() else download_and_save_image(to_url(variation_url), f"campaign_{variation['key']}")
+                            print(f"   ✅ Variation saved: {final_url[:60]}...")
                         
-                        # Update reference to final image with all products
-                        person_wearing_product_url = current_image_url
-                        
-                        # Step 3: SKIP manikin pose replacement - it causes unnatural results
-                        # Just use the Qwen output directly
-                        final_result_url = person_wearing_product_url
-                        print(f"✅ Using Qwen output directly (skipping pose replacement for more natural look)")
-                        
-                        # OLD CODE - Causing unnatural poses:
-                        # if shot_idx == 1:
-                        #     final_result_url = replace_manikin_with_person(manikin_pose_url, person_wearing_product_url)
-                        
-                        # Store all product info for the result (combined names)
-                        combined_product_names = ", ".join([p.name for p in products])
-                        combined_product_ids = [str(p.id) for p in products]
-                        first_product_image = products[0].packshot_front_url or products[0].image_url
-                        first_product_type = products[0].clothing_type if hasattr(products[0], 'clothing_type') and products[0].clothing_type else "outfit"
-                        
-                        # Normalize and store final URL
-                        print(f"💾 Normalizing final result URL...")
-                        final_url = stabilize_url(to_url(final_result_url), f"final_{shot_type['name']}") if 'stabilize_url' in globals() else download_and_save_image(to_url(final_result_url), f"campaign_{shot_type['name']}")
-                        print(f"✅ Final result saved locally: {final_url[:50]}...")
-                        
+                        # Append to generated images
                         generated_images.append({
                             "product_name": combined_product_names,
-                            "product_id": combined_product_ids[0] if combined_product_ids else str(products[0].id),  # Use first product ID for compatibility
-                            "product_ids": combined_product_ids,  # NEW: Store all product IDs
+                            "product_id": combined_product_ids[0] if combined_product_ids else str(products[0].id),
+                            "product_ids": combined_product_ids,
                             "model_name": model.name,
                             "scene_name": scene.name,
-                            "shot_type": shot_type['title'],
-                            "shot_name": shot_type['name'],
+                            "shot_type": variation['title'],
+                            "shot_name": variation['name'],
                             "image_url": final_url,
+                            "base_image_url": stable_base_url,  # NEW: Reference to base image
                             "model_image_url": model_image,
                             "product_image_url": first_product_image,
-                            "clothing_type": first_product_type
+                            "clothing_type": first_product_type,
+                            "is_base_image": variation.get("is_base", False)  # NEW: Flag for base image
                         })
                         
-                        print(f"✅ Shot completed: {shot_type['title']}")
+                        print(f"   ✅ Keyframe {var_idx} completed!")
                         
                     except Exception as e:
-                        print(f"❌ Failed shot {shot_type['title']}: {e}")
+                        print(f"❌ Failed variation {variation['title']}: {e}")
                         import traceback
                         traceback.print_exc()
-                        print(f"🔄 Continuing to next shot... (Shot {shot_idx}/{len(shot_types_to_generate)})")
                         continue
-                    
+                
                 print(f"\n🎉 Campaign flow complete: [{product_names}] + {model.name} + {scene.name}")
+                print(f"   📸 Generated {len(variations_to_use)} keyframes from 1 base image")
         
         # Update campaign with generated images
         campaign.generation_status = "completed" if len(generated_images) > 0 else "failed"
