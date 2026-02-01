@@ -1710,8 +1710,8 @@ export default function CampaignsPage() {
       if (response.ok) {
         alert(`Generating ${keyframeCount} keyframe variations! This will take a few moments.`);
         setShowKeyframeModal(false);
-        // Start polling for status
-        pollCampaignStatus(selectedCampaignForGeneration.id);
+        // Refresh campaigns data
+        await fetchData();
       } else {
         const error = await response.json();
         alert(`Failed to generate keyframes: ${error.detail || "Unknown error"}`);
