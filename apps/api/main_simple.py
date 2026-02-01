@@ -1340,71 +1340,72 @@ async def generate_keyframes_background(
         print(f"{'='*60}")
         print(f"📷 Base image: {base_image_url[:60]}...")
         
-        # Define all available keyframe variations - ACTION SHOTS
+        # Define all available keyframe variations - ACTION SHOTS + CAMERA POSITIONS
+        # Each keyframe shows a DIFFERENT ANGLE/POSITION within the same scene environment
         KEYFRAME_VARIATIONS = [
             {
-                "key": "action_jump",
-                "name": "Jump Action",
-                "title": "Dynamic Jump Shot",
-                "prompt": "Same person, same exact outfit, same scene. DYNAMIC ACTION SHOT: Person jumping in the air with both feet off the ground. Arms raised energetically. Capturing peak motion. Full body visible. High energy fashion editorial. Motion blur on edges.",
+                "key": "scene_corner_left",
+                "name": "Left Corner View",
+                "title": "Scene - Left Corner",
+                "prompt": "Same person, same exact outfit. DIFFERENT CAMERA ANGLE: Person positioned on the LEFT side of the frame. Camera shooting from a different corner of the location. Show a NEW perspective of the same environment - different walls, different depth. Person walking confidently. Wide shot showing more of the space. Cinematic fashion film still.",
+                "strength": 0.58,
+                "negative_prompt": "same camera angle, centered composition, static backdrop, flat background, identical framing"
+            },
+            {
+                "key": "scene_corner_right",
+                "name": "Right Corner View",
+                "title": "Scene - Right Corner", 
+                "prompt": "Same person, same exact outfit. DIFFERENT CAMERA ANGLE: Person positioned on the RIGHT side of the frame. Camera moved to opposite corner of the location. Show DIFFERENT architectural elements of the same space. Person in dynamic pose. Asymmetric composition. Show depth and dimension of the environment. Cinematic fashion photography.",
+                "strength": 0.58,
+                "negative_prompt": "same camera angle, centered, static backdrop, flat background, identical shot"
+            },
+            {
+                "key": "scene_low_angle",
+                "name": "Low Angle Hero",
+                "title": "Low Camera Angle",
+                "prompt": "Same person, same exact outfit. LOW ANGLE SHOT: Camera positioned LOW, shooting upward at the person. Makes subject look powerful and heroic. Show ceiling/sky and upper parts of the environment. Person in confident stance. Dramatic perspective with vanishing lines. Fashion editorial hero shot.",
+                "strength": 0.55,
+                "negative_prompt": "eye level, flat angle, boring composition, same perspective, static"
+            },
+            {
+                "key": "scene_high_angle",
+                "name": "High Angle View",
+                "title": "High Camera Angle",
+                "prompt": "Same person, same exact outfit. HIGH ANGLE SHOT: Camera positioned HIGH, shooting downward. Show the floor, patterns, textures below. Bird's eye perspective of the space. Person looking up or in dynamic crouching pose. Unique top-down perspective revealing more of the location. Fashion editorial.",
+                "strength": 0.55,
+                "negative_prompt": "eye level, flat angle, same perspective, static background, boring"
+            },
+            {
+                "key": "scene_foreground",
+                "name": "Foreground Position",
+                "title": "Close Foreground",
+                "prompt": "Same person, same exact outfit. FOREGROUND COMPOSITION: Person positioned very CLOSE to camera in the foreground. Background of the location visible with depth and blur. Intimate close-up with environmental context. Show the person emerging from the space. Cinematic depth of field. Fashion film still.",
                 "strength": 0.52,
-                "negative_prompt": "different person, different clothes, static, standing still, stiff, boring pose"
+                "negative_prompt": "distant, far away, same distance, flat composition, no depth"
             },
             {
-                "key": "action_running",
-                "name": "Running Action",
-                "title": "Running Motion Shot", 
-                "prompt": "Same person, same exact outfit, same scene. ACTION SHOT: Person running dynamically, mid-stride with legs apart. Arms swinging naturally. Athletic motion captured. Full body from head to feet. Sports fashion photography with motion energy.",
-                "strength": 0.50,
-                "negative_prompt": "different person, different clothes, standing still, static pose, stiff, walking slowly"
+                "key": "scene_background_depth",
+                "name": "Background Depth",
+                "title": "Deep in Scene",
+                "prompt": "Same person, same exact outfit. DEEP IN SCENE: Person positioned FURTHER BACK in the environment, smaller in frame. Show more of the architectural space in foreground. Leading lines drawing eye to the person. Wide establishing shot. Cinematic scale showing the full location. Fashion editorial with environmental storytelling.",
+                "strength": 0.55,
+                "negative_prompt": "close up, same distance, flat, no depth, centered, same framing"
             },
             {
-                "key": "action_spin",
-                "name": "Spin Turn",
-                "title": "Spinning Turn Shot",
-                "prompt": "Same person, same exact outfit, same scene. DYNAMIC ACTION: Person spinning or turning dramatically, clothes flowing with the movement. Capturing rotational motion. Arms extended gracefully. Full body visible. Fashion editorial with motion.",
-                "strength": 0.48,
-                "negative_prompt": "different person, different clothes, static, standing straight, stiff pose, boring"
+                "key": "action_walking_through",
+                "name": "Walking Through",
+                "title": "Walking Through Scene",
+                "prompt": "Same person, same exact outfit. MOVEMENT THROUGH SPACE: Person walking dynamically THROUGH the environment. Mid-stride action. Camera capturing the journey. Different section of the location visible. Motion and energy. Show the person interacting with the space naturally. Cinematic fashion film.",
+                "strength": 0.55,
+                "negative_prompt": "standing still, static, same position, posed, flat background"
             },
             {
-                "key": "action_lean",
-                "name": "Dynamic Lean",
-                "title": "Dramatic Lean Pose", 
-                "prompt": "Same person, same exact outfit, same scene. DRAMATIC POSE: Person leaning dramatically to one side, body at an angle. One arm extended, dynamic asymmetrical stance. Edgy fashion editorial style. Full body visible. High fashion drama.",
-                "strength": 0.48,
-                "negative_prompt": "different person, different clothes, standing straight, symmetrical, boring pose, static"
-            },
-            {
-                "key": "action_crouch",
-                "name": "Dynamic Crouch",
-                "title": "Low Crouch Action",
-                "prompt": "Same person, same exact outfit, same scene. ACTION POSE: Person in a dynamic low crouch or squat position. One knee down or both knees bent. Arms positioned dynamically. Urban streetwear energy. Full body visible. Edgy fashion photography.",
-                "strength": 0.50,
-                "negative_prompt": "different person, different clothes, standing tall, straight posture, boring, static"
-            },
-            {
-                "key": "action_stride",
-                "name": "Power Stride",
-                "title": "Powerful Stride Shot",
-                "prompt": "Same person, same exact outfit, same scene. POWER WALK: Person taking a powerful, confident stride. Long step forward, body leaning into the movement. Arms swinging with purpose. Full body from head to feet. High fashion runway energy.",
-                "strength": 0.48,
-                "negative_prompt": "different person, different clothes, standing still, static, stiff, casual walk"
-            },
-            {
-                "key": "shirt_closeup",
-                "name": "Shirt Close-up",
-                "title": "Shirt Detail Shot",
-                "prompt": "Close-up focusing on the shirt/top design. Show fabric texture, print details, and fit. Same person, same outfit. Upper body - chest, shoulders, arms visible. Fashion product photography.",
-                "strength": 0.38,
-                "negative_prompt": "different person, different clothes, changed colors, full body, legs visible"
-            },
-            {
-                "key": "pants_closeup",
-                "name": "Pants Close-up", 
-                "title": "Pants Detail Shot",
-                "prompt": "Close-up focusing on the pants/bottom. Show fabric texture, fit, and style details. Same person, same outfit. Lower body - waist to feet visible. Fashion product photography.",
-                "strength": 0.38,
-                "negative_prompt": "different person, different clothes, changed colors, face visible, portrait"
+                "key": "scene_profile_view",
+                "name": "Profile Side View",
+                "title": "Side Profile Shot",
+                "prompt": "Same person, same exact outfit. SIDE PROFILE: Camera positioned to the SIDE. Person shown in profile view. Different wall/section of the environment visible. 90-degree angle from original shot. Show the outfit from a completely different angle. Architectural elements on one side. Fashion editorial profile.",
+                "strength": 0.58,
+                "negative_prompt": "frontal, same angle, centered, identical perspective, flat"
             }
         ]
         

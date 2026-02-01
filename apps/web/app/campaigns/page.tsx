@@ -6357,14 +6357,18 @@ export default function CampaignsPage() {
                   lineHeight: "1.6",
                 }}
               >
-                Generate additional keyframes from your base image for <strong>{selectedCampaignForGeneration.name}</strong>.
+                Generate cinematic keyframes from your base image for <strong>{selectedCampaignForGeneration.name}</strong>.
                 <br /><br />
                 <span style={{ color: "#059669", fontWeight: "500" }}>
-                  ✓ Same person, same clothes, same scene
+                  ✓ Same person, same clothes, same location
                 </span>
                 <br />
                 <span style={{ color: "#059669", fontWeight: "500" }}>
-                  ✓ Different poses and angles
+                  ✓ Different camera angles & positions within the scene
+                </span>
+                <br />
+                <span style={{ color: "#059669", fontWeight: "500" }}>
+                  ✓ Cinematic variety like a real video shoot
                 </span>
               </p>
 
@@ -6382,14 +6386,14 @@ export default function CampaignsPage() {
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                   {[
-                    { icon: "🦘", name: "Jump Action" },
-                    { icon: "🏃", name: "Running Motion" },
-                    { icon: "💫", name: "Spin Turn" },
-                    { icon: "↗️", name: "Dynamic Lean" },
-                    { icon: "⬇️", name: "Low Crouch" },
-                    { icon: "🚀", name: "Power Stride" },
-                    { icon: "👕", name: "Shirt Close-up" },
-                    { icon: "👖", name: "Pants Close-up" },
+                    { icon: "◀️", name: "Left Corner View" },
+                    { icon: "▶️", name: "Right Corner View" },
+                    { icon: "⬆️", name: "Low Angle Hero" },
+                    { icon: "⬇️", name: "High Angle View" },
+                    { icon: "🔍", name: "Close Foreground" },
+                    { icon: "🏛️", name: "Deep in Scene" },
+                    { icon: "🚶", name: "Walking Through" },
+                    { icon: "👤", name: "Side Profile" },
                   ].map((kf, idx) => (
                     <div
                       key={idx}
