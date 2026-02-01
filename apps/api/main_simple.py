@@ -1340,55 +1340,71 @@ async def generate_keyframes_background(
         print(f"{'='*60}")
         print(f"📷 Base image: {base_image_url[:60]}...")
         
-        # Define all available keyframe variations
+        # Define all available keyframe variations - ACTION SHOTS
         KEYFRAME_VARIATIONS = [
+            {
+                "key": "action_jump",
+                "name": "Jump Action",
+                "title": "Dynamic Jump Shot",
+                "prompt": "Same person, same exact outfit, same scene. DYNAMIC ACTION SHOT: Person jumping in the air with both feet off the ground. Arms raised energetically. Capturing peak motion. Full body visible. High energy fashion editorial. Motion blur on edges.",
+                "strength": 0.52,
+                "negative_prompt": "different person, different clothes, static, standing still, stiff, boring pose"
+            },
+            {
+                "key": "action_running",
+                "name": "Running Action",
+                "title": "Running Motion Shot", 
+                "prompt": "Same person, same exact outfit, same scene. ACTION SHOT: Person running dynamically, mid-stride with legs apart. Arms swinging naturally. Athletic motion captured. Full body from head to feet. Sports fashion photography with motion energy.",
+                "strength": 0.50,
+                "negative_prompt": "different person, different clothes, standing still, static pose, stiff, walking slowly"
+            },
+            {
+                "key": "action_spin",
+                "name": "Spin Turn",
+                "title": "Spinning Turn Shot",
+                "prompt": "Same person, same exact outfit, same scene. DYNAMIC ACTION: Person spinning or turning dramatically, clothes flowing with the movement. Capturing rotational motion. Arms extended gracefully. Full body visible. Fashion editorial with motion.",
+                "strength": 0.48,
+                "negative_prompt": "different person, different clothes, static, standing straight, stiff pose, boring"
+            },
+            {
+                "key": "action_lean",
+                "name": "Dynamic Lean",
+                "title": "Dramatic Lean Pose", 
+                "prompt": "Same person, same exact outfit, same scene. DRAMATIC POSE: Person leaning dramatically to one side, body at an angle. One arm extended, dynamic asymmetrical stance. Edgy fashion editorial style. Full body visible. High fashion drama.",
+                "strength": 0.48,
+                "negative_prompt": "different person, different clothes, standing straight, symmetrical, boring pose, static"
+            },
+            {
+                "key": "action_crouch",
+                "name": "Dynamic Crouch",
+                "title": "Low Crouch Action",
+                "prompt": "Same person, same exact outfit, same scene. ACTION POSE: Person in a dynamic low crouch or squat position. One knee down or both knees bent. Arms positioned dynamically. Urban streetwear energy. Full body visible. Edgy fashion photography.",
+                "strength": 0.50,
+                "negative_prompt": "different person, different clothes, standing tall, straight posture, boring, static"
+            },
+            {
+                "key": "action_stride",
+                "name": "Power Stride",
+                "title": "Powerful Stride Shot",
+                "prompt": "Same person, same exact outfit, same scene. POWER WALK: Person taking a powerful, confident stride. Long step forward, body leaning into the movement. Arms swinging with purpose. Full body from head to feet. High fashion runway energy.",
+                "strength": 0.48,
+                "negative_prompt": "different person, different clothes, standing still, static, stiff, casual walk"
+            },
             {
                 "key": "shirt_closeup",
                 "name": "Shirt Close-up",
-                "title": "Shirt Close-up",
-                "prompt": "Close-up shot focusing on the shirt/top. Show the fabric texture, design details, and fit. Same person, same outfit. Crop to show upper body - chest, shoulders, and arms. Fashion product photography style.",
+                "title": "Shirt Detail Shot",
+                "prompt": "Close-up focusing on the shirt/top design. Show fabric texture, print details, and fit. Same person, same outfit. Upper body - chest, shoulders, arms visible. Fashion product photography.",
                 "strength": 0.38,
-                "negative_prompt": "different person, different clothes, changed colors, full body, legs visible, different face"
+                "negative_prompt": "different person, different clothes, changed colors, full body, legs visible"
             },
             {
                 "key": "pants_closeup",
                 "name": "Pants Close-up", 
-                "title": "Pants Close-up",
-                "prompt": "Close-up shot focusing on the pants/bottom. Show the fabric texture, fit, and style. Same person, same outfit. Crop to show lower body - waist to feet. Fashion product photography style.",
+                "title": "Pants Detail Shot",
+                "prompt": "Close-up focusing on the pants/bottom. Show fabric texture, fit, and style details. Same person, same outfit. Lower body - waist to feet visible. Fashion product photography.",
                 "strength": 0.38,
-                "negative_prompt": "different person, different clothes, changed colors, face visible, portrait, upper body only"
-            },
-            {
-                "key": "pose_walking",
-                "name": "Walking Pose",
-                "title": "Dynamic Walking Pose",
-                "prompt": "Same person, same exact outfit, same scene. Confident walking pose with natural stride. Full body from head to feet. One foot slightly forward as if taking a step. Fashion editorial photography.",
-                "strength": 0.42,
-                "negative_prompt": "different person, different clothes, different face, static pose, stiff, cropped"
-            },
-            {
-                "key": "pose_casual",
-                "name": "Casual Pose",
-                "title": "Relaxed Casual Pose", 
-                "prompt": "Same person, same exact outfit, same scene. Relaxed casual pose - hands in pockets or arms loosely at sides. Full body from head to feet. Natural and approachable stance. Fashion lifestyle photography.",
-                "strength": 0.42,
-                "negative_prompt": "different person, different clothes, different face, formal pose, stiff, cropped"
-            },
-            {
-                "key": "pose_confident",
-                "name": "Confident Pose",
-                "title": "Confident Power Pose",
-                "prompt": "Same person, same exact outfit, same scene. Confident pose with good posture - shoulders back, slight hip tilt. Full body from head to feet. Strong and stylish stance. Fashion editorial photography.",
-                "strength": 0.42,
-                "negative_prompt": "different person, different clothes, different face, slouching, weak pose, cropped"
-            },
-            {
-                "key": "angle_threequarter",
-                "name": "3/4 Angle",
-                "title": "Three-Quarter View",
-                "prompt": "Same person, same exact outfit, same scene. Three-quarter angle view showing depth and dimension. Full body from head to feet. Slight turn to show outfit from a different angle. Fashion photography.",
-                "strength": 0.40,
-                "negative_prompt": "different person, different clothes, different face, frontal only, back view, cropped"
+                "negative_prompt": "different person, different clothes, changed colors, face visible, portrait"
             }
         ]
         

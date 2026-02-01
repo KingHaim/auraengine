@@ -6382,12 +6382,14 @@ export default function CampaignsPage() {
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                   {[
+                    { icon: "🦘", name: "Jump Action" },
+                    { icon: "🏃", name: "Running Motion" },
+                    { icon: "💫", name: "Spin Turn" },
+                    { icon: "↗️", name: "Dynamic Lean" },
+                    { icon: "⬇️", name: "Low Crouch" },
+                    { icon: "🚀", name: "Power Stride" },
                     { icon: "👕", name: "Shirt Close-up" },
                     { icon: "👖", name: "Pants Close-up" },
-                    { icon: "🚶", name: "Walking Pose" },
-                    { icon: "🧍", name: "Casual Pose" },
-                    { icon: "💪", name: "Confident Pose" },
-                    { icon: "📐", name: "3/4 Angle" },
                   ].map((kf, idx) => (
                     <div
                       key={idx}
@@ -6420,7 +6422,7 @@ export default function CampaignsPage() {
                   Number of Keyframes
                 </label>
                 <div style={{ display: "flex", gap: "8px" }}>
-                  {[2, 3, 4, 5, 6].map((num) => (
+                  {[2, 4, 6, 8].map((num) => (
                     <button
                       key={num}
                       onClick={() => setKeyframeCount(num)}
