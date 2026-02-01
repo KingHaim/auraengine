@@ -1233,6 +1233,37 @@ async def get_campaign_generation_status(
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================================
+# NEW: Keyframe Progress Endpoint
+# ============================================================
+@app.get("/campaigns/{campaign_id}/keyframe-progress")
+async def get_keyframe_progress(
+    campaign_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get the progress of keyframe generation"""
+    try:
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        # Get progress from settings
+        progress = campaign.settings.get("keyframe_progress", {}) if campaign.settings else {}
+        
+        return {
+            "status": campaign.generation_status,
+            "current": progress.get("current", 0),
+            "total": progress.get("total", 0),
+            "current_name": progress.get("current_name", ""),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================
 # NEW: Generate Keyframe Variations from Base Image
 # ============================================================
 @app.post("/campaigns/{campaign_id}/generate-keyframes")
@@ -1478,13 +1509,36 @@ async def generate_keyframes_background(
         product_image_url = base_image_data.get("product_image_url", "")
         clothing_type = base_image_data.get("clothing_type", "outfit")
         
+        total_to_generate = len(variations_to_generate)
         new_images = []
+        
+        # Initialize progress tracking
+        new_settings = dict(campaign.settings) if campaign.settings else {}
+        new_settings["keyframe_progress"] = {
+            "current": 0,
+            "total": total_to_generate,
+            "current_name": "Starting..."
+        }
+        campaign.settings = new_settings
+        flag_modified(campaign, "settings")
+        db.commit()
         
         for var_idx, variation in enumerate(variations_to_generate, 1):
             try:
-                print(f"\n🎥 [{var_idx}/{len(variations_to_generate)}] {variation['title']}")
+                print(f"\n🎥 [{var_idx}/{total_to_generate}] {variation['title']}")
                 print(f"   📝 Prompt: {variation['prompt'][:80]}...")
                 print(f"   ⚙️ Strength: {variation['strength']}")
+                
+                # Update progress BEFORE generating
+                new_settings = dict(campaign.settings) if campaign.settings else {}
+                new_settings["keyframe_progress"] = {
+                    "current": var_idx - 1,
+                    "total": total_to_generate,
+                    "current_name": f"Generating: {variation['title']}..."
+                }
+                campaign.settings = new_settings
+                flag_modified(campaign, "settings")
+                db.commit()
                 
                 # Generate variation using nano-banana-pro
                 variation_url = run_nano_banana_pro(
@@ -1503,6 +1557,17 @@ async def generate_keyframes_background(
                     final_url = download_and_save_image(to_url(variation_url), f"keyframe_{variation['key']}")
                 
                 print(f"   ✅ Keyframe saved: {final_url[:60]}...")
+                
+                # Update progress AFTER generating
+                new_settings = dict(campaign.settings) if campaign.settings else {}
+                new_settings["keyframe_progress"] = {
+                    "current": var_idx,
+                    "total": total_to_generate,
+                    "current_name": f"Completed: {variation['title']}"
+                }
+                campaign.settings = new_settings
+                flag_modified(campaign, "settings")
+                db.commit()
                 
                 # Create image entry
                 new_images.append({

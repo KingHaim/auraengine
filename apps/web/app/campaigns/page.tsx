@@ -192,6 +192,8 @@ export default function CampaignsPage() {
   const [showKeyframeModal, setShowKeyframeModal] = useState(false);
   const [keyframeCount, setKeyframeCount] = useState(4);
   const [generatingKeyframes, setGeneratingKeyframes] = useState(false);
+  const [keyframeProgress, setKeyframeProgress] = useState({ current: 0, total: 0, currentName: "" });
+  const [keyframeStartTime, setKeyframeStartTime] = useState<number | null>(null);
   const [generatingUnifiedVideo, setGeneratingUnifiedVideo] = useState<
     string | null
   >(null);
@@ -1692,6 +1694,9 @@ export default function CampaignsPage() {
     }
 
     setGeneratingKeyframes(true);
+    setKeyframeProgress({ current: 0, total: keyframeCount, currentName: "Starting..." });
+    setKeyframeStartTime(Date.now());
+    
     try {
       const formData = new FormData();
       formData.append("number_of_keyframes", keyframeCount.toString());
@@ -1708,18 +1713,55 @@ export default function CampaignsPage() {
       );
 
       if (response.ok) {
-        alert(`Generating ${keyframeCount} keyframe variations! This will take a few moments.`);
-        setShowKeyframeModal(false);
-        // Refresh campaigns data
-        await fetchData();
+        // Start polling for progress
+        const campaignId = selectedCampaignForGeneration.id;
+        const pollInterval = setInterval(async () => {
+          try {
+            const statusRes = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/keyframe-progress`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            if (statusRes.ok) {
+              const status = await statusRes.json();
+              setKeyframeProgress({
+                current: status.current || 0,
+                total: status.total || keyframeCount,
+                currentName: status.current_name || "Processing...",
+              });
+              
+              if (status.status === "completed" || status.status === "failed") {
+                clearInterval(pollInterval);
+                setGeneratingKeyframes(false);
+                setShowKeyframeModal(false);
+                setKeyframeStartTime(null);
+                await fetchData();
+                if (status.status === "completed") {
+                  alert(`✅ Generated ${status.current} keyframes successfully!`);
+                }
+              }
+            }
+          } catch (pollError) {
+            console.error("Polling error:", pollError);
+          }
+        }, 3000); // Poll every 3 seconds
+        
+        // Safety timeout after 15 minutes
+        setTimeout(() => {
+          clearInterval(pollInterval);
+          setGeneratingKeyframes(false);
+          fetchData();
+        }, 15 * 60 * 1000);
+        
       } else {
         const error = await response.json();
         alert(`Failed to generate keyframes: ${error.detail || "Unknown error"}`);
+        setGeneratingKeyframes(false);
       }
     } catch (error) {
       console.error("Error generating keyframes:", error);
       alert("Failed to generate keyframes. Please try again.");
-    } finally {
       setGeneratingKeyframes(false);
     }
   };
@@ -6416,7 +6458,7 @@ export default function CampaignsPage() {
               </div>
 
               {/* Number of Keyframes Selector */}
-              <div style={{ marginBottom: "24px" }}>
+              <div style={{ marginBottom: "16px" }}>
                 <label
                   style={{
                     display: "block",
@@ -6452,37 +6494,101 @@ export default function CampaignsPage() {
                 </div>
               </div>
 
-              {/* Generate Button */}
-              <button
-                onClick={executeKeyframeGeneration}
-                disabled={generatingKeyframes}
+              {/* Time Estimate */}
+              <div
                 style={{
-                  width: "100%",
-                  padding: "14px",
-                  backgroundColor: generatingKeyframes ? "#9CA3AF" : "#d42f48",
-                  border: "none",
-                  borderRadius: "10px",
-                  color: "white",
-                  fontSize: "16px",
-                  fontWeight: "600",
-                  cursor: generatingKeyframes ? "not-allowed" : "pointer",
+                  backgroundColor: "#FEF3C7",
+                  border: "1px solid #F59E0B",
+                  borderRadius: "8px",
+                  padding: "12px 16px",
+                  marginBottom: "24px",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
+                  gap: "10px",
                 }}
               >
-                {generatingKeyframes ? (
-                  <>
-                    <img src="/beating.gif" alt="Loading" style={{ width: "20px", height: "20px" }} />
-                    Generating Keyframes...
-                  </>
-                ) : (
-                  <>
-                    🎬 Generate {keyframeCount} Keyframes
-                  </>
-                )}
-              </button>
+                <span style={{ fontSize: "18px" }}>⏱️</span>
+                <div>
+                  <div style={{ fontSize: "14px", fontWeight: "600", color: "#92400E" }}>
+                    Estimated time: ~{Math.ceil((keyframeCount * 33.5) / 60)} min {Math.round((keyframeCount * 33.5) % 60)} sec
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#A16207" }}>
+                    {keyframeCount} keyframes × ~33 seconds each
+                  </div>
+                </div>
+              </div>
+
+              {/* Generate Button / Progress */}
+              {generatingKeyframes ? (
+                <div
+                  style={{
+                    backgroundColor: "#F3F4F6",
+                    borderRadius: "10px",
+                    padding: "20px",
+                    textAlign: "center",
+                  }}
+                >
+                  {/* Progress Bar */}
+                  <div
+                    style={{
+                      backgroundColor: "#E5E7EB",
+                      borderRadius: "999px",
+                      height: "12px",
+                      overflow: "hidden",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        backgroundColor: "#d42f48",
+                        height: "100%",
+                        width: `${(keyframeProgress.current / keyframeProgress.total) * 100}%`,
+                        transition: "width 0.5s ease",
+                        borderRadius: "999px",
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Progress Text */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "8px" }}>
+                    <img src="/beating.gif" alt="Loading" style={{ width: "24px", height: "24px" }} />
+                    <span style={{ fontSize: "16px", fontWeight: "600", color: "#374151" }}>
+                      {keyframeProgress.current} / {keyframeProgress.total} keyframes
+                    </span>
+                  </div>
+                  
+                  {/* Current Keyframe Name */}
+                  <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "8px" }}>
+                    {keyframeProgress.currentName}
+                  </div>
+                  
+                  {/* Time Estimate */}
+                  <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
+                    ~{Math.ceil(((keyframeProgress.total - keyframeProgress.current) * 33.5) / 60)} min remaining
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={executeKeyframeGeneration}
+                  style={{
+                    width: "100%",
+                    padding: "14px",
+                    backgroundColor: "#d42f48",
+                    border: "none",
+                    borderRadius: "10px",
+                    color: "white",
+                    fontSize: "16px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                  }}
+                >
+                  🎬 Generate {keyframeCount} Keyframes
+                </button>
+              )}
             </div>
           </div>
         )}
