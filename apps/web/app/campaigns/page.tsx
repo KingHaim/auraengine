@@ -6428,8 +6428,8 @@ export default function CampaignsPage() {
                 >
                   Number of Keyframes
                 </label>
-                <div style={{ display: "flex", gap: "8px" }}>
-                  {[2, 4, 6, 8].map((num) => (
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                  {[2, 4, 6, 8, 10, 11].map((num) => (
                     <button
                       key={num}
                       onClick={() => setKeyframeCount(num)}
