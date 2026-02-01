@@ -1340,72 +1340,72 @@ async def generate_keyframes_background(
         print(f"{'='*60}")
         print(f"📷 Base image: {base_image_url[:60]}...")
         
-        # Define all available keyframe variations - ACTION SHOTS + CAMERA POSITIONS
-        # Each keyframe shows a DIFFERENT ANGLE/POSITION within the same scene environment
+        # Define all available keyframe variations - CINEMATIC + CANDID + INTERACTIVE
+        # Natural lifestyle shots where model interacts with environment
         KEYFRAME_VARIATIONS = [
             {
-                "key": "scene_corner_left",
-                "name": "Left Corner View",
-                "title": "Scene - Left Corner",
-                "prompt": "Same person, same exact outfit. DIFFERENT CAMERA ANGLE: Person positioned on the LEFT side of the frame. Camera shooting from a different corner of the location. Show a NEW perspective of the same environment - different walls, different depth. Person walking confidently. Wide shot showing more of the space. Cinematic fashion film still.",
-                "strength": 0.58,
-                "negative_prompt": "same camera angle, centered composition, static backdrop, flat background, identical framing"
+                "key": "candid_looking_away",
+                "name": "Looking Away",
+                "title": "Candid - Looking Away",
+                "prompt": "Same person, same exact outfit, same location. CANDID SHOT: Person NOT looking at camera. Looking to the side, gazing into the distance, or looking down thoughtfully. Natural relaxed expression. Profile or 3/4 view of face. Lifestyle photography, authentic moment. Full body visible in the environment.",
+                "strength": 0.55,
+                "negative_prompt": "looking at camera, posed smile, direct eye contact, stiff pose"
             },
             {
-                "key": "scene_corner_right",
-                "name": "Right Corner View",
-                "title": "Scene - Right Corner", 
-                "prompt": "Same person, same exact outfit. DIFFERENT CAMERA ANGLE: Person positioned on the RIGHT side of the frame. Camera moved to opposite corner of the location. Show DIFFERENT architectural elements of the same space. Person in dynamic pose. Asymmetric composition. Show depth and dimension of the environment. Cinematic fashion photography.",
+                "key": "interact_sitting",
+                "name": "Sitting Interaction",
+                "title": "Sitting in Scene",
+                "prompt": "Same person, same exact outfit, same location. SEATED POSE: Person SITTING naturally on something in the environment - a chair, bench, ledge, steps, or edge. Relaxed seated position. NOT looking at camera, perhaps looking to the side or down. Casual lifestyle moment. Show the person using the space naturally.",
+                "strength": 0.60,
+                "negative_prompt": "standing, stiff pose, looking at camera, floating, unnatural"
+            },
+            {
+                "key": "interact_leaning",
+                "name": "Leaning on Something",
+                "title": "Leaning Casually",
+                "prompt": "Same person, same exact outfit, same location. LEANING POSE: Person LEANING against something in the environment - a wall, pillar, railing, or surface. Casual relaxed stance. One shoulder or back against the surface. Arms crossed or hands in pockets. Looking away from camera. Effortlessly cool lifestyle shot.",
                 "strength": 0.58,
-                "negative_prompt": "same camera angle, centered, static backdrop, flat background, identical shot"
+                "negative_prompt": "standing straight, posed, looking at camera, floating, stiff"
+            },
+            {
+                "key": "candid_in_thought",
+                "name": "Lost in Thought",
+                "title": "Contemplative Moment",
+                "prompt": "Same person, same exact outfit, same location. CONTEMPLATIVE SHOT: Person in a thoughtful moment. Looking down or to the side. Perhaps touching chin or adjusting clothing. Natural pensive expression. Candid unposed feeling. Lifestyle editorial. NOT looking at camera. Intimate authentic moment captured.",
+                "strength": 0.55,
+                "negative_prompt": "looking at camera, big smile, posed, stiff, artificial"
+            },
+            {
+                "key": "interact_walking_exploring",
+                "name": "Exploring Space",
+                "title": "Exploring the Space",
+                "prompt": "Same person, same exact outfit, same location. EXPLORING: Person walking through and EXPLORING the environment. Looking around at the space, touching a wall or surface, discovering the location. Back partially to camera or profile view. Movement and curiosity. Candid lifestyle documentary feel.",
+                "strength": 0.58,
+                "negative_prompt": "posing, looking at camera, static, stiff, standing still"
             },
             {
                 "key": "scene_low_angle",
                 "name": "Low Angle Hero",
                 "title": "Low Camera Angle",
-                "prompt": "Same person, same exact outfit. LOW ANGLE SHOT: Camera positioned LOW, shooting upward at the person. Makes subject look powerful and heroic. Show ceiling/sky and upper parts of the environment. Person in confident stance. Dramatic perspective with vanishing lines. Fashion editorial hero shot.",
+                "prompt": "Same person, same exact outfit, same location. LOW ANGLE: Camera positioned LOW, shooting upward. Person looking to the side, NOT at camera. Powerful heroic perspective. Show ceiling and upper environment. Dramatic composition with vanishing lines. Cinematic fashion editorial.",
                 "strength": 0.55,
-                "negative_prompt": "eye level, flat angle, boring composition, same perspective, static"
+                "negative_prompt": "eye level, flat angle, looking at camera, boring composition"
             },
             {
                 "key": "scene_high_angle",
                 "name": "High Angle View",
                 "title": "High Camera Angle",
-                "prompt": "Same person, same exact outfit. HIGH ANGLE SHOT: Camera positioned HIGH, shooting downward. Show the floor, patterns, textures below. Bird's eye perspective of the space. Person looking up or in dynamic crouching pose. Unique top-down perspective revealing more of the location. Fashion editorial.",
+                "prompt": "Same person, same exact outfit, same location. HIGH ANGLE: Camera positioned HIGH looking down. Person looking down or to the side, NOT at camera. Show floor patterns and textures. Bird's eye perspective. Perhaps crouching or sitting. Unique top-down view. Fashion editorial.",
                 "strength": 0.55,
-                "negative_prompt": "eye level, flat angle, same perspective, static background, boring"
+                "negative_prompt": "eye level, looking at camera, flat angle, same perspective"
             },
             {
-                "key": "scene_foreground",
-                "name": "Foreground Position",
-                "title": "Close Foreground",
-                "prompt": "Same person, same exact outfit. FOREGROUND COMPOSITION: Person positioned very CLOSE to camera in the foreground. Background of the location visible with depth and blur. Intimate close-up with environmental context. Show the person emerging from the space. Cinematic depth of field. Fashion film still.",
-                "strength": 0.52,
-                "negative_prompt": "distant, far away, same distance, flat composition, no depth"
-            },
-            {
-                "key": "scene_background_depth",
-                "name": "Background Depth",
-                "title": "Deep in Scene",
-                "prompt": "Same person, same exact outfit. DEEP IN SCENE: Person positioned FURTHER BACK in the environment, smaller in frame. Show more of the architectural space in foreground. Leading lines drawing eye to the person. Wide establishing shot. Cinematic scale showing the full location. Fashion editorial with environmental storytelling.",
-                "strength": 0.55,
-                "negative_prompt": "close up, same distance, flat, no depth, centered, same framing"
-            },
-            {
-                "key": "action_walking_through",
-                "name": "Walking Through",
-                "title": "Walking Through Scene",
-                "prompt": "Same person, same exact outfit. MOVEMENT THROUGH SPACE: Person walking dynamically THROUGH the environment. Mid-stride action. Camera capturing the journey. Different section of the location visible. Motion and energy. Show the person interacting with the space naturally. Cinematic fashion film.",
-                "strength": 0.55,
-                "negative_prompt": "standing still, static, same position, posed, flat background"
-            },
-            {
-                "key": "scene_profile_view",
-                "name": "Profile Side View",
+                "key": "scene_profile_pure",
+                "name": "Pure Profile",
                 "title": "Side Profile Shot",
-                "prompt": "Same person, same exact outfit. SIDE PROFILE: Camera positioned to the SIDE. Person shown in profile view. Different wall/section of the environment visible. 90-degree angle from original shot. Show the outfit from a completely different angle. Architectural elements on one side. Fashion editorial profile.",
+                "prompt": "Same person, same exact outfit, same location. PURE PROFILE: Full side view, 90-degree angle. Person looking straight ahead (not at camera). Clean silhouette showing outfit shape. Different section of environment visible. Classic fashion profile. Elegant and editorial.",
                 "strength": 0.58,
-                "negative_prompt": "frontal, same angle, centered, identical perspective, flat"
+                "negative_prompt": "frontal, looking at camera, turned toward camera, same angle"
             },
             {
                 "key": "closeup_shirt",

@@ -6364,11 +6364,11 @@ export default function CampaignsPage() {
                 </span>
                 <br />
                 <span style={{ color: "#059669", fontWeight: "500" }}>
-                  ✓ Different camera angles & positions within the scene
+                  ✓ Candid shots - not always looking at camera
                 </span>
                 <br />
                 <span style={{ color: "#059669", fontWeight: "500" }}>
-                  ✓ Cinematic variety like a real video shoot
+                  ✓ Interacting with scene - sitting, leaning, exploring
                 </span>
               </p>
 
@@ -6386,13 +6386,13 @@ export default function CampaignsPage() {
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                   {[
-                    { icon: "◀️", name: "Left Corner View" },
-                    { icon: "▶️", name: "Right Corner View" },
+                    { icon: "👀", name: "Looking Away" },
+                    { icon: "🪑", name: "Sitting in Scene" },
+                    { icon: "🧱", name: "Leaning Casual" },
+                    { icon: "💭", name: "Lost in Thought" },
+                    { icon: "🚶", name: "Exploring Space" },
                     { icon: "⬆️", name: "Low Angle Hero" },
                     { icon: "⬇️", name: "High Angle View" },
-                    { icon: "🔍", name: "Close Foreground" },
-                    { icon: "🏛️", name: "Deep in Scene" },
-                    { icon: "🚶", name: "Walking Through" },
                     { icon: "👤", name: "Side Profile" },
                     { icon: "👕", name: "Shirt Close-up" },
                     { icon: "👖", name: "Pants Close-up" },
