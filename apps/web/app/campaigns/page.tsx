@@ -9588,6 +9588,22 @@ export default function CampaignsPage() {
                         setGeneratingBulkVideos(false);  // Don't block UI during background generation
                         const campaignId = selectedCampaignForBulkVideo.id;
                         
+                        // IMMEDIATELY update campaign profile to show spinners on images
+                        if (selectedCampaignForProfile?.id === campaignId) {
+                          setSelectedCampaignForProfile({
+                            ...selectedCampaignForProfile,
+                            settings: {
+                              ...selectedCampaignForProfile.settings,
+                              bulk_video_status: "generating",
+                              bulk_video_progress: {
+                                current: 0,
+                                total: result.total_videos,
+                                current_name: "Starting..."
+                              }
+                            }
+                          });
+                        }
+                        
                         // Non-blocking notification (user can continue working)
                         console.log(`🎬 Generating ${result.total_videos} videos (~${Math.ceil(result.estimated_time_seconds / 60)} min)`);
 
