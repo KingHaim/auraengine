@@ -553,6 +553,46 @@ export default function CampaignsPage() {
     getLastGeneratedImages();
   }, [campaigns]);
 
+  // Poll for video generation progress when modal is open and generating
+  useEffect(() => {
+    if (!selectedCampaignForProfile || !token) return;
+    
+    const bulkVideoStatus = selectedCampaignForProfile.settings?.bulk_video_status;
+    if (bulkVideoStatus !== "generating") return;
+    
+    console.log("🎬 Starting video generation polling for modal...");
+    
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${selectedCampaignForProfile.id}/status`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.campaign) {
+            setSelectedCampaignForProfile(data.campaign);
+            
+            // Stop polling when complete
+            if (data.campaign.settings?.bulk_video_status === "completed" || 
+                data.campaign.settings?.bulk_video_status === "failed") {
+              console.log("🎬 Video generation finished, stopping poll");
+              clearInterval(pollInterval);
+              fetchData(); // Refresh main campaign list
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Polling error:", error);
+      }
+    }, 5000); // Poll every 5 seconds
+    
+    return () => clearInterval(pollInterval);
+  }, [selectedCampaignForProfile?.id, selectedCampaignForProfile?.settings?.bulk_video_status, token]);
+
   const handleCreateCampaign = async () => {
     console.log("🔍 handleCreateCampaign called");
 
@@ -6646,6 +6686,76 @@ export default function CampaignsPage() {
                         </span>
                       </div>
                     </div>
+
+                    {/* Video Generation Progress Bar */}
+                    {selectedCampaignForProfile.settings?.bulk_video_status === "generating" && (
+                      <div style={{
+                        backgroundColor: "#F0F9FF",
+                        border: "1px solid #BAE6FD",
+                        borderRadius: "12px",
+                        padding: "16px",
+                        marginBottom: "20px"
+                      }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <span style={{ fontSize: "20px" }}>🎬</span>
+                            <span style={{ fontWeight: "600", color: "#0369A1" }}>
+                              Generating Videos...
+                            </span>
+                          </div>
+                          <span style={{ fontSize: "13px", color: "#0369A1", fontWeight: "500" }}>
+                            {selectedCampaignForProfile.settings?.bulk_video_progress?.current || 0} / {selectedCampaignForProfile.settings?.bulk_video_progress?.total || 0}
+                          </span>
+                        </div>
+                        
+                        {/* Progress Bar */}
+                        <div style={{
+                          width: "100%",
+                          height: "8px",
+                          backgroundColor: "#E0F2FE",
+                          borderRadius: "4px",
+                          overflow: "hidden",
+                          marginBottom: "10px"
+                        }}>
+                          <div style={{
+                            width: `${((selectedCampaignForProfile.settings?.bulk_video_progress?.current || 0) / (selectedCampaignForProfile.settings?.bulk_video_progress?.total || 1)) * 100}%`,
+                            height: "100%",
+                            backgroundColor: "#0EA5E9",
+                            borderRadius: "4px",
+                            transition: "width 0.5s ease"
+                          }} />
+                        </div>
+                        
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontSize: "12px", color: "#0369A1" }}>
+                            {selectedCampaignForProfile.settings?.bulk_video_progress?.current_name || "Processing..."}
+                          </span>
+                          <span style={{ fontSize: "12px", color: "#64748B" }}>
+                            ~{Math.ceil(((selectedCampaignForProfile.settings?.bulk_video_progress?.total || 0) - (selectedCampaignForProfile.settings?.bulk_video_progress?.current || 0)) * 2.25)} min remaining
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Video Generation Complete Banner */}
+                    {selectedCampaignForProfile.settings?.bulk_video_status === "completed" && 
+                     selectedCampaignForProfile.settings?.bulk_video_progress?.success_count > 0 && (
+                      <div style={{
+                        backgroundColor: "#F0FDF4",
+                        border: "1px solid #BBF7D0",
+                        borderRadius: "12px",
+                        padding: "12px 16px",
+                        marginBottom: "20px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px"
+                      }}>
+                        <span style={{ fontSize: "18px" }}>✅</span>
+                        <span style={{ color: "#166534", fontWeight: "500" }}>
+                          {selectedCampaignForProfile.settings?.bulk_video_progress?.success_count} videos generated successfully!
+                        </span>
+                      </div>
+                    )}
 
                     {/* Base Image - Featured */}
                     {(() => {
