@@ -3129,52 +3129,52 @@ export default function CampaignsPage() {
                     {/* Scenes Container */}
                     <div
                       ref={scenesSliderRef}
-                      style={{
-                        display: "flex",
-                        gap: "12px",
-                        overflowX: "auto",
-                        paddingBottom: "8px",
-                        scrollbarWidth: "thin",
-                        scrollbarColor: "#4B5563 #374151",
+                    style={{
+                      display: "flex",
+                      gap: "12px",
+                      overflowX: "auto",
+                      paddingBottom: "8px",
+                      scrollbarWidth: "thin",
+                      scrollbarColor: "#4B5563 #374151",
                         scrollBehavior: "smooth",
                         paddingLeft: scenes.length > 3 ? "24px" : "0",
                         paddingRight: scenes.length > 3 ? "24px" : "0",
-                      }}
-                    >
-                      {scenes.length === 0 ? (
-                        <div
-                          style={{
-                            color: "#9CA3AF",
-                            fontSize: "14px",
-                            padding: "20px",
-                            textAlign: "center",
-                            width: "100%",
-                          }}
-                        >
-                          No scenes available
-                        </div>
-                      ) : (
-                        scenes.map((scene) => {
-                          console.log("🎬 Rendering scene:", scene);
-                          return (
-                            <div
-                              key={scene.id}
-                              onClick={() => toggleSelection(scene.id, "scenes")}
-                              style={{
-                                minWidth: "120px",
-                                height: "80px",
-                                backgroundColor: "#4B5563",
-                                borderRadius: "8px",
-                                backgroundImage: `url(${scene.image_url})`,
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
-                                cursor: "pointer",
-                                border: selectedScenes.includes(scene.id)
-                                  ? "2px solid #d42f48"
-                                  : "1px solid #6B7280",
-                                position: "relative",
-                                overflow: "hidden",
-                                flexShrink: 0,
+                    }}
+                  >
+                    {scenes.length === 0 ? (
+                      <div
+                        style={{
+                          color: "#9CA3AF",
+                          fontSize: "14px",
+                          padding: "20px",
+                          textAlign: "center",
+                          width: "100%",
+                        }}
+                      >
+                        No scenes available
+                      </div>
+                    ) : (
+                      scenes.map((scene) => {
+                        console.log("🎬 Rendering scene:", scene);
+                        return (
+                          <div
+                            key={scene.id}
+                            onClick={() => toggleSelection(scene.id, "scenes")}
+                            style={{
+                              minWidth: "120px",
+                              height: "80px",
+                              backgroundColor: "#4B5563",
+                              borderRadius: "8px",
+                              backgroundImage: `url(${scene.image_url})`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                              cursor: "pointer",
+                              border: selectedScenes.includes(scene.id)
+                                ? "2px solid #d42f48"
+                                : "1px solid #6B7280",
+                              position: "relative",
+                              overflow: "hidden",
+                              flexShrink: 0,
                                 transition: "transform 0.2s ease, border-color 0.2s ease",
                               }}
                               onMouseEnter={(e) => {
@@ -3182,47 +3182,47 @@ export default function CampaignsPage() {
                               }}
                               onMouseLeave={(e) => {
                                 e.currentTarget.style.transform = "scale(1)";
+                            }}
+                          >
+                            <div
+                              style={{
+                                position: "absolute",
+                                bottom: "0",
+                                left: "0",
+                                right: "0",
+                                backgroundColor: "rgba(9, 10, 12, 0.7)",
+                                color: "#FFFFFF",
+                                padding: "4px 8px",
+                                fontSize: "12px",
+                                fontWeight: "500",
                               }}
                             >
+                              {scene.name}
+                            </div>
+                            {selectedScenes.includes(scene.id) && (
                               <div
                                 style={{
                                   position: "absolute",
-                                  bottom: "0",
-                                  left: "0",
-                                  right: "0",
-                                  backgroundColor: "rgba(9, 10, 12, 0.7)",
-                                  color: "#FFFFFF",
-                                  padding: "4px 8px",
+                                  top: "6px",
+                                  right: "6px",
+                                  width: "20px",
+                                  height: "20px",
+                                  backgroundColor: "#d42f48",
+                                  borderRadius: "50%",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
                                   fontSize: "12px",
-                                  fontWeight: "500",
+                                  color: "#FFFFFF",
+                                  fontWeight: "bold",
                                 }}
                               >
-                                {scene.name}
+                                ✓
                               </div>
-                              {selectedScenes.includes(scene.id) && (
-                                <div
-                                  style={{
-                                    position: "absolute",
-                                    top: "6px",
-                                    right: "6px",
-                                    width: "20px",
-                                    height: "20px",
-                                    backgroundColor: "#d42f48",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    fontSize: "12px",
-                                    color: "#FFFFFF",
-                                    fontWeight: "bold",
-                                  }}
-                                >
-                                  ✓
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })
+                            )}
+                          </div>
+                        );
+                      })
                       )}
                     </div>
                     
@@ -3935,8 +3935,8 @@ export default function CampaignsPage() {
                             ? "#374151"
                             : "#4B5563"
                           : selectedProducts.includes(product.id)
-                          ? "#374151"
-                          : "#4B5563",
+                        ? "#374151"
+                        : "#4B5563",
                       borderRadius: "8px",
                       cursor: "pointer",
                       border:
@@ -3945,8 +3945,8 @@ export default function CampaignsPage() {
                             ? "2px solid #d42f48"
                             : "1px solid #6B7280"
                           : selectedProducts.includes(product.id)
-                          ? "2px solid #d42f48"
-                          : "1px solid #6B7280",
+                        ? "2px solid #d42f48"
+                        : "1px solid #6B7280",
                       transition: "all 0.2s",
                     }}
                   >
@@ -3981,16 +3981,16 @@ export default function CampaignsPage() {
                       </div>
                     </div>
                     {productSelectionMode === "campaign" && (
-                      <input
-                        type="checkbox"
-                        checked={selectedProducts.includes(product.id)}
-                        onChange={() => {}}
-                        style={{
-                          width: "20px",
-                          height: "20px",
-                          accentColor: "#d42f48",
-                        }}
-                      />
+                    <input
+                      type="checkbox"
+                      checked={selectedProducts.includes(product.id)}
+                      onChange={() => {}}
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        accentColor: "#d42f48",
+                      }}
+                    />
                     )}
                     {productSelectionMode === "image" &&
                       selectedProductForImage === product.id && (
@@ -4003,7 +4003,7 @@ export default function CampaignsPage() {
               </div>
 
               {productSelectionMode === "image" && selectedProductForImage && (
-                <button
+              <button
                   onClick={() => {
                     if (selectedProductForImage) {
                       addProductToImage(selectedProductForImage);
@@ -4521,9 +4521,9 @@ export default function CampaignsPage() {
                           >
                             Please wait
                           </p>
-                        </div>
-                      ))}
                   </div>
+                      ))}
+                </div>
 
                   {/* New Workflow Buttons */}
                   <div
@@ -6550,81 +6550,6 @@ export default function CampaignsPage() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Quick Action Buttons - Always Visible at Top */}
-              <div
-                style={{
-                  display: "flex",
-                  gap: "12px",
-                  marginBottom: "24px",
-                  padding: "16px",
-                  backgroundColor: "#F8FAFC",
-                  borderRadius: "12px",
-                  border: "1px solid #E2E8F0",
-                }}
-              >
-                <button
-                  onClick={() => {
-                    setShowCampaignProfileModal(false);
-                    const hasBaseImage = (selectedCampaignForProfile?.settings?.generated_images?.length || 0) > 0;
-                    setSelectedCampaignForGeneration(selectedCampaignForProfile);
-                    if (hasBaseImage) {
-                      setShowKeyframeModal(true);
-                    } else {
-                      setShowParameterModal(true);
-                    }
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: "14px 20px",
-                    backgroundColor: "#10B981",
-                    border: "none",
-                    borderRadius: "10px",
-                    color: "#FFFFFF",
-                    fontSize: "15px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#059669"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#10B981"; }}
-                >
-                  ✨ Generate More Keyframes
-                </button>
-
-                <button
-                  onClick={() => {
-                    setSelectedCampaignForBulkVideo(selectedCampaignForProfile);
-                    setShowCampaignProfileModal(false);
-                    setSelectedImagesForVideo(new Set());
-                    setVeoDirectMode(false);
-                    setBulkVideoCustomPrompt("");
-                    setShowBulkVideoModal(true);
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: "14px 20px",
-                    backgroundColor: "#8B5CF6",
-                    border: "none",
-                    borderRadius: "10px",
-                    color: "#FFFFFF",
-                    fontSize: "15px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#7C3AED"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#8B5CF6"; }}
-                >
-                  🎬 Generate Videos
-                </button>
-              </div>
-
               {/* Modal Header */}
               <div
                 style={{
@@ -6696,7 +6621,7 @@ export default function CampaignsPage() {
                     }}>
                       <h3 style={{ fontSize: "20px", fontWeight: "700", color: "#1F2937", margin: 0 }}>
                         🎬 Campaign Keyframes
-                      </h3>
+                    </h3>
                       <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                         <span style={{ 
                           backgroundColor: "#DCFCE7", 
@@ -6716,7 +6641,8 @@ export default function CampaignsPage() {
                           fontSize: "13px", 
                           fontWeight: "600" 
                         }}>
-                          {selectedCampaignForProfile.settings.generated_images.filter((i: any) => i.video_url).length} videos
+                          {(selectedCampaignForProfile.settings?.videos?.length || 0) + 
+                           selectedCampaignForProfile.settings.generated_images.filter((i: any) => i.video_url).length} videos
                         </span>
                       </div>
                     </div>
@@ -6810,29 +6736,29 @@ export default function CampaignsPage() {
                             return "📷";
                           };
                           return (
-                            <div
-                              key={index}
-                              style={{
-                                borderRadius: "12px",
-                                overflow: "hidden",
-                                backgroundColor: "#FFFFFF",
+                          <div
+                            key={index}
+                            style={{
+                              borderRadius: "12px",
+                              overflow: "hidden",
+                              backgroundColor: "#FFFFFF",
                                 border: "1px solid #E5E7EB",
-                                position: "relative",
-                                cursor: "pointer",
+                              position: "relative",
+                              cursor: "pointer",
                                 transition: "all 0.2s ease",
                                 boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                              }}
-                              onMouseEnter={(e) => {
+                            }}
+                            onMouseEnter={(e) => {
                                 e.currentTarget.style.transform = "translateY(-3px)";
                                 e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.12)";
-                                e.currentTarget.style.borderColor = "#d42f48";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = "translateY(0)";
+                              e.currentTarget.style.borderColor = "#d42f48";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = "translateY(0)";
                                 e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
-                                e.currentTarget.style.borderColor = "#E5E7EB";
-                              }}
-                            >
+                              e.currentTarget.style.borderColor = "#E5E7EB";
+                            }}
+                          >
                               {/* Image */}
                               <div style={{ aspectRatio: "3/4", position: "relative" }}>
                                 {img.video_url ? (
@@ -6851,10 +6777,10 @@ export default function CampaignsPage() {
                                     onError={(e) => { e.currentTarget.style.display = "none"; }}
                                   />
                                 )}
-                                {/* Delete Button */}
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
+                            {/* Delete Button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
                                     deleteCampaignImage(selectedCampaignForProfile.id, actualIndex);
                                   }}
                                   style={{
@@ -7071,21 +6997,21 @@ export default function CampaignsPage() {
                             padding: "8px 16px",
                             backgroundColor: "#10B981",
                             color: "white",
-                            border: "none",
+                                border: "none",
                             borderRadius: "6px",
-                            fontSize: "14px",
-                            fontWeight: "600",
-                            cursor: "pointer",
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                cursor: "pointer",
                             textDecoration: "none",
                             display: "flex",
                             alignItems: "center",
                             gap: "6px",
-                            transition: "all 0.2s ease",
-                          }}
-                          onMouseEnter={(e) => {
+                                transition: "all 0.2s ease",
+                              }}
+                              onMouseEnter={(e) => {
                             e.currentTarget.style.backgroundColor = "#059669";
-                          }}
-                          onMouseLeave={(e) => {
+                              }}
+                              onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = "#10B981";
                           }}
                         >
@@ -7109,8 +7035,8 @@ export default function CampaignsPage() {
                         display: "flex",
                         alignItems: "center",
                         gap: "10px",
-                      }}
-                    >
+                              }}
+                            >
                       🎥 Final Campaign Video
                     </h3>
                     <div
@@ -7127,22 +7053,22 @@ export default function CampaignsPage() {
                       {/* Blurred preview from first video */}
                       {selectedCampaignForProfile.settings?.videos?.[0]
                         ?.video_url && (
-                        <video
+                                <video
                           src={
                             selectedCampaignForProfile.settings.videos[0]
                               .video_url
                           }
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
                             filter: "blur(10px)",
                             transform: "scale(1.1)",
-                          }}
-                          muted
-                          loop
+                                  }}
+                                  muted
+                                  loop
                           autoPlay
-                        />
+                                />
                       )}
 
                       {/* Overlay with spinner and text */}
@@ -7161,10 +7087,10 @@ export default function CampaignsPage() {
                         }}
                       >
                         {/* Beating heart spinner */}
-                        <img
+                                <img
                           src="/beating.gif"
                           alt="Loading..."
-                          style={{
+                                  style={{
                             width: "120px",
                             height: "120px",
                             marginBottom: "24px",
@@ -7191,7 +7117,7 @@ export default function CampaignsPage() {
                             fontSize: "16px",
                             margin: "12px 0 0 0",
                             textAlign: "center",
-                          }}
+                                  }}
                         >
                           Stitching{" "}
                           {selectedCampaignForProfile.settings?.videos
@@ -7304,11 +7230,11 @@ export default function CampaignsPage() {
                               <source src={video.video_url} type="video/mp4" />
                               Your browser does not support the video tag.
                             </video>
-                          ) : (
-                            <div
-                              style={{
+                            ) : (
+                              <div
+                                style={{
                                 position: "relative",
-                                width: "100%",
+                                  width: "100%",
                                 height: "250px",
                                 overflow: "hidden",
                               }}
@@ -7324,9 +7250,9 @@ export default function CampaignsPage() {
                                     objectFit: "cover",
                                     filter: "blur(8px)",
                                     transform: "scale(1.1)",
-                                  }}
+                                }}
                                 />
-                              )}
+                            )}
 
                               {/* Overlay with spinner and text */}
                               <div
@@ -7347,7 +7273,7 @@ export default function CampaignsPage() {
                                 <img
                                   src="/beating.gif"
                                   alt="Loading..."
-                                  style={{
+                              style={{
                                     width: "80px",
                                     height: "80px",
                                     marginBottom: "16px",
@@ -7357,14 +7283,14 @@ export default function CampaignsPage() {
                                 {/* Text */}
                                 <p
                                   style={{
-                                    color: "white",
+                                color: "white",
                                     fontSize: "16px",
-                                    fontWeight: "600",
+                                fontWeight: "600",
                                     margin: 0,
                                     textAlign: "center",
                                     textShadow: "0 2px 4px rgba(0,0,0,0.5)",
-                                  }}
-                                >
+                              }}
+                            >
                                   {video.error
                                     ? `❌ ${video.error}`
                                     : "Video Generation in Process"}
@@ -7381,25 +7307,25 @@ export default function CampaignsPage() {
                                   >
                                     This may take 2-3 minutes...
                                   </p>
-                                )}
-                              </div>
-                            </div>
+                      )}
+                    </div>
+                  </div>
                           )}
-                          <div
-                            style={{
+                  <div
+                    style={{
                               padding: "12px",
-                              display: "flex",
+                      display: "flex",
                               justifyContent: "space-between",
-                              alignItems: "center",
-                            }}
-                          >
-                            <p
-                              style={{
+                      alignItems: "center",
+                      }}
+                    >
+                    <p
+                      style={{
                                 fontSize: "14px",
-                                color: "#6B7280",
-                                margin: 0,
-                              }}
-                            >
+                        color: "#6B7280",
+                        margin: 0,
+                      }}
+                    >
                               {video.shot_type || `Video ${idx + 1}`}
                             </p>
                             <div
@@ -7544,7 +7470,7 @@ export default function CampaignsPage() {
                       if (hasBaseImage) {
                         setShowKeyframeModal(true);
                       } else {
-                        setShowParameterModal(true);
+                      setShowParameterModal(true);
                       }
                     }}
                     style={{
@@ -7870,26 +7796,26 @@ export default function CampaignsPage() {
 
               {/* Side Menu - Desktop Only */}
               {!isMobile && (
-                <div
-                  style={{
-                    width: "300px",
-                    backgroundColor: "rgba(30, 30, 30, 0.95)",
-                    borderRadius: "12px",
-                    padding: "24px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "16px",
-                    maxHeight: "90vh",
-                    overflowY: "auto",
+              <div
+                style={{
+                  width: "300px",
+                  backgroundColor: "rgba(30, 30, 30, 0.95)",
+                  borderRadius: "12px",
+                  padding: "24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "16px",
+                  maxHeight: "90vh",
+                  overflowY: "auto",
                     overflowX: "visible",
                     position: "relative",
                     overflow: "visible",
                     justifyContent: "space-between",
-                  }}
-                >
+                }}
+              >
                   {/* Action Buttons Container - Same Line */}
                   <div
-                    style={{
+                  style={{
                       display: "flex",
                       flexDirection: "row",
                       alignItems: "center",
@@ -7898,7 +7824,7 @@ export default function CampaignsPage() {
                       justifyContent: "center",
                       position: "relative",
                       overflow: "visible",
-                    }}
+                  }}
                     onMouseLeave={() => {
                       // Delay clearing tooltip to prevent flickering
                       setTimeout(() => {
@@ -7909,7 +7835,7 @@ export default function CampaignsPage() {
                       }, 100);
                     }}
                   >
-                    {/* Download Button */}
+                {/* Download Button */}
                     <div
                       style={{
                         position: "relative",
@@ -7932,28 +7858,28 @@ export default function CampaignsPage() {
                         // Don't clear tooltip here - let parent handle it
                       }}
                     >
-                      <button
-                        onClick={() =>
-                          downloadImage(
-                            enlargedImageUrl,
-                            `campaign-${Date.now()}.jpg`
-                          )
-                        }
-                        style={{
+                <button
+                  onClick={() =>
+                    downloadImage(
+                      enlargedImageUrl,
+                      `campaign-${Date.now()}.jpg`
+                    )
+                  }
+                  style={{
                           padding: "6px",
                           backgroundColor: "transparent",
-                          border: "none",
-                          borderRadius: "8px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                           width: "56px",
                           height: "56px",
                           flexShrink: 0,
                           transition: "transform 0.2s ease",
-                        }}
-                      >
+                  }}
+                >
                         <img
                           src="/downloadimage.png"
                           alt="Download Image"
@@ -7963,10 +7889,10 @@ export default function CampaignsPage() {
                             objectFit: "contain",
                           }}
                         />
-                      </button>
+                </button>
                     </div>
 
-                    {/* Tweak Button */}
+                {/* Tweak Button */}
                     <div
                       style={{
                         position: "relative",
@@ -7990,17 +7916,17 @@ export default function CampaignsPage() {
                         // Don't clear tooltip here - let parent handle it
                       }}
                     >
-                      <button
-                        onClick={() => setShowTweakModal(true)}
-                        style={{
+                <button
+                  onClick={() => setShowTweakModal(true)}
+                  style={{
                           padding: "6px",
                           backgroundColor: "transparent",
-                          border: "none",
-                          borderRadius: "8px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                           width: "56px",
                           height: "56px",
                           flexShrink: 0,
@@ -8026,8 +7952,8 @@ export default function CampaignsPage() {
                         display: "inline-block",
                         overflow: "visible",
                         zIndex: 1,
-                      }}
-                      onMouseEnter={(e) => {
+                  }}
+                  onMouseEnter={(e) => {
                         if (!addingProductToImage) {
                           const button =
                             e.currentTarget.querySelector("button");
@@ -8038,8 +7964,8 @@ export default function CampaignsPage() {
                             description: "Add another product onto this image",
                           });
                         }
-                      }}
-                      onMouseLeave={(e) => {
+                  }}
+                  onMouseLeave={(e) => {
                         const button = e.currentTarget.querySelector("button");
                         if (button) button.style.transform = "scale(1)";
                         // Don't clear tooltip here - let parent handle it
@@ -8081,7 +8007,7 @@ export default function CampaignsPage() {
                             objectFit: "contain",
                           }}
                         />
-                      </button>
+                </button>
                     </div>
                   </div>
 
@@ -8098,10 +8024,10 @@ export default function CampaignsPage() {
                   >
                     {activeTooltip ? (
                       <div
-                        style={{
-                          padding: "12px 16px",
+                    style={{
+                      padding: "12px 16px",
                           backgroundColor: "rgba(0, 0, 0, 0.6)",
-                          borderRadius: "8px",
+                      borderRadius: "8px",
                           textAlign: "center",
                           display: "flex",
                           flexDirection: "column",
@@ -8113,7 +8039,7 @@ export default function CampaignsPage() {
                       >
                         <div
                           style={{
-                            fontWeight: "600",
+                      fontWeight: "600",
                             marginBottom: "6px",
                             fontSize: "14px",
                             color: "#FFFFFF",
@@ -8152,11 +8078,11 @@ export default function CampaignsPage() {
               {isMobile && (
                 <div
                   style={{
-                    display: "flex",
+                      display: "flex",
                     flexDirection: "column",
                     gap: "12px",
-                    alignItems: "center",
-                    justifyContent: "center",
+                      alignItems: "center",
+                      justifyContent: "center",
                   }}
                 >
                   {/* Download Button */}
@@ -8212,12 +8138,12 @@ export default function CampaignsPage() {
                           objectFit: "contain",
                         }}
                       />
-                    </button>
+                  </button>
                   </div>
 
                   {/* Tweak Button */}
-                  <div
-                    style={{
+                <div
+                  style={{
                       position: "relative",
                       display: "inline-block",
                     }}
@@ -8236,11 +8162,11 @@ export default function CampaignsPage() {
                       if (button) button.style.transform = "scale(1)";
                       setShowTweakTooltip(false);
                       setActiveTooltip(null);
-                    }}
-                  >
+                  }}
+                >
                     <button
                       onClick={() => setShowTweakModal(true)}
-                      style={{
+                    style={{
                         padding: "8px",
                         backgroundColor: "rgba(30, 30, 30, 0.8)",
                         border: "1px solid rgba(255, 255, 255, 0.2)",
@@ -8253,16 +8179,16 @@ export default function CampaignsPage() {
                         height: "48px",
                         flexShrink: 0,
                         transition: "transform 0.2s ease",
-                      }}
-                    >
+                    }}
+                  >
                       <img
                         src="/tweakimage.png"
                         alt="Tweak Image"
-                        style={{
+                    style={{
                           width: "100%",
                           height: "100%",
                           objectFit: "contain",
-                        }}
+                    }}
                       />
                     </button>
                   </div>
@@ -8328,8 +8254,8 @@ export default function CampaignsPage() {
                         }}
                       />
                     </button>
-                  </div>
                 </div>
+              </div>
               )}
             </div>
           </div>
