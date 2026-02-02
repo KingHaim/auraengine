@@ -1558,19 +1558,8 @@ async def generate_keyframes_background(
                 
                 print(f"   ✅ Keyframe saved: {final_url[:60]}...")
                 
-                # Update progress AFTER generating
-                new_settings = dict(campaign.settings) if campaign.settings else {}
-                new_settings["keyframe_progress"] = {
-                    "current": var_idx,
-                    "total": total_to_generate,
-                    "current_name": f"Completed: {variation['title']}"
-                }
-                campaign.settings = new_settings
-                flag_modified(campaign, "settings")
-                db.commit()
-                
                 # Create image entry
-                new_images.append({
+                new_image = {
                     "product_name": product_name,
                     "product_id": product_ids[0] if product_ids else "",
                     "product_ids": product_ids,
@@ -1585,7 +1574,27 @@ async def generate_keyframes_background(
                     "clothing_type": clothing_type,
                     "is_base_image": False,
                     "is_keyframe_variation": True
-                })
+                }
+                new_images.append(new_image)
+                
+                # IMMEDIATELY save image to campaign so user can see it
+                # Refresh existing images from DB to get latest state
+                db.refresh(campaign)
+                current_images = campaign.settings.get("generated_images", []) if campaign.settings else []
+                current_images.append(new_image)
+                
+                # Update progress AND images AFTER generating
+                new_settings = dict(campaign.settings) if campaign.settings else {}
+                new_settings["generated_images"] = current_images  # Save images immediately
+                new_settings["keyframe_progress"] = {
+                    "current": var_idx,
+                    "total": total_to_generate,
+                    "current_name": f"✅ {variation['title']}"
+                }
+                campaign.settings = new_settings
+                flag_modified(campaign, "settings")
+                db.commit()
+                print(f"   💾 Image saved to campaign - now visible to user!")
                 
             except Exception as e:
                 print(f"❌ Failed keyframe {variation['title']}: {e}")
@@ -1593,13 +1602,14 @@ async def generate_keyframes_background(
                 traceback.print_exc()
                 continue
         
-        # Append new images to existing ones
-        all_images = existing_images + new_images
-        
-        # Update campaign
+        # Mark as completed
         campaign.generation_status = "completed"
         new_settings = dict(campaign.settings) if campaign.settings else {}
-        new_settings["generated_images"] = all_images
+        new_settings["keyframe_progress"] = {
+            "current": total_to_generate,
+            "total": total_to_generate,
+            "current_name": "All keyframes completed!"
+        }
         campaign.settings = new_settings
         flag_modified(campaign, "settings")
         db.commit()

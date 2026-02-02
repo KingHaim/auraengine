@@ -1713,8 +1713,10 @@ export default function CampaignsPage() {
       );
 
       if (response.ok) {
-        // Start polling for progress
+        // Start polling for progress AND refresh images in real-time
         const campaignId = selectedCampaignForGeneration.id;
+        let lastSeenProgress = 0;
+        
         const pollInterval = setInterval(async () => {
           try {
             const statusRes = await fetch(
@@ -1725,11 +1727,21 @@ export default function CampaignsPage() {
             );
             if (statusRes.ok) {
               const status = await statusRes.json();
+              const currentProgress = status.current || 0;
+              
               setKeyframeProgress({
-                current: status.current || 0,
+                current: currentProgress,
                 total: status.total || keyframeCount,
                 currentName: status.current_name || "Processing...",
               });
+              
+              // Refresh campaign data whenever a new image is completed
+              // This shows images as they're generated!
+              if (currentProgress > lastSeenProgress) {
+                console.log(`🖼️ New keyframe completed (${currentProgress}/${status.total}), refreshing...`);
+                await fetchData();
+                lastSeenProgress = currentProgress;
+              }
               
               if (status.status === "completed" || status.status === "failed") {
                 clearInterval(pollInterval);
