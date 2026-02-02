@@ -2291,14 +2291,14 @@ async def generate_videos_background(
     try:
         videos = []
         
-        # Define camera movement signatures for variety
+        # Define camera movement signatures - HIGH-FASHION EDITORIAL STYLE
         CAMERA_SIGNATURES = [
-            "ROTATING LENS: Dynamic orbital camera movement around the subject, creating a 3D volumetric feel.",
-            "FAST ZOOM IN: Energetic crash zoom towards the subject, high-impact fashion music video aesthetic.",
-            "TILTING: Elegant vertical tilt movement scanning the outfit from top to bottom.",
-            "TRACKING SHOT: Smooth sideways dolly movement keeping pace with the subject, cinematic and steady.",
-            "HANDHELD: Organic, slightly shaky handheld camera movement for a raw, edgy editorial look.",
-            "LOW ANGLE: Camera positioned low looking up, empowering the subject with a majestic perspective."
+            "Slow cinematic orbit revealing the silhouette, fashion film aesthetic with shallow depth of field",
+            "Elegant push-in towards the subject, intimate editorial moment, vogue-style cinematography",
+            "Dramatic slow-motion tracking shot, model walking with confidence, haute couture campaign energy",
+            "Atmospheric dolly movement through the scene, moody editorial lighting, magazine cover moment",
+            "Cinematic crane-down reveal, emphasizing the outfit's structure and the model's presence",
+            "Intimate handheld drift, raw and authentic energy, street-style editorial documentary feel"
         ]
         
         for idx, image_data in enumerate(images, 1):
@@ -2316,53 +2316,54 @@ async def generate_videos_background(
                 shot_type = image_data.get('shot_type', '')
                 shot_name = image_data.get('shot_name', '')
                 
-                # Special prompts for close-up shots - distinguish between shirt and pants
+                # HIGH-FASHION EDITORIAL PROMPTS
                 if 'close' in shot_type.lower() or 'closeup' in shot_name.lower() or 'close-up' in shot_type.lower():
                     # Check if it's a pants close-up
                     if 'pants' in shot_type.lower() or 'pants' in shot_name.lower():
                         video_prompt = (
-                            f"Cinematic fashion editorial video focusing on the {product_name} pants/bottom garment. "
-                            f"Frame shows lower body from waist to knees - NO FACE or upper body visible. "
-                            f"CAMERA MOVEMENT: Elegant vertical tilt or smooth tracking shot emphasizing the cut. "
-                            f"Showcase the garment's fabric texture, drape, tailoring details, and how it moves. "
-                            f"Fashion editorial videography with artistic depth of field. "
-                            f"Natural movement of fabric with model's subtle shifts. Professional fashion lighting on the garment. "
-                            f"Confident, editorial energy focused entirely on the pants."
+                            f"Fashion editorial detail shot. The {product_name} pants captured cinematically. "
+                            f"Frame: waist to knees, no face visible. "
+                            f"Elegant camera tilt revealing the cut, fabric movement, and tailoring. "
+                            f"Runway-quality production. Natural movement shows how the garment flows. "
+                            f"High-fashion campaign energy with artistic depth of field. Luxury brand aesthetic."
                         )
-                        print(f"👖 Using PANTS CLOSE-UP video prompt (editorial style, no face)")
+                        print(f"👖 Using EDITORIAL PANTS CLOSE-UP prompt")
                     else:
                         # Shirt/top close-up
                         video_prompt = (
-                            f"Cinematic fashion product video focusing exclusively on the {product_name} garment. "
-                            f"Frame shows upper body torso and shirt/garment area ONLY - NO FACE visible in frame. "
-                            f"CAMERA MOVEMENT: Smooth gentle pan or subtle push-in emphasizing texture. "
-                            f"Showcase the garment's fabric texture, stitching, color, and style. "
-                            f"Cinematic depth of field with garment in sharp focus. Elegant, professional fashion videography. "
-                            f"Natural subtle movements of fabric. Professional studio lighting on the garment."
+                            f"Intimate fashion editorial close-up. The {product_name} garment in exquisite detail. "
+                            f"Frame: torso and garment only, face excluded. "
+                            f"Slow, sensual camera movement revealing fabric texture, drape, and craftsmanship. "
+                            f"Cinematic shallow depth of field. Luxury brand campaign aesthetic. "
+                            f"Subtle breathing movement brings the garment to life. Magazine-worthy composition."
                         )
-                        print(f"👕 Using SHIRT CLOSE-UP video prompt (no face, garment focus)")
+                        print(f"👕 Using EDITORIAL SHIRT CLOSE-UP prompt")
                 else:
-                    # Standard prompt for full body shots - Apply dynamic camera signature
+                    # HIGH-FASHION EDITORIAL CAMPAIGN - Full body shots
                     video_prompt = (
-                        f"Professional fashion photography: {model_name} wearing {product_name} in {scene_name}. "
-                        f"CAMERA MOVEMENT: {camera_signature} "
-                        f"Cinematic depth. Natural breathing and slight movements. "
-                        f"Professional lighting, elegant atmosphere."
+                        f"High-fashion editorial campaign film. {model_name} embodies effortless confidence "
+                        f"wearing the {product_name}. {camera_signature}. "
+                        f"Cinematic color grading, rich shadows, editorial lighting. "
+                        f"Subtle confident movement - a slight turn, weight shift, or knowing glance. "
+                        f"Vogue-level production quality. The energy of a luxury brand campaign."
                     )
-                    print(f"🎬 Using STANDARD video prompt with signature: {camera_signature.split(':')[0]}")
+                    print(f"🎬 Using EDITORIAL CAMPAIGN prompt")
                 
                 print(f"📝 Video prompt: {video_prompt[:150]}...")
                 print(f"🖼️ Image URL: {image_data['image_url'][:80]}...")
                 
-                # Build negative prompt - add face exclusion for close-ups
+                # Build negative prompt - editorial quality standards
                 if 'close' in shot_type.lower() or 'closeup' in shot_name.lower() or 'close-up' in shot_type.lower():
                     negative_prompt = (
                         "face, head, neck visible, facial features, eyes, nose, mouth, "
-                        "blurry, distorted, low quality, bad lighting, poor composition, jerky motion, "
-                        "showing face, person's face in frame"
+                        "blurry, distorted, low quality, amateur, cheap looking, jerky motion, "
+                        "showing face, overexposed, underexposed, flat lighting"
                     )
                 else:
-                    negative_prompt = "blurry, distorted, low quality, bad lighting, poor composition, jerky motion"
+                    negative_prompt = (
+                        "blurry, distorted, low quality, amateur, cheap looking, jerky motion, "
+                        "overexposed, underexposed, flat lighting, static, stiff movement"
+                    )
                 
                 # Call Kling 2.5 Turbo Pro API
                 output = replicate.run(
