@@ -851,6 +851,39 @@ async def get_campaigns_count(
         print(f"❌ Error fetching campaigns count: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+def save_generation_progress(db: Session, campaign_id: str, generated_images: list, current: int, total: int, status: str = "generating"):
+    """
+    Save generation progress after EACH image is generated.
+    This enables progressive loading in the frontend.
+    """
+    try:
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+        if not campaign:
+            print(f"⚠️ Campaign {campaign_id} not found for progress update")
+            return
+        
+        # Update settings with current progress
+        new_settings = dict(campaign.settings) if campaign.settings else {}
+        new_settings["generated_images"] = generated_images
+        new_settings["generation_progress"] = {
+            "current": current,
+            "total": total,
+            "percent": int((current / total) * 100) if total > 0 else 0
+        }
+        campaign.settings = new_settings
+        campaign.generation_status = status
+        
+        # Force SQLAlchemy to detect the change
+        flag_modified(campaign, "settings")
+        
+        db.commit()
+        print(f"💾 Progress saved: {current}/{total} images ({new_settings['generation_progress']['percent']}%)")
+        
+    except Exception as e:
+        print(f"⚠️ Failed to save progress: {e}")
+        # Don't raise - we don't want to break generation if progress save fails
+        db.rollback()
+
 async def generate_campaign_images_background(
     campaign_id: str,
     product_id_list: list,
@@ -1078,6 +1111,16 @@ async def generate_campaign_images_background(
                             "clothing_type": first_product_type,
                             "is_base_image": variation.get("is_base", False)  # NEW: Flag for base image
                         })
+                        
+                        # 🔥 PROGRESSIVE LOADING: Save after EACH image so frontend can display immediately
+                        save_generation_progress(
+                            db, 
+                            campaign_id, 
+                            generated_images, 
+                            current=len(generated_images), 
+                            total=len(variations_to_use) * len(models) * len(scenes),
+                            status="generating"
+                        )
                         
                         print(f"   ✅ Keyframe {var_idx} completed!")
                         

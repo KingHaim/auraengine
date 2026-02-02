@@ -276,6 +276,13 @@ export default function CampaignsPage() {
   const [generatingCampaignId, setGeneratingCampaignId] = useState<
     string | null
   >(null);
+  // 🔥 PROGRESSIVE LOADING: Track generation progress
+  const [generationProgress, setGenerationProgress] = useState<{
+    current: number;
+    total: number;
+    percent: number;
+  } | null>(null);
+  const [progressiveImages, setProgressiveImages] = useState<any[]>([]);
   const [showModelSelectionModal, setShowModelSelectionModal] = useState(false);
   const [showProductSelectionModal, setShowProductSelectionModal] =
     useState(false);
@@ -576,6 +583,66 @@ export default function CampaignsPage() {
   useEffect(() => {
     getLastGeneratedImages();
   }, [campaigns]);
+
+  // 🔥 PROGRESSIVE LOADING: Poll aggressively during generation to show images as they arrive
+  useEffect(() => {
+    if (!generatingCampaignId || !token) return;
+    
+    console.log("🔥 Starting progressive image polling for:", generatingCampaignId);
+    
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${generatingCampaignId}/status`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Update progress indicator
+          if (data.campaign?.settings?.generation_progress) {
+            setGenerationProgress(data.campaign.settings.generation_progress);
+            console.log("📊 Progress:", data.campaign.settings.generation_progress);
+          }
+          
+          // 🔥 Show images as they arrive
+          const newImages = data.campaign?.settings?.generated_images || [];
+          if (newImages.length > progressiveImages.length) {
+            console.log(`🖼️ New images arrived: ${progressiveImages.length} → ${newImages.length}`);
+            setProgressiveImages(newImages);
+            
+            // Show the latest image immediately
+            const latestImage = newImages[newImages.length - 1];
+            if (latestImage?.image_url) {
+              setGeneratedImageUrl(latestImage.image_url);
+              setCurrentDisplayedImage(latestImage.image_url);
+            }
+          }
+          
+          // Check if completed or failed
+          if (data.generation_status === "completed" || data.generation_status === "failed") {
+            console.log("✅ Generation finished:", data.generation_status);
+            clearInterval(pollInterval);
+            setGeneratingCampaignId(null);
+            setGenerationProgress(null);
+            setProgressiveImages([]);
+            await fetchDataQuietly();
+          }
+        }
+      } catch (error) {
+        console.error("Progressive polling error:", error);
+      }
+    }, 2000); // Poll every 2 seconds for faster updates
+    
+    return () => {
+      clearInterval(pollInterval);
+      setGenerationProgress(null);
+      setProgressiveImages([]);
+    };
+  }, [generatingCampaignId, token, progressiveImages.length]);
 
   // Poll for video generation progress when modal is open and generating
   useEffect(() => {
@@ -2724,12 +2791,40 @@ export default function CampaignsPage() {
                           style={{
                             display: "flex",
                             alignItems: "center",
-                            gap: "4px",
+                            gap: "6px",
                             color: "#d42f48",
                             fontWeight: "500",
                           }}
                         >
-                          ⏳ Generando...
+                          <span style={{ animation: "pulse 1.5s infinite" }}>⏳</span>
+                          {generatingCampaignId === campaign.id && generationProgress ? (
+                            <>
+                              {generationProgress.current}/{generationProgress.total}
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  width: "40px",
+                                  height: "4px",
+                                  backgroundColor: "#E5E7EB",
+                                  borderRadius: "2px",
+                                  overflow: "hidden",
+                                  marginLeft: "4px",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    display: "block",
+                                    width: `${generationProgress.percent}%`,
+                                    height: "100%",
+                                    backgroundColor: "#d42f48",
+                                    transition: "width 0.3s ease",
+                                  }}
+                                />
+                              </span>
+                            </>
+                          ) : (
+                            "Generating..."
+                          )}
                         </span>
                       )}
                       {campaign.generation_status === "failed" && (
@@ -3051,28 +3146,61 @@ export default function CampaignsPage() {
                           top: "50%",
                           left: "50%",
                           transform: "translate(-50%, -50%)",
-                          backgroundColor: "rgba(9, 10, 12, 0.8)",
+                          backgroundColor: "rgba(9, 10, 12, 0.9)",
                           color: "#FFFFFF",
-                          padding: "20px 30px",
-                          borderRadius: "12px",
+                          padding: "24px 36px",
+                          borderRadius: "16px",
                           fontSize: "16px",
                           fontWeight: "500",
                           display: "flex",
+                          flexDirection: "column",
                           alignItems: "center",
-                          gap: "12px",
+                          gap: "16px",
+                          minWidth: "200px",
                         }}
                       >
                         <div
                           style={{
-                            width: "20px",
-                            height: "20px",
-                            border: "2px solid #FFFFFF",
-                            borderTop: "2px solid transparent",
+                            width: "24px",
+                            height: "24px",
+                            border: "3px solid #FFFFFF",
+                            borderTop: "3px solid transparent",
                             borderRadius: "50%",
                             animation: "spin 1s linear infinite",
                           }}
                         />
-                        Generating...
+                        <div style={{ textAlign: "center" }}>
+                          {generationProgress ? (
+                            <>
+                              <div style={{ marginBottom: "8px" }}>
+                                Generating {generationProgress.current}/{generationProgress.total}
+                              </div>
+                              <div
+                                style={{
+                                  width: "150px",
+                                  height: "6px",
+                                  backgroundColor: "rgba(255,255,255,0.2)",
+                                  borderRadius: "3px",
+                                  overflow: "hidden",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: `${generationProgress.percent}%`,
+                                    height: "100%",
+                                    backgroundColor: "#d42f48",
+                                    transition: "width 0.3s ease",
+                                  }}
+                                />
+                              </div>
+                              <div style={{ fontSize: "12px", marginTop: "4px", opacity: 0.7 }}>
+                                {generationProgress.percent}%
+                              </div>
+                            </>
+                          ) : (
+                            "Starting generation..."
+                          )}
+                        </div>
                       </div>
                     )}
                 </div>
