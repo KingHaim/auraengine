@@ -9394,8 +9394,9 @@ export default function CampaignsPage() {
                     setGeneratingBulkVideos(true);
 
                     try {
+                      // Call the new background processing endpoint
                       const response = await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${selectedCampaignForBulkVideo.id}/generate-videos`,
+                        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${selectedCampaignForBulkVideo.id}/generate-videos-bulk`,
                         {
                           method: "POST",
                           headers: {
@@ -9417,21 +9418,70 @@ export default function CampaignsPage() {
 
                       if (response.ok) {
                         const result = await response.json();
-                        console.log("✅ Bulk video generation result:", result);
+                        console.log("✅ Video generation STARTED:", result);
 
-                        setGeneratingBulkVideos(false);
-                        setShowBulkVideoModal(false);
-
+                        // Show started message
                         alert(
-                          `✅ Video generation completed!\n\n` +
-                            `Success: ${result.success_count}\n` +
-                            `Failed: ${result.failed_count}\n` +
-                            `Credits used: ${result.credits_used}\n` +
-                            `Credits remaining: ${result.credits_remaining}`
+                          `🎬 Video generation started!\n\n` +
+                            `Generating ${result.total_videos} videos in background...\n` +
+                            `Estimated time: ~${Math.ceil(result.estimated_time_seconds / 60)} minutes\n\n` +
+                            `You'll see progress in the campaign modal.`
                         );
 
-                        // Refresh campaign data
-                        await fetchData();
+                        setShowBulkVideoModal(false);
+                        const campaignId = selectedCampaignForBulkVideo.id;
+
+                        // Poll for completion
+                        const pollInterval = setInterval(async () => {
+                          try {
+                            const statusResponse = await fetch(
+                              `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/status`,
+                              {
+                                headers: {
+                                  Authorization: `Bearer ${token}`,
+                                },
+                              }
+                            );
+
+                            if (statusResponse.ok) {
+                              const statusData = await statusResponse.json();
+                              const bulkStatus = statusData.campaign?.settings?.bulk_video_status;
+                              const progress = statusData.campaign?.settings?.bulk_video_progress;
+
+                              console.log(`📊 Video progress: ${progress?.current}/${progress?.total}`);
+
+                              // Update campaign modal if open
+                              if (selectedCampaignForProfile?.id === campaignId) {
+                                setSelectedCampaignForProfile(statusData.campaign);
+                              }
+
+                              if (bulkStatus === "completed") {
+                                clearInterval(pollInterval);
+                                setGeneratingBulkVideos(false);
+                                await fetchData();
+
+                                alert(
+                                  `🎉 Video generation completed!\n\n` +
+                                    `Success: ${progress?.success_count || 0}\n` +
+                                    `Failed: ${progress?.failed_count || 0}\n` +
+                                    `Credits used: ${progress?.credits_used || 0}`
+                                );
+                              } else if (bulkStatus === "failed") {
+                                clearInterval(pollInterval);
+                                setGeneratingBulkVideos(false);
+                                alert(`❌ Video generation failed: ${progress?.error || "Unknown error"}`);
+                              }
+                            }
+                          } catch (pollError) {
+                            console.error("Polling error:", pollError);
+                          }
+                        }, 5000); // Poll every 5 seconds
+
+                        // Timeout after 30 minutes
+                        setTimeout(() => {
+                          clearInterval(pollInterval);
+                          setGeneratingBulkVideos(false);
+                        }, 1800000);
                       } else {
                         const error = await response.json();
                         throw new Error(

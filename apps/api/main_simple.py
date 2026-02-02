@@ -6684,7 +6684,7 @@ async def delete_campaign_image(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/campaigns/{campaign_id}/generate-videos")
+@app.post("/campaigns/{campaign_id}/generate-videos-bulk")
 async def generate_videos_for_campaign(
     campaign_id: str,
     request: BulkVideoRequest,
@@ -6692,31 +6692,14 @@ async def generate_videos_for_campaign(
     db: Session = Depends(get_db)
 ):
     """
-    Generate videos for all images in a campaign.
+    Generate videos for all images in a campaign (BACKGROUND PROCESSING).
+    Returns immediately and processes in background. Poll /status for progress.
     
     **Credit Costs per video:**
-    - Wan 2.2 I2V Fast:
-      - 480p: 1 credit
-      - 720p: 2 credits
-    - Seedance 1 Pro:
-      - 480p (5s): 2 credits
-      - 480p (10s): 3 credits
-      - 1080p (5s): 4 credits
-      - 1080p (10s): 6 credits
-    - Kling 2.5 Turbo Pro (Pro-level):
-      - 480p (5s): 2 credits
-      - 480p (10s): 3 credits
-      - 720p (5s): 3 credits
-      - 720p (10s): 4 credits
-      - 1080p (5s): 4 credits
-      - 1080p (10s): 6 credits
-    - Google Veo 3.1 (Premium):
-      - 480p (5s): 3 credits
-      - 480p (10s): 4 credits
-      - 720p (5s): 4 credits
-      - 720p (10s): 6 credits
-      - 1080p (5s): 5 credits
-      - 1080p (10s): 8 credits
+    - Wan 2.2 I2V Fast: 480p: 1 credit, 720p: 2 credits
+    - Seedance 1 Pro: 480p: 2-3 credits, 1080p: 4-6 credits
+    - Kling 2.5 Turbo Pro: 480p: 2-3 credits, 720p: 3-4 credits, 1080p: 4-6 credits
+    - Google Veo 3.1: 480p: 3-4 credits, 720p: 4-6 credits, 1080p: 5-8 credits
     """
     try:
         # Get the campaign
@@ -6730,32 +6713,20 @@ async def generate_videos_for_campaign(
         
         # Determine video generation logic based on mode
         if request.veo_direct_mode:
-            # Veo Direct Mode: Generate video directly from model + product + scene
-            print(f"🎬 Veo Direct Mode: Generating video from model + product + scene")
-            
-            # Get campaign data (model, product, scene)
-            if not campaign.settings:
-                raise HTTPException(status_code=400, detail="Campaign has no settings")
-            
-            # Calculate credits for 1 video
+            num_videos_to_generate = 1
             if request.video_quality == "1080p":
                 credits_per_video = 8 if request.duration == "10s" else 5
             elif request.video_quality == "720p":
                 credits_per_video = 6 if request.duration == "10s" else 4
-            else:  # 480p
+            else:
                 credits_per_video = 4 if request.duration == "10s" else 3
-            
-            total_credits_needed = credits_per_video  # Only 1 video
-            num_videos_to_generate = 1
-            
+            total_credits_needed = credits_per_video
         else:
-            # Standard Mode: Generate videos from selected images
             if not campaign.settings or not campaign.settings.get("generated_images"):
                 raise HTTPException(status_code=400, detail="No images found in campaign")
             
             generated_images = campaign.settings["generated_images"]
             
-            # Filter images based on selection
             if request.selected_image_indices:
                 selected_images = [generated_images[i] for i in request.selected_image_indices if i < len(generated_images)]
                 if not selected_images:
@@ -6763,27 +6734,25 @@ async def generate_videos_for_campaign(
             else:
                 selected_images = generated_images
             
-            # Calculate total credits needed
+            # Calculate credits
             if request.model == "seedance":
                 if request.video_quality == "1080p":
                     credits_per_video = 6 if request.duration == "10s" else 4
-                else:  # 480p
+                else:
                     credits_per_video = 3 if request.duration == "10s" else 2
             elif request.model == "veo":
-                # Veo 3.1 pricing (premium quality)
                 if request.video_quality == "1080p":
                     credits_per_video = 8 if request.duration == "10s" else 5
                 elif request.video_quality == "720p":
                     credits_per_video = 6 if request.duration == "10s" else 4
-                else:  # 480p
+                else:
                     credits_per_video = 4 if request.duration == "10s" else 3
             elif request.model == "kling":
-                # Kling 2.5 Turbo Pro pricing (pro-level quality)
                 if request.video_quality == "1080p":
                     credits_per_video = 6 if request.duration == "10s" else 4
                 elif request.video_quality == "720p":
                     credits_per_video = 4 if request.duration == "10s" else 3
-                else:  # 480p
+                else:
                     credits_per_video = 3 if request.duration == "10s" else 2
             else:  # wan
                 credits_per_video = 2 if request.video_quality == "720p" else 1
@@ -6800,173 +6769,217 @@ async def generate_videos_for_campaign(
         if total_available < total_credits_needed:
             raise HTTPException(
                 status_code=400,
-                detail=f"Insufficient credits. You have {total_available} total credits ({user.subscription_credits or 0} subscription + {user.credits} purchased), but need {total_credits_needed} credits ({credits_per_video} per video × {num_videos_to_generate} videos)"
+                detail=f"Insufficient credits. You have {total_available} credits, but need {total_credits_needed} credits ({credits_per_video} per video × {num_videos_to_generate} videos)"
             )
         
-        # Generate videos
+        # Update campaign status to "generating"
+        new_settings = dict(campaign.settings) if campaign.settings else {}
+        new_settings["bulk_video_status"] = "generating"
+        new_settings["bulk_video_progress"] = {
+            "current": 0,
+            "total": num_videos_to_generate,
+            "started_at": datetime.utcnow().isoformat()
+        }
+        campaign.settings = new_settings
+        flag_modified(campaign, "settings")
+        db.commit()
+        
+        print(f"🎬 Starting BACKGROUND video generation for {num_videos_to_generate} videos...")
+        
+        # Start background task
+        import asyncio
+        asyncio.create_task(generate_bulk_videos_background(
+            campaign_id=campaign_id,
+            user_id=current_user["user_id"],
+            request_data={
+                "video_quality": request.video_quality,
+                "duration": request.duration,
+                "model": request.model,
+                "custom_prompt": request.custom_prompt,
+                "veo_direct_mode": request.veo_direct_mode,
+                "selected_image_indices": request.selected_image_indices,
+                "credits_per_video": credits_per_video
+            }
+        ))
+        
+        return {
+            "message": f"🎬 Video generation started! Generating {num_videos_to_generate} videos in background...",
+            "status": "started",
+            "total_videos": num_videos_to_generate,
+            "estimated_time_seconds": num_videos_to_generate * 60  # ~1 minute per video
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Failed to start bulk video generation: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to start video generation: {str(e)}")
+
+
+async def generate_bulk_videos_background(
+    campaign_id: str,
+    user_id: str,
+    request_data: dict
+):
+    """Background task to generate bulk videos"""
+    from datetime import datetime
+    
+    db = SessionLocal()
+    try:
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+        user = db.query(User).filter(User.id == user_id).first()
+        
+        if not campaign or not user:
+            print(f"❌ Campaign or user not found for background video generation")
+            return
+        
         success_count = 0
         failed_count = 0
         results = []
         
-        if request.veo_direct_mode:
-            # VEO DIRECT MODE: Generate video directly from model + product + scene
+        veo_direct_mode = request_data.get("veo_direct_mode", False)
+        video_quality = request_data.get("video_quality", "480p")
+        duration = request_data.get("duration", "5s")
+        model = request_data.get("model", "wan")
+        custom_prompt = request_data.get("custom_prompt")
+        selected_indices = request_data.get("selected_image_indices", [])
+        credits_per_video = request_data.get("credits_per_video", 1)
+        
+        if veo_direct_mode:
+            # VEO DIRECT MODE
             try:
-                print(f"🎬 Generating Veo Direct video from model + product + scene...")
+                print(f"🎬 [BACKGROUND] Generating Veo Direct video...")
                 
-                # Get model, product, scene IDs from campaign settings
                 model_ids = campaign.settings.get("model_ids", [])
                 product_ids = campaign.settings.get("product_ids", [])
                 scene_ids = campaign.settings.get("scene_ids", [])
                 
                 if not model_ids or not product_ids or not scene_ids:
-                    raise ValueError("Campaign must have model, product, and scene selected for Veo Direct mode")
+                    raise ValueError("Campaign must have model, product, and scene selected")
                 
-                # Get first model, product, and scene (you can extend this for multiple combinations)
-                model = db.query(Model).filter(Model.id == model_ids[0]).first()
+                model_obj = db.query(Model).filter(Model.id == model_ids[0]).first()
                 product = db.query(Product).filter(Product.id == product_ids[0]).first()
                 scene = db.query(Scene).filter(Scene.id == scene_ids[0]).first()
                 
-                if not model or not product or not scene:
-                    raise ValueError("Could not find model, product, or scene in database")
+                if not model_obj or not product or not scene:
+                    raise ValueError("Could not find model, product, or scene")
                 
-                # Use model's pose if available, or base image
-                model_image = model.poses[0] if model.poses and len(model.poses) > 0 else model.image_url
+                model_image = model_obj.poses[0] if model_obj.poses and len(model_obj.poses) > 0 else model_obj.image_url
                 product_image = product.packshot_front_url or product.image_url
                 scene_image = scene.image_url
                 
-                print(f"📸 Model: {model.name}, Product: {product.name}, Scene: {scene.name}")
-                
-                # Generate video using Veo Direct function
                 video_url = run_veo_direct_generation(
-                    model_image,
-                    product_image,
-                    scene_image,
-                    request.video_quality,
-                    request.duration,
-                    request.custom_prompt
+                    model_image, product_image, scene_image,
+                    video_quality, duration, custom_prompt
                 )
                 
                 if video_url:
                     success_count += 1
-                    results.append({
-                        "index": 0,
-                        "status": "success",
-                        "video_url": video_url,
-                        "mode": "veo_direct",
-                        "model_name": model.name,
-                        "product_name": product.name,
-                        "scene_name": scene.name
-                    })
-                    print(f"✅ Veo Direct video generated successfully")
+                    results.append({"index": 0, "status": "success", "video_url": video_url})
                 else:
                     failed_count += 1
-                    results.append({
-                        "index": 0,
-                        "status": "failed",
-                        "message": "Veo Direct generation returned None",
-                        "mode": "veo_direct"
-                    })
-                    print(f"❌ Veo Direct video generation failed")
-                
+                    results.append({"index": 0, "status": "failed"})
+                    
             except Exception as e:
-                print(f"❌ Failed to generate Veo Direct video: {e}")
-                import traceback
-                traceback.print_exc()
+                print(f"❌ Veo Direct failed: {e}")
                 failed_count += 1
-                results.append({
-                    "index": 0,
-                    "status": "failed",
-                    "message": str(e),
-                    "mode": "veo_direct"
-                })
+                results.append({"index": 0, "status": "failed", "message": str(e)})
         
         else:
-            # STANDARD MODE: Generate videos from selected images
-            for i, img_data in enumerate(selected_images):
+            # STANDARD MODE - Generate videos from images
+            generated_images = campaign.settings.get("generated_images", [])
+            
+            if selected_indices:
+                images_to_process = [(i, generated_images[i]) for i in selected_indices if i < len(generated_images)]
+            else:
+                images_to_process = list(enumerate(generated_images))
+            
+            total = len(images_to_process)
+            
+            for idx, (original_idx, img_data) in enumerate(images_to_process):
                 try:
                     image_url = img_data.get("image_url")
                     if not image_url:
-                        print(f"⚠️ Skipping image {i+1}: No image URL")
                         failed_count += 1
                         continue
                     
-                    # Allow multiple video generations for the same image
-                    # Removed restriction: if img_data.get("video_url"):
-                    # Users can now generate multiple videos for the same image
+                    print(f"🎬 [BACKGROUND] Video {idx+1}/{total}: {image_url[:50]}...")
                     
-                    print(f"🎬 Generating video {i+1}/{len(selected_images)} for image: {image_url[:50]}...")
+                    # Update progress
+                    campaign.settings["bulk_video_progress"] = {
+                        "current": idx + 1,
+                        "total": total,
+                        "current_name": img_data.get("shot_name", f"Video {idx+1}")
+                    }
+                    flag_modified(campaign, "settings")
+                    db.commit()
                     
                     # Generate video
-                    if request.model == "seedance":
-                        video_url = run_seedance_video_generation(image_url, request.video_quality, request.duration, request.custom_prompt)
-                    elif request.model == "veo":
-                        video_url = run_veo_video_generation(image_url, request.video_quality, request.duration, request.custom_prompt)
-                    elif request.model == "kling":
-                        video_url = run_kling_video_generation(image_url, request.video_quality, request.duration, request.custom_prompt)
+                    if model == "seedance":
+                        video_url = run_seedance_video_generation(image_url, video_quality, duration, custom_prompt)
+                    elif model == "veo":
+                        video_url = run_veo_video_generation(image_url, video_quality, duration, custom_prompt)
+                    elif model == "kling":
+                        video_url = run_kling_video_generation(image_url, video_quality, duration, custom_prompt)
                     else:  # wan
-                        video_url = run_wan_video_generation(image_url, request.video_quality, request.custom_prompt)
+                        video_url = run_wan_video_generation(image_url, video_quality, custom_prompt)
                     
                     if video_url:
                         # Update the image data with video URL
-                        img_data["video_url"] = video_url
+                        generated_images[original_idx]["video_url"] = video_url
                         success_count += 1
-                        results.append({
-                            "index": i,
-                            "status": "success",
-                            "video_url": video_url
-                        })
-                        print(f"✅ Video {i+1} generated successfully")
+                        results.append({"index": original_idx, "status": "success", "video_url": video_url})
+                        print(f"✅ [BACKGROUND] Video {idx+1} done: {video_url[:50]}...")
                     else:
                         failed_count += 1
-                        results.append({
-                            "index": i,
-                            "status": "failed",
-                            "message": "Video generation returned None"
-                        })
-                        print(f"❌ Video {i+1} generation failed")
-                    
+                        results.append({"index": original_idx, "status": "failed"})
+                        
                 except Exception as e:
-                    print(f"❌ Failed to generate video {i+1}: {e}")
+                    print(f"❌ [BACKGROUND] Video {idx+1} failed: {e}")
                     failed_count += 1
-                    results.append({
-                        "index": i,
-                        "status": "failed",
-                        "message": str(e)
-                    })
-        
-        # Update campaign settings with new video URLs (only for standard mode)
-        if not request.veo_direct_mode:
+                    results.append({"index": original_idx, "status": "failed", "message": str(e)})
+            
+            # Save updated images
             campaign.settings["generated_images"] = generated_images
-            flag_modified(campaign, "settings")
         
-        # Deduct credits for successful generations (prioritizing subscription credits)
+        # Deduct credits
         credits_used = success_count * credits_per_video
         if credits_used > 0:
-            if not deduct_credits(user, credits_used, db):
-                raise HTTPException(status_code=400, detail="Failed to deduct credits")
+            deduct_credits(user, credits_used, db)
         
-        db.commit()
-        db.refresh(campaign)
-        db.refresh(user)
-        
-        print(f"✅ Bulk video generation completed: {success_count} success, {failed_count} failed")
-        
-        return {
-            "message": f"Video generation completed: {success_count} success, {failed_count} failed",
-            "total_videos": num_videos_to_generate,
+        # Update final status
+        campaign.settings["bulk_video_status"] = "completed"
+        campaign.settings["bulk_video_progress"] = {
+            "current": success_count + failed_count,
+            "total": success_count + failed_count,
             "success_count": success_count,
             "failed_count": failed_count,
             "credits_used": credits_used,
-            "credits_remaining": user.credits,
-            "results": results,
-            "veo_direct_mode": request.veo_direct_mode
+            "completed_at": datetime.utcnow().isoformat()
         }
+        flag_modified(campaign, "settings")
+        db.commit()
+        
+        print(f"✅ [BACKGROUND] Bulk video generation COMPLETE: {success_count} success, {failed_count} failed")
         
     except Exception as e:
-        print(f"❌ Bulk video generation failed: {e}")
+        print(f"❌ [BACKGROUND] Bulk video generation error: {e}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Bulk video generation failed: {str(e)}")
+        
+        try:
+            campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+            if campaign:
+                campaign.settings["bulk_video_status"] = "failed"
+                campaign.settings["bulk_video_progress"]["error"] = str(e)
+                flag_modified(campaign, "settings")
+                db.commit()
+        except:
+            pass
+    finally:
+        db.close()
 
 @app.post("/generations/{generation_id}/generate-video")
 async def generate_video_for_generation(
