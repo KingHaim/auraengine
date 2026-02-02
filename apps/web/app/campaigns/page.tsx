@@ -6550,6 +6550,81 @@ export default function CampaignsPage() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Quick Action Buttons - Always Visible at Top */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  marginBottom: "24px",
+                  padding: "16px",
+                  backgroundColor: "#F8FAFC",
+                  borderRadius: "12px",
+                  border: "1px solid #E2E8F0",
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setShowCampaignProfileModal(false);
+                    const hasBaseImage = (selectedCampaignForProfile?.settings?.generated_images?.length || 0) > 0;
+                    setSelectedCampaignForGeneration(selectedCampaignForProfile);
+                    if (hasBaseImage) {
+                      setShowKeyframeModal(true);
+                    } else {
+                      setShowParameterModal(true);
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "14px 20px",
+                    backgroundColor: "#10B981",
+                    border: "none",
+                    borderRadius: "10px",
+                    color: "#FFFFFF",
+                    fontSize: "15px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#059669"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#10B981"; }}
+                >
+                  ✨ Generate More Keyframes
+                </button>
+
+                <button
+                  onClick={() => {
+                    setSelectedCampaignForBulkVideo(selectedCampaignForProfile);
+                    setShowCampaignProfileModal(false);
+                    setSelectedImagesForVideo(new Set());
+                    setVeoDirectMode(false);
+                    setBulkVideoCustomPrompt("");
+                    setShowBulkVideoModal(true);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "14px 20px",
+                    backgroundColor: "#8B5CF6",
+                    border: "none",
+                    borderRadius: "10px",
+                    color: "#FFFFFF",
+                    fontSize: "15px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#7C3AED"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#8B5CF6"; }}
+                >
+                  🎬 Generate Videos
+                </button>
+              </div>
+
               {/* Modal Header */}
               <div
                 style={{
