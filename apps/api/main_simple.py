@@ -6806,7 +6806,7 @@ async def generate_videos_for_campaign(
             "message": f"🎬 Video generation started! Generating {num_videos_to_generate} videos in background...",
             "status": "started",
             "total_videos": num_videos_to_generate,
-            "estimated_time_seconds": num_videos_to_generate * 60  # ~1 minute per video
+            "estimated_time_seconds": num_videos_to_generate * 135  # ~2:15 per video (Kling 2.5 max quality)
         }
         
     except HTTPException:

@@ -9420,16 +9420,13 @@ export default function CampaignsPage() {
                         const result = await response.json();
                         console.log("✅ Video generation STARTED:", result);
 
-                        // Show started message
-                        alert(
-                          `🎬 Video generation started!\n\n` +
-                            `Generating ${result.total_videos} videos in background...\n` +
-                            `Estimated time: ~${Math.ceil(result.estimated_time_seconds / 60)} minutes\n\n` +
-                            `You'll see progress in the campaign modal.`
-                        );
-
+                        // Close modal and allow user to continue using the platform
                         setShowBulkVideoModal(false);
+                        setGeneratingBulkVideos(false);  // Don't block UI during background generation
                         const campaignId = selectedCampaignForBulkVideo.id;
+                        
+                        // Non-blocking notification (user can continue working)
+                        console.log(`🎬 Generating ${result.total_videos} videos (~${Math.ceil(result.estimated_time_seconds / 60)} min)`);
 
                         // Poll for completion
                         const pollInterval = setInterval(async () => {
@@ -9457,19 +9454,12 @@ export default function CampaignsPage() {
 
                               if (bulkStatus === "completed") {
                                 clearInterval(pollInterval);
-                                setGeneratingBulkVideos(false);
                                 await fetchData();
-
-                                alert(
-                                  `🎉 Video generation completed!\n\n` +
-                                    `Success: ${progress?.success_count || 0}\n` +
-                                    `Failed: ${progress?.failed_count || 0}\n` +
-                                    `Credits used: ${progress?.credits_used || 0}`
-                                );
+                                // Non-blocking: user already sees videos appearing in campaign
+                                console.log(`🎉 Videos done! Success: ${progress?.success_count}, Failed: ${progress?.failed_count}`);
                               } else if (bulkStatus === "failed") {
                                 clearInterval(pollInterval);
-                                setGeneratingBulkVideos(false);
-                                alert(`❌ Video generation failed: ${progress?.error || "Unknown error"}`);
+                                console.error(`❌ Video generation failed: ${progress?.error || "Unknown error"}`);
                               }
                             }
                           } catch (pollError) {
