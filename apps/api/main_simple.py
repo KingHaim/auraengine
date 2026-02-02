@@ -1212,7 +1212,7 @@ async def get_campaign_generation_status(
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get the generation status of a campaign"""
+    """Get the generation status of a campaign including full campaign data"""
     try:
         campaign = db.query(Campaign).filter(
             Campaign.id == campaign_id,
@@ -1222,12 +1222,23 @@ async def get_campaign_generation_status(
         if not campaign:
             raise HTTPException(status_code=404, detail="Campaign not found")
         
+        # Return full campaign object so frontend can update modal with videos
         return {
             "campaign_id": campaign.id,
             "generation_status": campaign.generation_status,
             "status": campaign.status,
             "generated_images_count": len(campaign.settings.get("generated_images", [])) if campaign.settings else 0,
-            "updated_at": campaign.updated_at
+            "updated_at": campaign.updated_at,
+            # Include full campaign for video updates
+            "campaign": {
+                "id": campaign.id,
+                "name": campaign.name,
+                "status": campaign.status,
+                "generation_status": campaign.generation_status,
+                "settings": campaign.settings,
+                "created_at": campaign.created_at.isoformat() if campaign.created_at else None,
+                "updated_at": campaign.updated_at.isoformat() if campaign.updated_at else None
+            }
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
