@@ -6944,6 +6944,12 @@ async def generate_bulk_videos_background(
                         success_count += 1
                         results.append({"index": original_idx, "status": "success", "video_url": video_url})
                         print(f"✅ [BACKGROUND] Video {idx+1} done: {video_url[:50]}...")
+                        
+                        # CRITICAL: Save immediately after each video so it shows in UI
+                        campaign.settings["generated_images"] = generated_images
+                        flag_modified(campaign, "settings")
+                        db.commit()
+                        print(f"💾 Saved video_url to database for image {original_idx}")
                     else:
                         failed_count += 1
                         results.append({"index": original_idx, "status": "failed"})
@@ -6953,8 +6959,10 @@ async def generate_bulk_videos_background(
                     failed_count += 1
                     results.append({"index": original_idx, "status": "failed", "message": str(e)})
             
-            # Save updated images
+            # Final save of all images (in case any were missed)
             campaign.settings["generated_images"] = generated_images
+            flag_modified(campaign, "settings")
+            db.commit()
         
         # Deduct credits
         credits_used = success_count * credits_per_video
