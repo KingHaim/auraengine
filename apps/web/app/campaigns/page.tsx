@@ -6781,208 +6781,224 @@ export default function CampaignsPage() {
                   marginBottom: "24px",
                 }}
               >
-                {/* Campaign Images Gallery */}
+                {/* Campaign Images Gallery - Enhanced Visualization */}
                 {selectedCampaignForProfile.settings?.generated_images &&
                 selectedCampaignForProfile.settings.generated_images.length >
                   0 ? (
                   <div>
-                    <h3
-                      style={{
-                        fontSize: "18px",
-                        fontWeight: "600",
-                        color: "#1F2937",
-                        marginBottom: "16px",
-                      }}
-                    >
-                      Campaign Images (
-                      {
-                        selectedCampaignForProfile.settings.generated_images
-                          .length
+                    {/* Header with count and stats */}
+                    <div style={{ 
+                      display: "flex", 
+                      justifyContent: "space-between", 
+                      alignItems: "center",
+                      marginBottom: "20px",
+                      paddingBottom: "16px",
+                      borderBottom: "1px solid #E5E7EB"
+                    }}>
+                      <h3 style={{ fontSize: "20px", fontWeight: "700", color: "#1F2937", margin: 0 }}>
+                        🎬 Campaign Keyframes
+                      </h3>
+                      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                        <span style={{ 
+                          backgroundColor: "#DCFCE7", 
+                          color: "#166534", 
+                          padding: "6px 12px", 
+                          borderRadius: "20px", 
+                          fontSize: "13px", 
+                          fontWeight: "600" 
+                        }}>
+                          {selectedCampaignForProfile.settings.generated_images.length} images
+                        </span>
+                        <span style={{ 
+                          backgroundColor: "#FEF3C7", 
+                          color: "#92400E", 
+                          padding: "6px 12px", 
+                          borderRadius: "20px", 
+                          fontSize: "13px", 
+                          fontWeight: "600" 
+                        }}>
+                          {selectedCampaignForProfile.settings.generated_images.filter((i: any) => i.video_url).length} videos
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Base Image - Featured */}
+                    {(() => {
+                      const baseImg = selectedCampaignForProfile.settings.generated_images.find((i: any) => i.is_base_image);
+                      const baseIndex = selectedCampaignForProfile.settings.generated_images.findIndex((i: any) => i.is_base_image);
+                      if (baseImg) {
+                        return (
+                          <div style={{ marginBottom: "24px" }}>
+                            <div style={{ fontSize: "14px", fontWeight: "600", color: "#6B7280", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+                              <span style={{ fontSize: "18px" }}>⭐</span> BASE IMAGE
+                            </div>
+                            <div style={{ 
+                              display: "flex", 
+                              gap: "20px",
+                              backgroundColor: "#F8FAFC",
+                              borderRadius: "16px",
+                              padding: "16px",
+                              border: "2px solid #d42f48"
+                            }}>
+                              <div style={{ 
+                                width: "300px", 
+                                height: "400px", 
+                                borderRadius: "12px", 
+                                overflow: "hidden",
+                                flexShrink: 0,
+                                boxShadow: "0 8px 30px rgba(0,0,0,0.12)"
+                              }}>
+                                <img 
+                                  src={baseImg.image_url} 
+                                  alt="Base Image"
+                                  style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "pointer" }}
+                                  onClick={() => handleEnlargeImage(baseImg.image_url, "Base Image", baseImg)}
+                                />
+                              </div>
+                              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                                <h4 style={{ margin: "0 0 12px 0", fontSize: "18px", fontWeight: "600", color: "#1F2937" }}>
+                                  {baseImg.product_name || "Campaign Look"}
+                                </h4>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "8px", color: "#6B7280", fontSize: "14px" }}>
+                                  <div>👤 <strong>Model:</strong> {baseImg.model_name}</div>
+                                  <div>🏛️ <strong>Scene:</strong> {baseImg.scene_name}</div>
+                                  <div>👕 <strong>Outfit:</strong> {baseImg.clothing_type}</div>
+                                </div>
+                                <div style={{ marginTop: "16px", fontSize: "12px", color: "#9CA3AF" }}>
+                                  This is the source image for all keyframe variations
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
                       }
-                      )
-                    </h3>
+                      return null;
+                    })()}
+
+                    {/* Keyframe Variations Grid */}
+                    <div style={{ fontSize: "14px", fontWeight: "600", color: "#6B7280", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "18px" }}>🎥</span> KEYFRAME VARIATIONS
+                    </div>
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns:
-                          "repeat(auto-fill, minmax(280px, 1fr))",
-                        gap: "24px",
-                        maxHeight: "70vh",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                        gap: "16px",
+                        maxHeight: "50vh",
                         overflowY: "auto",
                         padding: "8px",
                       }}
                     >
-                      {selectedCampaignForProfile.settings.generated_images.map(
-                        (img: any, index: number) => (
-                          <div
-                            key={index}
-                            style={{
-                              aspectRatio: "1",
-                              borderRadius: "12px",
-                              overflow: "hidden",
-                              backgroundColor: "#FFFFFF",
-                              border: "2px solid #E5E7EB",
-                              position: "relative",
-                              cursor: "pointer",
-                              transition: "all 0.3s ease",
-                              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform =
-                                "translateY(-4px)";
-                              e.currentTarget.style.boxShadow =
-                                "0 8px 25px rgba(0,0,0,0.15)";
-                              e.currentTarget.style.borderColor = "#d42f48";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = "translateY(0)";
-                              e.currentTarget.style.boxShadow =
-                                "0 4px 12px rgba(0,0,0,0.08)";
-                              e.currentTarget.style.borderColor = "#E5E7EB";
-                            }}
-                          >
-                            {/* Delete Button */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteCampaignImage(
-                                  selectedCampaignForProfile.id,
-                                  index
-                                );
-                              }}
+                      {selectedCampaignForProfile.settings.generated_images
+                        .filter((img: any) => !img.is_base_image)
+                        .map((img: any, index: number) => {
+                          const actualIndex = selectedCampaignForProfile.settings.generated_images.findIndex((i: any) => i === img);
+                          // Determine icon based on shot type
+                          const getIcon = (shotType: string) => {
+                            if (!shotType) return "📷";
+                            const s = shotType.toLowerCase();
+                            if (s.includes("shirt") || s.includes("top")) return "👕";
+                            if (s.includes("pants") || s.includes("bottom")) return "👖";
+                            if (s.includes("outfit") || s.includes("detail")) return "✨";
+                            if (s.includes("sitting")) return "🪑";
+                            if (s.includes("leaning")) return "🧱";
+                            if (s.includes("looking") || s.includes("candid")) return "👀";
+                            if (s.includes("thought") || s.includes("contemplat")) return "💭";
+                            if (s.includes("explor") || s.includes("walk")) return "🚶";
+                            if (s.includes("low angle")) return "⬆️";
+                            if (s.includes("high angle")) return "⬇️";
+                            if (s.includes("profile")) return "👤";
+                            return "📷";
+                          };
+                          return (
+                            <div
+                              key={index}
                               style={{
-                                position: "absolute",
-                                top: "12px",
-                                right: "12px",
-                                zIndex: 10,
-                                backgroundColor: "rgba(239, 68, 68, 0.9)",
-                                border: "none",
-                                borderRadius: "8px",
-                                color: "#FFFFFF",
-                                padding: "8px 12px",
-                                fontSize: "14px",
-                                fontWeight: "600",
+                                borderRadius: "12px",
+                                overflow: "hidden",
+                                backgroundColor: "#FFFFFF",
+                                border: "1px solid #E5E7EB",
+                                position: "relative",
                                 cursor: "pointer",
                                 transition: "all 0.2s ease",
-                                backdropFilter: "blur(4px)",
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
                               }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                  "rgba(220, 38, 38, 0.95)";
-                                e.currentTarget.style.transform = "scale(1.05)";
+                                e.currentTarget.style.transform = "translateY(-3px)";
+                                e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.12)";
+                                e.currentTarget.style.borderColor = "#d42f48";
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                  "rgba(239, 68, 68, 0.9)";
-                                e.currentTarget.style.transform = "scale(1)";
+                                e.currentTarget.style.transform = "translateY(0)";
+                                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
+                                e.currentTarget.style.borderColor = "#E5E7EB";
                               }}
                             >
-                              🗑️
-                            </button>
-                            {img.image_url ? (
-                              img.video_url ? (
-                                // Show video if available
-                                <video
-                                  src={img.video_url}
+                              {/* Image */}
+                              <div style={{ aspectRatio: "3/4", position: "relative" }}>
+                                {img.video_url ? (
+                                  <video
+                                    src={img.video_url}
+                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                    onClick={() => handleEnlargeImage(img.video_url, img.shot_type || `Keyframe ${index + 1}`)}
+                                    autoPlay muted loop playsInline
+                                  />
+                                ) : (
+                                  <img
+                                    src={img.image_url}
+                                    alt={img.shot_type || `Keyframe ${index + 1}`}
+                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                    onClick={() => handleEnlargeImage(img.image_url, img.shot_type || `Keyframe ${index + 1}`, img)}
+                                    onError={(e) => { e.currentTarget.style.display = "none"; }}
+                                  />
+                                )}
+                                {/* Delete Button */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteCampaignImage(selectedCampaignForProfile.id, actualIndex);
+                                  }}
                                   style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                    cursor: "pointer",
+                                    position: "absolute", top: "8px", right: "8px", zIndex: 10,
+                                    backgroundColor: "rgba(239, 68, 68, 0.85)", border: "none",
+                                    borderRadius: "6px", color: "#FFFFFF", padding: "4px 8px",
+                                    fontSize: "12px", cursor: "pointer", opacity: 0.8,
+                                    transition: "opacity 0.2s"
                                   }}
-                                  onClick={() => {
-                                    // Open video in enlarged view
-                                    handleEnlargeImage(
-                                      img.video_url,
-                                      `${
-                                        selectedCampaignForProfile.name
-                                      } - Video ${index + 1}`
-                                    );
-                                  }}
-                                  autoPlay
-                                  muted
-                                  loop
-                                  playsInline
-                                />
-                              ) : (
-                                // Show image if no video
-                                <img
-                                  src={img.image_url}
-                                  alt={`${
-                                    selectedCampaignForProfile.name
-                                  } - Image ${index + 1}`}
-                                  style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                  }}
-                                  onClick={() =>
-                                    handleEnlargeImage(
-                                      img.image_url,
-                                      `${
-                                        selectedCampaignForProfile.name
-                                      } - Image ${index + 1}`,
-                                      img
-                                    )
-                                  }
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = "none";
-                                  }}
-                                />
-                              )
-                            ) : (
-                              <div
-                                style={{
-                                  width: "100%",
-                                  height: "100%",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  fontSize: "24px",
-                                  backgroundColor: "#F3F4F6",
-                                  color: "#9CA3AF",
-                                }}
-                              >
-                                📁
+                                  onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.8"; }}
+                                >
+                                  🗑️
+                                </button>
+                                {/* Video Badge */}
+                                {img.video_url && (
+                                  <div style={{
+                                    position: "absolute", top: "8px", left: "8px",
+                                    backgroundColor: "#10B981", color: "white",
+                                    padding: "3px 8px", borderRadius: "4px",
+                                    fontSize: "10px", fontWeight: "700"
+                                  }}>
+                                    🎬 VIDEO
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            {/* Video indicator */}
-                            {img.video_url && (
-                              <div
-                                style={{
-                                  position: "absolute",
-                                  top: "8px",
-                                  right: "8px",
-                                  backgroundColor: "rgba(9, 10, 12, 0.7)",
-                                  color: "white",
-                                  padding: "4px 8px",
-                                  borderRadius: "4px",
-                                  fontSize: "12px",
-                                  fontWeight: "500",
-                                }}
-                              >
-                                🎬
+                              {/* Label */}
+                              <div style={{
+                                padding: "10px 12px",
+                                backgroundColor: "#F9FAFB",
+                                borderTop: "1px solid #E5E7EB"
+                              }}>
+                                <div style={{
+                                  fontSize: "12px", fontWeight: "600", color: "#374151",
+                                  display: "flex", alignItems: "center", gap: "6px"
+                                }}>
+                                  <span style={{ fontSize: "14px" }}>{getIcon(img.shot_type)}</span>
+                                  {img.shot_type || `Keyframe ${index + 1}`}
+                                </div>
                               </div>
-                            )}
-                            {/* Image number / Shot type label */}
-                            <div
-                              style={{
-                                position: "absolute",
-                                bottom: "8px",
-                                left: "8px",
-                                backgroundColor: "rgba(9, 10, 12, 0.8)",
-                                color: "white",
-                                padding: "4px 8px",
-                                borderRadius: "6px",
-                                fontSize: "11px",
-                                fontWeight: "600",
-                              }}
-                            >
-                              {img.shot_type || `#${index + 1}`}
                             </div>
-                          </div>
-                        )
-                      )}
+                          );
+                        })}
 
                       {/* Show placeholder loading cards for images being generated */}
                       {selectedCampaignForProfile.generation_status ===
