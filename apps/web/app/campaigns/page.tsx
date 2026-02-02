@@ -483,6 +483,30 @@ export default function CampaignsPage() {
     }
   };
 
+  // Quiet fetch - doesn't show loading state (for background polling)
+  const fetchDataQuietly = async () => {
+    if (!token) return null;
+    try {
+      const campaignsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/campaigns`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (campaignsRes.ok) {
+        let campaignsData = await campaignsRes.json();
+        campaignsData = campaignsData.map((campaign: any) => ({
+          ...campaign,
+          settings: campaign.settings || {},
+          generation_status: campaign.generation_status || "pending",
+          status: campaign.status || "draft",
+        }));
+        setCampaigns(campaignsData);
+        return campaignsData;
+      }
+    } catch (error) {
+      console.error("Quiet fetch error:", error);
+    }
+    return null;
+  };
+
   // Fetch data on component mount
   useEffect(() => {
     console.log("📊 Fetching real data from API...");
@@ -581,7 +605,7 @@ export default function CampaignsPage() {
                 data.campaign.settings?.bulk_video_status === "failed") {
               console.log("🎬 Video generation finished, stopping poll");
               clearInterval(pollInterval);
-              fetchData(); // Refresh main campaign list
+              fetchDataQuietly(); // Refresh main campaign list (quietly)
             }
           }
         }
@@ -1776,23 +1800,23 @@ export default function CampaignsPage() {
               });
               
               // Refresh campaign data whenever a new image is completed
-              // This shows images as they're generated!
-              if (currentProgress > lastSeenProgress) {
-                console.log(`🖼️ New keyframe completed (${currentProgress}/${status.total}), refreshing...`);
-                await fetchData();
-                lastSeenProgress = currentProgress;
-              }
-              
-              if (status.status === "completed" || status.status === "failed") {
-                clearInterval(pollInterval);
-                setGeneratingKeyframes(false);
-                setShowKeyframeModal(false);
-                setKeyframeStartTime(null);
-                await fetchData();
-                if (status.status === "completed") {
-                  alert(`✅ Generated ${status.current} keyframes successfully!`);
-                }
-              }
+                              // This shows images as they're generated! (quiet refresh - no loading state)
+                              if (currentProgress > lastSeenProgress) {
+                                console.log(`🖼️ New keyframe completed (${currentProgress}/${status.total}), refreshing...`);
+                                await fetchDataQuietly();
+                                lastSeenProgress = currentProgress;
+                              }
+                              
+                              if (status.status === "completed" || status.status === "failed") {
+                                clearInterval(pollInterval);
+                                setGeneratingKeyframes(false);
+                                setShowKeyframeModal(false);
+                                setKeyframeStartTime(null);
+                                await fetchDataQuietly();
+                                if (status.status === "completed") {
+                                  console.log(`✅ Generated ${status.current} keyframes successfully!`);
+                                }
+                              }
             }
           } catch (pollError) {
             console.error("Polling error:", pollError);
@@ -6916,6 +6940,35 @@ export default function CampaignsPage() {
                                     🎬 VIDEO
                                   </div>
                                 )}
+                                {/* Video Generating Spinner */}
+                                {!img.video_url && selectedCampaignForProfile.settings?.bulk_video_status === "generating" && (
+                                  <div style={{
+                                    position: "absolute",
+                                    top: 0, left: 0, right: 0, bottom: 0,
+                                    backgroundColor: "rgba(0, 0, 0, 0.6)",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: "8px"
+                                  }}>
+                                    <div style={{
+                                      width: "32px", height: "32px",
+                                      border: "3px solid rgba(255,255,255,0.3)",
+                                      borderTop: "3px solid #ffffff",
+                                      borderRadius: "50%",
+                                      animation: "spin 1s linear infinite"
+                                    }} />
+                                    <span style={{ 
+                                      color: "white", 
+                                      fontSize: "11px", 
+                                      fontWeight: "600",
+                                      textShadow: "0 1px 2px rgba(0,0,0,0.5)"
+                                    }}>
+                                      Generating video...
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                               {/* Label */}
                               <div style={{
@@ -9564,7 +9617,7 @@ export default function CampaignsPage() {
 
                               if (bulkStatus === "completed") {
                                 clearInterval(pollInterval);
-                                await fetchData();
+                                await fetchDataQuietly();
                                 // Non-blocking: user already sees videos appearing in campaign
                                 console.log(`🎉 Videos done! Success: ${progress?.success_count}, Failed: ${progress?.failed_count}`);
                               } else if (bulkStatus === "failed") {
