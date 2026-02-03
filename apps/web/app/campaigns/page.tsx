@@ -6769,7 +6769,6 @@ export default function CampaignsPage() {
                   </div>
                 </div>
               )}
-              </div>
 
               {/* Time Estimate */}
               <div
