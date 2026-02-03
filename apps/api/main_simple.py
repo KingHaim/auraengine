@@ -1784,12 +1784,23 @@ async def generate_template_keyframes_background(
                     generated_images.append(new_image)
                     template_images.append(new_image)
                     
+                    # Update progress to show this shot is COMPLETE (idx + 1)
+                    campaign.settings["keyframe_progress"] = {
+                        "current": idx + 1,  # Completed shots count
+                        "total": total_shots,
+                        "current_name": f"✅ {shot['name']} complete"
+                    }
+                    
                     # Save immediately after each image
                     campaign.settings["generated_images"] = generated_images
                     flag_modified(campaign, "settings")
                     db.commit()
                     
+                    # Force database to be visible to other sessions
+                    db.expire_all()
+                    
                     print(f"   ✅ Success: {stable_url[:60]}...")
+                    print(f"   📊 Progress: {idx + 1}/{total_shots} complete")
                 else:
                     print(f"   ❌ Failed to generate shot {idx+1}")
                     
