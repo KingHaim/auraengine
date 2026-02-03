@@ -511,6 +511,17 @@ export default function CampaignsPage() {
           status: campaign.status || "draft",
         }));
         setCampaigns(campaignsData);
+        
+        // Also update selectedCampaignForProfile if it exists
+        if (selectedCampaignForProfile) {
+          const updatedCampaign = campaignsData.find(
+            (c: any) => c.id === selectedCampaignForProfile.id
+          );
+          if (updatedCampaign) {
+            setSelectedCampaignForProfile(updatedCampaign);
+          }
+        }
+        
         return campaignsData;
       }
     } catch (error) {
