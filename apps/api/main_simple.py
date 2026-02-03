@@ -1709,11 +1709,11 @@ async def generate_template_keyframes_background(
                 
                 # Generate using nano-banana
                 result_url = run_nano_banana_pro(
-                    input_image_url=base_image_url,
                     prompt=shot["prompt"],
+                    image_urls=[base_image_url],  # Must be a list
                     strength=shot.get("strength", 0.50),
                     guidance_scale=6.5,
-                    num_inference_steps=28,
+                    num_steps=28,  # Correct param name
                     negative_prompt=shot.get("negative_prompt", "blurry, distorted, different person")
                 )
                 
