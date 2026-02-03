@@ -1403,6 +1403,383 @@ async def generate_keyframe_variations(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ============================================================
+# KEYFRAME TEMPLATES - Pre-defined shot sequences
+# ============================================================
+KEYFRAME_TEMPLATES = {
+    "industrial_editorial": {
+        "id": "industrial_editorial",
+        "name": "Industrial Editorial",
+        "description": "High-contrast concrete studio with chrome elements and clinical aesthetic",
+        "preview_emoji": "🏭",
+        "shots": [
+            {
+                "name": "Wide Establishing",
+                "prompt": "Low-angle fashion editorial photography in an industrial concrete studio. Camera positioned near the floor, looking up to elongate the subject. Model sits in a chrome chair. High-contrast lighting from massive overhead softbox. Sharp details, wide-angle lens (24mm), cool gray color grading. Same person, same outfit.",
+                "strength": 0.55,
+                "negative_prompt": "blurry, warm colors, soft lighting, different person, different clothes"
+            },
+            {
+                "name": "Medium Portrait",
+                "prompt": "Medium close-up fashion portrait of the person. Sitting in chrome-framed black leather chair. Background: minimalist concrete studio with translucent corrugated plastic dividers catching light. Soft top-down lighting, high-end editorial look. 8k, sharp focus on facial features. Same person, same outfit.",
+                "strength": 0.50,
+                "negative_prompt": "blurry, cluttered background, different person, different clothes"
+            },
+            {
+                "name": "Fabric Detail",
+                "prompt": "Extreme close-up, low-angle fashion photograph of the torso. Camera angled from side, focusing on fabric weave and texture. Background: soft-focus translucent plastic panels, concrete wall. Clinical industrial atmosphere, cold color temperature, sharp macro details. Same outfit.",
+                "strength": 0.45,
+                "negative_prompt": "face visible, warm tones, different clothes"
+            },
+            {
+                "name": "Profile Silhouette",
+                "prompt": "Side profile fashion photograph in industrial studio. Strong rim lighting from behind creating silhouette effect. Concrete walls and metal structures in background. High contrast, dramatic shadows. Same person, same outfit.",
+                "strength": 0.55,
+                "negative_prompt": "front facing, flat lighting, different person"
+            },
+            {
+                "name": "Walking Away",
+                "prompt": "Fashion editorial shot from behind. Model walking through industrial corridor with concrete walls. Symmetrical composition, leading lines. Cool gray tones, editorial lighting. Same person, same outfit from behind.",
+                "strength": 0.50,
+                "negative_prompt": "facing camera, warm tones, different person"
+            }
+        ]
+    },
+    "golden_hour_romantic": {
+        "id": "golden_hour_romantic",
+        "name": "Golden Hour Romance",
+        "description": "Warm sunset lighting with soft bokeh and dreamy atmosphere",
+        "preview_emoji": "🌅",
+        "shots": [
+            {
+                "name": "Sunset Silhouette",
+                "prompt": "Wide fashion photograph at golden hour. Model silhouetted against warm orange sunset sky. Long shadows, lens flare. Romantic, dreamy atmosphere. Same person, same outfit.",
+                "strength": 0.55,
+                "negative_prompt": "cold colors, harsh lighting, different person"
+            },
+            {
+                "name": "Warm Close-up",
+                "prompt": "Intimate close-up portrait bathed in warm golden light. Soft focus background with bokeh. Sun rays catching hair. Romantic editorial style. Same person, same outfit.",
+                "strength": 0.48,
+                "negative_prompt": "cold tones, harsh shadows, different person"
+            },
+            {
+                "name": "Backlit Full Body",
+                "prompt": "Full body fashion shot with sun behind model creating halo effect. Warm rim lighting on edges. Soft, diffused golden hour light. Dreamy, ethereal quality. Same person, same outfit.",
+                "strength": 0.52,
+                "negative_prompt": "front lighting, cold tones, different person"
+            },
+            {
+                "name": "Candid Moment",
+                "prompt": "Candid fashion photograph, model looking away into the sunset. Natural, unposed feeling. Warm color grading, soft shadows. Magazine editorial style. Same person, same outfit.",
+                "strength": 0.50,
+                "negative_prompt": "stiff pose, cold lighting, different person"
+            },
+            {
+                "name": "Detail with Flare",
+                "prompt": "Close-up of outfit details with sun flare in frame. Warm golden tones on fabric. Artistic lens flare creating dreamy effect. Same outfit.",
+                "strength": 0.45,
+                "negative_prompt": "cold colors, no flare, different clothes"
+            }
+        ]
+    },
+    "urban_streetwear": {
+        "id": "urban_streetwear",
+        "name": "Urban Streetwear",
+        "description": "Gritty city vibes with graffiti walls and street elements",
+        "preview_emoji": "🏙️",
+        "shots": [
+            {
+                "name": "Graffiti Wall",
+                "prompt": "Urban fashion photograph against colorful graffiti wall. Street style editorial. Model in confident stance. Harsh daylight, high contrast. Same person, same outfit.",
+                "strength": 0.55,
+                "negative_prompt": "studio background, soft lighting, different person"
+            },
+            {
+                "name": "Street Corner",
+                "prompt": "Fashion shot on urban street corner. City buildings in background, cars passing. Documentary street style. Same person, same outfit. Authentic urban energy.",
+                "strength": 0.52,
+                "negative_prompt": "nature background, rural, different person"
+            },
+            {
+                "name": "Low Angle Power",
+                "prompt": "Low-angle urban fashion shot. Camera near ground looking up at model. City skyline behind. Empowering, confident pose. Same person, same outfit.",
+                "strength": 0.50,
+                "negative_prompt": "high angle, timid pose, different person"
+            },
+            {
+                "name": "Motion Blur",
+                "prompt": "Dynamic urban fashion photograph with motion blur. Model sharp while background shows movement. City traffic, pedestrians blurred. Same person, same outfit. Energy and movement.",
+                "strength": 0.55,
+                "negative_prompt": "static, no movement, different person"
+            },
+            {
+                "name": "Alley Editorial",
+                "prompt": "Moody fashion shot in urban alley. Brick walls, fire escapes, urban textures. Dramatic shadows, editorial lighting. Same person, same outfit. Gritty atmosphere.",
+                "strength": 0.52,
+                "negative_prompt": "bright, clean, different person"
+            }
+        ]
+    },
+    "minimalist_studio": {
+        "id": "minimalist_studio",
+        "name": "Minimalist Studio",
+        "description": "Clean white/gray backgrounds with focus on the outfit",
+        "preview_emoji": "⬜",
+        "shots": [
+            {
+                "name": "Clean Full Body",
+                "prompt": "Minimalist fashion photography on pure white background. Full body shot, centered composition. Clean studio lighting, no shadows. High-end e-commerce style. Same person, same outfit.",
+                "strength": 0.50,
+                "negative_prompt": "busy background, shadows, different person"
+            },
+            {
+                "name": "Three-Quarter Turn",
+                "prompt": "Fashion photograph with model at three-quarter angle. Clean gray studio background. Soft, even lighting. Focus on outfit silhouette. Same person, same outfit.",
+                "strength": 0.48,
+                "negative_prompt": "cluttered, harsh shadows, different person"
+            },
+            {
+                "name": "Detail Close-up",
+                "prompt": "Extreme close-up of outfit details on white background. Fabric texture, stitching, buttons visible. Studio macro photography. Crisp focus. Same outfit.",
+                "strength": 0.42,
+                "negative_prompt": "blurry, face visible, different clothes"
+            },
+            {
+                "name": "Movement Shot",
+                "prompt": "Fashion photograph with subtle movement - fabric flowing, hair moving. White studio background. Dynamic but controlled. Same person, same outfit.",
+                "strength": 0.52,
+                "negative_prompt": "static, stiff, different person"
+            },
+            {
+                "name": "Side Profile Clean",
+                "prompt": "Side profile fashion shot on minimal background. Clean lines, elegant pose. High-end editorial simplicity. Same person, same outfit.",
+                "strength": 0.50,
+                "negative_prompt": "busy background, front facing, different person"
+            }
+        ]
+    }
+}
+
+@app.get("/templates")
+async def get_keyframe_templates():
+    """Get all available keyframe templates"""
+    templates_list = []
+    for template_id, template in KEYFRAME_TEMPLATES.items():
+        templates_list.append({
+            "id": template["id"],
+            "name": template["name"],
+            "description": template["description"],
+            "preview_emoji": template["preview_emoji"],
+            "shot_count": len(template["shots"]),
+            "shots": [{"name": shot["name"], "prompt": shot["prompt"][:100] + "..."} for shot in template["shots"]]
+        })
+    return {"templates": templates_list}
+
+
+@app.post("/campaigns/{campaign_id}/generate-template-keyframes")
+async def generate_template_keyframes(
+    campaign_id: str,
+    template_id: str = Form(...),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate keyframes using a predefined template.
+    Each shot in the template is generated from the campaign's base image.
+    """
+    try:
+        # Get template
+        template = KEYFRAME_TEMPLATES.get(template_id)
+        if not template:
+            raise HTTPException(status_code=404, detail=f"Template '{template_id}' not found")
+        
+        # Get campaign
+        campaign = db.query(Campaign).filter(
+            Campaign.id == campaign_id,
+            Campaign.user_id == current_user["user_id"]
+        ).first()
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        
+        # Get base image
+        generated_images = campaign.settings.get("generated_images", []) if campaign.settings else []
+        if not generated_images:
+            raise HTTPException(status_code=400, detail="No base image found. Generate a campaign image first.")
+        
+        base_image = None
+        for img in generated_images:
+            if img.get("is_base_image", False):
+                base_image = img
+                break
+        if not base_image:
+            base_image = generated_images[0]
+        
+        base_image_url = base_image.get("base_image_url") or base_image.get("image_url")
+        if not base_image_url:
+            raise HTTPException(status_code=400, detail="Base image URL not found")
+        
+        print(f"🎬 TEMPLATE KEYFRAME GENERATION: {template['name']}")
+        print(f"📸 Template has {len(template['shots'])} shots")
+        print(f"🖼️ Base image: {base_image_url[:60]}...")
+        
+        # Update campaign status
+        campaign.generation_status = "generating"
+        new_settings = dict(campaign.settings) if campaign.settings else {}
+        new_settings["template_generation"] = {
+            "template_id": template_id,
+            "template_name": template["name"],
+            "status": "generating"
+        }
+        campaign.settings = new_settings
+        flag_modified(campaign, "settings")
+        db.commit()
+        
+        # Start background generation
+        import asyncio
+        asyncio.create_task(generate_template_keyframes_background(
+            campaign_id,
+            base_image_url,
+            base_image,
+            template
+        ))
+        
+        return {
+            "message": f"Generating {len(template['shots'])} keyframes using '{template['name']}' template...",
+            "campaign_id": campaign_id,
+            "template": template["name"],
+            "shot_count": len(template["shots"]),
+            "status": "generating"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def generate_template_keyframes_background(
+    campaign_id: str,
+    base_image_url: str,
+    base_image_data: dict,
+    template: dict
+):
+    """Background task to generate keyframes from a template"""
+    db = SessionLocal()
+    try:
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+        if not campaign:
+            print(f"❌ Campaign {campaign_id} not found")
+            return
+        
+        print(f"\n{'='*60}")
+        print(f"🎬 TEMPLATE GENERATION: {template['name']}")
+        print(f"{'='*60}")
+        
+        shots = template["shots"]
+        total_shots = len(shots)
+        
+        # Update progress
+        campaign.settings["keyframe_progress"] = {
+            "current": 0,
+            "total": total_shots,
+            "current_name": "Starting template generation..."
+        }
+        flag_modified(campaign, "settings")
+        db.commit()
+        
+        generated_images = campaign.settings.get("generated_images", [])
+        
+        for idx, shot in enumerate(shots):
+            try:
+                print(f"\n📸 [{idx+1}/{total_shots}] Generating: {shot['name']}")
+                print(f"   Prompt: {shot['prompt'][:80]}...")
+                
+                # Update progress
+                campaign.settings["keyframe_progress"] = {
+                    "current": idx,
+                    "total": total_shots,
+                    "current_name": shot["name"]
+                }
+                flag_modified(campaign, "settings")
+                db.commit()
+                
+                # Generate using nano-banana
+                result_url = run_nano_banana_pro(
+                    input_image_url=base_image_url,
+                    prompt=shot["prompt"],
+                    strength=shot.get("strength", 0.50),
+                    guidance_scale=6.5,
+                    num_inference_steps=28,
+                    negative_prompt=shot.get("negative_prompt", "blurry, distorted, different person")
+                )
+                
+                if result_url:
+                    # Add to generated images
+                    new_image = {
+                        "image_url": result_url,
+                        "base_image_url": base_image_url,
+                        "shot_type": shot["name"],
+                        "shot_name": shot["name"],
+                        "template_id": template["id"],
+                        "template_name": template["name"],
+                        "prompt_used": shot["prompt"],
+                        "model_name": base_image_data.get("model_name", "Model"),
+                        "product_name": base_image_data.get("product_name", "Product"),
+                        "scene_name": base_image_data.get("scene_name", "Scene"),
+                        "clothing_type": base_image_data.get("clothing_type", "Outfit"),
+                        "is_base_image": False,
+                        "generated_at": datetime.utcnow().isoformat()
+                    }
+                    generated_images.append(new_image)
+                    
+                    # Save immediately
+                    campaign.settings["generated_images"] = generated_images
+                    flag_modified(campaign, "settings")
+                    db.commit()
+                    
+                    print(f"   ✅ Success: {result_url[:50]}...")
+                else:
+                    print(f"   ❌ Failed to generate")
+                    
+            except Exception as e:
+                print(f"   ❌ Error generating {shot['name']}: {e}")
+        
+        # Mark complete
+        campaign.generation_status = "completed"
+        campaign.settings["keyframe_progress"] = {
+            "current": total_shots,
+            "total": total_shots,
+            "current_name": "Complete!"
+        }
+        campaign.settings["template_generation"]["status"] = "completed"
+        flag_modified(campaign, "settings")
+        db.commit()
+        
+        print(f"\n✅ Template generation complete: {template['name']}")
+        
+    except Exception as e:
+        print(f"❌ Template generation error: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        try:
+            campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+            if campaign:
+                campaign.generation_status = "failed"
+                campaign.settings["template_generation"]["status"] = "failed"
+                campaign.settings["template_generation"]["error"] = str(e)
+                flag_modified(campaign, "settings")
+                db.commit()
+        except:
+            pass
+    finally:
+        db.close()
+
+
 async def generate_keyframes_background(
     campaign_id: str,
     base_image_url: str,

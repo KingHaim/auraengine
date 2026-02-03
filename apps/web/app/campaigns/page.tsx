@@ -194,6 +194,11 @@ export default function CampaignsPage() {
   const [generatingKeyframes, setGeneratingKeyframes] = useState(false);
   const [keyframeProgress, setKeyframeProgress] = useState({ current: 0, total: 0, currentName: "" });
   const [keyframeStartTime, setKeyframeStartTime] = useState<number | null>(null);
+  
+  // Template-based keyframe generation
+  const [keyframeMode, setKeyframeMode] = useState<"custom" | "template">("custom");
+  const [availableTemplates, setAvailableTemplates] = useState<any[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [generatingUnifiedVideo, setGeneratingUnifiedVideo] = useState<
     string | null
   >(null);
@@ -549,6 +554,23 @@ export default function CampaignsPage() {
       setForceLoaded(true);
     }, 5000);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Fetch keyframe templates
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/templates`);
+        if (res.ok) {
+          const data = await res.json();
+          setAvailableTemplates(data.templates || []);
+          console.log("📋 Loaded keyframe templates:", data.templates?.length);
+        }
+      } catch (error) {
+        console.error("Failed to fetch templates:", error);
+      }
+    };
+    fetchTemplates();
   }, []);
 
   // Clear generating state when campaign is completed
@@ -1905,6 +1927,101 @@ export default function CampaignsPage() {
     } catch (error) {
       console.error("Error generating keyframes:", error);
       alert("Failed to generate keyframes. Please try again.");
+      setGeneratingKeyframes(false);
+    }
+  };
+
+  // NEW: Execute template-based keyframe generation
+  const executeTemplateGeneration = async () => {
+    if (!selectedCampaignForGeneration || !token || !selectedTemplate) {
+      alert("Please select a template");
+      return;
+    }
+
+    const template = availableTemplates.find(t => t.id === selectedTemplate);
+    if (!template) return;
+
+    setGeneratingKeyframes(true);
+    setKeyframeProgress({ current: 0, total: template.shot_count, currentName: "Starting template..." });
+    setKeyframeStartTime(Date.now());
+    
+    try {
+      const formData = new FormData();
+      formData.append("template_id", selectedTemplate);
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${selectedCampaignForGeneration.id}/generate-template-keyframes`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("✅ Template generation started:", result);
+        
+        // Poll for progress
+        const campaignId = selectedCampaignForGeneration.id;
+        let lastSeenProgress = 0;
+        
+        const pollInterval = setInterval(async () => {
+          try {
+            const statusRes = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/keyframe-progress`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            if (statusRes.ok) {
+              const status = await statusRes.json();
+              const currentProgress = status.current || 0;
+              
+              setKeyframeProgress({
+                current: currentProgress,
+                total: status.total || template.shot_count,
+                currentName: status.current_name || "Processing...",
+              });
+              
+              if (currentProgress > lastSeenProgress) {
+                console.log(`🖼️ Template shot completed (${currentProgress}/${status.total})`);
+                await fetchDataQuietly();
+                lastSeenProgress = currentProgress;
+              }
+              
+              if (status.status === "completed" || status.status === "failed") {
+                clearInterval(pollInterval);
+                setGeneratingKeyframes(false);
+                setShowKeyframeModal(false);
+                setKeyframeStartTime(null);
+                await fetchDataQuietly();
+                if (status.status === "completed") {
+                  console.log(`✅ Template generation complete!`);
+                }
+              }
+            }
+          } catch (pollError) {
+            console.error("Polling error:", pollError);
+          }
+        }, 3000);
+        
+        setTimeout(() => {
+          clearInterval(pollInterval);
+          setGeneratingKeyframes(false);
+          fetchData();
+        }, 15 * 60 * 1000);
+        
+      } else {
+        const error = await response.json();
+        alert(`Failed to generate from template: ${error.detail || "Unknown error"}`);
+        setGeneratingKeyframes(false);
+      }
+    } catch (error) {
+      console.error("Error generating from template:", error);
+      alert("Failed to generate from template. Please try again.");
       setGeneratingKeyframes(false);
     }
   };
@@ -6506,110 +6623,152 @@ export default function CampaignsPage() {
                   color: "#1F2937",
                 }}
               >
-                🎬 Generate Keyframe Variations
+                🎬 Generate Keyframes
               </h2>
               
-              <p
-                style={{
-                  margin: "0 0 24px 0",
-                  color: "#6B7280",
-                  fontSize: "15px",
-                  lineHeight: "1.6",
-                }}
-              >
-                Generate cinematic keyframes from your base image for <strong>{selectedCampaignForGeneration.name}</strong>.
-                <br /><br />
-                <span style={{ color: "#059669", fontWeight: "500" }}>
-                  ✓ Same person, same clothes, same location
-                </span>
-                <br />
-                <span style={{ color: "#059669", fontWeight: "500" }}>
-                  ✓ Candid shots - not always looking at camera
-                </span>
-                <br />
-                <span style={{ color: "#059669", fontWeight: "500" }}>
-                  ✓ Interacting with scene - sitting, leaning, exploring
-                </span>
+              <p style={{ margin: "0 0 16px 0", color: "#6B7280", fontSize: "14px" }}>
+                Generate keyframes for <strong>{selectedCampaignForGeneration.name}</strong>
               </p>
 
-              {/* Keyframe Types Preview */}
-              <div
-                style={{
-                  backgroundColor: "#F9FAFB",
-                  borderRadius: "12px",
-                  padding: "16px",
-                  marginBottom: "24px",
-                }}
-              >
-                <div style={{ fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "12px" }}>
-                  Available Keyframes:
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                  {[
-                    { icon: "👀", name: "Looking Away" },
-                    { icon: "👕", name: "Shirt Close-up" },
-                    { icon: "🪑", name: "Sitting in Scene" },
-                    { icon: "👖", name: "Pants Close-up" },
-                    { icon: "🧱", name: "Leaning Casual" },
-                    { icon: "✨", name: "Outfit Detail" },
-                    { icon: "💭", name: "Lost in Thought" },
-                    { icon: "🚶", name: "Exploring Space" },
-                    { icon: "⬆️", name: "Low Angle" },
-                    { icon: "⬇️", name: "High Angle" },
-                    { icon: "👤", name: "Side Profile" },
-                  ].map((kf, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        backgroundColor: idx < keyframeCount ? "#DCFCE7" : "#E5E7EB",
-                        color: idx < keyframeCount ? "#166534" : "#6B7280",
-                        padding: "6px 12px",
-                        borderRadius: "6px",
-                        fontSize: "12px",
-                        fontWeight: "500",
-                      }}
-                    >
-                      {kf.icon} {kf.name}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Number of Keyframes Selector */}
-              <div style={{ marginBottom: "16px" }}>
-                <label
+              {/* Mode Selector - Custom vs Template */}
+              <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
+                <button
+                  onClick={() => setKeyframeMode("custom")}
                   style={{
-                    display: "block",
-                    marginBottom: "8px",
-                    fontSize: "14px",
+                    flex: 1,
+                    padding: "12px",
+                    border: keyframeMode === "custom" ? "2px solid #d42f48" : "1px solid #E5E7EB",
+                    borderRadius: "10px",
+                    backgroundColor: keyframeMode === "custom" ? "#FEF2F2" : "white",
+                    color: keyframeMode === "custom" ? "#d42f48" : "#374151",
                     fontWeight: "600",
-                    color: "#374151",
+                    fontSize: "14px",
+                    cursor: "pointer",
                   }}
                 >
-                  Number of Keyframes
-                </label>
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                  {[2, 4, 6, 8, 10, 11].map((num) => (
-                    <button
-                      key={num}
-                      onClick={() => setKeyframeCount(num)}
-                      style={{
-                        flex: 1,
-                        padding: "12px",
-                        border: keyframeCount === num ? "2px solid #d42f48" : "1px solid #E5E7EB",
-                        borderRadius: "8px",
-                        backgroundColor: keyframeCount === num ? "#FEF2F2" : "white",
-                        color: keyframeCount === num ? "#d42f48" : "#374151",
-                        fontWeight: keyframeCount === num ? "600" : "500",
-                        fontSize: "16px",
-                        cursor: "pointer",
-                        transition: "all 0.2s",
-                      }}
-                    >
-                      {num}
-                    </button>
-                  ))}
+                  🎲 Custom Mix
+                </button>
+                <button
+                  onClick={() => setKeyframeMode("template")}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    border: keyframeMode === "template" ? "2px solid #d42f48" : "1px solid #E5E7EB",
+                    borderRadius: "10px",
+                    backgroundColor: keyframeMode === "template" ? "#FEF2F2" : "white",
+                    color: keyframeMode === "template" ? "#d42f48" : "#374151",
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                  }}
+                >
+                  📋 Shot Templates
+                </button>
+              </div>
+
+              {/* CUSTOM MODE */}
+              {keyframeMode === "custom" && (
+                <>
+                  {/* Keyframe Types Preview */}
+                  <div
+                    style={{
+                      backgroundColor: "#F9FAFB",
+                      borderRadius: "12px",
+                      padding: "16px",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <div style={{ fontSize: "13px", fontWeight: "600", color: "#374151", marginBottom: "10px" }}>
+                      Random keyframe mix:
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                      {[
+                        { icon: "👀", name: "Looking Away" },
+                        { icon: "👕", name: "Shirt Close-up" },
+                        { icon: "🪑", name: "Sitting" },
+                        { icon: "👖", name: "Pants Close-up" },
+                        { icon: "🧱", name: "Leaning" },
+                        { icon: "✨", name: "Detail" },
+                        { icon: "💭", name: "Candid" },
+                        { icon: "🚶", name: "Walking" },
+                      ].slice(0, keyframeCount).map((kf, idx) => (
+                        <span key={idx} style={{ backgroundColor: "#DCFCE7", color: "#166534", padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: "500" }}>
+                          {kf.icon} {kf.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Number Selector */}
+                  <div style={{ marginBottom: "16px" }}>
+                    <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "600", color: "#374151" }}>
+                      Number of Keyframes
+                    </label>
+                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                      {[2, 4, 6, 8, 10, 11].map((num) => (
+                        <button
+                          key={num}
+                          onClick={() => setKeyframeCount(num)}
+                          style={{
+                            flex: 1,
+                            padding: "10px",
+                            border: keyframeCount === num ? "2px solid #d42f48" : "1px solid #E5E7EB",
+                            borderRadius: "8px",
+                            backgroundColor: keyframeCount === num ? "#FEF2F2" : "white",
+                            color: keyframeCount === num ? "#d42f48" : "#374151",
+                            fontWeight: keyframeCount === num ? "600" : "500",
+                            fontSize: "15px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {num}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* TEMPLATE MODE */}
+              {keyframeMode === "template" && (
+                <div style={{ marginBottom: "16px" }}>
+                  <label style={{ display: "block", marginBottom: "10px", fontSize: "14px", fontWeight: "600", color: "#374151" }}>
+                    Choose a Shot Template
+                  </label>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxHeight: "300px", overflowY: "auto" }}>
+                    {availableTemplates.map((template) => (
+                      <div
+                        key={template.id}
+                        onClick={() => setSelectedTemplate(template.id)}
+                        style={{
+                          padding: "14px",
+                          border: selectedTemplate === template.id ? "2px solid #d42f48" : "1px solid #E5E7EB",
+                          borderRadius: "12px",
+                          backgroundColor: selectedTemplate === template.id ? "#FEF2F2" : "white",
+                          cursor: "pointer",
+                          transition: "all 0.2s",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                          <span style={{ fontSize: "24px" }}>{template.preview_emoji}</span>
+                          <div>
+                            <div style={{ fontWeight: "600", color: "#1F2937", fontSize: "15px" }}>{template.name}</div>
+                            <div style={{ color: "#6B7280", fontSize: "12px" }}>{template.shot_count} shots</div>
+                          </div>
+                        </div>
+                        <div style={{ color: "#6B7280", fontSize: "12px", marginBottom: "10px" }}>{template.description}</div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                          {template.shots.map((shot: any, idx: number) => (
+                            <span key={idx} style={{ backgroundColor: "#E0E7FF", color: "#3730A3", padding: "3px 8px", borderRadius: "4px", fontSize: "10px", fontWeight: "500" }}>
+                              {idx + 1}. {shot.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              )}
               </div>
 
               {/* Time Estimate */}
@@ -6687,24 +6846,28 @@ export default function CampaignsPage() {
                 </div>
               ) : (
                 <button
-                  onClick={executeKeyframeGeneration}
+                  onClick={keyframeMode === "template" ? executeTemplateGeneration : executeKeyframeGeneration}
+                  disabled={keyframeMode === "template" && !selectedTemplate}
                   style={{
                     width: "100%",
                     padding: "14px",
-                    backgroundColor: "#d42f48",
+                    backgroundColor: (keyframeMode === "template" && !selectedTemplate) ? "#D1D5DB" : "#d42f48",
                     border: "none",
                     borderRadius: "10px",
                     color: "white",
                     fontSize: "16px",
                     fontWeight: "600",
-                    cursor: "pointer",
+                    cursor: (keyframeMode === "template" && !selectedTemplate) ? "not-allowed" : "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "8px",
                   }}
                 >
-                  🎬 Generate {keyframeCount} Keyframes
+                  {keyframeMode === "template" 
+                    ? `🎬 Generate ${availableTemplates.find(t => t.id === selectedTemplate)?.shot_count || 0} Template Shots`
+                    : `🎬 Generate ${keyframeCount} Keyframes`
+                  }
                 </button>
               )}
             </div>
