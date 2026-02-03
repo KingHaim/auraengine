@@ -1699,6 +1699,7 @@ async def generate_template_keyframes_background(
         
         generated_images = campaign.settings.get("generated_images", [])
         template_images = []  # Track images generated in this template run
+        first_shot_url = None  # Store the first shot to use as style reference for subsequent shots
         
         for idx, shot in enumerate(shots):
             try:
@@ -1715,14 +1716,32 @@ async def generate_template_keyframes_background(
                 flag_modified(campaign, "settings")
                 db.commit()
                 
+                # For first shot: use base image as reference
+                # For subsequent shots: use FIRST SHOT as style reference for color/lighting consistency
+                if idx == 0:
+                    # First shot - generate from base campaign image
+                    reference_url = base_image_url
+                    style_prompt = shot["prompt"]
+                    print(f"   🎨 Using base campaign image as reference (establishing style)")
+                else:
+                    # Subsequent shots - use first shot as style reference
+                    reference_url = first_shot_url if first_shot_url else base_image_url
+                    # Add style consistency instruction to prompt
+                    style_prompt = (
+                        f"{shot['prompt']} "
+                        f"IMPORTANT: Match the exact color grading, lighting style, contrast, and visual aesthetic "
+                        f"of the reference image. Maintain consistent skin tones, clothing colors, and atmosphere."
+                    )
+                    print(f"   🎨 Using Shot 1 as style reference for consistency")
+                
                 # Generate using nano-banana
                 result_url = run_nano_banana_pro(
-                    prompt=shot["prompt"],
-                    image_urls=[base_image_url],  # Must be a list
+                    prompt=style_prompt,
+                    image_urls=[reference_url],  # Use appropriate reference
                     strength=shot.get("strength", 0.50),
                     guidance_scale=6.5,
-                    num_steps=28,  # Correct param name
-                    negative_prompt=shot.get("negative_prompt", "blurry, distorted, different person")
+                    num_steps=28,
+                    negative_prompt=shot.get("negative_prompt", "blurry, distorted, different person, inconsistent colors, different lighting")
                 )
                 
                 if result_url:
@@ -1733,6 +1752,11 @@ async def generate_template_keyframes_background(
                     if not stable_url:
                         stable_url = result_url  # Fallback to Replicate URL if upload fails
                     
+                    # Save first shot URL as style reference for subsequent shots
+                    if idx == 0:
+                        first_shot_url = stable_url
+                        print(f"   🎨 Shot 1 saved as style reference for all subsequent shots")
+                    
                     print(f"   📁 Saved to: {shot_folder}")
                     
                     # Add to generated images
@@ -1740,6 +1764,7 @@ async def generate_template_keyframes_background(
                         "image_url": stable_url,
                         "original_replicate_url": result_url,
                         "base_image_url": base_image_url,
+                        "style_reference_url": first_shot_url if idx > 0 else None,  # Track style reference
                         "shot_type": shot["name"],
                         "shot_name": shot["name"],
                         "shot_index": idx + 1,
@@ -1753,6 +1778,7 @@ async def generate_template_keyframes_background(
                         "clothing_type": base_image_data.get("clothing_type", "Outfit"),
                         "is_base_image": False,
                         "is_template_shot": True,
+                        "is_style_reference": idx == 0,  # Mark first shot as the style reference
                         "generated_at": datetime.utcnow().isoformat()
                     }
                     generated_images.append(new_image)
