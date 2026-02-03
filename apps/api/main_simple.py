@@ -1675,8 +1675,14 @@ async def generate_template_keyframes_background(
             print(f"❌ Campaign {campaign_id} not found")
             return
         
+        # Create folder path for this campaign's template images
+        campaign_name_safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in campaign.name)
+        template_name_safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in template["name"])
+        cloudinary_folder = f"campaigns/{campaign_name_safe}/{template_name_safe}"
+        
         print(f"\n{'='*60}")
         print(f"🎬 TEMPLATE GENERATION: {template['name']}")
+        print(f"📁 Saving to folder: {cloudinary_folder}")
         print(f"{'='*60}")
         
         shots = template["shots"]
@@ -1692,9 +1698,11 @@ async def generate_template_keyframes_background(
         db.commit()
         
         generated_images = campaign.settings.get("generated_images", [])
+        template_images = []  # Track images generated in this template run
         
         for idx, shot in enumerate(shots):
             try:
+                shot_name_safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in shot["name"])
                 print(f"\n📸 [{idx+1}/{total_shots}] Generating: {shot['name']}")
                 print(f"   Prompt: {shot['prompt'][:80]}...")
                 
@@ -1702,7 +1710,7 @@ async def generate_template_keyframes_background(
                 campaign.settings["keyframe_progress"] = {
                     "current": idx,
                     "total": total_shots,
-                    "current_name": shot["name"]
+                    "current_name": f"Generating {shot['name']}..."
                 }
                 flag_modified(campaign, "settings")
                 db.commit()
@@ -1718,35 +1726,58 @@ async def generate_template_keyframes_background(
                 )
                 
                 if result_url:
+                    # Upload to Cloudinary with organized folder structure
+                    shot_folder = f"{cloudinary_folder}/shot_{idx+1:02d}_{shot_name_safe}"
+                    stable_url = upload_to_cloudinary(result_url, shot_folder)
+                    
+                    if not stable_url:
+                        stable_url = result_url  # Fallback to Replicate URL if upload fails
+                    
+                    print(f"   📁 Saved to: {shot_folder}")
+                    
                     # Add to generated images
                     new_image = {
-                        "image_url": result_url,
+                        "image_url": stable_url,
+                        "original_replicate_url": result_url,
                         "base_image_url": base_image_url,
                         "shot_type": shot["name"],
                         "shot_name": shot["name"],
+                        "shot_index": idx + 1,
                         "template_id": template["id"],
                         "template_name": template["name"],
+                        "cloudinary_folder": shot_folder,
                         "prompt_used": shot["prompt"],
                         "model_name": base_image_data.get("model_name", "Model"),
                         "product_name": base_image_data.get("product_name", "Product"),
                         "scene_name": base_image_data.get("scene_name", "Scene"),
                         "clothing_type": base_image_data.get("clothing_type", "Outfit"),
                         "is_base_image": False,
+                        "is_template_shot": True,
                         "generated_at": datetime.utcnow().isoformat()
                     }
                     generated_images.append(new_image)
+                    template_images.append(new_image)
                     
-                    # Save immediately
+                    # Save immediately after each image
                     campaign.settings["generated_images"] = generated_images
                     flag_modified(campaign, "settings")
                     db.commit()
                     
-                    print(f"   ✅ Success: {result_url[:50]}...")
+                    print(f"   ✅ Success: {stable_url[:60]}...")
                 else:
-                    print(f"   ❌ Failed to generate")
+                    print(f"   ❌ Failed to generate shot {idx+1}")
                     
             except Exception as e:
                 print(f"   ❌ Error generating {shot['name']}: {e}")
+                import traceback
+                traceback.print_exc()
+                # Continue with next shot even if one fails
+                continue
+        
+        print(f"\n📊 Template generation summary:")
+        print(f"   - Total shots attempted: {total_shots}")
+        print(f"   - Successfully generated: {len(template_images)}")
+        print(f"   - Saved to folder: {cloudinary_folder}")
         
         # Mark complete
         campaign.generation_status = "completed"
