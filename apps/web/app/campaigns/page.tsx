@@ -346,22 +346,39 @@ export default function CampaignsPage() {
       console.log("🔍 Fetching campaigns data from API...");
       console.log("Token:", token.substring(0, 20) + "...");
 
-      // Fetch all data in parallel
+      // Helper function to fetch with timeout (prevents hanging when DB is locked)
+      const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeoutMs = 10000) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const response = await fetch(url, { ...options, signal: controller.signal });
+          clearTimeout(timeoutId);
+          return response;
+        } catch (error: any) {
+          clearTimeout(timeoutId);
+          if (error.name === 'AbortError') {
+            console.warn(`⏱️ Request timed out: ${url}`);
+          }
+          throw error;
+        }
+      };
+
+      // Fetch all data in parallel with timeout
       const [campaignsRes, productsRes, modelsRes, scenesRes, posesRes] =
         await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/campaigns`, {
+          fetchWithTimeout(`${process.env.NEXT_PUBLIC_API_URL}/campaigns`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
+          fetchWithTimeout(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/models`, {
+          fetchWithTimeout(`${process.env.NEXT_PUBLIC_API_URL}/models`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/scenes`, {
+          fetchWithTimeout(`${process.env.NEXT_PUBLIC_API_URL}/scenes`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/poses`),
+          fetchWithTimeout(`${process.env.NEXT_PUBLIC_API_URL}/poses`, {}),
         ]);
 
       // Handle pose URLs
