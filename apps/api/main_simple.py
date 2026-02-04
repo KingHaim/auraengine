@@ -1817,6 +1817,11 @@ async def generate_template_keyframes_background(
         flag_modified(campaign, "settings")
         db.commit()
         
+        # Release SQLite lock immediately
+        db.close()
+        db = SessionLocal()
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+        
         generated_images = campaign.settings.get("generated_images", [])
         template_images = []  # Track images generated in this template run
         first_shot_url = None  # Store the first shot to use as style reference for subsequent shots
@@ -1835,6 +1840,12 @@ async def generate_template_keyframes_background(
                 }
                 flag_modified(campaign, "settings")
                 db.commit()
+                
+                # Release SQLite lock immediately after progress update
+                db.close()
+                db = SessionLocal()
+                campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+                generated_images = campaign.settings.get("generated_images", [])
                 
                 # For first shot: use base image as reference
                 # For subsequent shots: use FIRST SHOT as style reference for color/lighting consistency
@@ -1916,8 +1927,12 @@ async def generate_template_keyframes_background(
                     flag_modified(campaign, "settings")
                     db.commit()
                     
-                    # Force database to be visible to other sessions
-                    db.expire_all()
+                    # IMPORTANT: Release SQLite file lock to allow other requests
+                    # Close current session and get a fresh one
+                    db.close()
+                    db = SessionLocal()
+                    campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+                    generated_images = campaign.settings.get("generated_images", [])
                     
                     print(f"   ✅ Success: {stable_url[:60]}...")
                     print(f"   📊 Progress: {idx + 1}/{total_shots} complete")
@@ -2213,6 +2228,12 @@ async def generate_keyframes_background(
                 campaign.settings = new_settings
                 flag_modified(campaign, "settings")
                 db.commit()
+                
+                # IMPORTANT: Release SQLite file lock to allow other requests
+                db.close()
+                db = SessionLocal()
+                campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+                
                 print(f"   💾 Image saved to campaign - now visible to user!")
                 
             except Exception as e:
