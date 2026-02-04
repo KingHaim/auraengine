@@ -1865,14 +1865,13 @@ async def generate_template_keyframes_background(
                     )
                     print(f"   🎨 Using Shot 1 as style reference for consistency")
                 
-                # Generate using nano-banana
-                result_url = run_nano_banana_pro(
+                # Generate using Flux 2 Pro (faster and cheaper than nano-banana)
+                result_url = run_flux_2_pro(
                     prompt=style_prompt,
-                    image_urls=[reference_url],  # Use appropriate reference
-                    strength=shot.get("strength", 0.50),
-                    guidance_scale=6.5,
-                    num_steps=28,
-                    negative_prompt=shot.get("negative_prompt", "blurry, distorted, different person, inconsistent colors, different lighting")
+                    reference_images=[reference_url],  # Use appropriate reference
+                    guidance=3.5,  # Flux uses lower guidance values
+                    steps=28,
+                    aspect_ratio="9:16"  # Portrait/fashion ratio
                 )
                 
                 if result_url:
@@ -5411,6 +5410,106 @@ def run_qwen_add_product(model_image_url: str, product_image_url: str, clothing_
         traceback.print_exc()
         print("↩️ Returning original model image instead of placeholder")
         return model_image_url
+
+
+def run_flux_2_pro(prompt: str, reference_images: list, guidance: float = 3.5, steps: int = 28, aspect_ratio: str = "9:16") -> str:
+    """
+    Use Replicate's black-forest-labs/flux-2-pro for high-quality image generation
+    Supports up to 8 reference images for style/content consistency
+    
+    Args:
+        prompt: Text description of what to generate
+        reference_images: List of image URLs to use as reference (up to 8)
+        guidance: How closely to follow the prompt (1-10, default 3.5)
+        steps: Number of inference steps (default 28)
+        aspect_ratio: Output aspect ratio (default 9:16 for fashion/portrait)
+    
+    Returns:
+        URL of generated image, or None if failed
+    """
+    import time
+    import replicate
+    
+    MAX_RETRIES = 3
+    RETRY_DELAY = 15
+    
+    # Validate reference images
+    for idx, url in enumerate(reference_images):
+        if not url or not isinstance(url, str):
+            print(f"❌ Invalid reference image {idx+1}: {url}")
+            raise ValueError(f"Reference image {idx+1} is invalid")
+        if url.startswith("http://localhost") or url.startswith("http://127.0.0.1"):
+            print(f"❌ Local URL not accessible by Replicate: {url[:80]}")
+            raise ValueError(f"Reference image {idx+1} is a local URL")
+    
+    for attempt in range(MAX_RETRIES):
+        try:
+            print(f"\n🌊 FLUX 2 PRO (attempt {attempt + 1}/{MAX_RETRIES})...")
+            print(f"📝 Prompt: {prompt[:150]}...")
+            print(f"🖼️ Reference images: {len(reference_images)}")
+            for idx, url in enumerate(reference_images):
+                print(f"   Ref {idx+1}: {url[:60]}...")
+            print(f"⚙️ Parameters: guidance={guidance}, steps={steps}, aspect_ratio={aspect_ratio}")
+            
+            # Build input - Flux 2 Pro format
+            input_dict = {
+                "prompt": prompt,
+                "guidance": guidance,
+                "steps": steps,
+                "aspect_ratio": aspect_ratio,
+                "output_format": "jpg",
+                "output_quality": 90,
+                "safety_tolerance": 5,  # Allow more creative freedom
+            }
+            
+            # Add reference images (Flux 2 Pro supports up to 8)
+            if reference_images:
+                input_dict["image_reference"] = reference_images[0]  # Primary reference
+                input_dict["image_reference_strength"] = 0.65  # How much to follow reference
+                
+                # If multiple references, use the first as main reference
+                if len(reference_images) > 1:
+                    print(f"   📌 Using first image as primary reference, others for context")
+            
+            print(f"🔄 Calling Replicate API (black-forest-labs/flux-2-pro)...")
+            out = replicate.run("black-forest-labs/flux-2-pro", input=input_dict)
+            
+            # Handle output
+            if hasattr(out, 'url'):
+                result_url = out.url()
+            elif isinstance(out, str):
+                result_url = out
+            elif isinstance(out, list) and len(out) > 0:
+                result_url = out[0] if isinstance(out[0], str) else str(out[0])
+            else:
+                result_url = str(out)
+            
+            print(f"✅ Flux 2 Pro completed: {result_url[:80]}...")
+            return result_url
+            
+        except Exception as e:
+            error_msg = str(e).lower()
+            print(f"❌ Flux 2 Pro attempt {attempt + 1} failed: {type(e).__name__}: {e}")
+            
+            # Check if retryable
+            is_retryable = any(keyword in error_msg for keyword in [
+                "queue", "timeout", "retry", "overloaded", "rate limit", "busy"
+            ])
+            
+            if is_retryable and attempt < MAX_RETRIES - 1:
+                wait_time = RETRY_DELAY * (attempt + 1)
+                print(f"⏳ Waiting {wait_time}s before retry...")
+                time.sleep(wait_time)
+                continue
+            
+            if attempt == MAX_RETRIES - 1:
+                print(f"❌ All {MAX_RETRIES} Flux 2 Pro attempts failed")
+                import traceback
+                traceback.print_exc()
+                return None
+    
+    return None
+
 
 def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, guidance_scale: float = 7.0, num_steps: int = 30, negative_prompt: str = None) -> str:
     """
