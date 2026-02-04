@@ -1983,17 +1983,11 @@ export default function CampaignsPage() {
         
         const pollInterval = setInterval(async () => {
           try {
-            // Fetch both progress AND full campaign status for images
-            const [progressRes, statusRes] = await Promise.all([
-              fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/keyframe-progress`,
-                { headers: { Authorization: `Bearer ${token}` } }
-              ),
-              fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/status`,
-                { headers: { Authorization: `Bearer ${token}` } }
-              )
-            ]);
+            // Single fetch for progress - includes status
+            const progressRes = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/keyframe-progress`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
             
             if (progressRes.ok) {
               const progress = await progressRes.json();
@@ -2007,23 +2001,21 @@ export default function CampaignsPage() {
                 currentName: progress.current_name || "Processing...",
               });
               
-              // Update generated images from campaign status data
-              if (statusRes.ok) {
-                const statusData = await statusRes.json();
-                const allImages = statusData.campaign?.settings?.generated_images || [];
-                // Filter to only show newly generated template images
-                const templateImages = allImages.filter((img: any) => 
-                  img.template_id === selectedTemplate && img.is_template_shot
-                );
-                if (templateImages.length > 0) {
-                  setKeyframeGeneratedImages(templateImages);
-                  console.log(`🖼️ Template images loaded: ${templateImages.length}`);
-                }
-              }
-              
+              // Fetch images only when progress changes (reduces DB load)
               if (currentProgress > lastSeenProgress) {
                 console.log(`✅ Template shot completed (${currentProgress}/${progress.total})`);
-                await fetchDataQuietly();
+                const campaignsData = await fetchDataQuietly();
+                if (campaignsData) {
+                  const updatedCampaign = campaignsData.find((c: any) => c.id === campaignId);
+                  if (updatedCampaign) {
+                    const allImages = updatedCampaign.settings?.generated_images || [];
+                    const templateImages = allImages.filter((img: any) => 
+                      img.template_id === selectedTemplate && img.is_template_shot
+                    );
+                    setKeyframeGeneratedImages(templateImages);
+                    console.log(`🖼️ Template images: ${templateImages.length}`);
+                  }
+                }
                 lastSeenProgress = currentProgress;
               }
               
@@ -2042,7 +2034,7 @@ export default function CampaignsPage() {
           } catch (pollError) {
             console.error("Polling error:", pollError);
           }
-        }, 2000); // Poll every 2 seconds for faster updates
+        }, 3000); // Poll every 3 seconds to reduce DB load
         
         setTimeout(() => {
           clearInterval(pollInterval);
