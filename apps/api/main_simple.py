@@ -5415,6 +5415,7 @@ def run_qwen_add_product(model_image_url: str, product_image_url: str, clothing_
 def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, guidance_scale: float = 7.0, num_steps: int = 30, negative_prompt: str = None) -> str:
     """
     Use Replicate's google/nano-banana-pro for advanced image editing/generation
+    WITH AUTOMATIC RETRY LOGIC for handling queue timeouts
     
     Args:
         prompt: Text description of what to do
@@ -5425,78 +5426,86 @@ def run_nano_banana_pro(prompt: str, image_urls: list, strength: float = 0.50, g
         negative_prompt: Optional negative prompt to avoid unwanted features
     
     Returns:
-        URL of generated image
+        URL of generated image, or None if all retries fail
     """
-    try:
-        print(f"🍌 PRO Running nano-banana-pro via Replicate...")
-        print(f"📝 Prompt: {prompt[:150]}...")
-        if negative_prompt:
-            print(f"🚫 Negative prompt: {negative_prompt[:100]}...")
-        print(f"🖼️ Input images: {len(image_urls)}")
-        for idx, url in enumerate(image_urls):
-            print(f"   Image {idx+1}: {url[:100]}...")
-        print(f"⚙️ Parameters: strength={strength}, guidance={guidance_scale}, steps={num_steps}")
-        
-        # Validate image URLs before calling Replicate
-        for idx, url in enumerate(image_urls):
-            if not url or not isinstance(url, str):
-                raise ValueError(f"Image {idx+1} is invalid: {url}")
-            if url.startswith("http://localhost") or url.startswith("http://127.0.0.1"):
-                raise ValueError(f"Image {idx+1} is a local URL that Replicate cannot access: {url[:100]}")
-            if "/static/" in url and "cloudinary" not in url and "replicate.delivery" not in url:
-                raise ValueError(f"Image {idx+1} appears to be a local static file: {url[:100]}")
-        
-        # Call Replicate's nano-banana-pro model
-        import replicate
-        print(f"🔄 Calling Replicate API...")
-        
-        # Build input dict
-        input_dict = {
-            "prompt": prompt,
-            "image_input": image_urls,
-            "num_inference_steps": num_steps,
-            "guidance_scale": guidance_scale,
-            "strength": strength,
-            "seed": None
-        }
-        
-        # Add negative prompt if provided
-        if negative_prompt:
-            input_dict["negative_prompt"] = negative_prompt
-        
-        out = replicate.run("google/nano-banana-pro", input=input_dict)
-        
-        # Handle output
-        if hasattr(out, 'url'):
-            result_url = out.url()
-        elif isinstance(out, str):
-            result_url = out
-        elif isinstance(out, list) and len(out) > 0:
-            result_url = out[0] if isinstance(out[0], str) else out[0].url() if hasattr(out[0], 'url') else str(out[0])
-        else:
-            result_url = str(out)
-        
-        print(f"✅ Nano-banana PRO completed: {result_url[:80]}...")
-        return result_url
-        
-    except ValueError as ve:
-        print(f"❌ INPUT VALIDATION ERROR: {ve}")
-        print(f"🚫 Cannot proceed with nano-banana-pro - invalid input")
-        import traceback
-        traceback.print_exc()
-        raise  # Re-raise to propagate the error
-        
-    except Exception as e:
-        print(f"❌ NANO-BANANA-PRO FAILED: {type(e).__name__}: {e}")
-        print(f"📋 Error details:")
-        print(f"   - Prompt length: {len(prompt)}")
-        print(f"   - Number of images: {len(image_urls)}")
-        print(f"   - Image URLs valid: {all(isinstance(url, str) and url.startswith('http') for url in image_urls)}")
-        import traceback
-        traceback.print_exc()
-        
-        # Fall back to standard nano-banana
-        print(f"🔄 Attempting fallback to standard nano-banana...")
+    import time
+    import replicate
+    
+    MAX_RETRIES = 3
+    RETRY_DELAY = 15  # seconds between retries
+    
+    # Validate image URLs first (don't retry validation errors)
+    for idx, url in enumerate(image_urls):
+        if not url or not isinstance(url, str):
+            print(f"❌ INPUT VALIDATION ERROR: Image {idx+1} is invalid: {url}")
+            raise ValueError(f"Image {idx+1} is invalid: {url}")
+        if url.startswith("http://localhost") or url.startswith("http://127.0.0.1"):
+            print(f"❌ INPUT VALIDATION ERROR: Image {idx+1} is a local URL")
+            raise ValueError(f"Image {idx+1} is a local URL that Replicate cannot access: {url[:100]}")
+        if "/static/" in url and "cloudinary" not in url and "replicate.delivery" not in url:
+            print(f"❌ INPUT VALIDATION ERROR: Image {idx+1} appears to be a local static file")
+            raise ValueError(f"Image {idx+1} appears to be a local static file: {url[:100]}")
+    
+    for attempt in range(MAX_RETRIES):
+        try:
+            print(f"\n🍌 PRO Running nano-banana-pro (attempt {attempt + 1}/{MAX_RETRIES})...")
+            print(f"📝 Prompt: {prompt[:150]}...")
+            if negative_prompt:
+                print(f"🚫 Negative prompt: {negative_prompt[:100]}...")
+            print(f"🖼️ Input images: {len(image_urls)}")
+            for idx, url in enumerate(image_urls):
+                print(f"   Image {idx+1}: {url[:80]}...")
+            print(f"⚙️ Parameters: strength={strength}, guidance={guidance_scale}, steps={num_steps}")
+            
+            # Build input dict
+            input_dict = {
+                "prompt": prompt,
+                "image_input": image_urls,
+                "num_inference_steps": num_steps,
+                "guidance_scale": guidance_scale,
+                "strength": strength,
+                "seed": None
+            }
+            
+            if negative_prompt:
+                input_dict["negative_prompt"] = negative_prompt
+            
+            print(f"🔄 Calling Replicate API...")
+            out = replicate.run("google/nano-banana-pro", input=input_dict)
+            
+            # Handle output
+            if hasattr(out, 'url'):
+                result_url = out.url()
+            elif isinstance(out, str):
+                result_url = out
+            elif isinstance(out, list) and len(out) > 0:
+                result_url = out[0] if isinstance(out[0], str) else str(out[0])
+            else:
+                result_url = str(out)
+            
+            print(f"✅ Nano-banana PRO completed: {result_url[:80]}...")
+            return result_url
+            
+        except Exception as e:
+            error_msg = str(e).lower()
+            print(f"❌ Attempt {attempt + 1}/{MAX_RETRIES} failed: {type(e).__name__}: {e}")
+            
+            # Check if it's a queue/timeout error (worth retrying)
+            is_retryable = any(keyword in error_msg for keyword in [
+                "queue", "timeout", "retry", "failed to generate", "overloaded", 
+                "rate limit", "capacity", "busy", "unavailable"
+            ])
+            
+            if is_retryable and attempt < MAX_RETRIES - 1:
+                wait_time = RETRY_DELAY * (attempt + 1)  # Exponential backoff
+                print(f"⏳ Replicate queue/timeout issue detected. Waiting {wait_time}s before retry...")
+                time.sleep(wait_time)
+                continue
+            
+            # Last attempt failed - try fallback
+            if attempt == MAX_RETRIES - 1:
+                print(f"❌ All {MAX_RETRIES} attempts failed for nano-banana-pro")
+                print(f"🔄 Attempting fallback to standard nano-banana...")
         try:
             import replicate
             out = replicate.run("google/nano-banana", input={
