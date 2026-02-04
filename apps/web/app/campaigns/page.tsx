@@ -194,6 +194,7 @@ export default function CampaignsPage() {
   const [generatingKeyframes, setGeneratingKeyframes] = useState(false);
   const [keyframeProgress, setKeyframeProgress] = useState({ current: 0, total: 0, currentName: "" });
   const [keyframeStartTime, setKeyframeStartTime] = useState<number | null>(null);
+  const [keyframeGeneratedImages, setKeyframeGeneratedImages] = useState<any[]>([]); // Real-time generated images
   
   // Template-based keyframe generation
   const [keyframeMode, setKeyframeMode] = useState<"custom" | "template">("custom");
@@ -1955,6 +1956,7 @@ export default function CampaignsPage() {
     setGeneratingKeyframes(true);
     setKeyframeProgress({ current: 0, total: template.shot_count, currentName: "Starting template..." });
     setKeyframeStartTime(Date.now());
+    setKeyframeGeneratedImages([]); // Reset images for new generation
     
     try {
       const formData = new FormData();
@@ -1981,35 +1983,58 @@ export default function CampaignsPage() {
         
         const pollInterval = setInterval(async () => {
           try {
-            const statusRes = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/keyframe-progress`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              }
-            );
-            if (statusRes.ok) {
-              const status = await statusRes.json();
-              const currentProgress = status.current || 0;
+            // Fetch both progress AND full campaign status for images
+            const [progressRes, statusRes] = await Promise.all([
+              fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/keyframe-progress`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              ),
+              fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/campaigns/${campaignId}/status`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              )
+            ]);
+            
+            if (progressRes.ok) {
+              const progress = await progressRes.json();
+              const currentProgress = progress.current || 0;
+              
+              console.log(`📊 Poll: ${currentProgress}/${progress.total} - ${progress.current_name}`);
               
               setKeyframeProgress({
                 current: currentProgress,
-                total: status.total || template.shot_count,
-                currentName: status.current_name || "Processing...",
+                total: progress.total || template.shot_count,
+                currentName: progress.current_name || "Processing...",
               });
               
+              // Update generated images from campaign status data
+              if (statusRes.ok) {
+                const statusData = await statusRes.json();
+                const allImages = statusData.campaign?.settings?.generated_images || [];
+                // Filter to only show newly generated template images
+                const templateImages = allImages.filter((img: any) => 
+                  img.template_id === selectedTemplate && img.is_template_shot
+                );
+                if (templateImages.length > 0) {
+                  setKeyframeGeneratedImages(templateImages);
+                  console.log(`🖼️ Template images loaded: ${templateImages.length}`);
+                }
+              }
+              
               if (currentProgress > lastSeenProgress) {
-                console.log(`🖼️ Template shot completed (${currentProgress}/${status.total})`);
+                console.log(`✅ Template shot completed (${currentProgress}/${progress.total})`);
                 await fetchDataQuietly();
                 lastSeenProgress = currentProgress;
               }
               
-              if (status.status === "completed" || status.status === "failed") {
+              if (progress.status === "completed" || progress.status === "failed") {
                 clearInterval(pollInterval);
                 setGeneratingKeyframes(false);
                 setShowKeyframeModal(false);
                 setKeyframeStartTime(null);
+                setKeyframeGeneratedImages([]);
                 await fetchDataQuietly();
-                if (status.status === "completed") {
+                if (progress.status === "completed") {
                   console.log(`✅ Template generation complete!`);
                 }
               }
@@ -2017,7 +2042,7 @@ export default function CampaignsPage() {
           } catch (pollError) {
             console.error("Polling error:", pollError);
           }
-        }, 3000);
+        }, 2000); // Poll every 2 seconds for faster updates
         
         setTimeout(() => {
           clearInterval(pollInterval);
@@ -6857,6 +6882,55 @@ export default function CampaignsPage() {
                   <div style={{ fontSize: "12px", color: "#9CA3AF", marginBottom: "16px" }}>
                     ~{Math.ceil(((keyframeProgress.total - keyframeProgress.current) * 33.5) / 60)} min remaining
                   </div>
+                  
+                  {/* Generated Images Gallery - Real-time preview */}
+                  {keyframeGeneratedImages.length > 0 && (
+                    <div style={{ marginBottom: "16px" }}>
+                      <div style={{ fontSize: "12px", color: "#6B7280", marginBottom: "8px", fontWeight: "500" }}>
+                        ✨ Generated so far:
+                      </div>
+                      <div style={{ 
+                        display: "grid", 
+                        gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))", 
+                        gap: "8px",
+                        maxHeight: "200px",
+                        overflowY: "auto",
+                      }}>
+                        {keyframeGeneratedImages.map((img, index) => (
+                          <div key={index} style={{ 
+                            position: "relative", 
+                            aspectRatio: "1", 
+                            borderRadius: "8px", 
+                            overflow: "hidden",
+                            border: "2px solid #E5E7EB",
+                          }}>
+                            <img 
+                              src={img.image_url} 
+                              alt={img.shot_name || `Shot ${index + 1}`}
+                              style={{ 
+                                width: "100%", 
+                                height: "100%", 
+                                objectFit: "cover" 
+                              }}
+                            />
+                            <div style={{
+                              position: "absolute",
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              background: "linear-gradient(transparent, rgba(0,0,0,0.7))",
+                              padding: "4px",
+                              fontSize: "9px",
+                              color: "white",
+                              textAlign: "center",
+                            }}>
+                              {img.shot_name || `#${index + 1}`}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Continue in Background Button */}
                   <button
