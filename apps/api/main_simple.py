@@ -1558,6 +1558,120 @@ KEYFRAME_TEMPLATES = {
                 "negative_prompt": "busy background, front facing, different person"
             }
         ]
+    },
+    "cinematic_noir": {
+        "id": "cinematic_noir",
+        "name": "Cinematic Noir",
+        "description": "Dramatic black and white with deep shadows and film noir aesthetic",
+        "preview_emoji": "🎬",
+        "shots": [
+            {
+                "name": "Venetian Blinds",
+                "prompt": "Dramatic film noir fashion photograph. Hard light through venetian blinds casting striped shadows across the model. High contrast black and white. Mysterious, cinematic atmosphere. 1940s detective movie aesthetic. Same person, same outfit.",
+                "strength": 0.55,
+                "negative_prompt": "color, soft lighting, flat, different person"
+            },
+            {
+                "name": "Smoke & Shadow",
+                "prompt": "Moody noir fashion portrait. Model emerging from deep shadows, half face illuminated. Atmospheric smoke or haze in the air. Dramatic chiaroscuro lighting. Black and white, high contrast. Same person, same outfit.",
+                "strength": 0.52,
+                "negative_prompt": "bright, colorful, fully lit, different person"
+            },
+            {
+                "name": "Mirror Reflection",
+                "prompt": "Film noir double exposure effect. Model reflected in vintage mirror or wet street. Dramatic shadows, rain-slicked surfaces. Moody, mysterious atmosphere. Cinematic black and white. Same person, same outfit.",
+                "strength": 0.50,
+                "negative_prompt": "bright daylight, no reflection, different person"
+            },
+            {
+                "name": "Staircase Drama",
+                "prompt": "Fashion photograph on dramatic staircase. Strong directional lighting from above creating elongated shadows. Art deco architectural elements. Film noir aesthetic, black and white. Same person, same outfit.",
+                "strength": 0.55,
+                "negative_prompt": "flat location, soft shadows, different person"
+            },
+            {
+                "name": "Spotlight Solo",
+                "prompt": "Single spotlight illuminating the model against pure darkness. Dramatic rim lighting, deep blacks. Theatrical, cinematic quality. Fashion noir style. Same person, same outfit.",
+                "strength": 0.48,
+                "negative_prompt": "multiple lights, flat lighting, different person"
+            }
+        ]
+    },
+    "natural_botanical": {
+        "id": "natural_botanical",
+        "name": "Natural Botanical",
+        "description": "Organic greenery, natural light, and serene garden atmosphere",
+        "preview_emoji": "🌿",
+        "shots": [
+            {
+                "name": "Garden Portrait",
+                "prompt": "Fashion photograph in lush botanical garden. Model surrounded by tropical plants and flowers. Soft dappled sunlight through leaves. Natural, organic atmosphere. Serene and elegant. Same person, same outfit.",
+                "strength": 0.55,
+                "negative_prompt": "urban, concrete, harsh lighting, different person"
+            },
+            {
+                "name": "Greenhouse Glass",
+                "prompt": "Fashion editorial inside Victorian greenhouse. Glass ceiling, tropical plants, humid atmosphere. Soft diffused light. Ethereal, romantic quality. Same person, same outfit.",
+                "strength": 0.52,
+                "negative_prompt": "outdoor, cold, different person"
+            },
+            {
+                "name": "Floral Close-up",
+                "prompt": "Close-up fashion photograph with flowers framing the shot. Soft focus florals in foreground, model sharp. Natural light, pastel tones. Romantic editorial style. Same person, same outfit.",
+                "strength": 0.48,
+                "negative_prompt": "no flowers, harsh light, different person"
+            },
+            {
+                "name": "Forest Path",
+                "prompt": "Fashion shot on winding forest path. Tall trees creating natural archway. Rays of sunlight filtering through canopy. Magical, fairytale atmosphere. Same person, same outfit.",
+                "strength": 0.55,
+                "negative_prompt": "urban, night, different person"
+            },
+            {
+                "name": "Ivy Wall",
+                "prompt": "Editorial fashion photograph against wall covered in climbing ivy and vines. Rich green textures. Soft natural lighting. Organic luxury aesthetic. Same person, same outfit.",
+                "strength": 0.50,
+                "negative_prompt": "bare wall, concrete, different person"
+            }
+        ]
+    },
+    "neon_night": {
+        "id": "neon_night",
+        "name": "Neon Night",
+        "description": "Vibrant neon lights, cyberpunk city vibes, and electric colors",
+        "preview_emoji": "🌃",
+        "shots": [
+            {
+                "name": "Neon Glow",
+                "prompt": "Fashion photograph bathed in neon light. Pink, blue, and purple neon signs reflecting on model. Cyberpunk aesthetic. Night city vibes. Vibrant, electric atmosphere. Same person, same outfit.",
+                "strength": 0.55,
+                "negative_prompt": "daylight, natural colors, different person"
+            },
+            {
+                "name": "Rain Reflections",
+                "prompt": "Night fashion shot on wet city street. Neon lights reflecting in puddles and wet pavement. Blade Runner aesthetic. Moody, futuristic atmosphere. Same person, same outfit.",
+                "strength": 0.52,
+                "negative_prompt": "dry, daylight, different person"
+            },
+            {
+                "name": "LED Portrait",
+                "prompt": "Close-up portrait lit by colorful LED strips. Geometric light patterns on face. Futuristic, editorial style. Vibrant magenta and cyan tones. Same person, same outfit.",
+                "strength": 0.48,
+                "negative_prompt": "natural light, muted colors, different person"
+            },
+            {
+                "name": "Tokyo Alley",
+                "prompt": "Fashion editorial in narrow alley with Japanese neon signs. Kanji characters glowing. Steamy atmosphere from vents. Cinematic night photography. Same person, same outfit.",
+                "strength": 0.55,
+                "negative_prompt": "wide street, daylight, western signs, different person"
+            },
+            {
+                "name": "Club Entrance",
+                "prompt": "Fashion shot at nightclub entrance. Velvet ropes, neon signage, urban nightlife. Glamorous night-out energy. Rich colors, dramatic lighting. Same person, same outfit.",
+                "strength": 0.50,
+                "negative_prompt": "daytime, quiet location, different person"
+            }
+        ]
     }
 }
 
