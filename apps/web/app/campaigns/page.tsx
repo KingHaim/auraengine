@@ -6609,9 +6609,12 @@ export default function CampaignsPage() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close button */}
+              {/* Close button - always visible, generation continues in background */}
               <button
-                onClick={() => setShowKeyframeModal(false)}
+                onClick={() => {
+                  setShowKeyframeModal(false);
+                  // Generation continues in background - don't stop polling
+                }}
                 style={{
                   position: "absolute",
                   top: "16px",
@@ -6622,6 +6625,7 @@ export default function CampaignsPage() {
                   cursor: "pointer",
                   color: "#6B7280",
                 }}
+                title={generatingKeyframes ? "Close - generation will continue in background" : "Close"}
               >
                 ✕
               </button>
@@ -6850,9 +6854,29 @@ export default function CampaignsPage() {
                   </div>
                   
                   {/* Time Estimate */}
-                  <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
+                  <div style={{ fontSize: "12px", color: "#9CA3AF", marginBottom: "16px" }}>
                     ~{Math.ceil(((keyframeProgress.total - keyframeProgress.current) * 33.5) / 60)} min remaining
                   </div>
+                  
+                  {/* Continue in Background Button */}
+                  <button
+                    onClick={() => setShowKeyframeModal(false)}
+                    style={{
+                      padding: "10px 20px",
+                      backgroundColor: "transparent",
+                      border: "2px solid #d42f48",
+                      borderRadius: "8px",
+                      color: "#d42f48",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ✓ Continue in Background
+                  </button>
+                  <p style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "8px" }}>
+                    Generation will continue. Check the campaign for progress.
+                  </p>
                 </div>
               ) : (
                 <button
