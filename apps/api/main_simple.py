@@ -5452,6 +5452,7 @@ def run_flux_2_pro(prompt: str, reference_images: list, guidance: float = 3.5, s
             print(f"⚙️ Parameters: guidance={guidance}, steps={steps}, aspect_ratio={aspect_ratio}")
             
             # Build input - Flux 2 Pro format
+            # API docs: https://replicate.com/black-forest-labs/flux-2-pro
             input_dict = {
                 "prompt": prompt,
                 "guidance": guidance,
@@ -5463,13 +5464,11 @@ def run_flux_2_pro(prompt: str, reference_images: list, guidance: float = 3.5, s
             }
             
             # Add reference images (Flux 2 Pro supports up to 8)
+            # Parameter: image_references (array) + reference_strength
             if reference_images:
-                input_dict["image_reference"] = reference_images[0]  # Primary reference
-                input_dict["image_reference_strength"] = 0.65  # How much to follow reference
-                
-                # If multiple references, use the first as main reference
-                if len(reference_images) > 1:
-                    print(f"   📌 Using first image as primary reference, others for context")
+                input_dict["image_references"] = reference_images  # Array of image URLs
+                input_dict["reference_strength"] = 0.75  # Higher = more adherence to reference
+                print(f"   📌 Using {len(reference_images)} reference image(s) with strength 0.75")
             
             print(f"🔄 Calling Replicate API (black-forest-labs/flux-2-pro)...")
             out = replicate.run("black-forest-labs/flux-2-pro", input=input_dict)
