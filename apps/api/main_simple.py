@@ -1734,9 +1734,15 @@ async def generate_template_keyframes(
         if not base_image_url:
             raise HTTPException(status_code=400, detail="Base image URL not found")
         
-        print(f"🎬 TEMPLATE KEYFRAME GENERATION: {template['name']}")
-        print(f"📸 Template has {len(template['shots'])} shots")
-        print(f"🖼️ Base image: {base_image_url[:60]}...")
+        print(f"\n{'='*60}")
+        print(f"🎬 TEMPLATE KEYFRAME GENERATION")
+        print(f"{'='*60}")
+        print(f"📋 Template ID: {template_id}")
+        print(f"📋 Template Name: {template['name']}")
+        print(f"📸 Number of shots: {len(template['shots'])}")
+        print(f"🖼️ Base image: {base_image_url[:80]}...")
+        print(f"🔗 Will call Replicate nano-banana-pro for each shot")
+        print(f"{'='*60}")
         
         # Update campaign status
         campaign.generation_status = "generating"
