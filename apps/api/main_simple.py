@@ -2713,13 +2713,14 @@ async def generate_multiple_pose_variations(
                     
                     print(f"📝 Close-up prompt: {closeup_prompt[:100]}...")
                     
-                    # Use Flux 2 Pro to reframe/crop the preview image into a close-up
-                    closeup_url = run_flux_2_pro(
+                    # Use nano-banana PRO to reframe/crop the preview image into a close-up
+                    # (Better for reframing existing images with low strength)
+                    closeup_url = run_nano_banana_pro(
                         prompt=closeup_prompt,
-                        reference_images=[preview_image_url],
-                        guidance=3.5,
-                        steps=28,
-                        aspect_ratio="1:1"  # Square for close-up detail shot
+                        image_urls=[preview_image_url],
+                        strength=0.35,  # Low strength - just reframing, not changing content
+                        guidance_scale=5.0,
+                        num_steps=25
                     )
                     
                     # Upload to Cloudinary for persistence
@@ -2796,13 +2797,14 @@ async def generate_multiple_pose_variations(
                     
                     print(f"📝 Pants close-up prompt: {pants_closeup_prompt[:100]}...")
                     
-                    # Use Flux 2 Pro to reframe/crop into pants close-up
-                    pants_closeup_url = run_flux_2_pro(
+                    # Use nano-banana PRO to reframe/crop into pants close-up
+                    # (Better for reframing existing images with controlled strength)
+                    pants_closeup_url = run_nano_banana_pro(
                         prompt=pants_closeup_prompt,
-                        reference_images=[preview_image_url],
-                        guidance=3.5,
-                        steps=28,
-                        aspect_ratio="9:16"  # Portrait for pants focus
+                        image_urls=[preview_image_url],
+                        strength=0.40,  # Slightly higher for editorial reframing
+                        guidance_scale=5.5,
+                        num_steps=28
                     )
                     
                     # Upload to Cloudinary for persistence
