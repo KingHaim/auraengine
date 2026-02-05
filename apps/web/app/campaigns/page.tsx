@@ -671,6 +671,31 @@ export default function CampaignsPage() {
               setGeneratedImageUrl(latestImage.image_url);
               setCurrentDisplayedImage(latestImage.image_url);
             }
+            
+            // 🔥 Update the campaigns state so images render progressively
+            setCampaigns(prevCampaigns => 
+              prevCampaigns.map(c => 
+                c.id === generatingCampaignId 
+                  ? { ...c, settings: { ...c.settings, generated_images: newImages } }
+                  : c
+              )
+            );
+            
+            // Also update selectedCampaign if it's the one being generated
+            if (selectedCampaign?.id === generatingCampaignId) {
+              setSelectedCampaign(prev => prev ? {
+                ...prev,
+                settings: { ...prev.settings, generated_images: newImages }
+              } : null);
+            }
+            
+            // Also update selectedCampaignForProfile if it's the one being generated
+            if (selectedCampaignForProfile?.id === generatingCampaignId) {
+              setSelectedCampaignForProfile(prev => prev ? {
+                ...prev,
+                settings: { ...prev.settings, generated_images: newImages }
+              } : null);
+            }
           }
           
           // Check if completed or failed
@@ -7348,8 +7373,10 @@ export default function CampaignsPage() {
                                     🎬 VIDEO
                                   </div>
                                 )}
-                                {/* Video Generating Spinner */}
-                                {!img.video_url && selectedCampaignForProfile.settings?.bulk_video_status === "generating" && (
+                                {/* Video Generating Spinner - only show on images being processed or in queue */}
+                                {!img.video_url && 
+                                 selectedCampaignForProfile.settings?.bulk_video_status === "generating" && 
+                                 actualIndex === (selectedCampaignForProfile.settings?.bulk_video_progress?.current || 0) && (
                                   <div style={{
                                     position: "absolute",
                                     top: 0, left: 0, right: 0, bottom: 0,
