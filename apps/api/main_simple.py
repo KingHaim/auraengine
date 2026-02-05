@@ -1077,18 +1077,16 @@ async def generate_campaign_images_background(
                             final_url = stable_base_url
                             print(f"   ✅ Using base image directly (no modification)")
                         else:
-                            # Generate variation from base image using nano-banana
-                            print(f"   🔄 Generating variation with nano-banana...")
+                            # Generate variation from base image using Flux 2 Pro
+                            print(f"   🔄 Generating variation with Flux 2 Pro...")
                             print(f"   📝 Prompt: {variation['prompt'][:80]}...")
-                            print(f"   ⚙️ Strength: {variation['strength']}")
                             
-                            variation_url = run_nano_banana_pro(
+                            variation_url = run_flux_2_pro(
                                 prompt=variation['prompt'],
-                                image_urls=[stable_base_url],
-                                strength=variation['strength'],
-                                guidance_scale=7.0,
-                                num_steps=30,
-                                negative_prompt=variation.get('negative_prompt', 'different person, different clothes')
+                                reference_images=[stable_base_url],
+                                guidance=3.5,
+                                steps=28,
+                                aspect_ratio="9:16"
                             )
                             
                             # Stabilize the variation URL
@@ -2173,14 +2171,13 @@ async def generate_keyframes_background(
                 flag_modified(campaign, "settings")
                 db.commit()
                 
-                # Generate variation using nano-banana-pro
-                variation_url = run_nano_banana_pro(
+                # Generate variation using Flux 2 Pro
+                variation_url = run_flux_2_pro(
                     prompt=variation['prompt'],
-                    image_urls=[base_image_url],
-                    strength=variation['strength'],
-                    guidance_scale=7.0,
-                    num_steps=30,
-                    negative_prompt=variation['negative_prompt']
+                    reference_images=[base_image_url],
+                    guidance=3.5,
+                    steps=28,
+                    aspect_ratio="9:16"
                 )
                 
                 # Stabilize the URL
@@ -2656,13 +2653,13 @@ async def generate_multiple_pose_variations(
                         f"Full body shot with the person repositioned within the scene."
                     )
                     
-                    # Use nano-banana PRO to reposition model within the scene with HIGHER strength for creative variation
-                    angle_result_url = run_nano_banana_pro(
+                    # Use Flux 2 Pro to reposition model within the scene
+                    angle_result_url = run_flux_2_pro(
                         prompt=angle_prompt,
-                        image_urls=[new_pose_image_url],  # Single image, reposition person in scene
-                        strength=0.60,  # Higher strength to allow repositioning within scene
-                        guidance_scale=7.0,  # Higher guidance for repositioning
-                        num_steps=30  # More steps for quality
+                        reference_images=[new_pose_image_url],
+                        guidance=3.5,
+                        steps=28,
+                        aspect_ratio="9:16"
                     )
                     
                     # Upload to Cloudinary
@@ -2716,13 +2713,13 @@ async def generate_multiple_pose_variations(
                     
                     print(f"📝 Close-up prompt: {closeup_prompt[:100]}...")
                     
-                    # Use nano-banana PRO to reframe/crop the preview image into a close-up
-                    closeup_url = run_nano_banana_pro(
+                    # Use Flux 2 Pro to reframe/crop the preview image into a close-up
+                    closeup_url = run_flux_2_pro(
                         prompt=closeup_prompt,
-                        image_urls=[preview_image_url],  # Single image - reframe it
-                        strength=0.35,  # Low strength - just reframing, not changing content
-                        guidance_scale=5.0,  # Moderate guidance
-                        num_steps=25  # Standard quality
+                        reference_images=[preview_image_url],
+                        guidance=3.5,
+                        steps=28,
+                        aspect_ratio="1:1"  # Square for close-up detail shot
                     )
                     
                     # Upload to Cloudinary for persistence
@@ -2799,13 +2796,13 @@ async def generate_multiple_pose_variations(
                     
                     print(f"📝 Pants close-up prompt: {pants_closeup_prompt[:100]}...")
                     
-                    # Use nano-banana PRO to reframe/crop into pants close-up
-                    pants_closeup_url = run_nano_banana_pro(
+                    # Use Flux 2 Pro to reframe/crop into pants close-up
+                    pants_closeup_url = run_flux_2_pro(
                         prompt=pants_closeup_prompt,
-                        image_urls=[preview_image_url],  # Single image - reframe it
-                        strength=0.40,  # Slightly higher for editorial reframing
-                        guidance_scale=5.5,  # Higher guidance for precise framing
-                        num_steps=28  # Good quality
+                        reference_images=[preview_image_url],
+                        guidance=3.5,
+                        steps=28,
+                        aspect_ratio="9:16"  # Portrait for pants focus
                     )
                     
                     # Upload to Cloudinary for persistence
@@ -5746,14 +5743,13 @@ def replace_manikin_with_person(manikin_pose_url: str, person_wearing_product_ur
         print(f"🖼️ Image order: [person_wearing_product (base to modify), manikin_pose (pose reference)]")
         
         # SWAP BACK: Person first (base to modify), manikin second (pose to reference)
-        # VERY low strength for loose approximation - NOT exact copy
-        result_url = run_nano_banana_pro(
+        # Flux 2 Pro with input_images for pose reference
+        result_url = run_flux_2_pro(
             prompt=prompt,
-            image_urls=[person_wearing_product_url, manikin_pose_url],  # Person = base, Manikin = pose ref
-            strength=0.18,  # VERY LOW for loose approximation - was 0.25, too strict
-            guidance_scale=6.5,  # Moderate guidance for natural variation
-            num_steps=30,  # Standard quality
-            negative_prompt=negative_prompt  # Prevent wooden/mannequin appearance
+            reference_images=[person_wearing_product_url, manikin_pose_url],  # Person = base, Manikin = pose ref
+            guidance=3.5,
+            steps=28,
+            aspect_ratio="9:16"
         )
         
         # Upload to Cloudinary for stability
@@ -5896,21 +5892,21 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
             )
         
         print(f"📝 Add product prompt: {prompt[:200]}...")
-        print(f"🎯 Calling nano-banana-pro to add {product_name}...")
+        print(f"🎯 Calling Flux 2 Pro to add {product_name}...")
         
-        # Use nano-banana PRO to add the product
+        # Use Flux 2 Pro to add the product
         try:
-            result_url = run_nano_banana_pro(
+            result_url = run_flux_2_pro(
                 prompt=prompt,
-                image_urls=[current_image_url, product_image_url],  # Current image first, new product second
-                strength=0.65,  # Moderate strength to add garment while preserving scene
-                guidance_scale=7.5,
-                num_steps=30
+                reference_images=[current_image_url, product_image_url],  # Current image first, new product second
+                guidance=3.5,
+                steps=28,
+                aspect_ratio="9:16"
             )
             
             # Upload to Cloudinary for stability
             if result_url and result_url != current_image_url:
-                print(f"✅ Nano-banana returned new image, uploading to Cloudinary...")
+                print(f"✅ Flux 2 Pro returned new image, uploading to Cloudinary...")
                 stable_url = upload_to_cloudinary(result_url, f"with_{product_name}")
                 print(f"✅ SUCCESS: Added {product_name} successfully!")
                 print(f"   Result URL: {stable_url[:100]}...")
@@ -5918,14 +5914,14 @@ def add_product_to_image(current_image_url: str, product_image_url: str, product
                 return stable_url
             else:
                 print(f"⚠️ WARNING: Product addition returned same image")
-                print(f"   This means nano-banana-pro didn't modify the image")
+                print(f"   This means Flux 2 Pro didn't modify the image")
                 print(f"   Returning current image without {product_name}")
                 print(f"{'='*80}\n")
                 return current_image_url
                 
         except ValueError as ve:
             # Input validation error - this is critical
-            print(f"❌ CRITICAL ERROR: Invalid input for nano-banana-pro")
+            print(f"❌ CRITICAL ERROR: Invalid input for Flux 2 Pro")
             print(f"   Error: {ve}")
             print(f"   Cannot add {product_name} - returning current image")
             print(f"{'='*80}\n")
@@ -5995,14 +5991,13 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
         print(f"🚫 Negative: {negative_prompt[:100]}...")
         
         try:
-            # Call Nano-banana PRO with all 3 images
-            result_url = run_nano_banana_pro(
+            # Call Flux 2 Pro with all 3 images (supports up to 8 reference images)
+            result_url = run_flux_2_pro(
                 prompt=prompt,
-                image_urls=[model_image_url, scene_image_url, product_image_url],  # Person, Scene, Clothing
-                strength=0.55,       # Balanced for all 3 elements
-                guidance_scale=7.0,  # Strong prompt following
-                num_steps=35,        # Good quality
-                negative_prompt=negative_prompt
+                reference_images=[model_image_url, scene_image_url, product_image_url],  # Person, Scene, Clothing
+                guidance=3.5,
+                steps=28,
+                aspect_ratio="9:16"
             )
             
             # Upload to Cloudinary for stability
@@ -6011,7 +6006,7 @@ def run_qwen_triple_composition(model_image_url: str, product_image_url: str, sc
             return stable_url
             
         except Exception as e:
-            print(f"❌ Nano-banana composition failed: {e}")
+            print(f"❌ Flux 2 Pro composition failed: {e}")
             import traceback
             traceback.print_exc()
             if DISABLE_PLACEHOLDERS:
