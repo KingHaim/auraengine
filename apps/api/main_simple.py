@@ -1865,14 +1865,13 @@ async def generate_template_keyframes_background(
                     )
                     print(f"   🎨 Using Shot 1 as style reference for consistency")
                 
-                # Generate using nano-banana-pro (best for image-to-image with reference consistency)
-                result_url = run_nano_banana_pro(
+                # Generate using Flux 2 Pro with input_images (supports up to 8 reference images)
+                result_url = run_flux_2_pro(
                     prompt=style_prompt,
-                    image_urls=[reference_url],  # Use appropriate reference
-                    strength=shot.get("strength", 0.50),
-                    guidance_scale=6.5,
-                    num_steps=28,
-                    negative_prompt=shot.get("negative_prompt", "blurry, distorted, different person, inconsistent colors, different lighting")
+                    reference_images=[reference_url],  # Use appropriate reference
+                    guidance=3.5,  # Flux uses lower guidance values
+                    steps=28,
+                    aspect_ratio="9:16"  # Portrait/fashion ratio
                 )
                 
                 if result_url:
