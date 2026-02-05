@@ -2653,13 +2653,14 @@ async def generate_multiple_pose_variations(
                         f"Full body shot with the person repositioned within the scene."
                     )
                     
-                    # Use Flux 2 Pro to reposition model within the scene
-                    angle_result_url = run_flux_2_pro(
+                    # Use nano-banana PRO to reposition model within the scene
+                    # (Better for preserving facial features with controlled strength)
+                    angle_result_url = run_nano_banana_pro(
                         prompt=angle_prompt,
-                        reference_images=[new_pose_image_url],
-                        guidance=3.5,
-                        steps=28,
-                        aspect_ratio="9:16"
+                        image_urls=[new_pose_image_url],
+                        strength=0.55,  # Moderate strength for repositioning while preserving face
+                        guidance_scale=6.5,
+                        num_steps=28
                     )
                     
                     # Upload to Cloudinary
