@@ -1865,13 +1865,14 @@ async def generate_template_keyframes_background(
                     )
                     print(f"   🎨 Using Shot 1 as style reference for consistency")
                 
-                # Generate using Flux 2 Pro (faster and cheaper than nano-banana)
-                result_url = run_flux_2_pro(
+                # Generate using nano-banana-pro (best for image-to-image with reference consistency)
+                result_url = run_nano_banana_pro(
                     prompt=style_prompt,
-                    reference_images=[reference_url],  # Use appropriate reference
-                    guidance=3.5,  # Flux uses lower guidance values
-                    steps=28,
-                    aspect_ratio="9:16"  # Portrait/fashion ratio
+                    image_urls=[reference_url],  # Use appropriate reference
+                    strength=shot.get("strength", 0.50),
+                    guidance_scale=6.5,
+                    num_steps=28,
+                    negative_prompt=shot.get("negative_prompt", "blurry, distorted, different person, inconsistent colors, different lighting")
                 )
                 
                 if result_url:
@@ -5452,23 +5453,24 @@ def run_flux_2_pro(prompt: str, reference_images: list, guidance: float = 3.5, s
             print(f"⚙️ Parameters: guidance={guidance}, steps={steps}, aspect_ratio={aspect_ratio}")
             
             # Build input - Flux 2 Pro format
-            # API docs: https://replicate.com/black-forest-labs/flux-2-pro
+            # API docs: https://replicate.com/black-forest-labs/flux-2-pro/api/schema
+            # Using input_images for reference-based generation (supports up to 8 images)
             input_dict = {
                 "prompt": prompt,
                 "guidance": guidance,
-                "steps": steps,
+                "num_inference_steps": steps,
                 "aspect_ratio": aspect_ratio,
                 "output_format": "jpg",
                 "output_quality": 90,
-                "safety_tolerance": 5,  # Allow more creative freedom
+                "safety_tolerance": 5,
             }
             
-            # Add reference images (Flux 2 Pro supports up to 8)
-            # Parameter: image_references (array) + reference_strength
+            # Add reference images using input_images (array of URIs, up to 8)
             if reference_images:
-                input_dict["image_references"] = reference_images  # Array of image URLs
-                input_dict["reference_strength"] = 0.75  # Higher = more adherence to reference
-                print(f"   📌 Using {len(reference_images)} reference image(s) with strength 0.75")
+                # Flux 2 Pro accepts up to 8 reference images via input_images parameter
+                images_to_use = reference_images[:8]  # Limit to 8 max
+                input_dict["input_images"] = images_to_use
+                print(f"   📌 Using input_images with {len(images_to_use)} reference image(s)")
             
             print(f"🔄 Calling Replicate API (black-forest-labs/flux-2-pro)...")
             out = replicate.run("black-forest-labs/flux-2-pro", input=input_dict)
